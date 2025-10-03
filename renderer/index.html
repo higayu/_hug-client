@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Hug Client</title>
+</head>
+<body>
+  <h1>Hello Electron!</h1>
+  <p>ここにReactやPuppeteerの処理を埋め込んでいけます</p>
+  <button id="loginBtn">ログイン開始</button>
+
+  <script>
+    document.getElementById("loginBtn").addEventListener("click", () => {
+      window.electronAPI.hugLogin().then((result) => {
+        console.log("ログイン結果:", result);
+      });
+    });
+  </script>
+</body>
+</html>

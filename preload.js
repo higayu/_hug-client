@@ -1,5 +1,5 @@
 const { contextBridge, ipcRenderer } = require("electron");
 
-contextBridge.exposeInMainWorld("hugAPI", {
-  fetchPage: () => ipcRenderer.invoke("fetch-hug"),
+contextBridge.exposeInMainWorld("electronAPI", {
+  hugLogin: () => ipcRenderer.invoke("hug-login")
 });
