@@ -14,11 +14,15 @@ function createWindow() {
       nodeIntegration: false,
       contextIsolation: true,
       webviewTag: true,   // ← webviewを有効化
+      sandbox: false,   // ← これを追加！
     },
   });
 
 
   mainWindow.loadFile("renderer/index.html");
+
+    // ⭐ ここを追加
+  mainWindow.webContents.openDevTools();
 }
 
 app.whenReady().then(createWindow);
@@ -66,6 +70,24 @@ ipcMain.handle("get-env", () => {
   return {
     username: process.env.HUG_USERNAME,
     password: process.env.HUG_PASSWORD,
+    apiBaseUrl: process.env.VITE_API_BASE_URL,   // ← 追加
   };
 });
+
+// main.js
+const apiClient = require("./src/apiClient.js");
+
+// 追加: IPC 経由で fetchStaff を呼ぶ
+ipcMain.handle("fetch-staff", async () => {
+  console.log("📥 fetch-staff IPC 呼ばれた");
+  try {
+    const staff = await apiClient.fetchStaff();
+    console.log("📤 fetch-staff 成功:", staff);
+    return staff;
+  } catch (err) {
+    console.error("❌ fetchStaff 失敗:", err);
+    throw err;
+  }
+});
+
 

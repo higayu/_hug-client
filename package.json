@@ -12,6 +12,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "axios": "^1.12.2",
     "dotenv": "^17.2.3",
     "puppeteer": "^24.23.0"
   },
@@ -19,24 +20,24 @@
     "electron": "^38.2.0",
     "electron-builder": "^26.0.12"
   },
-"build": {
-  "appId": "com.example.hugclient",
-  "productName": "Hug Client",
-  "directories": {
-    "output": "dist"
-  },
-  "files": [
-    "main.js",
-    "preload.js",
-    "renderer/**/*",
-    "puppeteer/**/*",
-    "package.json"
-  ],
-  "win": {
-    "target": "nsis",
-    "signAndEditExecutable": false,
-    "forceCodeSigning": false
+  "build": {
+    "appId": "com.example.hugclient",
+    "productName": "Hug Client",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "renderer/**/*",
+      "puppeteer/**/*",
+      "src/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": "nsis",
+      "signAndEditExecutable": false,
+      "forceCodeSigning": false
+    }
   }
-}
-
 }

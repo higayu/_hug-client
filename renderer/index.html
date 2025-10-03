@@ -54,10 +54,7 @@
 
   <div id="content">
     <webview id="hugview" src="https://www.hug-ayumu.link/hug/wm/" allowpopups></webview>
-    <div id="settings">
-      <h2>設定ページ</h2>
-      <p>ここに設定画面や別のUIを実装できます。</p>
-    </div>
+    <div id="settings"></div>
   </div>
 
   <script>
@@ -98,6 +95,14 @@
       });
     });
 
+  // 設定ページを読み込んで埋め込む
+  fetch("settings.html")
+    .then(res => res.text())
+    .then(html => {
+      document.getElementById("settings").innerHTML = html;
+      document.getElementById("settings").classList.add("hidden"); // 初期は非表示
+      console.log("✅ settings.html を読み込んだ");
+    });
 
   </script>
 </body>
