@@ -46,6 +46,8 @@
   <div id="toolbar">
     <button id="refreshBtn">🔄 更新</button>
     <button id="loginBtn">⚙️ 自動ログイン</button>
+    <button id="professional-support">専門的支援-一覧</button>
+    <button id="professional-support-new">専門的支援-新規</button>
   </div>
   <div id="tabs">
     <button data-target="hugview">Hug</button>
@@ -74,6 +76,57 @@
         document.querySelector("input.btn-login")?.click();
       `);
     });
+
+    document.getElementById("professional-support").addEventListener("click", () => {
+      hugview.loadURL("https://www.hug-ayumu.link/hug/wm/record_proceedings.php");
+    });
+
+    document.getElementById("professional-support-new").addEventListener("click", () => {
+      hugview.loadURL("https://www.hug-ayumu.link/hug/wm/record_proceedings.php?mode=edit");
+      // ページが読み込まれたら option を選択
+      hugview.addEventListener("did-finish-load", () => {
+        hugview.executeJavaScript(`
+          // 専門的支援実施加算
+          const selectSupport = document.querySelector('select[name="adding_children_id"]');
+          if (selectSupport) {
+            selectSupport.value = "55";
+            selectSupport.dispatchEvent(new Event("change", { bubbles: true }));
+            console.log("✅ 専門的支援実施加算を選択");
+          }
+
+          // 子どもリスト（例：岡田 磨和 → value="49"）
+          const selectChild = document.querySelector('select[name="c_id_list[0][id]"]');
+          if (selectChild) {
+            selectChild.value = "49";
+            selectChild.dispatchEvent(new Event("change", { bubbles: true }));
+            console.log("✅ 子どもリストで岡田磨和を選択");
+          }
+
+          // 記録者（例：東山 → value="73"）
+          const selectRecorder = document.querySelector('select[name="recorder"]');
+          if (selectRecorder) {
+            selectRecorder.value = "73";
+            selectRecorder.dispatchEvent(new Event("change", { bubbles: true }));
+            console.log("✅ 記録者をひがしやまに選択");
+          }
+          const interviewSelect = document.querySelector('select[name="interview_staff[]"]');
+          if (interviewSelect) {
+            interviewSelect.value = "73"; // 東山 友輔
+            interviewSelect.dispatchEvent(new Event("change", { bubbles: true }));
+            console.log("✅ 面接担当を選択:", interviewSelect.value);
+          }
+
+          // カスタマイズ項目のタイトル入力
+          const customizeInput = document.querySelector('input[name="customize[title][]"]');
+          if (customizeInput) {
+            customizeInput.value = "記録";
+            customizeInput.dispatchEvent(new Event("input", { bubbles: true }));
+            console.log("✅ カスタマイズタイトル入力:", customizeInput.value);
+          }
+        `);
+      }, { once: true }); // ← 一度だけ実行
+    });
+
 
     // タブ切り替え
     const tabs = document.querySelectorAll("#tabs button");
