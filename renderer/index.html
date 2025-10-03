@@ -4,9 +4,42 @@
   <meta charset="UTF-8">
   <title>Hug Client</title>
   <style>
-    body { margin: 0; display: flex; flex-direction: column; height: 100vh; }
-    #toolbar { background: #333; color: white; padding: 8px; }
-    #hugview { flex: 1; }
+    body {
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden; /* スクロール防止 */
+    }
+    #toolbar {
+      background: #333;
+      color: white;
+      padding: 8px;
+      flex: 0 0 auto; /* 高さ固定 */
+    }
+    #tabs {
+      background: #555;
+      padding: 4px;
+      flex: 0 0 auto; /* 高さ固定 */
+    }
+    #content {
+      position: relative;
+      flex: 1 1 auto;  /* 残りの高さを埋める */
+      overflow: hidden;
+    }
+    #hugview, #settings {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
+    .hidden {
+      visibility: hidden;
+      pointer-events: none;
+    }
+
   </style>
 </head>
 <body>
@@ -14,9 +47,18 @@
     <button id="refreshBtn">🔄 更新</button>
     <button id="loginBtn">⚙️ 自動ログイン</button>
   </div>
+  <div id="tabs">
+    <button data-target="hugview">Hug</button>
+    <button data-target="settings">設定</button>
+  </div>
 
-  <!-- Hug のページを埋め込む -->
-  <webview id="hugview" src="https://www.hug-ayumu.link/hug/wm/" style="width:100%; height:100%;" allowpopups></webview>
+  <div id="content">
+    <webview id="hugview" src="https://www.hug-ayumu.link/hug/wm/" allowpopups></webview>
+    <div id="settings">
+      <h2>設定ページ</h2>
+      <p>ここに設定画面や別のUIを実装できます。</p>
+    </div>
+  </div>
 
   <script>
     const hugview = document.getElementById("hugview");
@@ -25,7 +67,6 @@
       hugview.reload();
     });
 
-    // 自動ログインボタン
     document.getElementById("loginBtn").addEventListener("click", async () => {
       const { username, password } = await window.electronAPI.getEnv();
       hugview.executeJavaScript(`
@@ -36,6 +77,28 @@
         document.querySelector("input.btn-login")?.click();
       `);
     });
+
+    // タブ切り替え
+    const tabs = document.querySelectorAll("#tabs button");
+    const hugviewEl = document.getElementById("hugview");
+    const settingsEl = document.getElementById("settings");
+
+    // ⭐ 初期状態で Settings を非表示にする
+    settingsEl.classList.add("hidden");
+
+    tabs.forEach(tab => {
+      tab.addEventListener("click", () => {
+        if (tab.dataset.target === "hugview") {
+          hugviewEl.classList.remove("hidden");
+          settingsEl.classList.add("hidden");
+        } else {
+          hugviewEl.classList.add("hidden");
+          settingsEl.classList.remove("hidden");
+        }
+      });
+    });
+
+
   </script>
 </body>
 </html>
