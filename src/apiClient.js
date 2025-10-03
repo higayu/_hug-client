@@ -1,66 +1,57 @@
+// src/apiClient.js
 const axios = require("axios");
+require("dotenv").config();
 
-// API クライアントを作る関数（毎回 env を取得して作る）
-async function createClient(getEnv) {
-  const { apiBaseUrl } = await getEnv();
-  return axios.create({
-    baseURL: apiBaseUrl,
-    headers: { "Content-Type": "application/json" },
-  });
-}
+const apiClient = axios.create({
+  baseURL: process.env.VITE_API_BASE_URL,
+  headers: { "Content-Type": "application/json" },
+});
 
 /* ------------------------------
    Staffs
 ------------------------------ */
-async function fetchStaff(getEnv) {
-  const client = await createClient(getEnv);
-  const res = await client.get("/houday/staffs");
+async function fetchStaff() {
+  const res = await apiClient.get("/houday/staffs");
   return res.data;
 }
 
 /* ------------------------------
    Managers
 ------------------------------ */
-async function getManager(getEnv) {
-  const client = await createClient(getEnv);
-  const res = await client.get("/houday/managers");
+async function getManager() {
+  const res = await apiClient.get("/houday/managers");
   return res.data;
 }
 
 /* ------------------------------
    Children
 ------------------------------ */
-async function fetchChildren(getEnv) {
-  const client = await createClient(getEnv);
-  const res = await client.get("/houday/Children");
+async function fetchChildren() {
+  const res = await apiClient.get("/houday/Children");
   return res.data;
 }
 
-async function fetchChildById(getEnv, id) {
-  const client = await createClient(getEnv);
-  const res = await client.get("/houday/Children/search", {
+async function fetchChildById(id) {
+  const res = await apiClient.get("/houday/Children/search", {
     params: { pk: "child_id", values: id },
   });
   return res.data[0];
 }
 
-async function createChild(getEnv, child) {
-  const client = await createClient(getEnv);
-  const res = await client.post("/houday/Children", child);
+async function createChild(child) {
+  const res = await apiClient.post("/houday/Children", child);
   return res.data;
 }
 
-async function updateChild(getEnv, id, child) {
-  const client = await createClient(getEnv);
-  const res = await client.put("/houday/Children", child, {
+async function updateChild(id, child) {
+  const res = await apiClient.put("/houday/Children", child, {
     params: { pk: "child_id", values: id },
   });
   return res.data;
 }
 
-async function deleteChild(getEnv, id) {
-  const client = await createClient(getEnv);
-  const res = await client.delete("/houday/Children", {
+async function deleteChild(id) {
+  const res = await apiClient.delete("/houday/Children", {
     params: { pk: "child_id", values: id },
   });
   return res.data;
@@ -69,9 +60,8 @@ async function deleteChild(getEnv, id) {
 /* ------------------------------
    Stored Procedures
 ------------------------------ */
-async function callProcedure(getEnv, procname, params = []) {
-  const client = await createClient(getEnv);
-  const res = await client.post(`/houday/procedure/${procname}`, { params });
+async function callProcedure(procname, params = []) {
+  const res = await apiClient.post(`/houday/procedure/${procname}`, { params });
   return res.data;
 }
 

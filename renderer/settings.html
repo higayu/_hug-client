@@ -5,23 +5,8 @@
   <title>設定ページ</title>
 </head>
 <body>
-<button id="loadStaffBtn">スタッフ一覧取得</button>
-<ul id="staffList"></ul>
-
-<script>
-  console.log("window.electronAPI:", window.electronAPI);
-  document.getElementById("loadStaffBtn").addEventListener("click", async () => {
-    console.log("✅ ボタンクリック発火");
-    try {
-      const staff = await window.electronAPI.fetchStaff();
-      console.log("📥 staff 取得:", staff);
-    } catch (err) {
-      console.error("❌ staff 取得エラー:", err);
-    }
-  });
-
-</script>
-
+  <button id="loadStaffBtn">スタッフ一覧取得</button>
+  <ul id="staffList"></ul>
 
 </body>
 </html>

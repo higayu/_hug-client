@@ -95,14 +95,36 @@
       });
     });
 
-  // 設定ページを読み込んで埋め込む
-  fetch("settings.html")
-    .then(res => res.text())
-    .then(html => {
-      document.getElementById("settings").innerHTML = html;
-      document.getElementById("settings").classList.add("hidden"); // 初期は非表示
-      console.log("✅ settings.html を読み込んだ");
-    });
+    // 設定ページを読み込んで埋め込む
+    fetch("settings.html")
+      .then(res => res.text())
+      .then(html => {
+        settingsEl.innerHTML = html;
+        settingsEl.classList.add("hidden");
+        console.log("✅ settings.html を読み込んだ");
+
+        // 💡 ここでボタンのイベントを登録する
+        const btn = settingsEl.querySelector("#loadStaffBtn");
+        const staffList = settingsEl.querySelector("#staffList");
+
+        btn.addEventListener("click", async () => {
+          console.log("✅ ボタンクリックイベント発火");
+          try {
+            const staff = await window.electronAPI.fetchStaff();
+            console.log("✅ APIから取得:", staff);
+
+            staffList.innerHTML = "";
+            staff.forEach(s => {
+              const li = document.createElement("li");
+              li.textContent = `${s.id}: ${s.name}`;
+              staffList.appendChild(li);
+            });
+          } catch (err) {
+            console.error("❌ スタッフ取得エラー:", err);
+          }
+        });
+      });
+
 
   </script>
 </body>
