@@ -1,19 +1,40 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>Hug Client</title>
+  <style>
+    body { margin: 0; display: flex; flex-direction: column; height: 100vh; }
+    #toolbar { background: #333; color: white; padding: 8px; }
+    #hugview { flex: 1; }
+  </style>
 </head>
 <body>
-  <h1>Hello Electron!</h1>
-  <p>ここにReactやPuppeteerの処理を埋め込んでいけます</p>
-  <button id="loginBtn">ログイン開始</button>
+  <div id="toolbar">
+    <button id="refreshBtn">🔄 更新</button>
+    <button id="loginBtn">⚙️ 自動ログイン</button>
+  </div>
+
+  <!-- Hug のページを埋め込む -->
+  <webview id="hugview" src="https://www.hug-ayumu.link/hug/wm/" style="width:100%; height:100%;" allowpopups></webview>
 
   <script>
-    document.getElementById("loginBtn").addEventListener("click", () => {
-      window.electronAPI.hugLogin().then((result) => {
-        console.log("ログイン結果:", result);
-      });
+    const hugview = document.getElementById("hugview");
+
+    document.getElementById("refreshBtn").addEventListener("click", () => {
+      hugview.reload();
+    });
+
+    // 自動ログインボタン
+    document.getElementById("loginBtn").addEventListener("click", async () => {
+      const { username, password } = await window.electronAPI.getEnv();
+      hugview.executeJavaScript(`
+        document.querySelector('input[name="username"]').value = ${JSON.stringify(username)};
+        document.querySelector('input[name="password"]').value = ${JSON.stringify(password)};
+        const checkbox = document.querySelector('input[name="setexpire"]');
+        if (checkbox && !checkbox.checked) checkbox.click();
+        document.querySelector("input.btn-login")?.click();
+      `);
     });
   </script>
 </body>

@@ -1,6 +1,7 @@
 const { app, BrowserWindow, ipcMain } = require("electron");
 const path = require("path");
 const { loginHug } = require("./puppeteer/login.js");
+require("dotenv").config();  // ← 追加
 
 let mainWindow;
 
@@ -9,9 +10,13 @@ function createWindow() {
     width: 1200,
     height: 800,
     webPreferences: {
-      preload: path.join(__dirname, "preload.js"), // ipcRenderer用
+      preload: path.join(__dirname, "preload.js"),
+      nodeIntegration: false,
+      contextIsolation: true,
+      webviewTag: true,   // ← webviewを有効化
     },
   });
+
 
   mainWindow.loadFile("renderer/index.html");
 }
@@ -48,5 +53,19 @@ ipcMain.handle("hug-login", async () => {
   }
 });
 
+// main.js
+// 既存のhug-login処理に加えて
+ipcMain.handle("do-auto-login", async (event, { username, password }) => {
+  // puppeteer不要ならここでそのままwebviewに注入させる
+  mainWindow.webContents.send("inject-login", { username, password });
+  return { success: true };
+});
 
+// ✅ 環境変数をレンダラーに渡すIPC
+ipcMain.handle("get-env", () => {
+  return {
+    username: process.env.HUG_USERNAME,
+    password: process.env.HUG_PASSWORD,
+  };
+});
 
