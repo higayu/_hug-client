@@ -3,44 +3,121 @@
 <head>
   <meta charset="UTF-8">
   <title>Hug Client</title>
-  <style>
-    body {
-      margin: 0;
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
-      overflow: hidden; /* スクロール防止 */
-    }
-    #toolbar {
-      background: #333;
-      color: white;
-      padding: 8px;
-      flex: 0 0 auto; /* 高さ固定 */
-    }
-    #tabs {
-      background: #555;
-      padding: 4px;
-      flex: 0 0 auto; /* 高さ固定 */
-    }
-    #content {
-      position: relative;
-      flex: 1 1 auto;  /* 残りの高さを埋める */
-      overflow: hidden;
-    }
-    #hugview, #settings {
-      position: absolute;
-      top: 0; left: 0;
-      width: 100%;
-      height: 100%;
-      border: none;
-    }
+<style>
+  body {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+  }
+  #toolbar {
+    background: #333;
+    color: white;
+    padding: 8px;
+    flex: 0 0 auto;
+  }
+  #tabs {
+    background: #555;
+    padding: 4px;
+    flex: 0 0 auto;
+  }
+  #tabs button.active-tab {
+    background: linear-gradient(180deg, #b3e5fc, #4fc3f7);
+    color: #000;
+    font-weight: bold;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  }
 
-    .hidden {
-      visibility: hidden;
-      pointer-events: none;
-    }
+  #tabs button {
+    margin-right: 4px;
+    padding: 4px 10px;
+    border: none;
+    cursor: pointer;
+    background: #777;
+    color: white;
+    border-radius: 4px;
+  }
+  /* 🌟 アクティブタブの見た目 */
+  #tabs button.active-tab {
+    background: #4fc3f7;
+    color: #000;
+    font-weight: bold;
+  }
+  #content {
+    position: relative;
+    flex: 1 1 auto;
+    overflow: hidden;
+  }
+  #hugview, #settings {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
+  }
+  .hidden {
+    visibility: hidden;
+    pointer-events: none;
+  }
+  .close-btn {
+    color: red;
+    cursor: pointer;
+    margin-left: 6px;
+    font-weight: bold;
+  }
+  .close-btn.hidden {
+    display: none;
+  }
+  /* ✅ シンプルなスイッチスタイル */
+  .toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 40px;
+    height: 22px;
+    margin-left: 8px;
+    vertical-align: middle;
+  }
 
-  </style>
+  .toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+
+  .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0;
+    right: 0; bottom: 0;
+    background-color: #ccc;
+    border-radius: 22px;
+    transition: 0.3s;
+  }
+
+  .slider::before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    border-radius: 50%;
+    transition: 0.3s;
+  }
+
+  /* ON状態 */
+  .toggle-switch input:checked + .slider {
+    background-color: #4fc3f7;
+  }
+
+  .toggle-switch input:checked + .slider::before {
+    transform: translateX(18px);
+  }
+
+</style>
+
 </head>
 <body>
   <div id="toolbar">
@@ -48,7 +125,13 @@
     <button id="loginBtn">⚙️ 自動ログイン</button>
     <button id="professional-support">専門的支援-一覧</button>
     <button id="professional-support-new">専門的支援-新規</button>
+      <!-- 🌟 閉じるボタン表示ON/OFF トグル -->
+    <label class="toggle-switch" title="閉じるボタン表示トグル">
+      <input type="checkbox" id="closeToggle" checked>
+      <span class="slider"></span>
+    </label>
   </div>
+
   <div id="tabs">
     <button data-target="hugview">Hug</button>
     <button data-target="settings">設定</button>
@@ -58,35 +141,59 @@
     <webview id="hugview" src="https://www.hug-ayumu.link/hug/wm/" allowpopups></webview>
     <div id="settings"></div>
   </div>
-
   <script>
-    const hugview = document.getElementById("hugview");
+          // 🌟 現在アクティブなwebviewを管理
+          let activeWebview = document.getElementById("hugview");
+          let closeButtonsVisible = true; // ← トグルの状態を管理
 
-    document.getElementById("refreshBtn").addEventListener("click", () => {
-      hugview.reload();
-    });
+          // 各ボタン共通でアクティブタブに対して操作する
+          function getActiveWebview() {
+            if (!activeWebview) {
+              alert("アクティブなHugタブがありません");
+              return null;
+            }
+            return activeWebview;
+          }
 
-    document.getElementById("loginBtn").addEventListener("click", async () => {
-      const { username, password } = await window.electronAPI.getEnv();
-      hugview.executeJavaScript(`
-        document.querySelector('input[name="username"]').value = ${JSON.stringify(username)};
-        document.querySelector('input[name="password"]').value = ${JSON.stringify(password)};
-        const checkbox = document.querySelector('input[name="setexpire"]');
-        if (checkbox && !checkbox.checked) checkbox.click();
-        document.querySelector("input.btn-login")?.click();
-      `);
-    });
+          document.getElementById("refreshBtn").addEventListener("click", () => {
+            const vw = getActiveWebview();
+            vw?.reload();
+          });
 
-    document.getElementById("professional-support").addEventListener("click", () => {
-      hugview.loadURL("https://www.hug-ayumu.link/hug/wm/record_proceedings.php");
-    });
 
-    document.getElementById("professional-support-new").addEventListener("click", () => {
-      hugview.loadURL("https://www.hug-ayumu.link/hug/wm/record_proceedings.php?mode=edit");
-      // ページが読み込まれたら option を選択
-      hugview.addEventListener("did-finish-load", () => {
-        hugview.executeJavaScript(`
-          // 専門的支援実施加算
+        // 🌟 トグルで閉じるボタンの表示ON/OFF
+        document.getElementById("closeToggle").addEventListener("change", (e) => {
+          closeButtonsVisible = e.target.checked;
+          document.querySelectorAll(".close-btn").forEach(btn => {
+            btn.style.display = closeButtonsVisible ? "inline" : "none";
+          });
+        });
+
+
+          document.getElementById("loginBtn").addEventListener("click", async () => {
+            const vw = getActiveWebview();
+            if (!vw) return;
+            const { username, password } = await window.electronAPI.getEnv();
+            vw.executeJavaScript(`
+              document.querySelector('input[name="username"]').value = ${JSON.stringify(username)};
+              document.querySelector('input[name="password"]').value = ${JSON.stringify(password)};
+              const checkbox = document.querySelector('input[name="setexpire"]');
+              if (checkbox && !checkbox.checked) checkbox.click();
+              document.querySelector("input.btn-login")?.click();
+            `);
+          });
+
+          document.getElementById("professional-support").addEventListener("click", () => {
+            const vw = getActiveWebview();
+            vw?.loadURL("https://www.hug-ayumu.link/hug/wm/record_proceedings.php");
+          });
+
+          document.getElementById("professional-support-new").addEventListener("click", () => {
+            const vw = getActiveWebview();
+            if (!vw) return;
+            vw.loadURL("https://www.hug-ayumu.link/hug/wm/record_proceedings.php?mode=edit");
+            vw.addEventListener("did-finish-load", () => {
+              vw.executeJavaScript(`// 専門的支援実施加算
           const selectSupport = document.querySelector('select[name="adding_children_id"]');
           if (selectSupport) {
             selectSupport.value = "55";
@@ -124,7 +231,56 @@
             console.log("✅ カスタマイズタイトル入力:", customizeInput.value);
           }
         `);
-      }, { once: true }); // ← 一度だけ実行
+            }, { once: true });
+          });
+
+      // タブ追加ボタンを作る
+    const tabsContainer = document.getElementById("tabs");
+    const addTabButton = document.createElement("button");
+    addTabButton.textContent = "＋ 新しいHugページ";
+    tabsContainer.appendChild(addTabButton);
+
+    addTabButton.addEventListener("click", () => {
+      const newId = `hugview-${Date.now()}`;
+      const newWebview = document.createElement("webview");
+      newWebview.id = newId;
+      newWebview.src = "https://www.hug-ayumu.link/hug/wm/";
+      newWebview.allowpopups = true;
+      newWebview.style.cssText = "position:absolute;top:0;left:0;width:100%;height:100%;";
+      newWebview.classList.add("hidden");
+      document.getElementById("content").appendChild(newWebview);
+
+    // タブボタン作成部分の改良
+    const tabButton = document.createElement("button");
+    tabButton.innerHTML = `
+      Hug-${tabsContainer.querySelectorAll("button[data-target^='hugview']").length + 1}
+      <span class="close-btn"${closeButtonsVisible ? "" : " style='display:none'"}>❌</span>
+    `;
+    tabButton.dataset.target = newId;
+    tabsContainer.insertBefore(tabButton, addTabButton);
+
+      tabButton.addEventListener("click", () => {
+        document.querySelectorAll("webview").forEach(v => v.classList.add("hidden"));
+        newWebview.classList.remove("hidden");
+        activeWebview = newWebview; // ← アクティブを更新
+      });
+
+      // 閉じる処理
+      const closeBtn = tabButton.querySelector(".close-btn");
+      closeBtn.addEventListener("click", (e) => {
+        e.stopPropagation(); // タブ切り替えを防ぐ
+        if (!confirm("このタブを閉じてもよろしいですか？")) return;
+        newWebview.remove();
+        tabButton.remove();
+
+        if (activeWebview === newWebview) {
+          activeWebview = document.getElementById("hugview");
+          activeWebview.classList.remove("hidden");
+        }
+      });
+
+      // 追加直後にこのタブを選択状態にする
+      tabButton.click();
     });
 
 
@@ -132,21 +288,36 @@
     const tabs = document.querySelectorAll("#tabs button");
     const hugviewEl = document.getElementById("hugview");
     const settingsEl = document.getElementById("settings");
+    
 
     // ⭐ 初期状態で Settings を非表示にする
     settingsEl.classList.add("hidden");
 
-    tabs.forEach(tab => {
-      tab.addEventListener("click", () => {
-        if (tab.dataset.target === "hugview") {
-          hugviewEl.classList.remove("hidden");
-          settingsEl.classList.add("hidden");
-        } else {
-          hugviewEl.classList.add("hidden");
-          settingsEl.classList.remove("hidden");
+    // タブ切り替え（イベント委譲対応）
+    tabsContainer.addEventListener("click", (e) => {
+      const tab = e.target.closest("button[data-target]");
+      if (!tab) return;
+
+      // 🎨 すべてのタブからアクティブクラスを除去
+      tabsContainer.querySelectorAll("button").forEach(btn => btn.classList.remove("active-tab"));
+      // 🎨 押されたタブだけにアクティブクラスを付与
+      tab.classList.add("active-tab");
+
+      const targetId = tab.dataset.target;
+      document.querySelectorAll("webview").forEach(v => v.classList.add("hidden"));
+      settingsEl.classList.add("hidden");
+
+      if (targetId === "settings") {
+        settingsEl.classList.remove("hidden");
+      } else {
+        const targetView = document.getElementById(targetId);
+        if (targetView) {
+          targetView.classList.remove("hidden");
+          activeWebview = targetView;
         }
-      });
+      }
     });
+
 
     // 設定ページを読み込んで埋め込む
     fetch("settings.html")
