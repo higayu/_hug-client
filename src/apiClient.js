@@ -60,9 +60,23 @@ async function deleteChild(id) {
 /* ------------------------------
    Stored Procedures
 ------------------------------ */
+/**
+ * ストアドプロシージャ呼び出し用ユーティリティ
+ * @param {string} procname - プロシージャ名
+ * @param {object|array} params - パラメータ（オブジェクト or [{name, value}]）
+ */
 async function callProcedure(procname, params = []) {
-  const res = await apiClient.post(`/houday/procedure/${procname}`, { params });
-  return res.data;
+  console.log("📡 callProcedure:", procname, params);
+
+  try {
+    // ✅ サーバー側が params配列を期待している
+    const res = await apiClient.post(`/houday/procedure/${procname}`, { params });
+    console.log("📬 API応答:", res.data);
+    return res.data;
+  } catch (err) {
+    console.error("❌ API呼び出しエラー:", err.response?.data || err.message);
+    throw err;
+  }
 }
 
 /* ------------------------------

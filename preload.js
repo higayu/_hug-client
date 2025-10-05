@@ -10,7 +10,8 @@ contextBridge.exposeInMainWorld("electronAPI", {
     ipcRenderer.on("inject-login", (event, args) => callback(args)),
 
     // API 呼び出し (main 経由)
-  fetchStaff: () => ipcRenderer.invoke("fetch-staff"),
+  GetChildrenByStaffAndDay: (staffId, date) =>
+    ipcRenderer.invoke("GetChildrenByStaffAndDay", { staffId, date }),
 
 
   readConfig: () => ipcRenderer.invoke("read-config"),

@@ -123,6 +123,7 @@
   <div id="toolbar">
     <button id="refreshBtn">🔄 更新</button>
     <button id="loginBtn">⚙️ 自動ログイン</button>
+    <button id="KojinBtn">個人記録</button>
     <button id="professional-support">専門的支援-一覧</button>
     <button id="professional-support-new">専門的支援-新規</button>
       <!-- 🌟 閉じるボタン表示ON/OFF トグル -->
@@ -148,6 +149,7 @@
     let HUG_USERNAME = "";
     let HUG_PASSWORD = "";
     let STAFF_ID ="";
+    let SELECT_CHILD = "90";
 
   window.addEventListener("DOMContentLoaded", async () => {
     const result = await window.electronAPI.readConfig();
@@ -195,7 +197,7 @@
       });
 
 
-      document.getElementById("loginBtn").addEventListener("click", async () => {
+    document.getElementById("loginBtn").addEventListener("click", async () => {
         const vw = getActiveWebview();
         if (!vw) return;
 
@@ -213,13 +215,40 @@
         `);
       });
 
+    document.getElementById("KojinBtn").addEventListener("click", async () => {
+      const vw = getActiveWebview();
+      if (!vw) return;
 
-      document.getElementById("professional-support").addEventListener("click", () => {
-        const vw = getActiveWebview();
-        vw?.loadURL("https://www.hug-ayumu.link/hug/wm/record_proceedings.php");
-      });
+      // contact_book ページを開く
+      vw.loadURL(`https://www.hug-ayumu.link/hug/wm/contact_book.php?id=${encodeURIComponent(STAFF_ID)}`);
 
-      document.getElementById("professional-support-new").addEventListener("click", () => {
+      // 読み込み完了後に実行
+      vw.addEventListener(
+        "did-finish-load",
+        () => {
+          vw.executeJavaScript(`
+            console.log("✅ ページ読込完了: 編集ボタンを探します...");
+            const editButton = document.querySelector('button.btn.btn-sm.m0.edit');
+            if (editButton) {
+              console.log("✅ 編集ボタン見つかりました。クリックします。");
+              editButton.click();
+            } else {
+              console.warn("❌ 編集ボタンが見つかりませんでした。");
+            }
+          `);
+        },
+        { once: true } // 一度だけ実行
+      );
+    });
+
+
+
+    document.getElementById("professional-support").addEventListener("click", () => {
+      const vw = getActiveWebview();
+      vw?.loadURL("https://www.hug-ayumu.link/hug/wm/record_proceedings.php");
+    });
+
+    document.getElementById("professional-support-new").addEventListener("click", () => {
         const vw = getActiveWebview();
         if (!vw) return;
         vw.loadURL("https://www.hug-ayumu.link/hug/wm/record_proceedings.php?mode=edit");
@@ -358,24 +387,42 @@
         settingsEl.classList.add("hidden");
         console.log("✅ settings.html を読み込んだ");
 
-        // 💡 ここでボタンのイベントを登録する
-        const btn = settingsEl.querySelector("#loadStaffBtn");
-        const staffList = settingsEl.querySelector("#staffList");
+        // 💡 ボタンとリスト要素を取得
+        const btn = settingsEl.querySelector("#LoadChildrenBtn");
+        const childrenList = settingsEl.querySelector("#childrenList");
+
+        if (!btn) {
+          console.error("❌ settings.html に #LoadChildrenBtn が見つかりません");
+          return;
+        }
 
         btn.addEventListener("click", async () => {
           console.log("✅ ボタンクリックイベント発火");
-          try {
-            const staff = await window.electronAPI.fetchStaff();
-            console.log("✅ APIから取得:", staff);
 
-            staffList.innerHTML = "";
-            staff.forEach(s => {
-              const li = document.createElement("li");
-              li.textContent = `${s.id}: ${s.name}`;
-              staffList.appendChild(li);
-            });
+          const staffId = STAFF_ID;  // config.jsonから読み込んだ職員ID
+          const date = "土"; // ✅ 今日の日付 (例: 2025-10-06)
+
+          try {
+              const children = await window.electronAPI.GetChildrenByStaffAndDay(staffId, date);
+              console.log("✅ 子ども一覧取得成功:", children);
+            // ✅ HTMLに一覧を表示
+            if (childrenList) {
+              childrenList.innerHTML = "";
+              if (Array.isArray(children) && children.length > 0) {
+                children.forEach(c => {
+                  const li = document.createElement("li");
+                  li.textContent = `${c.child_id}：${c.name}`;
+                  childrenList.appendChild(li);
+                });
+              } else {
+                childrenList.innerHTML = "<li>該当する子どもがいません</li>";
+              }
+            }
           } catch (err) {
-            console.error("❌ スタッフ取得エラー:", err);
+            console.error("❌ 子ども一覧取得失敗:", err);
+            if (childrenList) {
+              childrenList.innerHTML = `<li style="color:red;">エラー: ${err.message}</li>`;
+            }
           }
         });
       });

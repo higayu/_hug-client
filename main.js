@@ -69,18 +69,23 @@ ipcMain.handle("do-auto-login", async (event, { username, password }) => {
 // main.js
 const apiClient = require("./src/apiClient.js");
 
-// 追加: IPC 経由で fetchStaff を呼ぶ
-ipcMain.handle("fetch-staff", async () => {
-  console.log("📥 fetch-staff IPC 呼ばれた");
+
+// main.js
+ipcMain.handle("GetChildrenByStaffAndDay", async (event, { staffId, date }) => {
+  console.log("📥 GetChildrenByStaffAndDay IPC 呼ばれた", { staffId, date });
+
   try {
-    const staff = await apiClient.fetchStaff();
-    console.log("📤 fetch-staff 成功:", staff);
-    return staff;
+    // ✅ params を配列で渡す
+    const result = await apiClient.callProcedure("GetChildrenByStaffAndDay", [staffId, date]);
+    console.log("📤 GetChildrenByStaffAndDay 成功:", result);
+    return result;
   } catch (err) {
-    console.error("❌ fetchStaff 失敗:", err);
+    console.error("❌ GetChildrenByStaffAndDay 失敗:", err);
     throw err;
   }
 });
+
+
 
 // 開発時は __dirname（現在のフォルダ）
 // ビルド後は process.resourcesPath に切り替わる
