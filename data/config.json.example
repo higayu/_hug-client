@@ -2,5 +2,6 @@
   "HUG_USERNAME": "",
   "HUG_PASSWORD": "",
   "VITE_API_BASE_URL": "http://192.168.1.229:3001/api",
-  "STAFF_ID": "73"
+  "STAFF_ID": "73",
+  "FACILITY_ID":"3"
 }
