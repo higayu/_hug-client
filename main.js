@@ -1,4 +1,5 @@
 const { app, BrowserWindow, ipcMain } = require("electron");
+const fs = require('fs');
 const path = require("path");
 const { loginHug } = require("./puppeteer/login.js");
 require("dotenv").config();  // ← 追加
@@ -65,15 +66,6 @@ ipcMain.handle("do-auto-login", async (event, { username, password }) => {
   return { success: true };
 });
 
-// ✅ 環境変数をレンダラーに渡すIPC
-ipcMain.handle("get-env", () => {
-  return {
-    username: process.env.HUG_USERNAME,
-    password: process.env.HUG_PASSWORD,
-    apiBaseUrl: process.env.VITE_API_BASE_URL,   // ← 追加
-  };
-});
-
 // main.js
 const apiClient = require("./src/apiClient.js");
 
@@ -90,4 +82,22 @@ ipcMain.handle("fetch-staff", async () => {
   }
 });
 
+// 開発時は __dirname（現在のフォルダ）
+// ビルド後は process.resourcesPath に切り替わる
+function getDataPath(...paths) {
+  const base = app.isPackaged ? process.resourcesPath : __dirname;
+  return path.join(base, "data", ...paths);
+}
 
+
+// ✅ レンダラーからファイルを読み取るIPC
+ipcMain.handle("read-config", async () => {
+  try {
+    const filePath = getDataPath("config.json");
+    const jsonData = JSON.parse(fs.readFileSync(filePath, "utf8"));
+    return { success: true, data: jsonData };
+  } catch (err) {
+    console.error("❌ config.json 読み込み失敗:", err);
+    return { success: false, error: err.message };
+  }
+});

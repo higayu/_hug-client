@@ -141,98 +141,127 @@
     <webview id="hugview" src="https://www.hug-ayumu.link/hug/wm/" allowpopups></webview>
     <div id="settings"></div>
   </div>
+  <pre id="configOutput" style="white-space: pre-wrap; background:#eee; padding:10px; border-radius:8px;"></pre>
+
   <script>
-          // 🌟 現在アクティブなwebviewを管理
-          let activeWebview = document.getElementById("hugview");
-          let closeButtonsVisible = true; // ← トグルの状態を管理
+      // ページ読み込み完了時に実行
+    let HUG_USERNAME = "";
+    let HUG_PASSWORD = "";
 
-          // 各ボタン共通でアクティブタブに対して操作する
-          function getActiveWebview() {
-            if (!activeWebview) {
-              alert("アクティブなHugタブがありません");
-              return null;
-            }
-            return activeWebview;
-          }
+  window.addEventListener("DOMContentLoaded", async () => {
+    const result = await window.electronAPI.readConfig();
+    const output = document.getElementById("configOutput");
 
-          document.getElementById("refreshBtn").addEventListener("click", () => {
-            const vw = getActiveWebview();
-            vw?.reload();
-          });
+    if (result.success) {
+      output.textContent = JSON.stringify(result.data, null, 2);
+      console.log("✅ config.json 読み込み成功:", result.data);
+
+      // ✅ グローバル変数に代入
+      HUG_USERNAME = result.data.HUG_USERNAME;
+      HUG_PASSWORD = result.data.HUG_PASSWORD;
+    } else {
+      output.textContent = "❌ 読み込みエラー: " + result.error;
+      console.error(result.error);
+    }
+  });
+
+      // 🌟 現在アクティブなwebviewを管理
+      let activeWebview = document.getElementById("hugview");
+      let closeButtonsVisible = true; // ← トグルの状態を管理
+
+      // 各ボタン共通でアクティブタブに対して操作する
+      function getActiveWebview() {
+        if (!activeWebview) {
+          alert("アクティブなHugタブがありません");
+          return null;
+        }
+        return activeWebview;
+      }
+
+      document.getElementById("refreshBtn").addEventListener("click", () => {
+        const vw = getActiveWebview();
+        vw?.reload();
+      });
 
 
-        // 🌟 トグルで閉じるボタンの表示ON/OFF
-        document.getElementById("closeToggle").addEventListener("change", (e) => {
-          closeButtonsVisible = e.target.checked;
-          document.querySelectorAll(".close-btn").forEach(btn => {
-            btn.style.display = closeButtonsVisible ? "inline" : "none";
-          });
+      // 🌟 トグルで閉じるボタンの表示ON/OFF
+      document.getElementById("closeToggle").addEventListener("change", (e) => {
+        closeButtonsVisible = e.target.checked;
+        document.querySelectorAll(".close-btn").forEach(btn => {
+          btn.style.display = closeButtonsVisible ? "inline" : "none";
         });
+      });
 
 
-          document.getElementById("loginBtn").addEventListener("click", async () => {
-            const vw = getActiveWebview();
-            if (!vw) return;
-            const { username, password } = await window.electronAPI.getEnv();
-            vw.executeJavaScript(`
-              document.querySelector('input[name="username"]').value = ${JSON.stringify(username)};
-              document.querySelector('input[name="password"]').value = ${JSON.stringify(password)};
-              const checkbox = document.querySelector('input[name="setexpire"]');
-              if (checkbox && !checkbox.checked) checkbox.click();
-              document.querySelector("input.btn-login")?.click();
-            `);
-          });
+      document.getElementById("loginBtn").addEventListener("click", async () => {
+        const vw = getActiveWebview();
+        if (!vw) return;
 
-          document.getElementById("professional-support").addEventListener("click", () => {
-            const vw = getActiveWebview();
-            vw?.loadURL("https://www.hug-ayumu.link/hug/wm/record_proceedings.php");
-          });
+        if (!HUG_USERNAME || !HUG_PASSWORD) {
+          alert("config.json がまだ読み込まれていません。");
+          return;
+        }
 
-          document.getElementById("professional-support-new").addEventListener("click", () => {
-            const vw = getActiveWebview();
-            if (!vw) return;
-            vw.loadURL("https://www.hug-ayumu.link/hug/wm/record_proceedings.php?mode=edit");
-            vw.addEventListener("did-finish-load", () => {
-              vw.executeJavaScript(`// 専門的支援実施加算
-          const selectSupport = document.querySelector('select[name="adding_children_id"]');
-          if (selectSupport) {
-            selectSupport.value = "55";
-            selectSupport.dispatchEvent(new Event("change", { bubbles: true }));
-            console.log("✅ 専門的支援実施加算を選択");
-          }
-
-          // 子どもリスト（例：岡田 磨和 → value="49"）
-          const selectChild = document.querySelector('select[name="c_id_list[0][id]"]');
-          if (selectChild) {
-            selectChild.value = "49";
-            selectChild.dispatchEvent(new Event("change", { bubbles: true }));
-            console.log("✅ 子どもリストで岡田磨和を選択");
-          }
-
-          // 記録者（例：東山 → value="73"）
-          const selectRecorder = document.querySelector('select[name="recorder"]');
-          if (selectRecorder) {
-            selectRecorder.value = "73";
-            selectRecorder.dispatchEvent(new Event("change", { bubbles: true }));
-            console.log("✅ 記録者をひがしやまに選択");
-          }
-          const interviewSelect = document.querySelector('select[name="interview_staff[]"]');
-          if (interviewSelect) {
-            interviewSelect.value = "73"; // 東山 友輔
-            interviewSelect.dispatchEvent(new Event("change", { bubbles: true }));
-            console.log("✅ 面接担当を選択:", interviewSelect.value);
-          }
-
-          // カスタマイズ項目のタイトル入力
-          const customizeInput = document.querySelector('input[name="customize[title][]"]');
-          if (customizeInput) {
-            customizeInput.value = "記録";
-            customizeInput.dispatchEvent(new Event("input", { bubbles: true }));
-            console.log("✅ カスタマイズタイトル入力:", customizeInput.value);
-          }
+        vw.executeJavaScript(`
+          document.querySelector('input[name="username"]').value = ${JSON.stringify(HUG_USERNAME)};
+          document.querySelector('input[name="password"]').value = ${JSON.stringify(HUG_PASSWORD)};
+          const checkbox = document.querySelector('input[name="setexpire"]');
+          if (checkbox && !checkbox.checked) checkbox.click();
+          document.querySelector("input.btn-login")?.click();
         `);
-            }, { once: true });
-          });
+      });
+
+
+      document.getElementById("professional-support").addEventListener("click", () => {
+        const vw = getActiveWebview();
+        vw?.loadURL("https://www.hug-ayumu.link/hug/wm/record_proceedings.php");
+      });
+
+      document.getElementById("professional-support-new").addEventListener("click", () => {
+        const vw = getActiveWebview();
+        if (!vw) return;
+        vw.loadURL("https://www.hug-ayumu.link/hug/wm/record_proceedings.php?mode=edit");
+        vw.addEventListener("did-finish-load", () => {
+          vw.executeJavaScript(`// 専門的支援実施加算
+      const selectSupport = document.querySelector('select[name="adding_children_id"]');
+      if (selectSupport) {
+        selectSupport.value = "55";
+        selectSupport.dispatchEvent(new Event("change", { bubbles: true }));
+        console.log("✅ 専門的支援実施加算を選択");
+      }
+
+      // 子どもリスト（例：岡田 磨和 → value="49"）
+      const selectChild = document.querySelector('select[name="c_id_list[0][id]"]');
+      if (selectChild) {
+        selectChild.value = "49";
+        selectChild.dispatchEvent(new Event("change", { bubbles: true }));
+        console.log("✅ 子どもリストで岡田磨和を選択");
+      }
+
+      // 記録者（例：東山 → value="73"）
+      const selectRecorder = document.querySelector('select[name="recorder"]');
+      if (selectRecorder) {
+        selectRecorder.value = "73";
+        selectRecorder.dispatchEvent(new Event("change", { bubbles: true }));
+        console.log("✅ 記録者をひがしやまに選択");
+      }
+      const interviewSelect = document.querySelector('select[name="interview_staff[]"]');
+      if (interviewSelect) {
+        interviewSelect.value = "73"; // 東山 友輔
+        interviewSelect.dispatchEvent(new Event("change", { bubbles: true }));
+        console.log("✅ 面接担当を選択:", interviewSelect.value);
+      }
+
+      // カスタマイズ項目のタイトル入力
+      const customizeInput = document.querySelector('input[name="customize[title][]"]');
+      if (customizeInput) {
+        customizeInput.value = "記録";
+        customizeInput.dispatchEvent(new Event("input", { bubbles: true }));
+        console.log("✅ カスタマイズタイトル入力:", customizeInput.value);
+      }
+    `);
+        }, { once: true });
+      });
 
       // タブ追加ボタンを作る
     const tabsContainer = document.getElementById("tabs");

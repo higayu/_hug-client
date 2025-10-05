@@ -38,6 +38,13 @@
       "target": "nsis",
       "signAndEditExecutable": false,
       "forceCodeSigning": false
-    }
+    },
+    "extraResources": [
+      {
+        "from": "data/",
+        "to": "data/",
+        "filter": ["**/*"]
+      }
+    ]
   }
 }

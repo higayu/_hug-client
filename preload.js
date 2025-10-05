@@ -8,8 +8,12 @@ contextBridge.exposeInMainWorld("electronAPI", {
     ipcRenderer.invoke("do-auto-login", { username, password }),
   onInjectLogin: (callback) =>
     ipcRenderer.on("inject-login", (event, args) => callback(args)),
-  getEnv: () => ipcRenderer.invoke("get-env"),  // ← 追加
 
     // API 呼び出し (main 経由)
   fetchStaff: () => ipcRenderer.invoke("fetch-staff"),
+
+
+  readConfig: () => ipcRenderer.invoke("read-config"),
+
 });
+
