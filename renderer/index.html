@@ -147,6 +147,7 @@
       // ページ読み込み完了時に実行
     let HUG_USERNAME = "";
     let HUG_PASSWORD = "";
+    let STAFF_ID ="";
 
   window.addEventListener("DOMContentLoaded", async () => {
     const result = await window.electronAPI.readConfig();
@@ -159,6 +160,7 @@
       // ✅ グローバル変数に代入
       HUG_USERNAME = result.data.HUG_USERNAME;
       HUG_PASSWORD = result.data.HUG_PASSWORD;
+      STAFF_ID = result.data.STAFF_ID;
     } else {
       output.textContent = "❌ 読み込みエラー: " + result.error;
       console.error(result.error);
@@ -241,13 +243,13 @@
       // 記録者（例：東山 → value="73"）
       const selectRecorder = document.querySelector('select[name="recorder"]');
       if (selectRecorder) {
-        selectRecorder.value = "73";
+        selectRecorder.value = ${JSON.stringify(STAFF_ID)};
         selectRecorder.dispatchEvent(new Event("change", { bubbles: true }));
         console.log("✅ 記録者をひがしやまに選択");
       }
       const interviewSelect = document.querySelector('select[name="interview_staff[]"]');
       if (interviewSelect) {
-        interviewSelect.value = "73"; // 東山 友輔
+        interviewSelect.value = ${JSON.stringify(STAFF_ID)};
         interviewSelect.dispatchEvent(new Event("change", { bubbles: true }));
         console.log("✅ 面接担当を選択:", interviewSelect.value);
       }
