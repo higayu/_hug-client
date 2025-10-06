@@ -95,8 +95,12 @@ async function callProcedure(procname, params = []) {
   console.log("📡 callProcedure:", procname, params);
 
   try {
-    // ✅ params配列をそのまま送る
-    const res = await apiClient.post(`/houday/procedure/${procname}`, params);
+    // ✅ name/value配列 → 値だけの配列に変換
+    const values = params.map(p => p.value);
+
+    // ✅ APIが期待する { params: [1, "土"] } に変換して送信
+    const res = await apiClient.post(`/houday/procedure/${procname}`, { params: values });
+
     console.log("📬 API応答:", res.data);
     return res.data;
   } catch (err) {
@@ -104,6 +108,8 @@ async function callProcedure(procname, params = []) {
     throw err;
   }
 }
+
+
 
 
 /* ------------------------------
