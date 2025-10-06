@@ -10,8 +10,19 @@ contextBridge.exposeInMainWorld("electronAPI", {
     ipcRenderer.on("inject-login", (event, args) => callback(args)),
 
     // API 呼び出し (main 経由)
-  GetChildrenByStaffAndDay: (staffId, date) =>
-    ipcRenderer.invoke("GetChildrenByStaffAndDay", { staffId, date }),
+  // ✅ 子ども一覧取得 (引数を明示的にログ出力)
+  GetChildrenByStaffAndDay: async (staffId, date) => {
+    console.log("📤 [preload] GetChildrenByStaffAndDay 呼び出し");
+    console.log("  ↳ 渡す引数:", { staffId, date });
+    try {
+      const result = await ipcRenderer.invoke("GetChildrenByStaffAndDay", { staffId, date });
+      console.log("📥 [preload] main からの応答:", result);
+      return result;
+    } catch (err) {
+      console.error("❌ [preload] IPC 呼び出し失敗:", err);
+      throw err;
+    }
+  },
 
 
   readConfig: () => ipcRenderer.invoke("read-config"),

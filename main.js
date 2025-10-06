@@ -71,19 +71,26 @@ const apiClient = require("./src/apiClient.js");
 
 
 // main.js
-ipcMain.handle("GetChildrenByStaffAndDay", async (event, { staffId, date }) => {
-  console.log("📥 GetChildrenByStaffAndDay IPC 呼ばれた", { staffId, date });
+ipcMain.handle("GetChildrenByStaffAndDay", async (event, args) => {
+  const { staffId, date } = args;
+  console.log("📡 GetChildrenByStaffAndDay 呼び出し:", { staffId, date });
 
   try {
-    // ✅ params を配列で渡す
-    const result = await apiClient.callProcedure("GetChildrenByStaffAndDay", [staffId, date]);
-    console.log("📤 GetChildrenByStaffAndDay 成功:", result);
+    // callProcedure 側は POSTボディを配列で受け取る
+    const result = await apiClient.callProcedure("GetChildrenByStaffAndDay", [
+      { name: "staff_id", value: Number(staffId) },
+      { name: "weekday", value: date },
+    ]);
+
+    console.log("📬 DB応答:", result);
     return result;
   } catch (err) {
-    console.error("❌ GetChildrenByStaffAndDay 失敗:", err);
+    console.error("❌ API 呼び出し失敗:", err.response?.data || err.message);
     throw err;
   }
 });
+
+
 
 
 

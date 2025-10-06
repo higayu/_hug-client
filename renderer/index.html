@@ -531,6 +531,8 @@
           //WEEK_DAY = '土';  // ✅ 当日の曜日を自動取得
 
           try {
+            console.log("🚀 子ども一覧取得処理開始");
+            console.log(`📦 渡す引数 → staffId: ${staffId}, WEEK_DAY: ${WEEK_DAY}`);
             const children = await window.electronAPI.GetChildrenByStaffAndDay(staffId, WEEK_DAY);
             console.log("✅ 子ども一覧取得成功:", children);
 

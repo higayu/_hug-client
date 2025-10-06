@@ -1,9 +1,35 @@
 // src/apiClient.js
 const axios = require("axios");
-require("dotenv").config();
+const fs = require("fs");
+const path = require("path");
 
+// ✅ config.json のパスを取得（main.js と同じロジック）
+function getDataPath(...paths) {
+  const isPackaged = process.mainModule?.filename?.includes("app.asar");
+  const base = isPackaged ? process.resourcesPath : path.join(__dirname, ".."); // ← 開発中はルートを想定
+  return path.join(base, "data", ...paths);
+}
+
+// ✅ config.json を読み込む関数
+function loadConfig() {
+  try {
+    const configPath = getDataPath("config.json");
+    const raw = fs.readFileSync(configPath, "utf8");
+    const json = JSON.parse(raw);
+    console.log("✅ config.json 読み込み成功:", json);
+    return json;
+  } catch (err) {
+    console.error("❌ config.json 読み込み失敗:", err);
+    throw new Error("config.json が見つかりません。");
+  }
+}
+
+// ✅ 読み込み実行
+const config = loadConfig();
+
+// ✅ axiosクライアント生成
 const apiClient = axios.create({
-  baseURL: process.env.VITE_API_BASE_URL,
+  baseURL: config.VITE_API_BASE_URL || "http://localhost:3000", // fallback
   headers: { "Content-Type": "application/json" },
 });
 
@@ -69,8 +95,8 @@ async function callProcedure(procname, params = []) {
   console.log("📡 callProcedure:", procname, params);
 
   try {
-    // ✅ サーバー側が params配列を期待している
-    const res = await apiClient.post(`/houday/procedure/${procname}`, { params });
+    // ✅ params配列をそのまま送る
+    const res = await apiClient.post(`/houday/procedure/${procname}`, params);
     console.log("📬 API応答:", res.data);
     return res.data;
   } catch (err) {
@@ -78,6 +104,7 @@ async function callProcedure(procname, params = []) {
     throw err;
   }
 }
+
 
 /* ------------------------------
    エクスポート
