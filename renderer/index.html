@@ -334,9 +334,16 @@
 
       // タブ追加ボタンを作る
     const tabsContainer = document.getElementById("tabs");
+
     const addTabButton = document.createElement("button");
     addTabButton.textContent = "＋ 新しいHugページ";
+
+    const Individual_Support_Button = document.createElement("button");
+    Individual_Support_Button.textContent = "＋ 個別支援計画";
+
+
     tabsContainer.appendChild(addTabButton);
+    tabsContainer.appendChild(Individual_Support_Button);
 
     addTabButton.addEventListener("click", () => {
       const newId = `hugview-${Date.now()}`;
@@ -380,6 +387,89 @@
       // 追加直後にこのタブを選択状態にする
       tabButton.click();
     });
+
+
+    // 🧩 個別支援計画タブを開く
+    Individual_Support_Button.addEventListener("click", () => {
+      const newId = `hugview-${Date.now()}`;
+      const newWebview = document.createElement("webview");
+      newWebview.id = newId;
+      newWebview.src = "https://www.hug-ayumu.link/hug/wm/individual_care-plan-main.php";
+      newWebview.allowpopups = true;
+      newWebview.style.cssText = "position:absolute;top:0;left:0;width:100%;height:100%;";
+      newWebview.classList.add("hidden");
+      document.getElementById("content").appendChild(newWebview);
+
+      const tabButton = document.createElement("button");
+      tabButton.innerHTML = `
+        個別支援計画
+        <span class="close-btn"${closeButtonsVisible ? "" : " style='display:none'"}>❌</span>
+      `;
+      tabButton.dataset.target = newId;
+      tabsContainer.insertBefore(tabButton, Individual_Support_Button);
+
+      tabButton.addEventListener("click", () => {
+        document.querySelectorAll("webview").forEach(v => v.classList.add("hidden"));
+        newWebview.classList.remove("hidden");
+        activeWebview = newWebview;
+      });
+
+      tabButton.querySelector(".close-btn").addEventListener("click", (e) => {
+        e.stopPropagation();
+        if (!confirm("このタブを閉じてもよろしいですか？")) return;
+        newWebview.remove();
+        tabButton.remove();
+        activeWebview = document.getElementById("hugview");
+        activeWebview.classList.remove("hidden");
+      });
+
+      // ✅ 自動処理が複数回実行されないようにするフラグ
+      let autoProcessExecuted = false;
+
+      newWebview.addEventListener("did-finish-load", async () => {
+        if (autoProcessExecuted) {
+          console.log("⏩ 自動処理はすでに実行済み、スキップします");
+          return;
+        }
+        autoProcessExecuted = true; // ← 実行済みフラグON
+        console.log("✅ 個別支援計画ページ読み込み完了（初回のみ実行）");
+
+        newWebview.executeJavaScript(`
+          console.log("🚀 自動処理開始: ページ初期化中...");
+
+          const childSelect = document.querySelector('#name_list');
+          if (childSelect) {
+            const targetValue = ${JSON.stringify(SELECT_CHILD)};
+            const optionExists = [...childSelect.options].some(opt => opt.value === targetValue);
+
+            if (optionExists) {
+              childSelect.value = targetValue;
+              childSelect.dispatchEvent(new Event("change", { bubbles: true }));
+              console.log("✅ 子ども選択完了:", targetValue, childSelect.options[childSelect.selectedIndex].text);
+            } else {
+              console.warn("⚠️ 指定された子どもIDがリストに見つかりません:", targetValue);
+            }
+          } else {
+            console.error("❌ #name_list がページに見つかりません");
+          }
+
+          setTimeout(() => {
+            const searchButton = document.querySelector('button.btn.btn-sm.search');
+            if (searchButton && !searchButton.disabled) {
+              searchButton.click();
+              console.log("✅ 検索ボタンをクリックしました。");
+            } else {
+              console.warn("⚠️ 検索ボタンが無効化されているか見つかりません");
+            }
+          }, 1500);
+
+          console.log("✅ 自動処理完了");
+        `);
+      }, { once: true }); // ← イベント自体も一度しか発火しない
+
+      tabButton.click();
+    });
+
 
 
     // タブ切り替え
