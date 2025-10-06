@@ -49,7 +49,7 @@
     flex: 1 1 auto;
     overflow: hidden;
   }
-  #hugview, #settings {
+  #hugview{
     position: absolute;
     top: 0; left: 0;
     width: 100%;
@@ -116,11 +116,71 @@
     transform: translateX(18px);
   }
 
+      /* 🌟 サイドバーとしての設定パネル */
+    #content {
+      position: relative;
+      display: flex;
+      height: 100%;
+      overflow: hidden;
+    }
+
+/* 左サイドバー */
+#settings {
+  width: 280px;
+  background: #f8f8f8;
+  border-right: 1px solid #ccc;
+  padding: 15px;
+  position: absolute;
+  top: 0;
+  left: -280px; /* ← 初期は非表示（左に隠す） */
+  height: 100%;
+  box-shadow: 2px 0 8px rgba(0,0,0,0.1);
+  transition: left 0.3s ease;
+  overflow-y: auto;
+  z-index: 10;
+}
+
+/* 開いた状態 */
+#settings.open {
+  left: 0;
+}
+
+/* メイン画面（webview） */
+#hugview {
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  border: none;
+  transition: margin-left 0.3s ease;
+}
+
+/* サイドバー開時に右にずらす */
+#hugview.shifted {
+  margin-left: 280px;
+}
+
+/* ハンバーガーボタン */
+.hamburger {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 20px;
+  cursor: pointer;
+  margin-right: 8px;
+  transition: transform 0.2s;
+}
+.hamburger:hover {
+  transform: scale(1.1);
+}
+
+
 </style>
 
 </head>
 <body>
   <div id="toolbar">
+    <!-- 🌟 ハンバーガーメニュー -->
+    <button id="menuToggle" class="hamburger">☰</button>
     <button id="refreshBtn">🔄 更新</button>
     <button id="loginBtn">⚙️ 自動ログイン</button>
 
@@ -146,15 +206,14 @@
 
   <div id="tabs">
     <button data-target="hugview">Hug</button>
-    <button data-target="settings">設定</button>
   </div>
 
   <div id="content">
-    <webview id="hugview" src="https://www.hug-ayumu.link/hug/wm/" allowpopups></webview>
+    <!-- 左サイドバー -->
     <div id="settings"></div>
+    <webview id="hugview" src="https://www.hug-ayumu.link/hug/wm/" allowpopups></webview>
   </div>
-  <pre id="configOutput" style="display: none; white-space: pre-wrap; background:#eee; padding:10px; border-radius:8px;"></pre>
-
+    <pre id="configOutput" style="display: none; white-space: pre-wrap; background:#eee; padding:10px; border-radius:8px;"></pre>
   <script>
     // ページ読み込み完了時に実行
     let HUG_USERNAME = "";
@@ -207,6 +266,30 @@
       output.textContent = "❌ 読み込みエラー: " + result.error;
       console.error(result.error);
     }
+
+    // ✅ ハンバーガーメニュー処理
+    const menuToggle = document.getElementById("menuToggle");
+    const settings = document.getElementById("settings");
+    const hugview = document.getElementById("hugview");
+
+    if (menuToggle && settings && hugview) {
+      menuToggle.addEventListener("click", () => {
+        const isOpen = settings.classList.toggle("open");
+        hugview.classList.toggle("shifted", isOpen);
+        console.log(isOpen ? "📂 サイドバーを開きました" : "📁 サイドバーを閉じました");
+      });
+    }
+
+    document.addEventListener("click", (e) => {
+      const sidebar = document.getElementById("settings");
+      const toggle = document.getElementById("menuToggle");
+
+      if (sidebar.classList.contains("open") && !sidebar.contains(e.target) && !toggle.contains(e.target)) {
+        sidebar.classList.remove("open");
+        document.getElementById("hugview").classList.remove("shifted");
+        console.log("📁 サイドバーを閉じました（外側クリック）");
+      }
+    });
   });
 
       // 🌟 現在アクティブなwebviewを管理
@@ -513,9 +596,6 @@
     const settingsEl = document.getElementById("settings");
     
 
-    // ⭐ 初期状態で Settings を非表示にする
-    settingsEl.classList.add("hidden");
-
     // タブ切り替え（イベント委譲対応）
     tabsContainer.addEventListener("click", (e) => {
       const tab = e.target.closest("button[data-target]");
@@ -528,7 +608,6 @@
 
       const targetId = tab.dataset.target;
       document.querySelectorAll("webview").forEach(v => v.classList.add("hidden"));
-      settingsEl.classList.add("hidden");
 
       if (targetId === "settings") {
         settingsEl.classList.remove("hidden");
@@ -547,7 +626,6 @@
       .then(res => res.text())
       .then(html => {
         settingsEl.innerHTML = html;
-        settingsEl.classList.add("hidden");
         console.log("✅ settings.html を読み込んだ");
 
       // 🌟 曜日セレクトとの連携処理
@@ -677,7 +755,6 @@
         // ✅ 初期化関数を即実行
         initializeChildrenList();
       });
-
 
   </script>
 </body>
