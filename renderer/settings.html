@@ -5,7 +5,20 @@
   <title>設定ページ</title>
 </head>
 <body>
-  <button id="LoadChildrenBtn">スタッフ一覧取得</button>
+
+    <!-- 🌟 曜日選択セレクトボックス -->
+    <label for="weekdaySelect" style="margin-left:10px;">曜日:</label>
+    <select id="weekdaySelect" name="weekdaySelect" class="js_weekday">
+      <option value="日">日</option>
+      <option value="月">月</option>
+      <option value="火">火</option>
+      <option value="水">水</option>
+      <option value="木">木</option>
+      <option value="金">金</option>
+      <option value="土">土</option>
+    </select>
+
+
   <ul id="childrenList"></ul>
 
 </body>
