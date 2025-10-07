@@ -294,7 +294,11 @@
         document.getElementById("hugview").classList.remove("shifted");
         console.log("📁 サイドバーを閉じました（外側クリック）");
       }
+
     });
+
+
+    
   });
 
       // 🌟 現在アクティブなwebviewを管理
@@ -326,22 +330,43 @@
 
 
     document.getElementById("loginBtn").addEventListener("click", async () => {
-        const vw = getActiveWebview();
-        if (!vw) return;
+      const vw = getActiveWebview();
+      if (!vw) return;
 
-        if (!HUG_USERNAME || !HUG_PASSWORD) {
-          alert("config.json がまだ読み込まれていません。");
-          return;
-        }
+      if (!HUG_USERNAME || !HUG_PASSWORD) {
+        alert("config.json がまだ読み込まれていません。");
+        return;
+      }
 
+      console.log("🚀 自動ログイン開始...");
+
+      vw.executeJavaScript(`
+        document.querySelector('input[name="username"]').value = ${JSON.stringify(HUG_USERNAME)};
+        document.querySelector('input[name="password"]').value = ${JSON.stringify(HUG_PASSWORD)};
+        const checkbox = document.querySelector('input[name="setexpire"]');
+        if (checkbox && !checkbox.checked) checkbox.click();
+        document.querySelector("input.btn-login")?.click();
+      `);
+
+      // ✅ ログイン後の画面が読み込まれたら実行
+      vw.addEventListener("did-finish-load", async () => {
+        console.log("✅ ログイン後ページの読み込み完了。今日の利用者ボタンを探します...");
         vw.executeJavaScript(`
-          document.querySelector('input[name="username"]').value = ${JSON.stringify(HUG_USERNAME)};
-          document.querySelector('input[name="password"]').value = ${JSON.stringify(HUG_PASSWORD)};
-          const checkbox = document.querySelector('input[name="setexpire"]');
-          if (checkbox && !checkbox.checked) checkbox.click();
-          document.querySelector("input.btn-login")?.click();
+          // href に "attendance.php?mode=detail" を含むリンクを探す
+          const todayButton = [...document.querySelectorAll('a.btn.btn-primary')]
+            .find(a => a.href.includes('attendance.php?mode=detail'));
+
+          if (todayButton) {
+            console.log("✅ 今日の利用者ボタンが見つかりました。クリックします。");
+            todayButton.click();
+          } else {
+            console.warn("⚠️ 今日の利用者ボタンが見つかりません。");
+          }
         `);
-      });
+      }, { once: true }); // ← 一度だけ発火する
+    });
+
+
 
     document.getElementById("Individual_Support_Button").addEventListener("click", async () => {
       const vw = getActiveWebview();
@@ -756,6 +781,23 @@
         // ✅ 初期化関数を即実行
         initializeChildrenList();
       });
+
+      // ✅ ページ初期表示時にも「今日の利用者」ボタンを自動クリック
+      const vw = document.getElementById("hugview");
+      vw.addEventListener("did-finish-load", async () => {
+        console.log("🌐 ページ読み込み完了 - 今日の利用者ボタンをチェック中...");
+        vw.executeJavaScript(`
+          const todayButton = [...document.querySelectorAll('a.btn.btn-primary.btn-user')]
+            .find(a => a.href.includes('attendance.php?mode=detail'));
+          if (todayButton) {
+            console.log("✅ 今日の利用者ボタンが見つかりました。クリックします:", todayButton.href);
+            todayButton.click();
+          } else {
+            console.warn("⚠️ 今日の利用者ボタンが見つかりませんでした。");
+          }
+        `);
+      });
+
 
   </script>
 </body>
