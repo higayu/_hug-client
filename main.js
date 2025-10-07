@@ -113,3 +113,46 @@ ipcMain.handle("read-config", async () => {
     return { success: false, error: err.message };
   }
 });
+
+
+ipcMain.on("open-specialized-support-plan", (event, childId) => {
+      console.log("🆕 専門的支援計画を別ウインドウで開きます:", childId);
+
+      const childWin = new BrowserWindow({
+        width: 1200,
+        height: 900,
+        webPreferences: {
+          preload: path.join(__dirname, "preload.js"), // あなたの構成に合わせて
+        },
+      });
+
+      childWin.loadURL("https://www.hug-ayumu.link/hug/wm/addition_plan.php");
+
+      // ✅ 「一度だけ」実行
+      childWin.webContents.once("did-finish-load", () => {
+        console.log("✅ did-finish-load（初回）発火");
+
+        childWin.webContents.executeJavaScript(`
+          console.log("✅ 専門的支援計画ページを読み込みました");
+
+          const selectChild2 = document.querySelector('#name_list');
+          if (selectChild2) {
+            selectChild2.value = "${childId}";
+            selectChild2.dispatchEvent(new Event("change", { bubbles: true }));
+            console.log("✅ #name_list に設定:", selectChild2.value);
+          } else {
+            console.warn("⚠️ #name_list が見つかりません");
+          }
+
+          setTimeout(() => {
+            const searchButton = document.querySelector('button.btn.btn-sm.search[type="submit"]');
+            if (searchButton && !searchButton.disabled) {
+              searchButton.click();
+              console.log("✅ 検索ボタンをクリックしました");
+            } else {
+              console.warn("⚠️ 検索ボタンが無効または見つかりません");
+            }
+          }, 1500);
+        `);
+      });
+});

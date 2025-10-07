@@ -24,6 +24,8 @@ contextBridge.exposeInMainWorld("electronAPI", {
     }
   },
 
+    // 既存のAPIに加えて...
+  openSpecializedSupportPlan: (childId) => ipcRenderer.send("open-specialized-support-plan", childId),
 
   readConfig: () => ipcRenderer.invoke("read-config"),
 

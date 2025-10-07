@@ -462,38 +462,10 @@
         }, { once: true });
       });
 
+    // ✅ Renderer 側（あなたのHTML内）
     document.getElementById("Specialized-Support-Plan").addEventListener("click", () => {
-      const vw = getActiveWebview();
-      if (!vw) return;
-
-      // 専門的支援計画ページを開く
-      vw.loadURL("https://www.hug-ayumu.link/hug/wm/addition_plan.php");
-
-      vw.addEventListener("did-finish-load", () => {
-        vw.executeJavaScript(`// 🚀 専門的支援計画ページ 自動処理開始
-          console.log("✅ 専門的支援計画ページを読み込みました");
-          //  id="name_list" の子ども選択
-          const selectChild2 = document.querySelector('#name_list');
-          if (selectChild2) {
-            selectChild2.value = "${SELECT_CHILD}";
-            selectChild2.dispatchEvent(new Event("change", { bubbles: true }));
-            console.log("✅ #name_list に設定:", selectChild2.value);
-          } else {
-            console.warn("⚠️ #name_list が見つかりません");
-          }
-
-          // ③ 少し待ってから「検索」ボタンをクリック
-          setTimeout(() => {
-            const searchButton = document.querySelector('button.btn.btn-sm.search[type="submit"]');
-            if (searchButton && !searchButton.disabled) {
-              searchButton.click();
-              console.log("✅ 検索ボタンをクリックしました");
-            } else {
-              console.warn("⚠️ 検索ボタンが無効または見つかりません");
-            }
-          }, 1500);
-        `);
-      }, { once: true });
+      // mainプロセスに新しいウインドウを開くよう依頼
+      window.electronAPI.openSpecializedSupportPlan(SELECT_CHILD);
     });
 
       // タブ追加ボタンを作る
