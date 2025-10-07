@@ -198,7 +198,7 @@
       <option value="8">PD五日市駅前</option>
     </select>
 
-    <button id="KojinBtn">個人記録</button>
+    <button id="Individual_Support_Button">個別支援-計画</button>
     <button id="professional-support">専門的支援-一覧</button>
     <button id="professional-support-new">専門的支援-新規</button>
     <button id="Specialized-Support-Plan">専門的支援-計画</button>
@@ -343,30 +343,46 @@
         `);
       });
 
-    document.getElementById("KojinBtn").addEventListener("click", async () => {
+    document.getElementById("Individual_Support_Button").addEventListener("click", async () => {
       const vw = getActiveWebview();
       if (!vw) return;
 
-      // contact_book ページを開く
-      vw.loadURL(`https://www.hug-ayumu.link/hug/wm/contact_book.php?id=${SELECT_CHILD}`);
+      // 既存のHugタブでページ遷移
+      vw.loadURL("https://www.hug-ayumu.link/hug/wm/individual_care-plan-main.php");
 
-      // 読み込み完了後に実行
-      vw.addEventListener(
-        "did-finish-load",
-        () => {
-          vw.executeJavaScript(`
-            console.log("✅ ページ読込完了: 編集ボタンを探します...");
-            const editButton = document.querySelector('button.btn.btn-sm.m0.edit');
-            if (editButton) {
-              console.log("✅ 編集ボタン見つかりました。クリックします。");
-              editButton.click();
+      // ページ読み込み完了後に自動処理を実行
+      vw.addEventListener("did-finish-load", () => {
+        vw.executeJavaScript(`
+          console.log("🚀 個別支援計画ページ 自動処理開始");
+
+          const childSelect = document.querySelector('#name_list');
+          if (childSelect) {
+            const targetValue = ${JSON.stringify(SELECT_CHILD)};
+            const optionExists = [...childSelect.options].some(opt => opt.value === targetValue);
+
+            if (optionExists) {
+              childSelect.value = targetValue;
+              childSelect.dispatchEvent(new Event("change", { bubbles: true }));
+              console.log("✅ 子ども選択完了:", targetValue);
             } else {
-              console.warn("❌ 編集ボタンが見つかりませんでした。");
+              console.warn("⚠️ 指定された子どもIDがリストに見つかりません:", targetValue);
             }
-          `);
-        },
-        { once: true } // 一度だけ実行
-      );
+          } else {
+            console.error("❌ #name_list が見つかりません");
+          }
+
+          // 少し待って検索ボタンをクリック
+          setTimeout(() => {
+            const searchButton = document.querySelector('button.btn.btn-sm.search');
+            if (searchButton && !searchButton.disabled) {
+              searchButton.click();
+              console.log("✅ 検索ボタンをクリックしました");
+            } else {
+              console.warn("⚠️ 検索ボタンが見つからないか無効です");
+            }
+          }, 1500);
+        `);
+      }, { once: true });
     });
 
 
@@ -391,7 +407,7 @@
       // 子どもリスト（例：岡田 磨和 → value="49"）
       const selectChild = document.querySelector('select[name="c_id_list[0][id]"]');
       if (selectChild) {
-        selectChild.value = "49";
+        selectChild.value = "${SELECT_CHILD}";
         selectChild.dispatchEvent(new Event("change", { bubbles: true }));
         console.log("✅ 子どもリストで岡田磨和を選択");
       }
@@ -461,12 +477,12 @@
     const addTabButton = document.createElement("button");
     addTabButton.textContent = "＋ 新しいHugページ";
 
-    const Individual_Support_Button = document.createElement("button");
-    Individual_Support_Button.textContent = "＋ 個別支援計画";
+    const Kojin_Button = document.createElement("button");
+    Kojin_Button.textContent = "＋ 個人記録";
 
 
     tabsContainer.appendChild(addTabButton);
-    tabsContainer.appendChild(Individual_Support_Button);
+    tabsContainer.appendChild(Kojin_Button);
 
     addTabButton.addEventListener("click", () => {
       const newId = `hugview-${Date.now()}`;
@@ -512,24 +528,24 @@
     });
 
 
-    // 🧩 個別支援計画タブを開く
-    Individual_Support_Button.addEventListener("click", () => {
+    // 🧩 個人記録タブを開く
+    Kojin_Button.addEventListener("click", () => {
       const newId = `hugview-${Date.now()}`;
       const newWebview = document.createElement("webview");
       newWebview.id = newId;
-      newWebview.src = "https://www.hug-ayumu.link/hug/wm/individual_care-plan-main.php";
+
+      // contact_book ページを開く
+      newWebview.src = `https://www.hug-ayumu.link/hug/wm/contact_book.php?id=${SELECT_CHILD}`;
       newWebview.allowpopups = true;
       newWebview.style.cssText = "position:absolute;top:0;left:0;width:100%;height:100%;";
       newWebview.classList.add("hidden");
-      document.getElementById("content").appendChild(newWebview);
-
       const tabButton = document.createElement("button");
       tabButton.innerHTML = `
-        個別支援計画
+        個人記録
         <span class="close-btn"${closeButtonsVisible ? "" : " style='display:none'"}>❌</span>
       `;
       tabButton.dataset.target = newId;
-      tabsContainer.insertBefore(tabButton, Individual_Support_Button);
+      tabsContainer.insertBefore(tabButton, document.getElementById("Specialized-Support-Plan"));
 
       tabButton.addEventListener("click", () => {
         document.querySelectorAll("webview").forEach(v => v.classList.add("hidden"));
@@ -546,49 +562,19 @@
         activeWebview.classList.remove("hidden");
       });
 
-      // ✅ 自動処理が複数回実行されないようにするフラグ
-      let autoProcessExecuted = false;
-
-      newWebview.addEventListener("did-finish-load", async () => {
-        if (autoProcessExecuted) {
-          console.log("⏩ 自動処理はすでに実行済み、スキップします");
-          return;
-        }
-        autoProcessExecuted = true; // ← 実行済みフラグON
-        console.log("✅ 個別支援計画ページ読み込み完了（初回のみ実行）");
-
+      // 自動で編集モードを開く処理
+      newWebview.addEventListener("did-finish-load", () => {
         newWebview.executeJavaScript(`
-          console.log("🚀 自動処理開始: ページ初期化中...");
-
-          const childSelect = document.querySelector('#name_list');
-          if (childSelect) {
-            const targetValue = ${JSON.stringify(SELECT_CHILD)};
-            const optionExists = [...childSelect.options].some(opt => opt.value === targetValue);
-
-            if (optionExists) {
-              childSelect.value = targetValue;
-              childSelect.dispatchEvent(new Event("change", { bubbles: true }));
-              console.log("✅ 子ども選択完了:", targetValue, childSelect.options[childSelect.selectedIndex].text);
-            } else {
-              console.warn("⚠️ 指定された子どもIDがリストに見つかりません:", targetValue);
-            }
+          console.log("✅ 個人記録ページ読込完了: 編集ボタンを探します...");
+          const editButton = document.querySelector('button.btn.btn-sm.m0.edit');
+          if (editButton) {
+            console.log("✅ 編集ボタン見つかりました。クリックします。");
+            editButton.click();
           } else {
-            console.error("❌ #name_list がページに見つかりません");
+            console.warn("❌ 編集ボタンが見つかりませんでした。");
           }
-
-          setTimeout(() => {
-            const searchButton = document.querySelector('button.btn.btn-sm.search');
-            if (searchButton && !searchButton.disabled) {
-              searchButton.click();
-              console.log("✅ 検索ボタンをクリックしました。");
-            } else {
-              console.warn("⚠️ 検索ボタンが無効化されているか見つかりません");
-            }
-          }, 1500);
-
-          console.log("✅ 自動処理完了");
         `);
-      }, { once: true }); // ← イベント自体も一度しか発火しない
+      }, { once: true });
 
       tabButton.click();
     });
