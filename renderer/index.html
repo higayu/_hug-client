@@ -528,6 +528,7 @@
     });
 
 
+
     // 🧩 個人記録タブを開く
     Kojin_Button.addEventListener("click", () => {
       const newId = `hugview-${Date.now()}`;
@@ -539,20 +540,24 @@
       newWebview.allowpopups = true;
       newWebview.style.cssText = "position:absolute;top:0;left:0;width:100%;height:100%;";
       newWebview.classList.add("hidden");
+
+      // ✅ タブコンテナに新しいボタンを追加（最後尾でOK）
       const tabButton = document.createElement("button");
       tabButton.innerHTML = `
         個人記録
         <span class="close-btn"${closeButtonsVisible ? "" : " style='display:none'"}>❌</span>
       `;
       tabButton.dataset.target = newId;
-      tabsContainer.insertBefore(tabButton, document.getElementById("Specialized-Support-Plan"));
+      tabsContainer.appendChild(tabButton); // ← 修正箇所！
 
+      // 切り替え処理
       tabButton.addEventListener("click", () => {
         document.querySelectorAll("webview").forEach(v => v.classList.add("hidden"));
         newWebview.classList.remove("hidden");
         activeWebview = newWebview;
       });
 
+      // 閉じる処理
       tabButton.querySelector(".close-btn").addEventListener("click", (e) => {
         e.stopPropagation();
         if (!confirm("このタブを閉じてもよろしいですか？")) return;
@@ -562,21 +567,26 @@
         activeWebview.classList.remove("hidden");
       });
 
-      // 自動で編集モードを開く処理
-      newWebview.addEventListener("did-finish-load", () => {
-        newWebview.executeJavaScript(`
-          console.log("✅ 個人記録ページ読込完了: 編集ボタンを探します...");
-          const editButton = document.querySelector('button.btn.btn-sm.m0.edit');
-          if (editButton) {
-            console.log("✅ 編集ボタン見つかりました。クリックします。");
-            editButton.click();
-          } else {
-            console.warn("❌ 編集ボタンが見つかりませんでした。");
-          }
-        `);
-      }, { once: true });
+      // ✅ 自動で編集モードを開く処理
+      newWebview.addEventListener(
+        "did-finish-load",
+        () => {
+          newWebview.executeJavaScript(`
+            console.log("✅ ページ読込完了: 編集ボタンを探します...");
+            const editButton = document.querySelector('button.btn.btn-sm.m0.edit');
+            if (editButton) {
+              console.log("✅ 編集ボタン見つかりました。クリックします。");
+              editButton.click();
+            } else {
+              console.warn("❌ 編集ボタンが見つかりませんでした。");
+            }
+          `);
+        },
+        { once: true } // 一度だけ実行
+      );
 
-      tabButton.click();
+      document.getElementById("content").appendChild(newWebview);
+      tabButton.click(); // ← すぐに表示
     });
 
 
