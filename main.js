@@ -156,3 +156,55 @@ ipcMain.on("open-specialized-support-plan", (event, childId) => {
         `);
       });
 });
+
+
+// 🧠 個別支援計画ページを別ウインドウで開く
+ipcMain.on("open-individual-support-plan", (event, childId) => {
+  console.log("🆕 個別支援計画ページを別ウインドウで開きます:", childId);
+
+  const childWin = new BrowserWindow({
+    width: 1200,
+    height: 900,
+    webPreferences: {
+      preload: path.join(__dirname, "preload.js"),
+    },
+  });
+
+  childWin.loadURL("https://www.hug-ayumu.link/hug/wm/individual_care-plan-main.php");
+
+  // ✅ 「一度だけ」実行（リロード時は再実行しない）
+  childWin.webContents.once("did-finish-load", () => {
+    console.log("✅ did-finish-load（初回）発火 - 個別支援計画");
+
+    childWin.webContents.executeJavaScript(`
+      console.log("🚀 個別支援計画ページ 自動処理開始");
+
+      const childSelect = document.querySelector('#name_list');
+      if (childSelect) {
+        const targetValue = "${childId}";
+        const optionExists = [...childSelect.options].some(opt => opt.value === targetValue);
+
+        if (optionExists) {
+          childSelect.value = targetValue;
+          childSelect.dispatchEvent(new Event("change", { bubbles: true }));
+          console.log("✅ 子ども選択完了:", targetValue);
+        } else {
+          console.warn("⚠️ 指定された子どもIDがリストに見つかりません:", targetValue);
+        }
+      } else {
+        console.error("❌ #name_list が見つかりません");
+      }
+
+      // 少し待って検索ボタンをクリック
+      setTimeout(() => {
+        const searchButton = document.querySelector('button.btn.btn-sm.search');
+        if (searchButton && !searchButton.disabled) {
+          searchButton.click();
+          console.log("✅ 検索ボタンをクリックしました");
+        } else {
+          console.warn("⚠️ 検索ボタンが見つからないか無効です");
+        }
+      }, 1500);
+    `);
+  });
+});

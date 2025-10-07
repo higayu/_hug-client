@@ -198,15 +198,17 @@
       <option value="8">PD五日市駅前</option>
     </select>
 
-    <button id="Individual_Support_Button">個別支援-計画</button>
     <button id="professional-support">専門的支援-一覧</button>
     <button id="professional-support-new">専門的支援-新規</button>
-    <button id="Specialized-Support-Plan">専門的支援-計画</button>
+
       <!-- 🌟 閉じるボタン表示ON/OFF トグル -->
     <label class="toggle-switch" title="閉じるボタン表示トグル">
       <input type="checkbox" id="closeToggle" checked>
       <span class="slider"></span>
     </label>
+
+    <button id="Individual_Support_Button">個別支援-計画</button>
+    <button id="Specialized-Support-Plan">専門的支援-計画</button>
   </div>
 
   <div id="tabs">
@@ -319,7 +321,6 @@
         vw?.reload();
       });
 
-
       // 🌟 トグルで閉じるボタンの表示ON/OFF
       document.getElementById("closeToggle").addEventListener("change", (e) => {
         closeButtonsVisible = e.target.checked;
@@ -364,50 +365,6 @@
           }
         `);
       }, { once: true }); // ← 一度だけ発火する
-    });
-
-
-
-    document.getElementById("Individual_Support_Button").addEventListener("click", async () => {
-      const vw = getActiveWebview();
-      if (!vw) return;
-
-      // 既存のHugタブでページ遷移
-      vw.loadURL("https://www.hug-ayumu.link/hug/wm/individual_care-plan-main.php");
-
-      // ページ読み込み完了後に自動処理を実行
-      vw.addEventListener("did-finish-load", () => {
-        vw.executeJavaScript(`
-          console.log("🚀 個別支援計画ページ 自動処理開始");
-
-          const childSelect = document.querySelector('#name_list');
-          if (childSelect) {
-            const targetValue = ${JSON.stringify(SELECT_CHILD)};
-            const optionExists = [...childSelect.options].some(opt => opt.value === targetValue);
-
-            if (optionExists) {
-              childSelect.value = targetValue;
-              childSelect.dispatchEvent(new Event("change", { bubbles: true }));
-              console.log("✅ 子ども選択完了:", targetValue);
-            } else {
-              console.warn("⚠️ 指定された子どもIDがリストに見つかりません:", targetValue);
-            }
-          } else {
-            console.error("❌ #name_list が見つかりません");
-          }
-
-          // 少し待って検索ボタンをクリック
-          setTimeout(() => {
-            const searchButton = document.querySelector('button.btn.btn-sm.search');
-            if (searchButton && !searchButton.disabled) {
-              searchButton.click();
-              console.log("✅ 検索ボタンをクリックしました");
-            } else {
-              console.warn("⚠️ 検索ボタンが見つからないか無効です");
-            }
-          }, 1500);
-        `);
-      }, { once: true });
     });
 
 
@@ -461,6 +418,12 @@
     `);
         }, { once: true });
       });
+
+    // ✅ 個別支援計画を別ウインドウで開く
+    document.getElementById("Individual_Support_Button").addEventListener("click", () => {
+      window.electronAPI.openIndividualSupportPlan(SELECT_CHILD);
+    });
+
 
     // ✅ Renderer 側（あなたのHTML内）
     document.getElementById("Specialized-Support-Plan").addEventListener("click", () => {
