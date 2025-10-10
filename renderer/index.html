@@ -209,6 +209,7 @@
 
     <button id="Individual_Support_Button">個別支援-計画</button>
     <button id="Specialized-Support-Plan">専門的支援-計画</button>
+    <button id="Import-Setting">設定ファイルの取得</button>
   </div>
 
   <div id="tabs">
@@ -430,6 +431,21 @@
       // mainプロセスに新しいウインドウを開くよう依頼
       window.electronAPI.openSpecializedSupportPlan(SELECT_CHILD);
     });
+
+    // 「設定ファイルの取得」ボタンのクリックイベント
+    document.getElementById("Import-Setting").addEventListener("click", async () => {
+      try {
+        const result = await window.electronAPI.importConfigFile();
+        if (result.success) {
+          alert("✅ 設定ファイルをコピーしました:\n" + result.destination);
+        } else {
+          alert("⚠️ コピーがキャンセルまたは失敗しました");
+        }
+      } catch (err) {
+        alert("❌ エラーが発生しました: " + err.message);
+      }
+    });
+
 
       // タブ追加ボタンを作る
     const tabsContainer = document.getElementById("tabs");

@@ -1,4 +1,6 @@
-const { app, BrowserWindow, ipcMain } = require("electron");
+// main.js
+
+const { app, BrowserWindow, ipcMain, dialog } = require("electron");
 const fs = require('fs');
 const path = require("path");
 const { loginHug } = require("./puppeteer/login.js");
@@ -208,3 +210,62 @@ ipcMain.on("open-individual-support-plan", (event, childId) => {
     `);
   });
 });
+
+
+
+// 設定ファイルのインポート
+ipcMain.handle("import-config-file", async () => {
+  try {
+    // ① ファイル選択ダイアログ
+    const { canceled, filePaths } = await dialog.showOpenDialog({
+      title: "設定ファイルを選択してください (config.json)",
+      filters: [{ name: "JSONファイル", extensions: ["json"] }],
+      properties: ["openFile"],
+    });
+
+    if (canceled || filePaths.length === 0) {
+      console.log("⚠️ ファイル選択がキャンセルされました");
+      return { success: false, message: "キャンセルされました" };
+    }
+
+    const selectedFile = filePaths[0];
+    const isDev = !app.isPackaged;
+
+    let destDir, destPath;
+
+    if (isDev) {
+      // 🚧 開発環境（main.jsがプロジェクト直下）
+      destDir = path.join(__dirname, "data");
+      destPath = path.join(destDir, "config.json");
+
+      // dataフォルダがなければ作成
+      if (!fs.existsSync(destDir)) {
+        fs.mkdirSync(destDir, { recursive: true });
+        console.log("📁 data フォルダを作成:", destDir);
+      }
+
+      fs.copyFileSync(selectedFile, destPath);
+      console.log("✅ config.json を開発環境にコピー:", destPath);
+    } else {
+      // 🏁 ビルド後
+      destDir = path.join(process.resourcesPath, "data");
+      destPath = path.join(destDir, "config.json");
+
+      if (!fs.existsSync(destDir)) {
+        fs.mkdirSync(destDir, { recursive: true });
+        console.log("📁 data フォルダを作成:", destDir);
+      }
+
+      fs.copyFileSync(selectedFile, destPath);
+      console.log("✅ config.json をビルド環境にコピー:", destPath);
+    }
+
+    // shell.showItemInFolder(destPath); // ← コピー後にフォルダを開く場合
+    return { success: true, destination: destPath };
+  } catch (err) {
+    console.error("❌ 設定ファイルコピー失敗:", err);
+    return { success: false, message: err.message };
+  }
+});
+
+

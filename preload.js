@@ -31,5 +31,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
 
   readConfig: () => ipcRenderer.invoke("read-config"),
 
+  importConfigFile: () => ipcRenderer.invoke("import-config-file"),
+
 });
 
