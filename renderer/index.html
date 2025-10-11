@@ -198,18 +198,17 @@
       <option value="8">PD五日市駅前</option>
     </select>
 
-    <button id="professional-support">専門的支援-一覧</button>
-    <button id="professional-support-new">専門的支援-新規</button>
-
       <!-- 🌟 閉じるボタン表示ON/OFF トグル -->
     <label class="toggle-switch" title="閉じるボタン表示トグル">
       <input type="checkbox" id="closeToggle" checked>
       <span class="slider"></span>
     </label>
 
+    <button id="professional-support-new">専門的支援-新規</button>
+    <button id="professional-support">専門的支援-一覧</button>
     <button id="Individual_Support_Button">個別支援-計画</button>
     <button id="Specialized-Support-Plan">専門的支援-計画</button>
-    <button id="Import-Setting">設定ファイルの取得</button>
+    <button id="Import-Setting">⚙️設定ファイルの取得</button>
   </div>
 
   <div id="tabs">
@@ -263,28 +262,59 @@
       return `${year}-${month}-${day}`;
     }
 
+    // ✅ グローバル関数：config.json を読み込んで変数を初期化
+    async function loadConfig() {
+      const output = document.getElementById("configOutput");
+
+      try {
+        const result = await window.electronAPI.readConfig();
+
+        if (!result.success) {
+          output.textContent = "❌ 読み込みエラー: " + result.error;
+          console.error(result.error);
+          return false;
+        }
+
+        console.log("✅ config.json 読み込み成功:", result.data);
+        output.textContent = JSON.stringify(result.data, null, 2);
+
+        // 🌟 グローバル変数を設定
+        HUG_USERNAME = result.data.HUG_USERNAME;
+        HUG_PASSWORD = result.data.HUG_PASSWORD;
+        STAFF_ID = result.data.STAFF_ID;
+        FACILITY_ID = result.data.FACILITY_ID;
+
+        // 🌟 日付と曜日も初期化
+        DATE_STR = getDateString(0);
+        WEEK_DAY = getTodayWeekday(0);
+
+        console.log("🧩 HUG_USERNAME:", HUG_USERNAME);
+        console.log("🧩 STAFF_ID:", STAFF_ID);
+        console.log("🧩 FACILITY_ID:", FACILITY_ID);
+        console.log("🧩 DATE_STR:", DATE_STR, "WEEK_DAY:", WEEK_DAY);
+
+        return true;
+
+      } catch (err) {
+        console.error("❌ config.json 読み込み中にエラー:", err);
+        output.textContent = "❌ エラー: " + err.message;
+        return false;
+      }
+    }
+
+
 
     window.addEventListener("DOMContentLoaded", async () => {
       const output = document.getElementById("configOutput");
       const settingsEl = document.getElementById("settings");
 
       // ===== ① config.json 読み込み =====
-      const result = await window.electronAPI.readConfig();
-      if (!result.success) {
-        output.textContent = "❌ 読み込みエラー: " + result.error;
-        console.error(result.error);
-        return;
+      const ok = await loadConfig();
+      if (ok) {
+        console.log("OK");
+      } else {
+        alert("❌ 設定の読み込みに失敗しました");
       }
-
-      console.log("✅ config.json 読み込み成功:", result.data);
-      output.textContent = JSON.stringify(result.data, null, 2);
-
-      HUG_USERNAME = result.data.HUG_USERNAME;
-      HUG_PASSWORD = result.data.HUG_PASSWORD;
-      STAFF_ID = result.data.STAFF_ID;
-      FACILITY_ID = result.data.FACILITY_ID;
-      DATE_STR = getDateString(0);
-      WEEK_DAY = getTodayWeekday(0);
 
       // ===== ② settings.html を読み込む =====
       const res = await fetch("settings.html");
@@ -384,6 +414,7 @@
 
       // ✅ ページ初期表示時にも「今日の利用者」ボタンを自動クリック
       const vw = document.getElementById("hugview");
+      
       vw.addEventListener("did-finish-load", async () => {
         console.log("🌐 ページ読み込み完了 - 今日の利用者ボタンをチェック中...");
         vw.executeJavaScript(`
@@ -397,6 +428,9 @@
           }
         `);
       });
+
+      // ===== 🌟 ページ初期表示でHugタブをアクティブにする =====
+      document.querySelector('#tabs button[data-target="hugview"]').classList.add('active-tab');
 
     });
 
@@ -543,6 +577,13 @@
         const result = await window.electronAPI.importConfigFile();
         if (result.success) {
           alert("✅ 設定ファイルをコピーしました:\n" + result.destination);
+          // ===== ① config.json 読み込み =====
+            const ok = await loadConfig();
+            if (ok) {
+              console.log("OK");
+            } else {
+              alert("❌ 設定の読み込みに失敗しました");
+            }
         } else {
           alert("⚠️ コピーがキャンセルまたは失敗しました");
         }
@@ -556,7 +597,7 @@
     const tabsContainer = document.getElementById("tabs");
 
     const addTabButton = document.createElement("button");
-    addTabButton.textContent = "＋ 新しいHugページ";
+    addTabButton.textContent = "＋";
 
     const Kojin_Button = document.createElement("button");
     Kojin_Button.textContent = "＋ 個人記録";
@@ -615,14 +656,14 @@
       const newId = `hugview-${Date.now()}`;
       const newWebview = document.createElement("webview");
       newWebview.id = newId;
-      console.log("今日の日付",DATE_STR);
+      console.log("個人記録クリック　　今日の日付",DATE_STR);
 
       // contact_book ページを開く
       newWebview.src = `https://www.hug-ayumu.link/hug/wm/contact_book.php?id=${SELECT_CHILD}`;
       newWebview.allowpopups = true;
       newWebview.style.cssText = "position:absolute;top:0;left:0;width:100%;height:100%;";
       newWebview.classList.add("hidden");
-
+      
       // ✅ タブコンテナに新しいボタンを追加（最後尾でOK）
       const tabButton = document.createElement("button");
       tabButton.innerHTML = `
@@ -649,47 +690,46 @@
         activeWebview.classList.remove("hidden");
       });
 
-    // ✅ 自動で編集モードを開く処理
-    newWebview.addEventListener(
-      "did-finish-load",
-      () => {
+      console.log("🔍 自動で編集ボタンを捜索:");
+      // ✅ 自動で編集モードを開く処理
+      newWebview.addEventListener("did-finish-load", () => {
         newWebview.executeJavaScript(`
-          console.log("✅ ページ読込完了: 編集ボタン群を探索中...");
-          const DATE_STR = "${DATE_STR}";
-          const editButtons = document.querySelectorAll('button.btn.btn-sm.m0.edit');
-          console.log("🔍 検出した編集ボタン数:", editButtons.length);
-
-          let targetButton = null;
-          editButtons.forEach(btn => {
-            const onclick = btn.getAttribute("onclick") || "";
-            if (onclick.includes("cal_date=" + DATE_STR)) {
-              targetButton = btn;
-            }
-          });
-
-          if (targetButton) {
-            console.log("✅ 該当日付の編集ボタンを発見:", DATE_STR);
-            targetButton.click();
-
-            // ⏳ 編集画面の読み込みを待って record_staff を設定
-            setTimeout(() => {
-              console.log("🔎 編集画面の record_staff セレクトを探します...");
-              const staffSelect = document.querySelector('select[name="record_staff"]');
-              if (staffSelect) {
-                staffSelect.value = "${STAFF_ID}";
-                staffSelect.dispatchEvent(new Event("change", { bubbles: true }));
-                console.log("✅ record_staff を設定:", staffSelect.value);
-              } else {
-                console.warn("⚠️ record_staff セレクトが見つかりません");
-              }
-            }, 2000);
+          console.log("✅ 初回ロード完了、編集ボタン探索中...");
+          const btns = document.querySelectorAll('button.btn.btn-sm.m0.edit');
+          const target = [...btns].find(b => (b.getAttribute('onclick') || '').includes('cal_date=${DATE_STR}'));
+          if (target) {
+            console.log("✅ 編集ボタン発見。クリック実行...");
+            target.click();
           } else {
-            console.warn("❌ 指定された cal_date の編集ボタンが見つかりません:", DATE_STR);
+            console.warn("❌ 編集ボタン未検出");
           }
         `);
-      },
-      { once: true }
-    );
+      });
+
+      // 🔁 編集クリック後の再読み込みにも対応
+      newWebview.addEventListener("did-stop-loading", async () => {
+        const url = await newWebview.getURL();
+        console.log("🔁 読み込み完了:", url);
+        if (url.includes("contact_book.php?mode=edit") || url.includes("record_proceedings.php?mode=edit")) {
+          // 編集画面と思われるページ
+          newWebview.executeJavaScript(`
+            console.log("📝 編集ページ内で record_staff を設定中...");
+            const staffSelect = document.querySelector('select[name="record_staff"]');
+            if (staffSelect) {
+              staffSelect.value = "${STAFF_ID}";
+              staffSelect.dispatchEvent(new Event("change", { bubbles: true }));
+              console.log("✅ record_staff 設定完了:", staffSelect.value);
+            } else {
+              console.warn("⚠️ record_staff が見つかりません");
+            }
+          `);
+        }
+      });
+
+      // ✅ webview内部のconsole.logを親のDevToolsに転送
+      newWebview.addEventListener("console-message", (e) => {
+        console.log(`🌐 [${newWebview.id}] ${e.message}`);
+      });
 
       document.getElementById("content").appendChild(newWebview);
       tabButton.click(); // ← すぐに表示
