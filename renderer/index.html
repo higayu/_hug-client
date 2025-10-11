@@ -187,7 +187,6 @@
     <!-- 🌟 ハンバーガーメニュー -->
     <button id="menuToggle" class="hamburger">☰</button>
     <button id="refreshBtn">🔄 更新</button>
-    <button id="loginBtn">⚙️ 自動ログイン</button>
 
     <!-- 🌟 施設選択セレクトボックス -->
     <label for="facilitySelect" style="margin-left:10px;">施設:</label>
@@ -208,7 +207,8 @@
     <button id="professional-support">専門的支援-一覧</button>
     <button id="Individual_Support_Button">個別支援-計画</button>
     <button id="Specialized-Support-Plan">専門的支援-計画</button>
-    <button id="Import-Setting">⚙️設定ファイルの取得</button>
+    <button id="loginBtn">⚙️ 自動ログイン</button>
+    <button id="Import-Setting">⚙️設定ファイルのインポート</button>
   </div>
 
   <div id="tabs">
@@ -734,9 +734,7 @@
       document.getElementById("content").appendChild(newWebview);
       tabButton.click(); // ← すぐに表示
     });
-
-
-
+    
     // タブ切り替え
     const tabs = document.querySelectorAll("#tabs button");
     const hugviewEl = document.getElementById("hugview");
