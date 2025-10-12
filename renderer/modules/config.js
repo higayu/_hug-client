@@ -11,6 +11,14 @@ export const AppState = {
   childrenData: [],
 };
 
+// ...既存の AppState 定義などのあとに追記
+export function getWeekdayFromDate(dateStr) {
+  // 例: dateStr = "2025-10-11"
+  const date = new Date(dateStr);
+  const weekdays = ["日", "月", "火", "水", "木", "金", "土"];
+  return weekdays[date.getDay()];
+}
+
 function getTodayWeekday(offset = 0) {
   const weekdays = ["日", "月", "火", "水", "木", "金", "土"];
   const date = new Date();
