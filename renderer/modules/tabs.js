@@ -1,5 +1,5 @@
 // modules/tabs.js
-import { AppState } from "./config.js";
+import { AppState,getDateString} from "./config.js";
 import { setActiveWebview, getActiveWebview } from "./webviewState.js";
 
 export function initTabs() {
@@ -124,6 +124,13 @@ export function initTabs() {
     // ✅ 初回ロード時：日付セット + 検索クリック + 編集ボタン探索
     let hasSearched = false;
     let hasClickedEdit = false;
+
+    if(AppState.DATE_STR == getDateString()){
+      console.log("当日のため省略",AppState.DATE_STR+'　＝＝　'+getDateString())
+      //hasSearched = true;
+    }else{
+      console.log("当日ではない",AppState.DATE_STR+'　＝＝　'+getDateString())
+    }
 
     // contact_book ページ初回ロード時のみ実行
     newWebview.addEventListener("did-finish-load", async () => {

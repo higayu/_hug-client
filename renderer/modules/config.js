@@ -26,7 +26,7 @@ function getTodayWeekday(offset = 0) {
   return weekdays[date.getDay()];
 }
 
-function getDateString(offset = 0) {
+export function getDateString(offset = 0) {
   const today = new Date();
   today.setDate(today.getDate() + offset);
   const y = today.getFullYear();
