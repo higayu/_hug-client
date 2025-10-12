@@ -9,6 +9,7 @@ export const AppState = {
   SELECT_CHILD: "",
   SELECT_CHILD_NAME: "",
   childrenData: [],
+  closeButtonsVisible:true
 };
 
 // ...既存の AppState 定義などのあとに追記

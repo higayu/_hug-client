@@ -45,53 +45,6 @@ export function initHugActions() {
     vw?.loadURL("https://www.hug-ayumu.link/hug/wm/record_proceedings.php");
   });
 
-  // ✅ 新規専門的支援
-  document.getElementById("professional-support-new").addEventListener("click", () => {
-      const vw = getActiveWebview();
-      if (!vw) return;
-      vw.loadURL("https://www.hug-ayumu.link/hug/wm/record_proceedings.php?mode=edit");
-      vw.addEventListener("did-finish-load", () => {
-        vw.executeJavaScript(`// 専門的支援実施加算
-    const selectSupport = document.querySelector('select[name="adding_children_id"]');
-    if (selectSupport) {
-      selectSupport.value = "55";
-      selectSupport.dispatchEvent(new Event("change", { bubbles: true }));
-      console.log("✅ 専門的支援実施加算を選択");
-    }
-
-    // 子どもリスト（例：岡田 磨和 → value="49"）
-    const selectChild = document.querySelector('select[name="c_id_list[0][id]"]');
-    if (selectChild) {
-      selectChild.value = "${AppState.SELECT_CHILD}";
-      selectChild.dispatchEvent(new Event("change", { bubbles: true }));
-      console.log("✅ 子どもリストで岡田磨和を選択");
-    }
-
-    // 記録者（例：東山 → value="73"）
-    const selectRecorder = document.querySelector('select[name="recorder"]');
-    if (selectRecorder) {
-      selectRecorder.value = ${JSON.stringify(AppState.STAFF_ID)};
-      selectRecorder.dispatchEvent(new Event("change", { bubbles: true }));
-      console.log("✅ 記録者をひがしやまに選択");
-    }
-    const interviewSelect = document.querySelector('select[name="interview_staff[]"]');
-    if (interviewSelect) {
-      interviewSelect.value = ${JSON.stringify(AppState.STAFF_ID)};
-      interviewSelect.dispatchEvent(new Event("change", { bubbles: true }));
-      console.log("✅ 面接担当を選択:", interviewSelect.value);
-    }
-
-    // カスタマイズ項目のタイトル入力
-    const customizeInput = document.querySelector('input[name="customize[title][]"]');
-    if (customizeInput) {
-      customizeInput.value = "記録";
-      customizeInput.dispatchEvent(new Event("input", { bubbles: true }));
-      console.log("✅ カスタマイズタイトル入力:", customizeInput.value);
-    }
-  `);
-      }, { once: true });
-  });
-
 
   // ✅ 個別支援計画（別ウインドウ）
   document.getElementById("Individual_Support_Button").addEventListener("click", () => {
@@ -123,6 +76,14 @@ export function initHugActions() {
     } catch (err) {
       alert("❌ エラーが発生しました: " + err.message);
     }
+  });
+
+  // 🌟 トグルで閉じるボタンの表示ON/OFF
+  document.getElementById("closeToggle").addEventListener("change", (e) => {
+    AppState.closeButtonsVisible = e.target.checked;
+    document.querySelectorAll(".close-btn").forEach(btn => {
+      btn.style.display = AppState.closeButtonsVisible ? "inline" : "none";
+    });
   });
 
 
