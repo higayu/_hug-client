@@ -62,7 +62,7 @@ export function initHugActions() {
     // 子どもリスト（例：岡田 磨和 → value="49"）
     const selectChild = document.querySelector('select[name="c_id_list[0][id]"]');
     if (selectChild) {
-      selectChild.value = "${SELECT_CHILD}";
+      selectChild.value = "${AppState.SELECT_CHILD}";
       selectChild.dispatchEvent(new Event("change", { bubbles: true }));
       console.log("✅ 子どもリストで岡田磨和を選択");
     }
@@ -70,13 +70,13 @@ export function initHugActions() {
     // 記録者（例：東山 → value="73"）
     const selectRecorder = document.querySelector('select[name="recorder"]');
     if (selectRecorder) {
-      selectRecorder.value = ${JSON.stringify(STAFF_ID)};
+      selectRecorder.value = ${JSON.stringify(AppState.STAFF_ID)};
       selectRecorder.dispatchEvent(new Event("change", { bubbles: true }));
       console.log("✅ 記録者をひがしやまに選択");
     }
     const interviewSelect = document.querySelector('select[name="interview_staff[]"]');
     if (interviewSelect) {
-      interviewSelect.value = ${JSON.stringify(STAFF_ID)};
+      interviewSelect.value = ${JSON.stringify(AppState.STAFF_ID)};
       interviewSelect.dispatchEvent(new Event("change", { bubbles: true }));
       console.log("✅ 面接担当を選択:", interviewSelect.value);
     }
