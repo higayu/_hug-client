@@ -2,7 +2,12 @@
 const { BrowserWindow } = require("electron");
 const path = require("path");
 
+let isRegistered = false; // ✅ 二重登録防止フラグ
+
 function registerPlanWindows(ipcMain) {
+  if (isRegistered) return; // ← 2回目以降は無視
+  isRegistered = true;
+
   // 専門的支援計画
   ipcMain.on("open-specialized-support-plan", (event, childId) => {
     openPlanWindow(

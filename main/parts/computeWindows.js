@@ -2,71 +2,79 @@
 const { BrowserWindow } = require("electron");
 const path = require("path");
 
-function open_test_double_get(ipcMain) {
-  // 2ページのデータ取得
-  ipcMain.on("open-test-double-get", (event, childId) => {
-    openPlanWindow(
-      "https://www.hug-ayumu.link/hug/wm/addition_plan.php",
-      childId,
-      "test取得"
-    );
-  });
+let isRegistered = false;
 
-  // 個別支援計画
-  ipcMain.on("open-individual-support-plan", (event, childId) => {
-    openPlanWindow(
-      "https://www.hug-ayumu.link/hug/wm/individual_care-plan-main.php",
-      childId,
-      "個別支援計画"
+function open_test_double_get(ipcMain) {
+  if (isRegistered) return;
+  isRegistered = true;
+
+  ipcMain.on("open-test-double-get", () => {
+    openDoubleWebviewWindow(
+      "https://www.hug-ayumu.link/hug/wm/record_proceedings.php",
+      "https://www.hug-ayumu.link/hug/wm/addition_plan_situation.php",
+      "test取得"
     );
   });
 }
 
-function openPlanWindow(url, childId, label) {
+function openDoubleWebviewWindow(url1, url2, label) {
+  console.log(`🆕 ${label}ウィンドウを開きます (2画面)`);
+
   const win = new BrowserWindow({
-    width: 1200,
+    width: 1800,
     height: 900,
     webPreferences: {
       preload: path.join(__dirname, "../../preload.js"),
+      nodeIntegration: false,        // ❌ preloadを使うときはfalseにする
+      contextIsolation: true,        // ✅ contextBridgeを使うために必要
+      webviewTag: true,              // ✅ <webview>を有効化
     },
   });
 
-  console.log(`🆕 ${label}ウィンドウを開きます:`, childId);
-  win.loadURL(url);
+  // ✅ webview を2つ横並びに配置
+const html = `
+  <!DOCTYPE html>
+  <html>
+    <head>
+      <!-- ✅ inline CSS を許可し、CSP警告を抑制 -->
+      <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self' https: data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline';">
 
-  // 🔍 子ウィンドウのログをメインコンソールでも見られるようにする
-  win.webContents.on("console-message", (event, level, message) => {
-    console.log(`🧭 [${label}] ${message}`);
-  });
+      <style>
+        html, body {
+          margin: 0;
+          padding: 0;
+          height: 100%;
+          width: 100%;
+          display: flex;
+          overflow: hidden;
+          background: #eee;
+        }
+        webview {
+          flex: 1;
+          height: 100%;
+          border: none;
+        }
+        #left { border-right: 2px solid #ccc; }
+      </style>
+    </head>
+    <body>
+      <webview id="left"
+        src="${url1}"
+        preload="${path.join(process.resourcesPath ?? __dirname, '../../preload.js')}"></webview>
+      <webview id="right"
+        src="${url2}"
+        preload="${path.join(process.resourcesPath ?? __dirname, '../../preload.js')}"></webview>
+    </body>
+  </html>
+`;
+
+
+
+  win.loadURL("data:text/html;charset=utf-8," + encodeURIComponent(html));
 
   win.webContents.once("did-finish-load", () => {
-    console.log(`✅ did-finish-load（${label}）`);
-
-    // 🕒 DOM生成の遅延対策
-    setTimeout(() => {
-      win.webContents.executeJavaScript(`
-        try {
-          console.log("🚀 ${label} ページ自動処理開始");
-
-          const select = document.querySelector('#name_list');
-          if (!select) throw new Error("#name_list not found");
-          select.value = "${childId}";
-          select.dispatchEvent(new Event("change", { bubbles: true }));
-          console.log("✅ #name_list に設定:", select.value);
-
-          setTimeout(() => {
-            const btn = document.querySelector('button.btn.btn-sm.search');
-            if (!btn) throw new Error("search button not found");
-            if (btn.disabled) throw new Error("search button is disabled");
-            btn.click();
-            console.log("✅ 検索ボタンをクリックしました");
-          }, 1500);
-
-        } catch (e) {
-          console.error("❌ executeJavaScript failed:", e);
-        }
-      `);
-    }, 2000); // ← DOM構築待ち
+    console.log(`✅ ${label}ウィンドウ (2ページ) 読み込み完了`);
   });
 }
 

@@ -84,7 +84,7 @@ export function initHugActions() {
 
     // ✅ テスト データ取得（別ウインドウ）
   document.getElementById("test-double-get").addEventListener("click", () => {
-    window.electronAPI.open_test_double_get(AppState.SELECT_CHILD);
+    window.electronAPI.open_test_double_get();
   });
   
   // 「設定ファイルの取得」ボタンのクリックイベント
