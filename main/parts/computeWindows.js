@@ -67,7 +67,27 @@ function openDoubleWebviewWithTabs(url1, url2, label) {
     #left { border-right:2px solid #ccc; }
     #resultView { position:absolute; top:0; left:0; width:100%; height:100%; background:#fafafa; overflow:auto;
       white-space:pre; font-family:monospace; padding:20px; display:none; }
+
     #getDataBtn { position:absolute; top:10px; right:20px; z-index:5; padding:8px 12px; }
+
+    #resultView h2 {
+      background:#f3f3f3; padding:6px 10px; border-left:5px solid #888;
+    }
+    .table-wrapper {
+      overflow-x:auto; margin-bottom:40px;
+    }
+    table.table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-top: 10px;
+    }
+    table.table th, table.table td {
+      border: 1px solid #ccc;
+      padding: 4px 8px;
+      font-size: 13px;
+    }
+    table.table th { background: #e0e0e0; }
+    tr:nth-child(even) { background: #fafafa; }
   </style>
 </head>
 <body>
@@ -119,7 +139,6 @@ function openDoubleWebviewWithTabs(url1, url2, label) {
       try {
         console.log("🟢 ページ全体の構造を取得開始...");
 
-        // ページロード待機関数
         async function waitForPageReady(view) {
           for (let i = 0; i < 30; i++) {
             const state = await view.executeJavaScript('document.readyState');
@@ -146,7 +165,12 @@ function openDoubleWebviewWithTabs(url1, url2, label) {
           el.outerHTML;
         \`);
 
-        resultView.textContent = "📘 左ページ\\n" + htmlLeft + "\\n\\n📙 右ページ\\n" + htmlRight;
+        resultView.innerHTML =
+          '<h2>📘 左ページ（記録一覧）</h2>' +
+          '<div class="table-wrapper">' + htmlLeft + '</div>' +
+          '<h2>📙 右ページ（計画状況）</h2>' +
+          '<div class="table-wrapper">' + htmlRight + '</div>';
+
         tabResult.click();
 
       } catch (err) {
@@ -158,6 +182,7 @@ function openDoubleWebviewWithTabs(url1, url2, label) {
 </body>
 </html>
 `;
+
 
 
   win.loadURL("data:text/html;charset=utf-8," + encodeURIComponent(html));
