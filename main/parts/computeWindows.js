@@ -88,6 +88,36 @@ function openDoubleWebviewWithTabs(url1, url2, label) {
     }
     table.table th { background: #e0e0e0; }
     tr:nth-child(even) { background: #fafafa; }
+    #resultContainer {
+       display: flex;
+       flex-direction: row;
+       gap: 20px;
+    }
+    
+    .result-half {
+       flex: 1;
+       min-width: 0;
+       display: flex;
+       flex-direction: column;
+    }
+    
+    .result-half h2 {
+       background:#f3f3f3;
+       padding:6px 10px;
+       border-left:5px solid #888;
+       margin-top:0;
+    }
+    
+    .table-wrapper {
+       flex: 1;
+       overflow-x: auto;
+       overflow-y: auto;
+       background: white;
+       border: 1px solid #ccc;
+       border-radius: 6px;
+       padding: 6px;
+    }
+
   </style>
 </head>
 <body>
@@ -166,10 +196,16 @@ function openDoubleWebviewWithTabs(url1, url2, label) {
         \`);
 
         resultView.innerHTML =
-          '<h2>📘 左ページ（記録一覧）</h2>' +
-          '<div class="table-wrapper">' + htmlLeft + '</div>' +
-          '<h2>📙 右ページ（計画状況）</h2>' +
-          '<div class="table-wrapper">' + htmlRight + '</div>';
+          '<div id="resultContainer">' +
+            '<div class="result-half">' +
+              '<h2>📘 左ページ（記録一覧）</h2>' +
+              '<div class="table-wrapper">' + htmlLeft + '</div>' +
+            '</div>' +
+            '<div class="result-half">' +
+              '<h2>📙 右ページ（計画状況）</h2>' +
+              '<div class="table-wrapper">' + htmlRight + '</div>' +
+            '</div>' +
+          '</div>';
 
         tabResult.click();
 
