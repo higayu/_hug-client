@@ -1,4 +1,4 @@
-// modules/hugActions.js
+// renderer/modules/hugActions.js
 import { AppState,loadConfig } from "./config.js";
 import { initChildrenList } from "./childrenList.js";
 import { getActiveWebview } from "./webviewState.js";
@@ -8,36 +8,68 @@ export function initHugActions() {
   // ✅ 更新ボタン
   document.getElementById("refreshBtn").addEventListener("click", async () => {
     const vw = getActiveWebview();
-    vw?.reload();
+    if (!vw) {
+      alert("WebView が見つかりません");
+      return;
+    }
 
+    console.log("🔄 WebViewを再読み込み中...");
+    vw.reload();
+
+    // 再読み込み完了を待つ
+    await new Promise((resolve) => {
+      vw.addEventListener("did-finish-load", resolve, { once: true });
+    });
+
+    console.log("✅ 再読み込み完了。子どもリストを再取得");
     if (typeof initChildrenList === "function") {
-      console.log("🔄 再読み込み後に子どもリストを再描画");
-      AppState.childrenData = await window.electronAPI.GetChildrenByStaffAndDay(
-        AppState.STAFF_ID,
-        AppState.WEEK_DAY
-      );
-      await initChildrenList();
+      try {
+        AppState.childrenData = await window.electronAPI.GetChildrenByStaffAndDay(
+          AppState.STAFF_ID,
+          AppState.WEEK_DAY
+        );
+        await initChildrenList();
+      } catch (err) {
+        console.error("❌ 子リスト再取得エラー:", err);
+        alert("子どもリストの再取得に失敗しました");
+      }
     }
   });
+
 
   // ✅ 自動ログイン
   document.getElementById("loginBtn").addEventListener("click", async () => {
     const vw = getActiveWebview();
     if (!vw) return alert("Webview が見つかりません");
+
+    await new Promise((resolve) => {
+      if (vw.isLoading()) {
+        vw.addEventListener("did-finish-load", resolve, { once: true });
+      } else {
+        resolve();
+      }
+    });
+
     if (!AppState.HUG_USERNAME || !AppState.HUG_PASSWORD) {
       alert("config.json がまだ読み込まれていません。");
       return;
     }
 
     console.log("🚀 自動ログイン開始...");
-    vw.executeJavaScript(`
-      document.querySelector('input[name="username"]').value = ${JSON.stringify(AppState.HUG_USERNAME)};
-      document.querySelector('input[name="password"]').value = ${JSON.stringify(AppState.HUG_PASSWORD)};
-      const checkbox = document.querySelector('input[name="setexpire"]');
-      if (checkbox && !checkbox.checked) checkbox.click();
-      document.querySelector("input.btn-login")?.click();
-    `);
+    try {
+      await vw.executeJavaScript(`
+        document.querySelector('input[name="username"]').value = ${JSON.stringify(AppState.HUG_USERNAME)};
+        document.querySelector('input[name="password"]').value = ${JSON.stringify(AppState.HUG_PASSWORD)};
+        const checkbox = document.querySelector('input[name="setexpire"]');
+        if (checkbox && !checkbox.checked) checkbox.click();
+        document.querySelector("input.btn-login")?.click();
+      `);
+    } catch (err) {
+      console.error("❌ ログインスクリプト実行エラー:", err);
+      alert("ログインスクリプト実行に失敗しました");
+    }
   });
+
 
 
   // ✅ 個別支援計画（別ウインドウ）
@@ -50,6 +82,10 @@ export function initHugActions() {
     window.electronAPI.openSpecializedSupportPlan(AppState.SELECT_CHILD);
   });
 
+    // ✅ テスト データ取得（別ウインドウ）
+  document.getElementById("test-double-get").addEventListener("click", () => {
+    window.electronAPI.open_test_double_get(AppState.SELECT_CHILD);
+  });
   
   // 「設定ファイルの取得」ボタンのクリックイベント
   document.getElementById("Import-Setting").addEventListener("click", async () => {

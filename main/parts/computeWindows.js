@@ -1,14 +1,14 @@
-// main/planWindows.js
+// main/parts/computeWindows.js
 const { BrowserWindow } = require("electron");
 const path = require("path");
 
-function registerPlanWindows(ipcMain) {
-  // 専門的支援計画
-  ipcMain.on("open-specialized-support-plan", (event, childId) => {
+function open_test_double_get(ipcMain) {
+  // 2ページのデータ取得
+  ipcMain.on("open-test-double-get", (event, childId) => {
     openPlanWindow(
       "https://www.hug-ayumu.link/hug/wm/addition_plan.php",
       childId,
-      "専門的支援計画"
+      "test取得"
     );
   });
 
@@ -27,7 +27,7 @@ function openPlanWindow(url, childId, label) {
     width: 1200,
     height: 900,
     webPreferences: {
-      preload: path.join(__dirname, "../preload.js"),
+      preload: path.join(__dirname, "../../preload.js"),
     },
   });
 
@@ -70,4 +70,4 @@ function openPlanWindow(url, childId, label) {
   });
 }
 
-module.exports = { registerPlanWindows };
+module.exports = { open_test_double_get };

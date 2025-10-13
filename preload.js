@@ -29,6 +29,9 @@ contextBridge.exposeInMainWorld("electronAPI", {
     // 既存のAPIに加えて...
   openSpecializedSupportPlan: (childId) => ipcRenderer.send("open-specialized-support-plan", childId),
 
+    // 既存のAPIに加えて...
+  open_test_double_get: (childId) => ipcRenderer.send("open-test-double-get", childId),
+
   readConfig: () => ipcRenderer.invoke("read-config"),
 
   importConfigFile: () => ipcRenderer.invoke("import-config-file"),
