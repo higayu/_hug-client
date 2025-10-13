@@ -39,12 +39,6 @@ export function initHugActions() {
     `);
   });
 
-  // ✅ 専門的支援一覧
-  document.getElementById("professional-support").addEventListener("click", () => {
-    const vw = getActiveWebview();
-    vw?.loadURL("https://www.hug-ayumu.link/hug/wm/record_proceedings.php");
-  });
-
 
   // ✅ 個別支援計画（別ウインドウ）
   document.getElementById("Individual_Support_Button").addEventListener("click", () => {

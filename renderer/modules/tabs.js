@@ -21,7 +21,7 @@ export function initTabs() {
 
   // ===== 通常タブ追加 =====
   addTabBtn.addEventListener("click", () => {
-    const newId = `hugview-${Date.now()}`;
+    const newId = `hugview-${Date.now()}-${document.querySelectorAll("webview").length}`;
     const newWebview = document.createElement("webview");
     newWebview.id = newId;
     newWebview.src = `https://www.hug-ayumu.link/hug/wm/attendance.php?mode=detail&f_id=${AppState.FACILITY_ID}&date=${AppState.DATE_STR}`;
@@ -73,7 +73,7 @@ export function initTabs() {
       return;
     }
 
-    const newId = `hugview-${AppState.DATE_STR}`;
+    const newId = `hugview-${AppState.DATE_STR}-${document.querySelectorAll("webview").length}`;
     console.log("newIdの値", newId);
     const newWebview = document.createElement("webview");
     newWebview.id = newId;
@@ -237,11 +237,11 @@ export function initTabs() {
       return;
     }
 
-    const newId = `hugview-${AppState.DATE_STR}`;
+    const newId = `hugview-${AppState.DATE_STR}-${document.querySelectorAll("webview").length}`;
     console.log("newIdの値", newId);
     const newWebview = document.createElement("webview");
     newWebview.id = newId;
-    console.log("👤 個人記録クリック — 選択した日付:", AppState.DATE_STR);
+    console.log("👤  — 選択した日付:", AppState.DATE_STR);
 
     // contact_book ページを開く
     newWebview.src = `https://www.hug-ayumu.link/hug/wm/record_proceedings.php?mode=edit`;
@@ -350,6 +350,130 @@ export function initTabs() {
 
     // すぐに表示
     tabButton.click();
+  });
+
+    // ✅ 専門的支援一覧
+  document.getElementById("professional-support").addEventListener("click", () => {
+
+    const newId = `hugview-${AppState.DATE_STR}-${document.querySelectorAll("webview").length}`;
+    console.log("newIdの値", newId);
+    const newWebview = document.createElement("webview");
+    newWebview.id = newId;
+    console.log("👤  — 選択した日付:", AppState.DATE_STR);
+
+    // contact_book ページを開く
+    newWebview.src = `https://www.hug-ayumu.link/hug/wm/record_proceedings.php`;
+    newWebview.allowpopups = true;
+    newWebview.style.cssText = "position:absolute;top:0;left:0;width:100%;height:100%;";
+    newWebview.classList.add("hidden");
+    content.appendChild(newWebview);
+
+    // ✅ 子webview内 console を親に転送
+    newWebview.addEventListener("console-message", (e) => {
+      console.log(`🪶 [${newWebview.id}] ${e.message}`); // ← ここで全ログ拾える！
+    });
+
+    // ✅ タブボタン作成
+    const tabButton = document.createElement("button");
+    tabButton.innerHTML = `
+      専門的加算 一覧 : ${AppState.SELECT_CHILD_NAME}
+      <span class="close-btn"${AppState.closeButtonsVisible ? "" : " style='display:none'"}>❌</span>
+    `;
+    tabButton.dataset.target = newId;
+    tabsContainer.appendChild(tabButton);
+
+    // 閉じる処理
+    tabButton.querySelector(".close-btn").addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (!confirm("このタブを閉じますか？")) return;
+      newWebview.remove();
+      tabButton.remove();
+
+      const defaultView = document.getElementById("hugview");
+      defaultView.classList.remove("hidden");
+      setActiveWebview(defaultView);
+      tabsContainer.querySelector(`button[data-target="hugview"]`)?.classList.add("active-tab");
+    });
+
+    // タブ切替
+    tabButton.addEventListener("click", () => {
+      document.querySelectorAll("webview").forEach(v => v.classList.add("hidden"));
+      newWebview.classList.remove("hidden");
+      setActiveWebview(newWebview);
+    });
+
+        // ✅ 初回ロード時：日付セット + 検索クリック + 編集ボタン探索
+    let hasSearched = false;
+    let hasClickedEdit = false;
+
+    if(AppState.DATE_STR == getDateString()){
+      console.log("当日のため省略",AppState.DATE_STR+'　＝＝　'+getDateString())
+      //hasSearched = true;
+    }else{
+      console.log("当日ではない",AppState.DATE_STR+'　＝＝　'+getDateString())
+    }
+
+    // contact_book ページ初回ロード時のみ実行
+    newWebview.addEventListener("did-finish-load", async () => {
+      if (hasSearched) return; // ✅ 検索処理を1回だけに制限
+      hasSearched = true;
+
+      console.log("✅ record_proceedings ページロード完了 — 施設チェックと加算選択を設定中...");
+
+      newWebview.executeJavaScript(`
+        try {
+          // ====== 施設チェック ======
+          const facilityId = "${AppState.FACILITY_ID}";
+          console.log("🏢 FACILITY_ID =", facilityId);
+
+          const boxes = document.querySelectorAll('#facility_check input[type="checkbox"]');
+          if (boxes.length) {
+            boxes.forEach(box => {
+              const match = box.value === facilityId;
+              box.checked = match;
+              console.log(\`🔘 \${box.value} : \${match ? "✅ チェック" : "❌ 解除"}\`);
+            });
+          } else {
+            console.warn("⚠️ #facility_check のチェックボックスが見つかりません");
+          }
+
+          // ====== 専門的支援実施加算（value=55）選択 ======
+          const selectSupport = document.querySelector('select[name="adding_children_id"]');
+          if (selectSupport) {
+            selectSupport.value = "55";
+            selectSupport.dispatchEvent(new Event("change", { bubbles: true }));
+            console.log("✅ 専門的支援実施加算（55）を選択");
+          } else {
+            console.warn("⚠️ adding_children_id セレクトボックスが見つかりません");
+          }
+
+          // ====== 検索ボタンクリック ======
+          const searchBtn = document.querySelector('button.btn.btn-sm.search[type="submit"]');
+          if (searchBtn) {
+            console.log("🔍 検索ボタンをクリックします...");
+            searchBtn.click();
+          } else {
+            console.warn("⚠️ 検索ボタンが見つかりません");
+          }
+
+          console.log("✅ 施設チェック・加算選択・検索ボタン押下まで完了");
+        } catch (e) {
+          console.error("❌ record_proceedings 初期化中にエラー:", e);
+        }
+      `);
+    }, { once: true });
+
+
+
+
+    //🌟 DevTools を自動で開いて確認したい場合（開発中のみ推奨）
+    newWebview.addEventListener("dom-ready", () => {
+      newWebview.openDevTools({ mode: "detach" }); // ← これで子webviewの内部consoleを直接見れる
+    });
+
+    // すぐに表示
+    tabButton.click();
+
   });
 
   // ===== 🌟 タブ切り替えイベント =====

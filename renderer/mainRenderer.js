@@ -28,4 +28,47 @@ window.addEventListener("DOMContentLoaded", async () => {
   initHugActions();
 
   console.log("🎉 初期化完了:", AppState);
+
+  // ========= 設定ナビゲーション =====
+  const panelBtn = document.getElementById("panel-btn");
+  const panel = document.getElementById("panel");
+
+  panelBtn.addEventListener("click", () => {
+    panel.classList.toggle("open");
+  });
+
+  document.addEventListener("click", (e) => {
+    if (!panel.contains(e.target) && e.target !== panelBtn) {
+      panel.classList.remove("open");
+    }
+  });
+
+  // ========= 一覧ナビゲーション =====
+  const panel_Support_Btn = document.getElementById("panel-support-btn");
+  const panel_Support = document.getElementById("panel-support");
+
+  panel_Support_Btn.addEventListener("click", () => {
+    panel_Support.classList.toggle("open");
+  });
+
+  document.addEventListener("click", (e) => {
+    if (!panel_Support.contains(e.target) && e.target !== panel_Support_Btn) {
+      panel_Support.classList.remove("open");
+    }
+  });
+
+  // ========= 専門的支援加算ナビゲーション =====
+  const panel_special_Btn = document.getElementById("panel-special-btn");
+  const panel_special = document.getElementById("panel-special");
+
+  panel_special_Btn.addEventListener("click", () => {
+    panel_special.classList.toggle("open");
+  });
+
+  document.addEventListener("click", (e) => {
+    if (!panel_special.contains(e.target) && e.target !== panel_special_Btn) {
+      panel_special.classList.remove("open");
+    }
+  });
+
 });

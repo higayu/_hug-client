@@ -1,14 +1,42 @@
 <!DOCTYPE html>
-<html>
+<html lang="ja">
 <head>
   <meta charset="UTF-8">
   <title>Hug Client</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <!-- ======== ツールバー ======== -->
   <div id="toolbar">
-    <button id="menuToggle" class="hamburger">☰</button>
-    <button id="refreshBtn">🔄 更新</button>
+    <button id="menuToggle" class="hamburger">
+      <i class="fa-solid fa-bars"></i>
+    </button>
+
+    <button id="kojin-kiroku">＋ 個人記録</button>
+
+    <!-- ======== ナビゲーションメニュー ======== -->
+    <nav class="globalNav">
+      <button id="panel-special-btn" class="menu-button-special">💵専門的支援加算 ▾</button>
+      <div id="panel-special" class="navInner">
+        <ul>
+          <li><button id="professional-support-new">＋ 専門的支援-新規</button></li>
+          <li><button id="professional-support">専門的支援-一覧</button></li>
+        </ul>
+      </div>
+    </nav>
+
+
+    <!-- ======== ナビゲーションメニュー ======== -->
+    <nav class="globalNav">
+      <button id="panel-support-btn" class="menu-button-support">📜支援計画 ▾</button>
+      <div id="panel-support" class="navInner">
+        <ul>
+          <li><button id="Individual_Support_Button">個別支援-計画</button></li>
+          <li><button id="Specialized-Support-Plan">専門的支援-計画</button></li>
+        </ul>
+      </div>
+    </nav>
 
     <label for="facilitySelect" style="margin-left:10px;">施設:</label>
     <select id="facilitySelect" class="js_c_f_id">
@@ -23,16 +51,20 @@
       <span class="slider"></span>
     </label>
 
-    <button id="kojin-kiroku">＋ 個人記録</button>
-    <button id="professional-support-new">＋ 専門的支援-新規</button>
-    
-    <button id="professional-support">専門的支援-一覧</button>
-    <button id="Individual_Support_Button">個別支援-計画</button>
-    <button id="Specialized-Support-Plan">専門的支援-計画</button>
-    <button id="loginBtn">⚙️ 自動ログイン</button>
-    <button id="Import-Setting">⚙️設定ファイルのインポート</button>
+    <!-- ======== ナビゲーションメニュー ======== -->
+    <nav class="globalNav">
+      <button id="panel-btn" class="menu-button-setting">⚙️設定 ▾</button>
+      <div id="panel" class="navInner">
+        <ul>
+          <li><button id="loginBtn">⚙️ 自動ログイン</button></li>
+          <li><button id="refreshBtn">🔄 更新</button></li>
+          <li><button id="Import-Setting">📁 設定ファイルのインポート</button></li>
+        </ul>
+      </div>
+    </nav>
   </div>
 
+  <!-- ======== タブとコンテンツ ======== -->
   <div id="tabs">
     <button data-target="hugview" class="active-tab">Hug</button>
   </div>
@@ -43,7 +75,8 @@
   </div>
 
   <pre id="configOutput" style="display: none;"></pre>
-<!-- ✅ 修正後（type="module" を付ける） -->
-<script type="module" src="mainRenderer.js"></script>
+
+  <!-- ======== スクリプト ======== -->
+  <script type="module" src="mainRenderer.js"></script>
 </body>
 </html>
