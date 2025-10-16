@@ -354,9 +354,9 @@ addTabBtn.addEventListener("contextmenu", (e) => {
 
 
     //🌟 DevTools を自動で開いて確認したい場合（開発中のみ推奨）
-    newWebview.addEventListener("dom-ready", () => {
-      newWebview.openDevTools({ mode: "detach" }); // ← これで子webviewの内部consoleを直接見れる
-    });
+    // newWebview.addEventListener("dom-ready", () => {
+    //   newWebview.openDevTools({ mode: "detach" }); // ← これで子webviewの内部consoleを直接見れる
+    // });
 
     // すぐに表示
     tabButton.click();
