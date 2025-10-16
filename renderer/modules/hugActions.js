@@ -116,6 +116,11 @@ export function initHugActions() {
     });
   });
 
+    // ✅ URLの取得処理
+  document.getElementById("Get-Url").addEventListener("click", () => {
+    console.log("URLの取得処理");
+  });
+
 
   console.log("✅ Hug操作 初期化完了");
 }

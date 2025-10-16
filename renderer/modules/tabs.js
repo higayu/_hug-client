@@ -65,6 +65,16 @@ export function initTabs() {
     tabButton.click(); // 追加直後に選択
   });
 
+  // ===== 通常タブの右クリック ===
+addTabBtn.addEventListener("contextmenu", (e) => {
+  e.preventDefault(); // ← 右クリックメニューを無効化
+    window.electronAPI.Open_NowDayPage({
+    facilityId: AppState.FACILITY_ID,
+    dateStr: AppState.DATE_STR,
+  });
+});
+
+
 
   // ===== 個人記録タブ =====
   Kojin_Button.addEventListener("click", () => {
