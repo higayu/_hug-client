@@ -2,7 +2,7 @@
 import { initTabs } from "./modules/tabs.js";
 import { loadConfig, AppState } from "./modules/config.js";
 import { loadIni } from "./modules/ini.js";
-import { setupSidebar } from "./modules/sidebar.js";
+import { setupSidebar } from "./sidebar/sidebar.js";
 import { initHugActions, updateButtonVisibility } from "./modules/hugActions.js";
 import { initChildrenList } from "./modules/childrenList.js";
 import { initSettingsEditor } from "./modules/settingsEditor.js";
@@ -49,12 +49,24 @@ window.addEventListener("DOMContentLoaded", async () => {
 
   console.log("🎉 初期化完了:", AppState);
 
+  // ドロップダウンメニューの位置を動的に計算する関数
+  function positionDropdown(button, dropdown) {
+    const rect = button.getBoundingClientRect();
+    dropdown.style.position = 'fixed';
+    dropdown.style.top = (rect.bottom + 5) + 'px';
+    dropdown.style.left = rect.left + 'px';
+    dropdown.style.zIndex = '99999';
+  }
+
   // ========= 設定ナビゲーション =====
   const panelBtn = document.getElementById("panel-btn");
   const panel = document.getElementById("panel");
 
   panelBtn.addEventListener("click", () => {
     panel.classList.toggle("open");
+    if (panel.classList.contains("open")) {
+      positionDropdown(panelBtn, panel);
+    }
   });
 
   document.addEventListener("click", (e) => {
@@ -69,6 +81,9 @@ window.addEventListener("DOMContentLoaded", async () => {
 
   panel_Support_Btn.addEventListener("click", () => {
     panel_Support.classList.toggle("open");
+    if (panel_Support.classList.contains("open")) {
+      positionDropdown(panel_Support_Btn, panel_Support);
+    }
   });
 
   document.addEventListener("click", (e) => {
@@ -83,11 +98,27 @@ window.addEventListener("DOMContentLoaded", async () => {
 
   panel_special_Btn.addEventListener("click", () => {
     panel_special.classList.toggle("open");
+    if (panel_special.classList.contains("open")) {
+      positionDropdown(panel_special_Btn, panel_special);
+    }
   });
 
   document.addEventListener("click", (e) => {
     if (!panel_special.contains(e.target) && e.target !== panel_special_Btn) {
       panel_special.classList.remove("open");
+    }
+  });
+
+  // ウィンドウリサイズ時にドロップダウンの位置を再計算
+  window.addEventListener("resize", () => {
+    if (panel.classList.contains("open")) {
+      positionDropdown(panelBtn, panel);
+    }
+    if (panel_Support.classList.contains("open")) {
+      positionDropdown(panel_Support_Btn, panel_Support);
+    }
+    if (panel_special.classList.contains("open")) {
+      positionDropdown(panel_special_Btn, panel_special);
     }
   });
 

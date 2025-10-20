@@ -12,6 +12,14 @@ body {
   color: white;
   padding: 8px;
   flex: 0 0 auto;
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 10px;
+  overflow-x: auto;
+  white-space: nowrap;
+  position: relative;
+  z-index: 1000;
 }
 
 #tabs {
@@ -41,8 +49,9 @@ body {
 #content {
   position: relative;
   flex: 1 1 auto;
-  overflow: hidden;
+  overflow: visible;
   display: flex;
+  z-index: 1;
 }
 
 #hugview {
@@ -53,6 +62,7 @@ body {
   transition: margin-left 0.3s ease;
   position: relative;
   z-index: 1;
+  overflow: hidden;
 }
 
 #hugview.shifted {
@@ -93,6 +103,8 @@ body {
   font-size: 20px;
   cursor: pointer;
   margin-right: 8px;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .hamburger:hover {
@@ -173,8 +185,10 @@ body {
 .globalNav {
   position: relative;
   display: inline-block;
-  margin-left: 15px;
-  min-width: 200px;
+  margin-left: 0;
+  min-width: auto;
+  flex-shrink: 0;
+  z-index: 1001;
 }
 
 /* ===== 一覧 ===== */
@@ -186,6 +200,9 @@ body {
   padding: 6px 12px;
   cursor: pointer;
   transition: 0.2s;
+  white-space: nowrap;
+  position: relative;
+  z-index: 1002;
 }
 
 /* ===== 設定 ===== */
@@ -197,6 +214,9 @@ body {
   padding: 6px 12px;
   cursor: pointer;
   transition: 0.2s;
+  white-space: nowrap;
+  position: relative;
+  z-index: 1002;
 }
 
 /* ===== 専門的支援加算 ===== */
@@ -208,6 +228,9 @@ body {
   padding: 6px 12px;
   cursor: pointer;
   transition: 0.2s;
+  white-space: nowrap;
+  position: relative;
+  z-index: 1002;
 }
 
 .menu-button:hover,.menu-button-setting:hover,.menu-button-special:hover {
@@ -217,14 +240,17 @@ body {
 /* メニュー本体 */
 .navInner {
   display: none;
-  position: absolute;
-  right: 0;
-  top: 100%;
+  position: fixed;
+  right: auto;
+  top: auto;
   background: #fff;
   border: 1px solid #ccc;
   border-radius: 6px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-  z-index: 10;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  z-index: 99999;
+  min-width: 200px;
+  max-height: 300px;
+  overflow-y: auto;
 }
 
 .navInner.open,
@@ -268,6 +294,8 @@ body {
   font-weight: bold;           /* 太字 */
   cursor: pointer;             /* ポインタカーソル */
   transition: background-color 0.2s ease, transform 0.1s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 /* ホバー時（明るめの緑） */
@@ -280,6 +308,61 @@ body {
 #kojin-kiroku:active {
   background-color: #43A047;
   transform: scale(0.97);
+}
+
+/* テストボタン */
+#test-double-get {
+  background-color: #ff9800;
+  color: white;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+#test-double-get:hover {
+  background-color: #ffb74d;
+  transform: scale(1.05);
+}
+
+#test-double-get:active {
+  background-color: #f57c00;
+  transform: scale(0.97);
+}
+
+/* 施設選択 */
+#facilitySelect {
+  background-color: #fff;
+  color: #333;
+  border: 1px solid #ddd;
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+#facilitySelect:hover {
+  border-color: #999;
+}
+
+#facilitySelect:focus {
+  outline: none;
+  border-color: #2196f3;
+  box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.2);
+}
+
+/* ラベル */
+label {
+  white-space: nowrap;
+  flex-shrink: 0;
+  color: white;
+  font-size: 14px;
 }
 
 .hamburger i {

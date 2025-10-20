@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>児童指定ページ</title>
+  <style>
+    /* sidebar/sidebar.css */
+    /* サイドバーのスタイル */
+
+    /* 日付選択 */
+    #dateSelect {
+      width: 100%;
+      padding: 8px;
+      margin: 5px 0;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+
+    /* 曜日選択 */
+    #weekdaySelect {
+      width: 100%;
+      padding: 8px;
+      margin: 5px 0;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+      background-color: #fff;
+    }
+
+    /* ラベル */
+    label {
+      display: block;
+      margin: 10px 0 5px 0;
+      font-weight: bold;
+      color: #333;
+      font-size: 14px;
+    }
+
+    /* 区切り線 */
+    hr {
+      margin: 15px 0;
+      border: none;
+      border-top: 1px solid #eee;
+    }
+
+    /* 子どもリスト */
+    #childrenList {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    #childrenList li {
+      padding: 10px;
+      margin: 5px 0;
+      background-color: #f8f9fa;
+      border: 1px solid #e9ecef;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    #childrenList li:hover {
+      background-color: #e9ecef;
+    }
+
+    #childrenList li.selected {
+      background-color: #007bff;
+      color: white;
+      border-color: #0056b3;
+    }
+
+    /* レスポンシブデザイン */
+    @media (max-width: 768px) {
+      #dateSelect,
+      #weekdaySelect {
+        font-size: 16px; /* モバイルでのズーム防止 */
+      }
+      
+      label {
+        font-size: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+    <!-- 🌟 日付選択 -->
+    <label for="dateSelect">日付:（個人記録）</label>
+    <input type="date" id="dateSelect" />
+
+    <hr>
+
+    <!-- 🌟 曜日選択セレクトボックス -->
+    <label for="weekdaySelect" style="margin-left:10px;">曜日別（対応児童）:</label>
+    <select id="weekdaySelect" name="weekdaySelect" class="js_weekday">
+      <option value="日">日</option>
+      <option value="月">月</option>
+      <option value="火">火</option>
+      <option value="水">水</option>
+      <option value="木">木</option>
+      <option value="金">金</option>
+      <option value="土">土</option>
+    </select>
+
+
+  <ul id="childrenList"></ul>
+
+</body>
+</html>

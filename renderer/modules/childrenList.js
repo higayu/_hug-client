@@ -1,11 +1,12 @@
 // modules/childrenList.js
 import { AppState,getWeekdayFromDate } from "./config.js";
+import { initSidebar, updateSidebarValues } from "../sidebar/sidebar.js";
 
 export async function initChildrenList() {
   const settingsEl = document.getElementById("settings");
 
   // ✅ まずHTMLを読み込む
-  const res = await fetch("settings.html");
+  const res = await fetch("sidebar/sidebar.html");
   settingsEl.innerHTML = await res.text();
 
   // ✅ その後に要素を取得
@@ -14,14 +15,18 @@ export async function initChildrenList() {
   const listEl = settingsEl.querySelector("#childrenList");
 
   if (!dateInput || !weekdaySelect || !listEl) {
-    console.error("❌ settings.html の要素取得に失敗しました");
+    console.error("❌ sidebar.html の要素取得に失敗しました");
     return;
   }
 
   // 🌟 デフォルト日付を設定
-  dateInput.value = AppState.DATE_STR;
-
   AppState.WEEK_DAY = AppState.WEEK_DAY || "月";
+  
+  // サイドバーを初期化
+  initSidebar();
+  
+  // サイドバーの値を更新
+  updateSidebarValues(AppState.DATE_STR, AppState.WEEK_DAY);
 
   async function loadChildren() {
     const data = await window.electronAPI.GetChildrenByStaffAndDay(AppState.STAFF_ID, AppState.WEEK_DAY);
