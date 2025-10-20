@@ -5,6 +5,10 @@ const path = require("path");
 let isRegistered = false;
 
 function open_test_double_get(ipcMain) {
+  console.log("🔧 [MAIN] open_test_double_get 関数が呼び出されました");
+  console.log("🔍 [MAIN] isRegistered:", isRegistered);
+  console.log("🔍 [MAIN] ipcMain:", ipcMain ? "存在" : "未定義");
+  
   if (isRegistered) {
     console.log("⚠️ open-test-double-get は既に登録済みです");
     return;
@@ -12,8 +16,14 @@ function open_test_double_get(ipcMain) {
   isRegistered = true;
   console.log("✅ open-test-double-get IPCハンドラーを登録しました");
 
+  // すべてのIPCイベントをログ出力するリスナーを追加
   ipcMain.on("open-test-double-get", (event) => {
     console.log("🔘 [MAIN] open-test-double-get IPCイベントを受信しました");
+    console.log("🔍 [MAIN] イベント詳細:", {
+      eventType: "open-test-double-get",
+      senderId: event.sender.id,
+      frameId: event.frameId
+    });
     try {
       openDoubleWebviewWithTabs(
         "https://www.hug-ayumu.link/hug/wm/record_proceedings.php",
@@ -25,6 +35,13 @@ function open_test_double_get(ipcMain) {
       console.error("❌ [MAIN] ダブルWebViewウィンドウの作成に失敗:", error);
     }
   });
+
+  // デバッグ用：IPCイベントの監視（正しい方法）
+  const originalOn = ipcMain.on;
+  ipcMain.on = function(channel, listener) {
+    console.log("🔍 [MAIN] IPCハンドラーを登録:", channel);
+    return originalOn.call(this, channel, listener);
+  };
 }
 
 function openDoubleWebviewWithTabs(url1, url2, label) {

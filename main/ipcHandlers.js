@@ -9,13 +9,32 @@ const { open_test_double_get } = require("./parts/computeWindows");
 
 function registerIpcHandlers(mainWindow) {
   console.log("🔧 [MAIN] IPCハンドラーを登録中...");
-  handleLogin(ipcMain, mainWindow);
-  handleApiCalls(ipcMain, mainWindow);
-  handleConfigAccess(ipcMain);
-  handleIniAccess(ipcMain);
-  registerPlanWindows(ipcMain);
-  open_test_double_get(ipcMain);
-  console.log("✅ [MAIN] すべてのIPCハンドラーを登録しました");
+  console.log("🔍 [MAIN] mainWindow:", mainWindow ? "存在" : "未定義");
+  console.log("🔍 [MAIN] ipcMain:", ipcMain ? "存在" : "未定義");
+  
+  try {
+    handleLogin(ipcMain, mainWindow);
+    console.log("✅ [MAIN] handleLogin 登録完了");
+    
+    handleApiCalls(ipcMain, mainWindow);
+    console.log("✅ [MAIN] handleApiCalls 登録完了");
+    
+    handleConfigAccess(ipcMain);
+    console.log("✅ [MAIN] handleConfigAccess 登録完了");
+    
+    handleIniAccess(ipcMain);
+    console.log("✅ [MAIN] handleIniAccess 登録完了");
+    
+    registerPlanWindows(ipcMain);
+    console.log("✅ [MAIN] registerPlanWindows 登録完了");
+    
+    open_test_double_get(ipcMain);
+    console.log("✅ [MAIN] open_test_double_get 登録完了");
+    
+    console.log("✅ [MAIN] すべてのIPCハンドラーを登録しました");
+  } catch (error) {
+    console.error("❌ [MAIN] IPCハンドラー登録中にエラー:", error);
+  }
 }
 
 module.exports = { registerIpcHandlers };

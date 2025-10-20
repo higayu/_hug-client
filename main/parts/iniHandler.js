@@ -75,34 +75,7 @@ function handleIniAccess(ipcMain) {
     }
   });
 
-  ipcMain.handle("import-config-file", async () => {
-    try {
-      const { canceled, filePaths } = await dialog.showOpenDialog({
-        title: "設定ファイルを選択してください (ini.json)",
-        filters: [{ name: "JSONファイル", extensions: ["json"] }],
-        properties: ["openFile"],
-      });
-
-      if (canceled || filePaths.length === 0) return { success: false };
-
-      const selectedFile = filePaths[0];
-
-      const destDir = app.isPackaged
-        ? path.join(process.resourcesPath, "data")
-        : path.join(__dirname, "../../data");
-
-      const destPath = path.join(destDir, "ini.json");
-
-      if (!fs.existsSync(destDir)) fs.mkdirSync(destDir, { recursive: true });
-      fs.copyFileSync(selectedFile, destPath);
-
-      console.log("✅ config.json をコピー:", destPath);
-      return { success: true, destination: destPath };
-    } catch (err) {
-      console.error("❌ 設定コピー失敗:", err);
-      return { success: false, message: err.message };
-    }
-  });
+  // import-config-file ハンドラーは configHandler.js で管理
 }
 
 module.exports = { handleIniAccess };

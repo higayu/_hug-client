@@ -33,12 +33,19 @@ contextBridge.exposeInMainWorld("electronAPI", {
 
     // 既存のAPIに加えて...
   open_test_double_get: () => {
-    console.log("📤 [PRELOAD] open-test-double-get IPCイベントを送信します");
+    const eventName = "open-test-double-get";
+    console.log("📤 [PRELOAD] IPCイベントを送信します:", eventName);
+    console.log("🔍 [PRELOAD] ipcRenderer:", ipcRenderer ? "存在" : "未定義");
     try {
-      ipcRenderer.send("open-test-double-get");
-      console.log("✅ [PRELOAD] open-test-double-get IPCイベントを送信しました");
+      ipcRenderer.send(eventName);
+      console.log("✅ [PRELOAD] IPCイベントを送信しました:", eventName);
     } catch (error) {
       console.error("❌ [PRELOAD] IPCイベント送信に失敗:", error);
+      console.error("❌ [PRELOAD] エラー詳細:", {
+        eventName,
+        error: error.message,
+        stack: error.stack
+      });
     }
   },
 

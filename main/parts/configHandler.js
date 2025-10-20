@@ -29,7 +29,7 @@ function handleConfigAccess(ipcMain) {
   ipcMain.handle("import-config-file", async () => {
     try {
       const { canceled, filePaths } = await dialog.showOpenDialog({
-        title: "設定ファイルを選択してください (config.json)",
+        title: "設定ファイルを選択してください (config.json または ini.json)",
         filters: [{ name: "JSONファイル", extensions: ["json"] }],
         properties: ["openFile"],
       });
@@ -37,18 +37,20 @@ function handleConfigAccess(ipcMain) {
       if (canceled || filePaths.length === 0) return { success: false };
 
       const selectedFile = filePaths[0];
+      const fileName = path.basename(selectedFile);
 
       const destDir = app.isPackaged
         ? path.join(process.resourcesPath, "data")
         : path.join(__dirname, "../../data");
 
-      const destPath = path.join(destDir, "config.json");
+      // ファイル名に基づいて適切なパスを設定
+      const destPath = path.join(destDir, fileName);
 
       if (!fs.existsSync(destDir)) fs.mkdirSync(destDir, { recursive: true });
       fs.copyFileSync(selectedFile, destPath);
 
-      console.log("✅ config.json をコピー:", destPath);
-      return { success: true, destination: destPath };
+      console.log(`✅ ${fileName} をコピー:`, destPath);
+      return { success: true, destination: destPath, fileName: fileName };
     } catch (err) {
       console.error("❌ 設定コピー失敗:", err);
       return { success: false, message: err.message };
