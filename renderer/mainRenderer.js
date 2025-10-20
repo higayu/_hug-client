@@ -36,7 +36,11 @@ window.addEventListener("DOMContentLoaded", async () => {
   initHugActions();
 
   // ===== 5️⃣ 設定エディター初期化 =====
-  initSettingsEditor();
+  // 少し遅延させて確実に初期化
+  setTimeout(() => {
+    console.log("🔄 設定エディターを初期化中...");
+    initSettingsEditor();
+  }, 200);
 
   // ===== 6️⃣ ボタンの表示を更新（少し遅延させて確実に実行） =====
   setTimeout(() => {

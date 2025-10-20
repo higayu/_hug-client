@@ -41,6 +41,11 @@ export const IniState = {
         enabled: true,
         buttonText: "URL取得",
         buttonColor: "#17a2b8"
+      },
+      loadIni: {
+        enabled: true,
+        buttonText: "ini.jsonの再読み込み",
+        buttonColor: "#6f42c1"
       }
     },
     customButtons: [],

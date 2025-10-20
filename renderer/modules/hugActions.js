@@ -2,7 +2,7 @@
 import { AppState,loadConfig } from "./config.js";
 import { initChildrenList } from "./childrenList.js";
 import { getActiveWebview } from "./webviewState.js";
-import { loadIni, isFeatureEnabled, getButtonConfig } from "./ini.js";
+import { IniState, loadIni, isFeatureEnabled, getButtonConfig } from "./ini.js";
 
 export function initHugActions() {
 
@@ -180,7 +180,8 @@ export function updateButtonVisibility() {
     'specializedSupportPlan': 'Specialized-Support-Plan',
     'testDoubleGet': 'test-double-get',
     'importSetting': 'Import-Setting',
-    'getUrl': 'Get-Url'
+    'getUrl': 'Get-Url',
+    'loadIni': 'Load-Ini'
   };
 
   Object.keys(buttonMappings).forEach(featureName => {

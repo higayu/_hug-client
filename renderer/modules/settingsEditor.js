@@ -10,17 +10,37 @@ export class SettingsEditor {
   }
 
   async init() {
-    await this.loadModal();
-    this.setupEventListeners();
+    console.log('🔄 [SETTINGS] 設定エディターを初期化中...');
+    
+    try {
+      // まずイベントリスナーを設定（モーダルは後で読み込む）
+      this.setupEventListeners();
+      console.log('✅ [SETTINGS] イベントリスナーを設定しました');
+      
+      // モーダルは初回開く時に読み込む
+      console.log('✅ [SETTINGS] 設定エディターの初期化完了');
+    } catch (error) {
+      console.error('❌ [SETTINGS] 初期化エラー:', error);
+    }
   }
 
   async loadModal() {
-    if (this.modalLoaded) return;
+    if (this.modalLoaded) {
+      console.log('✅ [SETTINGS] モーダルは既に読み込み済みです');
+      return this.modal;
+    }
 
     try {
+      console.log('🔄 [SETTINGS] 設定モーダルのHTMLを読み込み中...');
       // 設定モーダルのHTMLを読み込み
-      const response = await fetch('./settings/modal.html');
+      const modalPath = './settings/modal.html';
+      console.log('🔍 [SETTINGS] 読み込みパス:', modalPath);
+      const response = await fetch(modalPath);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
       const html = await response.text();
+      console.log('✅ [SETTINGS] HTMLファイルを読み込みました');
       
       // モーダル用のコンテナを作成
       const modalContainer = document.createElement('div');
@@ -31,26 +51,42 @@ export class SettingsEditor {
       if (modalElement) {
         document.body.appendChild(modalElement);
         this.modal = modalElement;
+        console.log('✅ [SETTINGS] モーダル要素をDOMに追加しました');
         
         // CSSを読み込み
+        const cssPath = './settings/modal.css';
+        console.log('🔍 [SETTINGS] CSS読み込みパス:', cssPath);
         const link = document.createElement('link');
         link.rel = 'stylesheet';
-        link.href = './settings/modal.css';
+        link.href = cssPath;
         document.head.appendChild(link);
+        console.log('✅ [SETTINGS] CSSファイルを読み込みました');
         
         this.modalLoaded = true;
-        console.log('✅ 設定モーダルを読み込みました');
+        console.log('✅ [SETTINGS] 設定モーダルの読み込み完了');
+        return this.modal;
+      } else {
+        console.error('❌ [SETTINGS] #settingsModal要素が見つかりません');
+        return null;
       }
     } catch (error) {
-      console.error('❌ 設定モーダルの読み込みに失敗:', error);
+      console.error('❌ [SETTINGS] 設定モーダルの読み込みに失敗:', error);
+      return null;
     }
   }
 
   setupEventListeners() {
     // モーダル開閉
-    document.getElementById('Edit-Settings').addEventListener('click', () => {
-      this.openModal();
-    });
+    const editSettingsBtn = document.getElementById('Edit-Settings');
+    if (editSettingsBtn) {
+      console.log('✅ [SETTINGS] Edit-Settingsボタンが見つかりました');
+      editSettingsBtn.addEventListener('click', () => {
+        console.log('🔘 [SETTINGS] Edit-Settingsボタンがクリックされました');
+        this.openModal();
+      });
+    } else {
+      console.error('❌ [SETTINGS] Edit-Settingsボタンが見つかりません');
+    }
 
     // モーダルが読み込まれた後にイベントリスナーを設定
     if (this.modal) {
@@ -86,14 +122,21 @@ export class SettingsEditor {
   }
 
   setupTabs() {
-    if (!this.modal) return;
+    if (!this.modal) {
+      console.warn("⚠️ [SETTINGS] モーダルが存在しないため、タブを設定できません");
+      return;
+    }
 
     const tabButtons = this.modal.querySelectorAll('.tab-button');
     const tabContents = this.modal.querySelectorAll('.tab-content');
 
-    tabButtons.forEach(button => {
+    console.log(`🔧 [SETTINGS] タブボタン数: ${tabButtons.length}, タブコンテンツ数: ${tabContents.length}`);
+
+    tabButtons.forEach((button, index) => {
+      console.log(`🔧 [SETTINGS] タブボタン${index}を設定:`, button.textContent);
       button.addEventListener('click', () => {
         const targetTab = button.getAttribute('data-tab');
+        console.log(`🔘 [SETTINGS] タブクリック: ${targetTab}`);
         
         // アクティブタブを切り替え
         tabButtons.forEach(btn => btn.classList.remove('active'));
@@ -101,34 +144,50 @@ export class SettingsEditor {
         
         // タブコンテンツを切り替え
         tabContents.forEach(content => content.classList.remove('active'));
-        this.modal.querySelector(`#${targetTab}-tab`).classList.add('active');
+        const targetContent = this.modal.querySelector(`#${targetTab}-tab`);
+        if (targetContent) {
+          targetContent.classList.add('active');
+          console.log(`✅ [SETTINGS] タブ切り替え完了: ${targetTab}`);
+        } else {
+          console.error(`❌ [SETTINGS] タブコンテンツが見つかりません: #${targetTab}-tab`);
+        }
       });
     });
   }
 
   async openModal() {
+    console.log('🔄 [SETTINGS] 設定モーダルを開こうとしています...');
+    
     // モーダルが読み込まれていない場合は読み込み
     if (!this.modalLoaded) {
+      console.log('🔄 [SETTINGS] モーダルを読み込み中...');
       await this.loadModal();
       this.setupEventListeners();
       this.setupTabs();
     }
 
     // 現在の設定を読み込み
+    console.log('🔄 [SETTINGS] ini.jsonを読み込み中...');
     await loadIni();
     
     // バックアップを作成
     this.originalSettings = JSON.parse(JSON.stringify(IniState));
+    console.log('✅ [SETTINGS] 設定のバックアップを作成しました');
     
     // フォームに現在の値を設定
+    console.log('🔄 [SETTINGS] フォームに値を設定中...');
     this.populateForm();
     
     // カスタムボタンリストを更新
+    console.log('🔄 [SETTINGS] カスタムボタンリストを更新中...');
     this.updateCustomButtonsList();
     
     // モーダルを表示
     if (this.modal) {
       this.modal.style.display = 'block';
+      console.log('✅ [SETTINGS] 設定モーダルを表示しました');
+    } else {
+      console.error('❌ [SETTINGS] モーダル要素が見つかりません');
     }
   }
 
@@ -168,18 +227,52 @@ export class SettingsEditor {
 
     // UI設定
     const ui = IniState.appSettings.ui;
-    this.modal.querySelector('#theme-select').value = ui.theme || 'light';
-    this.modal.querySelector('#language-select').value = ui.language || 'ja';
-    this.modal.querySelector('#show-close-buttons').checked = ui.showCloseButtons || false;
-    this.modal.querySelector('#auto-refresh').checked = ui.autoRefresh?.enabled || false;
-    this.modal.querySelector('#refresh-interval').value = ui.autoRefresh?.interval || 30000;
+    const themeSelect = this.modal.querySelector('#theme-select');
+    if (themeSelect) {
+      themeSelect.value = ui.theme || 'light';
+    }
+    
+    const languageSelect = this.modal.querySelector('#language-select');
+    if (languageSelect) {
+      languageSelect.value = ui.language || 'ja';
+    }
+    
+    const showCloseButtons = this.modal.querySelector('#show-close-buttons');
+    if (showCloseButtons) {
+      showCloseButtons.checked = ui.showCloseButtons || false;
+    }
+    
+    const autoRefresh = this.modal.querySelector('#auto-refresh');
+    if (autoRefresh) {
+      autoRefresh.checked = ui.autoRefresh?.enabled || false;
+    }
+    
+    const refreshInterval = this.modal.querySelector('#refresh-interval');
+    if (refreshInterval) {
+      refreshInterval.value = ui.autoRefresh?.interval || 30000;
+    }
 
     // ウィンドウ設定
     const window = IniState.appSettings.window;
-    this.modal.querySelector('#window-width').value = window.width || 1200;
-    this.modal.querySelector('#window-height').value = window.height || 800;
-    this.modal.querySelector('#window-maximized').checked = window.maximized || false;
-    this.modal.querySelector('#window-always-on-top').checked = window.alwaysOnTop || false;
+    const windowWidth = this.modal.querySelector('#window-width');
+    if (windowWidth) {
+      windowWidth.value = window.width || 1200;
+    }
+    
+    const windowHeight = this.modal.querySelector('#window-height');
+    if (windowHeight) {
+      windowHeight.value = window.height || 800;
+    }
+    
+    const windowMaximized = this.modal.querySelector('#window-maximized');
+    if (windowMaximized) {
+      windowMaximized.checked = window.maximized || false;
+    }
+    
+    const windowAlwaysOnTop = this.modal.querySelector('#window-always-on-top');
+    if (windowAlwaysOnTop) {
+      windowAlwaysOnTop.checked = window.alwaysOnTop || false;
+    }
   }
 
   updateCustomButtonsList() {

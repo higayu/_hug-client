@@ -49,6 +49,12 @@ export const SettingsConfig = {
       name: 'URL取得',
       type: 'checkbox',
       path: 'appSettings.features.getUrl.enabled'
+    },
+    {
+      id: 'loadIni',
+      name: 'ini.jsonの再読み込み',
+      type: 'checkbox',
+      path: 'appSettings.features.loadIni.enabled'
     }
   ],
 
