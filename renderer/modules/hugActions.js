@@ -3,6 +3,7 @@ import { AppState,loadConfig } from "./config.js";
 import { initChildrenList } from "./childrenList.js";
 import { getActiveWebview } from "./webviewState.js";
 import { IniState, loadIni, isFeatureEnabled, getButtonConfig } from "./ini.js";
+import { showSuccessToast, showErrorToast } from "./toast/toast.js";
 
 export function initHugActions() {
 
@@ -144,8 +145,58 @@ export function initHugActions() {
   });
 
     // ✅ URLの取得処理
-  document.getElementById("Get-Url").addEventListener("click", () => {
-    console.log("URLの取得処理");
+  document.getElementById("Get-Url").addEventListener("click", async () => {
+    try {
+      console.log("🔄 URLの取得処理を開始...");
+      const vw = getActiveWebview();
+      
+      if (!vw) {
+        showErrorToast("❌ WebViewが見つかりません");
+        return;
+      }
+
+      // WebViewのURLを取得
+      const url = vw.getURL();
+      console.log("📋 取得したURL:", url);
+
+      if (!url || url === 'about:blank') {
+        showErrorToast("❌ URLが取得できませんでした");
+        return;
+      }
+
+      // クリップボードにコピー
+      await navigator.clipboard.writeText(url);
+      console.log("✅ URLをクリップボードにコピーしました:", url);
+      
+      // 成功メッセージを表示（URLの詳細情報も含める）
+      const urlObj = new URL(url);
+      const shortUrl = urlObj.hostname + urlObj.pathname;
+      showSuccessToast(`✅ URLをコピーしました\n${shortUrl}`);
+      
+    } catch (err) {
+      console.error("❌ URL取得・コピーエラー:", err);
+      
+      // フォールバック: 古いブラウザ対応
+      try {
+        const vw = getActiveWebview();
+        const url = vw.getURL();
+        
+        // テキストエリアを使用したフォールバック
+        const textArea = document.createElement('textarea');
+        textArea.value = url;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        
+        showSuccessToast(`✅ URLをクリップボードにコピーしました（フォールバック）`);
+        console.log("✅ フォールバック方式でコピー成功");
+        
+      } catch (fallbackErr) {
+        console.error("❌ フォールバック方式も失敗:", fallbackErr);
+        showErrorToast("❌ URLのコピーに失敗しました");
+      }
+    }
   });
 
   // ✅ ini.jsonの手動読み込み
@@ -171,6 +222,7 @@ export function initHugActions() {
 
   console.log("✅ Hug操作 初期化完了");
 }
+
 
 // ボタンの表示/非表示を制御する関数
 export function updateButtonVisibility() {

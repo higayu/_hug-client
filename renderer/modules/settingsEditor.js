@@ -1,6 +1,7 @@
 // renderer/modules/settingsEditor.js
 import { IniState, loadIni, saveIni, updateIniSetting } from "./ini.js";
 import { AppState, loadConfig, saveConfig } from "./config.js";
+import { showSuccessToast, showErrorToast, showInfoToast } from "./toast/toast.js";
 
 export class SettingsEditor {
   constructor() {
@@ -528,18 +529,18 @@ export class SettingsEditor {
   async reloadConfig() {
     try {
       console.log('🔄 [SETTINGS] Config.jsonを再読み込み中...');
-      const success = await loadConfig();
-      if (success) {
-        this.populateForm();
-        alert('✅ Config.jsonの再読み込みが完了しました');
-        console.log('✅ [SETTINGS] Config.json再読み込み成功');
-      } else {
-        alert('❌ Config.jsonの再読み込みに失敗しました');
-        console.error('❌ [SETTINGS] Config.json再読み込み失敗');
-      }
+             const success = await loadConfig();
+             if (success) {
+               this.populateForm();
+               showSuccessToast('✅ Config.jsonの再読み込みが完了しました');
+               console.log('✅ [SETTINGS] Config.json再読み込み成功');
+             } else {
+               showErrorToast('❌ Config.jsonの再読み込みに失敗しました');
+               console.error('❌ [SETTINGS] Config.json再読み込み失敗');
+             }
     } catch (error) {
       console.error('❌ [SETTINGS] Config.json再読み込みエラー:', error);
-      alert('❌ エラーが発生しました: ' + error.message);
+      showErrorToast('❌ エラーが発生しました: ' + error.message);
     }
   }
 
@@ -560,17 +561,17 @@ export class SettingsEditor {
       Object.assign(AppState, configData);
 
       // ファイルに保存
-      const success = await saveConfig();
-      if (success) {
-        alert('✅ Config.jsonの保存が完了しました');
-        console.log('✅ [SETTINGS] Config.json保存成功');
-      } else {
-        alert('❌ Config.jsonの保存に失敗しました');
-        console.error('❌ [SETTINGS] Config.json保存失敗');
-      }
+             const success = await saveConfig();
+             if (success) {
+               showSuccessToast('✅ Config.jsonの保存が完了しました');
+               console.log('✅ [SETTINGS] Config.json保存成功');
+             } else {
+               showErrorToast('❌ Config.jsonの保存に失敗しました');
+               console.error('❌ [SETTINGS] Config.json保存失敗');
+             }
     } catch (error) {
       console.error('❌ [SETTINGS] Config.json保存エラー:', error);
-      alert('❌ エラーが発生しました: ' + error.message);
+      showErrorToast('❌ エラーが発生しました: ' + error.message);
     }
   }
 
