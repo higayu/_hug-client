@@ -2,6 +2,7 @@
 import { AppState,loadConfig } from "./config.js";
 import { initChildrenList } from "./childrenList.js";
 import { getActiveWebview } from "./webviewState.js";
+import { loadIni, isFeatureEnabled, getButtonConfig } from "./ini.js";
 
 export function initHugActions() {
 
@@ -83,9 +84,26 @@ export function initHugActions() {
   });
 
     // ✅ テスト データ取得（別ウインドウ）
-  document.getElementById("test-double-get").addEventListener("click", () => {
-    window.electronAPI.open_test_double_get();
-  });
+  const testButton = document.getElementById("test-double-get");
+  if (testButton) {
+    testButton.addEventListener("click", () => {
+      console.log("🔘 [RENDERER] テストボタンがクリックされました");
+      try {
+        if (window.electronAPI && window.electronAPI.open_test_double_get) {
+          console.log("📤 [RENDERER] electronAPI.open_test_double_get を呼び出します");
+          window.electronAPI.open_test_double_get();
+        } else {
+          console.error("❌ [RENDERER] window.electronAPI.open_test_double_get が見つかりません");
+          console.log("🔍 [RENDERER] window.electronAPI:", window.electronAPI);
+        }
+      } catch (error) {
+        console.error("❌ [RENDERER] テストボタンクリック処理でエラー:", error);
+      }
+    });
+    console.log("✅ テストボタンのイベントリスナーを設定しました");
+  } else {
+    console.error("❌ テストボタンが見つかりません: test-double-get");
+  }
   
   // 「設定ファイルの取得」ボタンのクリックイベント
   document.getElementById("Import-Setting").addEventListener("click", async () => {
@@ -100,6 +118,15 @@ export function initHugActions() {
           } else {
             alert("❌ 設定の読み込みに失敗しました");
           }
+        // ===== ② ini.json 読み込み =====
+        const iniOk = await loadIni();
+        if (iniOk) {
+          console.log("✅ ini.json読み込み成功");
+          // UIを更新
+          updateButtonVisibility();
+        } else {
+          console.warn("⚠️ ini.json読み込み失敗");
+        }
       } else {
         alert("⚠️ コピーがキャンセルまたは失敗しました");
       }
@@ -121,6 +148,70 @@ export function initHugActions() {
     console.log("URLの取得処理");
   });
 
+  // ✅ ini.jsonの手動読み込み
+  document.getElementById("Load-Ini").addEventListener("click", async () => {
+    try {
+      console.log("🔄 ini.jsonを手動で読み込み中...");
+      const success = await loadIni();
+      
+      if (success) {
+        alert("✅ ini.jsonの読み込みが完了しました");
+        // UIを更新
+        updateButtonVisibility();
+        console.log("✅ 設定が更新されました:", IniState);
+      } else {
+        alert("❌ ini.jsonの読み込みに失敗しました");
+      }
+    } catch (err) {
+      console.error("❌ ini.json読み込みエラー:", err);
+      alert("❌ エラーが発生しました: " + err.message);
+    }
+  });
+
 
   console.log("✅ Hug操作 初期化完了");
+}
+
+// ボタンの表示/非表示を制御する関数
+export function updateButtonVisibility() {
+  // 各ボタンの表示/非表示を制御
+  const buttonMappings = {
+    'individualSupportPlan': 'Individual_Support_Button',
+    'specializedSupportPlan': 'Specialized-Support-Plan',
+    'testDoubleGet': 'test-double-get',
+    'importSetting': 'Import-Setting',
+    'getUrl': 'Get-Url'
+  };
+
+  Object.keys(buttonMappings).forEach(featureName => {
+    const buttonId = buttonMappings[featureName];
+    const button = document.getElementById(buttonId);
+    
+    if (button) {
+      const isEnabled = isFeatureEnabled(featureName);
+      console.log(`🔧 ボタン更新: ${buttonId}, 有効: ${isEnabled}`);
+      
+      // テストボタンの場合は常に表示（デバッグ用）
+      if (buttonId === 'test-double-get') {
+        button.style.display = 'inline-block';
+        console.log(`🔧 テストボタンを強制表示: ${buttonId}`);
+      } else {
+        // ボタンの表示/非表示を制御
+        button.style.display = isEnabled ? 'inline-block' : 'none';
+      }
+      
+      // ボタンテキストとカラーを更新
+      const config = getButtonConfig(featureName);
+      if (config.buttonText) {
+        button.textContent = config.buttonText;
+        console.log(`📝 ボタンテキスト更新: ${buttonId} -> ${config.buttonText}`);
+      }
+      if (config.buttonColor) {
+        button.style.backgroundColor = config.buttonColor;
+        console.log(`🎨 ボタンカラー更新: ${buttonId} -> ${config.buttonColor}`);
+      }
+    } else {
+      console.warn(`⚠️ ボタンが見つかりません: ${buttonId}`);
+    }
+  });
 }

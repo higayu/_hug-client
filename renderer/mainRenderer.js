@@ -1,9 +1,11 @@
 // ===== モジュール読み込み =====
 import { initTabs } from "./modules/tabs.js";
 import { loadConfig, AppState } from "./modules/config.js";
+import { loadIni } from "./modules/ini.js";
 import { setupSidebar } from "./modules/sidebar.js";
-import { initHugActions } from "./modules/hugActions.js";
+import { initHugActions, updateButtonVisibility } from "./modules/hugActions.js";
 import { initChildrenList } from "./modules/childrenList.js";
+import { initSettingsEditor } from "./modules/settingsEditor.js";
 
 console.log("✅ mainRenderer.js 読み込み完了");
 
@@ -17,6 +19,12 @@ window.addEventListener("DOMContentLoaded", async () => {
     return;
   }
 
+  // ===== 1.5️⃣ ini.json読み込み =====
+  const iniOk = await loadIni();
+  if (!iniOk) {
+    console.warn("⚠️ ini.json の読み込みに失敗しました（デフォルト設定を使用）");
+  }
+
   // ===== 2️⃣ サイドバー & タブ初期化 =====
   setupSidebar();
   initTabs();
@@ -26,6 +34,14 @@ window.addEventListener("DOMContentLoaded", async () => {
 
   // ===== 4️⃣ 各種ボタン（ログイン・計画）を設定 =====
   initHugActions();
+
+  // ===== 5️⃣ 設定エディター初期化 =====
+  initSettingsEditor();
+
+  // ===== 6️⃣ ボタンの表示を更新（少し遅延させて確実に実行） =====
+  setTimeout(() => {
+    updateButtonVisibility();
+  }, 100);
 
   console.log("🎉 初期化完了:", AppState);
 

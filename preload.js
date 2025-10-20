@@ -32,9 +32,23 @@ contextBridge.exposeInMainWorld("electronAPI", {
   Open_NowDayPage: (args) => ipcRenderer.send("Open_NowDayPage", args),
 
     // 既存のAPIに加えて...
-  open_test_double_get: () => ipcRenderer.send("open-test-double-get"),
+  open_test_double_get: () => {
+    console.log("📤 [PRELOAD] open-test-double-get IPCイベントを送信します");
+    try {
+      ipcRenderer.send("open-test-double-get");
+      console.log("✅ [PRELOAD] open-test-double-get IPCイベントを送信しました");
+    } catch (error) {
+      console.error("❌ [PRELOAD] IPCイベント送信に失敗:", error);
+    }
+  },
 
   readConfig: () => ipcRenderer.invoke("read-config"),
+
+  readIni: () => ipcRenderer.invoke("read-ini"),
+
+  saveIni: (data) => ipcRenderer.invoke("save-ini", data),
+
+  updateIniSetting: (path, value) => ipcRenderer.invoke("update-ini-setting", path, value),
 
   importConfigFile: () => ipcRenderer.invoke("import-config-file"),
 

@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>設定編集</title>
+  <link rel="stylesheet" href="modal.css">
+</head>
+<body>
+  <!-- ======== 設定編集モーダル ======== -->
+  <div id="settingsModal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>⚙️ 設定編集</h2>
+        <span class="close">&times;</span>
+      </div>
+      <div class="modal-body">
+        <div class="settings-tabs">
+          <button class="tab-button active" data-tab="features">機能設定</button>
+          <button class="tab-button" data-tab="ui">UI設定</button>
+          <button class="tab-button" data-tab="window">ウィンドウ設定</button>
+          <button class="tab-button" data-tab="custom">カスタムボタン</button>
+        </div>
+
+        <!-- 機能設定タブ -->
+        <div id="features-tab" class="tab-content active">
+          <h3>機能の有効/無効</h3>
+          <div class="setting-group">
+            <label class="setting-item">
+              <input type="checkbox" id="feature-individualSupportPlan" data-path="appSettings.features.individualSupportPlan.enabled">
+              <span>個別支援計画</span>
+            </label>
+            <label class="setting-item">
+              <input type="checkbox" id="feature-specializedSupportPlan" data-path="appSettings.features.specializedSupportPlan.enabled">
+              <span>専門的支援計画</span>
+            </label>
+            <label class="setting-item">
+              <input type="checkbox" id="feature-testDoubleGet" data-path="appSettings.features.testDoubleGet.enabled">
+              <span>テスト取得</span>
+            </label>
+            <label class="setting-item">
+              <input type="checkbox" id="feature-importSetting" data-path="appSettings.features.importSetting.enabled">
+              <span>設定ファイル取得</span>
+            </label>
+            <label class="setting-item">
+              <input type="checkbox" id="feature-getUrl" data-path="appSettings.features.getUrl.enabled">
+              <span>URL取得</span>
+            </label>
+          </div>
+
+          <h3>ボタンテキスト設定</h3>
+          <div class="setting-group">
+            <div class="setting-item">
+              <label for="text-individualSupportPlan">個別支援計画:</label>
+              <input type="text" id="text-individualSupportPlan" data-path="appSettings.features.individualSupportPlan.buttonText">
+            </div>
+            <div class="setting-item">
+              <label for="text-specializedSupportPlan">専門的支援計画:</label>
+              <input type="text" id="text-specializedSupportPlan" data-path="appSettings.features.specializedSupportPlan.buttonText">
+            </div>
+            <div class="setting-item">
+              <label for="text-testDoubleGet">テスト取得:</label>
+              <input type="text" id="text-testDoubleGet" data-path="appSettings.features.testDoubleGet.buttonText">
+            </div>
+          </div>
+
+          <h3>ボタンカラー設定</h3>
+          <div class="setting-group">
+            <div class="setting-item">
+              <label for="color-individualSupportPlan">個別支援計画:</label>
+              <input type="color" id="color-individualSupportPlan" data-path="appSettings.features.individualSupportPlan.buttonColor">
+            </div>
+            <div class="setting-item">
+              <label for="color-specializedSupportPlan">専門的支援計画:</label>
+              <input type="color" id="color-specializedSupportPlan" data-path="appSettings.features.specializedSupportPlan.buttonColor">
+            </div>
+            <div class="setting-item">
+              <label for="color-testDoubleGet">テスト取得:</label>
+              <input type="color" id="color-testDoubleGet" data-path="appSettings.features.testDoubleGet.buttonColor">
+            </div>
+          </div>
+        </div>
+
+        <!-- UI設定タブ -->
+        <div id="ui-tab" class="tab-content">
+          <h3>UI設定</h3>
+          <div class="setting-group">
+            <div class="setting-item">
+              <label for="theme-select">テーマ:</label>
+              <select id="theme-select" data-path="appSettings.ui.theme">
+                <option value="light">ライト</option>
+                <option value="dark">ダーク</option>
+              </select>
+            </div>
+            <div class="setting-item">
+              <label for="language-select">言語:</label>
+              <select id="language-select" data-path="appSettings.ui.language">
+                <option value="ja">日本語</option>
+                <option value="en">English</option>
+              </select>
+            </div>
+            <label class="setting-item">
+              <input type="checkbox" id="show-close-buttons" data-path="appSettings.ui.showCloseButtons">
+              <span>閉じるボタンを表示</span>
+            </label>
+            <label class="setting-item">
+              <input type="checkbox" id="auto-refresh" data-path="appSettings.ui.autoRefresh.enabled">
+              <span>自動リフレッシュ</span>
+            </label>
+            <div class="setting-item">
+              <label for="refresh-interval">リフレッシュ間隔 (秒):</label>
+              <input type="number" id="refresh-interval" data-path="appSettings.ui.autoRefresh.interval" min="10" max="300">
+            </div>
+          </div>
+        </div>
+
+        <!-- ウィンドウ設定タブ -->
+        <div id="window-tab" class="tab-content">
+          <h3>ウィンドウ設定</h3>
+          <div class="setting-group">
+            <div class="setting-item">
+              <label for="window-width">幅:</label>
+              <input type="number" id="window-width" data-path="appSettings.window.width" min="800">
+            </div>
+            <div class="setting-item">
+              <label for="window-height">高さ:</label>
+              <input type="number" id="window-height" data-path="appSettings.window.height" min="600">
+            </div>
+            <label class="setting-item">
+              <input type="checkbox" id="window-maximized" data-path="appSettings.window.maximized">
+              <span>最大化で起動</span>
+            </label>
+            <label class="setting-item">
+              <input type="checkbox" id="window-always-on-top" data-path="appSettings.window.alwaysOnTop">
+              <span>常に最前面</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- カスタムボタン設定タブ -->
+        <div id="custom-tab" class="tab-content">
+          <h3>カスタムボタン</h3>
+          <div id="custom-buttons-list" class="setting-group">
+            <!-- カスタムボタンが動的に追加される -->
+          </div>
+          <button id="add-custom-button" class="btn-primary">+ カスタムボタンを追加</button>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="save-settings" class="btn-primary">保存</button>
+        <button id="cancel-settings" class="btn-secondary">キャンセル</button>
+        <button id="reset-settings" class="btn-danger">リセット</button>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

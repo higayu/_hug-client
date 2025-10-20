@@ -4,3 +4,4 @@ node_modules
 dist/
 data/config.json
 dist.zip
+data/ini.json

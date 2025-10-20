@@ -5,15 +5,25 @@ const path = require("path");
 let isRegistered = false;
 
 function open_test_double_get(ipcMain) {
-  if (isRegistered) return;
+  if (isRegistered) {
+    console.log("⚠️ open-test-double-get は既に登録済みです");
+    return;
+  }
   isRegistered = true;
+  console.log("✅ open-test-double-get IPCハンドラーを登録しました");
 
-  ipcMain.on("open-test-double-get", () => {
-    openDoubleWebviewWithTabs(
-      "https://www.hug-ayumu.link/hug/wm/record_proceedings.php",
-      "https://www.hug-ayumu.link/hug/wm/addition_plan_situation.php",
-      "HUGデータ取得"
-    );
+  ipcMain.on("open-test-double-get", (event) => {
+    console.log("🔘 [MAIN] open-test-double-get IPCイベントを受信しました");
+    try {
+      openDoubleWebviewWithTabs(
+        "https://www.hug-ayumu.link/hug/wm/record_proceedings.php",
+        "https://www.hug-ayumu.link/hug/wm/addition_plan_situation.php",
+        "HUGデータ取得"
+      );
+      console.log("✅ [MAIN] ダブルWebViewウィンドウを開きました");
+    } catch (error) {
+      console.error("❌ [MAIN] ダブルWebViewウィンドウの作成に失敗:", error);
+    }
   });
 }
 
