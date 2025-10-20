@@ -26,6 +26,19 @@ function handleConfigAccess(ipcMain) {
     }
   });
 
+  ipcMain.handle("save-config", async (event, data) => {
+    try {
+      const filePath = resolveConfigPath();
+      const jsonString = JSON.stringify(data, null, 2);
+      fs.writeFileSync(filePath, jsonString, "utf8");
+      console.log("✅ config.json保存成功:", filePath);
+      return { success: true };
+    } catch (err) {
+      console.error("❌ config.json保存失敗:", err);
+      return { success: false, error: err.message };
+    }
+  });
+
   ipcMain.handle("import-config-file", async () => {
     try {
       const { canceled, filePaths } = await dialog.showOpenDialog({

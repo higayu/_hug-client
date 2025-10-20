@@ -49,6 +49,7 @@ export async function loadConfig() {
     const data = result.data;
     AppState.HUG_USERNAME = data.HUG_USERNAME;
     AppState.HUG_PASSWORD = data.HUG_PASSWORD;
+    AppState.VITE_API_BASE_URL = data.VITE_API_BASE_URL;
     AppState.STAFF_ID = data.STAFF_ID;
     AppState.FACILITY_ID = data.FACILITY_ID;
     AppState.DATE_STR = getDateString();
@@ -60,6 +61,32 @@ export async function loadConfig() {
   } catch (err) {
     console.error("❌ config.json 読み込み中にエラー:", err);
     output.textContent = "❌ エラー: " + err.message;
+    return false;
+  }
+}
+
+// config.json保存
+export async function saveConfig() {
+  try {
+    const data = {
+      HUG_USERNAME: AppState.HUG_USERNAME,
+      HUG_PASSWORD: AppState.HUG_PASSWORD,
+      VITE_API_BASE_URL: AppState.VITE_API_BASE_URL,
+      STAFF_ID: AppState.STAFF_ID,
+      FACILITY_ID: AppState.FACILITY_ID
+    };
+
+    const result = await window.electronAPI.saveConfig(data);
+    
+    if (!result.success) {
+      console.error("❌ config.json保存エラー:", result.error);
+      return false;
+    }
+
+    console.log("✅ config.json保存成功");
+    return true;
+  } catch (err) {
+    console.error("❌ config.json保存中にエラー:", err);
     return false;
   }
 }

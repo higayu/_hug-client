@@ -51,6 +51,8 @@ contextBridge.exposeInMainWorld("electronAPI", {
 
   readConfig: () => ipcRenderer.invoke("read-config"),
 
+  saveConfig: (data) => ipcRenderer.invoke("save-config", data),
+
   readIni: () => ipcRenderer.invoke("read-ini"),
 
   saveIni: (data) => ipcRenderer.invoke("save-ini", data),

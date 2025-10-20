@@ -1,5 +1,6 @@
 // renderer/modules/settingsEditor.js
 import { IniState, loadIni, saveIni, updateIniSetting } from "./ini.js";
+import { AppState, loadConfig, saveConfig } from "./config.js";
 
 export class SettingsEditor {
   constructor() {
@@ -111,6 +112,29 @@ export class SettingsEditor {
       this.modal.querySelector('#add-custom-button').addEventListener('click', () => {
         this.addCustomButton();
       });
+
+      // Config.json設定のイベントリスナー
+      const reloadConfigBtn = this.modal.querySelector('#reload-config');
+      if (reloadConfigBtn) {
+        reloadConfigBtn.addEventListener('click', async () => {
+          await this.reloadConfig();
+        });
+      }
+
+      const saveConfigBtn = this.modal.querySelector('#save-config');
+      if (saveConfigBtn) {
+        saveConfigBtn.addEventListener('click', async () => {
+          await this.saveConfig();
+        });
+      }
+
+      // パスワード表示切替え
+      const togglePasswordBtn = this.modal.querySelector('#toggle-password');
+      if (togglePasswordBtn) {
+        togglePasswordBtn.addEventListener('click', () => {
+          this.togglePasswordVisibility();
+        });
+      }
 
       // モーダル外クリックで閉じる
       this.modal.addEventListener('click', (e) => {
@@ -272,6 +296,32 @@ export class SettingsEditor {
     const windowAlwaysOnTop = this.modal.querySelector('#window-always-on-top');
     if (windowAlwaysOnTop) {
       windowAlwaysOnTop.checked = window.alwaysOnTop || false;
+    }
+
+    // Config.json設定
+    const configUsername = this.modal.querySelector('#config-username');
+    if (configUsername) {
+      configUsername.value = AppState.HUG_USERNAME || '';
+    }
+    
+    const configPassword = this.modal.querySelector('#config-password');
+    if (configPassword) {
+      configPassword.value = AppState.HUG_PASSWORD || '';
+    }
+    
+    const configApiUrl = this.modal.querySelector('#config-api-url');
+    if (configApiUrl) {
+      configApiUrl.value = AppState.VITE_API_BASE_URL || '';
+    }
+    
+    const configStaffId = this.modal.querySelector('#config-staff-id');
+    if (configStaffId) {
+      configStaffId.value = AppState.STAFF_ID || '';
+    }
+    
+    const configFacilityId = this.modal.querySelector('#config-facility-id');
+    if (configFacilityId) {
+      configFacilityId.value = AppState.FACILITY_ID || '';
     }
   }
 
@@ -470,6 +520,74 @@ export class SettingsEditor {
         Object.assign(IniState, this.originalSettings);
         this.populateForm();
         this.updateCustomButtonsList();
+      }
+    }
+  }
+
+  // Config.json設定の処理
+  async reloadConfig() {
+    try {
+      console.log('🔄 [SETTINGS] Config.jsonを再読み込み中...');
+      const success = await loadConfig();
+      if (success) {
+        this.populateForm();
+        alert('✅ Config.jsonの再読み込みが完了しました');
+        console.log('✅ [SETTINGS] Config.json再読み込み成功');
+      } else {
+        alert('❌ Config.jsonの再読み込みに失敗しました');
+        console.error('❌ [SETTINGS] Config.json再読み込み失敗');
+      }
+    } catch (error) {
+      console.error('❌ [SETTINGS] Config.json再読み込みエラー:', error);
+      alert('❌ エラーが発生しました: ' + error.message);
+    }
+  }
+
+  async saveConfig() {
+    try {
+      console.log('🔄 [SETTINGS] Config.jsonを保存中...');
+      
+      // フォームから値を取得
+      const configData = {
+        HUG_USERNAME: this.modal.querySelector('#config-username').value,
+        HUG_PASSWORD: this.modal.querySelector('#config-password').value,
+        VITE_API_BASE_URL: this.modal.querySelector('#config-api-url').value,
+        STAFF_ID: this.modal.querySelector('#config-staff-id').value,
+        FACILITY_ID: this.modal.querySelector('#config-facility-id').value
+      };
+
+      // AppStateを更新
+      Object.assign(AppState, configData);
+
+      // ファイルに保存
+      const success = await saveConfig();
+      if (success) {
+        alert('✅ Config.jsonの保存が完了しました');
+        console.log('✅ [SETTINGS] Config.json保存成功');
+      } else {
+        alert('❌ Config.jsonの保存に失敗しました');
+        console.error('❌ [SETTINGS] Config.json保存失敗');
+      }
+    } catch (error) {
+      console.error('❌ [SETTINGS] Config.json保存エラー:', error);
+      alert('❌ エラーが発生しました: ' + error.message);
+    }
+  }
+
+  // パスワード表示切替え
+  togglePasswordVisibility() {
+    const passwordInput = this.modal.querySelector('#config-password');
+    const toggleBtn = this.modal.querySelector('#toggle-password');
+    
+    if (passwordInput && toggleBtn) {
+      if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        toggleBtn.textContent = '🙈';
+        toggleBtn.title = 'パスワードを隠す';
+      } else {
+        passwordInput.type = 'password';
+        toggleBtn.textContent = '👁️';
+        toggleBtn.title = 'パスワードを表示';
       }
     }
   }
