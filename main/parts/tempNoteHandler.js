@@ -18,12 +18,43 @@ class TempNoteHandler {
       const isDev = process.env.NODE_ENV === 'development' || !process.env.NODE_ENV;
       let dataDir;
       
+      console.log('🔍 [TempNoteHandler] NODE_ENV:', process.env.NODE_ENV);
+      console.log('🔍 [TempNoteHandler] process.resourcesPath:', process.resourcesPath);
+      console.log('🔍 [TempNoteHandler] __dirname:', __dirname);
+      
       if (isDev) {
         // 開発環境: data/ ディレクトリ
         dataDir = path.join(__dirname, '../../data');
+        console.log('🔍 [TempNoteHandler] 開発環境モード');
       } else {
-        // 本番環境: dist/win-unpacked/resources/data/ ディレクトリ
-        dataDir = path.join(process.resourcesPath, 'data');
+        // 本番環境: 複数のパスを試行
+        console.log('🔍 [TempNoteHandler] 本番環境モード');
+        
+        // パス候補を定義
+        const possiblePaths = [
+          path.join(process.resourcesPath, 'data'), // 既存のresources/dataディレクトリ
+          path.join(process.env.APPDATA || process.env.HOME || process.env.USERPROFILE || process.cwd(), 'HugClient', 'data'), // ユーザーディレクトリ
+          path.join(process.cwd(), 'data'), // アプリケーションディレクトリ
+          path.join(require('os').tmpdir(), 'hug-client', 'data') // 一時ディレクトリ
+        ];
+        
+        console.log('🔍 [TempNoteHandler] パス候補:', possiblePaths);
+        
+        // 最初に存在するディレクトリを使用、なければ最初のパスでディレクトリを作成
+        let selectedPath = null;
+        for (const testPath of possiblePaths) {
+          console.log('🔍 [TempNoteHandler] パス確認:', testPath);
+          if (fs.existsSync(testPath)) {
+            console.log('✅ [TempNoteHandler] 既存ディレクトリが見つかりました:', testPath);
+            selectedPath = testPath;
+            break;
+          } else {
+            console.log('❌ [TempNoteHandler] ディレクトリが存在しません:', testPath);
+          }
+        }
+        
+        dataDir = selectedPath || possiblePaths[0]; // 見つからない場合は最初のパスを使用
+        console.log('🔍 [TempNoteHandler] 選択されたパス:', dataDir);
       }
 
       console.log('🔍 [TempNoteHandler] データディレクトリ:', dataDir);
@@ -32,7 +63,57 @@ class TempNoteHandler {
       // データディレクトリが存在しない場合は作成
       if (!fs.existsSync(dataDir)) {
         console.log('📁 [TempNoteHandler] データディレクトリを作成中...');
-        fs.mkdirSync(dataDir, { recursive: true });
+        console.log('🔍 [TempNoteHandler] 作成対象パス:', dataDir);
+        
+        // 親ディレクトリを段階的に作成
+        const parentDir = path.dirname(dataDir);
+        console.log('🔍 [TempNoteHandler] 親ディレクトリ:', parentDir);
+        
+        try {
+          // 親ディレクトリが存在しない場合は作成
+          if (!fs.existsSync(parentDir)) {
+            console.log('📁 [TempNoteHandler] 親ディレクトリを作成中...');
+            fs.mkdirSync(parentDir, { recursive: true });
+            console.log('✅ [TempNoteHandler] 親ディレクトリ作成完了');
+          }
+          
+          // データディレクトリを作成
+          fs.mkdirSync(dataDir, { recursive: true });
+          console.log('✅ [TempNoteHandler] データディレクトリ作成完了');
+        } catch (mkdirErr) {
+          console.error('❌ [TempNoteHandler] ディレクトリ作成エラー:', mkdirErr);
+          console.error('❌ [TempNoteHandler] エラー詳細:', mkdirErr.message);
+          console.error('❌ [TempNoteHandler] エラーコード:', mkdirErr.code);
+          
+          // フォールバック: 一時ディレクトリを使用
+          console.log('🔄 [TempNoteHandler] フォールバック: 一時ディレクトリを使用');
+          dataDir = path.join(require('os').tmpdir(), 'hug-client', 'data');
+          console.log('🔍 [TempNoteHandler] フォールバックパス:', dataDir);
+          
+          try {
+            fs.mkdirSync(dataDir, { recursive: true });
+            console.log('✅ [TempNoteHandler] フォールバックディレクトリ作成完了');
+          } catch (fallbackErr) {
+            console.error('❌ [TempNoteHandler] フォールバックディレクトリ作成エラー:', fallbackErr);
+            throw new Error('データディレクトリの作成に失敗しました: ' + fallbackErr.message);
+          }
+        }
+      } else {
+        console.log('✅ [TempNoteHandler] データディレクトリは既に存在します');
+      }
+      
+      // ディレクトリの存在確認
+      if (!fs.existsSync(dataDir)) {
+        throw new Error(`データディレクトリが作成されませんでした: ${dataDir}`);
+      }
+      
+      // ディレクトリの書き込み権限確認
+      try {
+        fs.accessSync(dataDir, fs.constants.W_OK);
+        console.log('✅ [TempNoteHandler] ディレクトリの書き込み権限確認完了');
+      } catch (accessErr) {
+        console.error('❌ [TempNoteHandler] ディレクトリの書き込み権限エラー:', accessErr);
+        throw new Error(`データディレクトリに書き込み権限がありません: ${dataDir}`);
       }
 
       this.dbPath = path.join(dataDir, 'temp_notes.db');
@@ -40,12 +121,43 @@ class TempNoteHandler {
       
       // データベース接続
       console.log('🔗 [TempNoteHandler] データベース接続中...');
+      console.log('🔍 [TempNoteHandler] 接続先パス:', this.dbPath);
+      console.log('🔍 [TempNoteHandler] パス存在確認:', fs.existsSync(this.dbPath));
+      
+      // データベースファイルが存在しない場合は明示的に作成
+      if (!fs.existsSync(this.dbPath)) {
+        console.log('📄 [TempNoteHandler] データベースファイルが存在しないため作成します');
+        console.log('🔍 [TempNoteHandler] 作成対象ファイル:', this.dbPath);
+        try {
+          // 空のファイルを作成
+          fs.writeFileSync(this.dbPath, '');
+          console.log('✅ [TempNoteHandler] データベースファイル作成完了');
+          
+          // ファイルの存在確認
+          if (fs.existsSync(this.dbPath)) {
+            console.log('✅ [TempNoteHandler] データベースファイル存在確認完了');
+          } else {
+            throw new Error('データベースファイルの作成に失敗しました');
+          }
+        } catch (createErr) {
+          console.error('❌ [TempNoteHandler] データベースファイル作成エラー:', createErr);
+          console.error('❌ [TempNoteHandler] エラー詳細:', createErr.message);
+          console.error('❌ [TempNoteHandler] エラーコード:', createErr.code);
+          throw createErr;
+        }
+      } else {
+        console.log('✅ [TempNoteHandler] データベースファイルは既に存在します');
+      }
+      
       this.db = new sqlite3.Database(this.dbPath, (err) => {
         if (err) {
           console.error('❌ [TempNoteHandler] SQLite接続エラー:', err);
+          console.error('❌ [TempNoteHandler] エラー詳細:', err.message);
+          console.error('❌ [TempNoteHandler] エラーコード:', err.code);
           throw err;
         }
         console.log('✅ [TempNoteHandler] SQLiteデータベース接続成功:', this.dbPath);
+        console.log('🔍 [TempNoteHandler] データベースオブジェクト:', this.db ? '作成済み' : '未作成');
       });
 
       // テーブル作成
@@ -65,44 +177,51 @@ class TempNoteHandler {
   // テーブル作成
   async createTable() {
     return new Promise((resolve, reject) => {
-      // まず既存のテーブルを削除（スキーマ変更のため）
-      const dropTableSQL = `DROP TABLE IF EXISTS temp_notes`;
+      // テーブルが存在するかチェック
+      const checkTableSQL = `
+        SELECT name FROM sqlite_master 
+        WHERE type='table' AND name='temp_notes'
+      `;
       
-      this.db.run(dropTableSQL, (err) => {
+      this.db.get(checkTableSQL, (err, row) => {
         if (err) {
-          console.error('❌ [TempNoteHandler] テーブル削除エラー:', err);
+          console.error('❌ [TempNoteHandler] テーブル存在確認エラー:', err);
           reject(err);
           return;
         }
         
-        console.log('🗑️ [TempNoteHandler] 既存テーブルを削除しました');
-        
-        // 新しいテーブルを作成
-        const createTableSQL = `
-          CREATE TABLE temp_notes (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            child_id TEXT NOT NULL,
-            staff_id TEXT NOT NULL,
-            date_str TEXT NOT NULL,
-            week_day TEXT NOT NULL,
-            enter_time TEXT,
-            exit_time TEXT,
-            memo TEXT,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            UNIQUE(child_id, staff_id, date_str, week_day)
-          )
-        `;
+        if (row) {
+          console.log('✅ [TempNoteHandler] temp_notesテーブルは既に存在します');
+          resolve();
+        } else {
+          console.log('📋 [TempNoteHandler] temp_notesテーブルを作成中...');
+          
+          // 新しいテーブルを作成
+          const createTableSQL = `
+            CREATE TABLE temp_notes (
+              child_id TEXT NOT NULL,
+              staff_id TEXT NOT NULL,
+              date_str TEXT NOT NULL,
+              week_day TEXT NOT NULL,
+              enter_time TEXT,
+              exit_time TEXT,
+              memo TEXT,
+              created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+              updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+              PRIMARY KEY (child_id, week_day)
+            )
+          `;
 
-        this.db.run(createTableSQL, (err) => {
-          if (err) {
-            console.error('❌ [TempNoteHandler] テーブル作成エラー:', err);
-            reject(err);
-          } else {
-            console.log('✅ [TempNoteHandler] temp_notesテーブル作成完了');
-            resolve();
-          }
-        });
+          this.db.run(createTableSQL, (err) => {
+            if (err) {
+              console.error('❌ [TempNoteHandler] テーブル作成エラー:', err);
+              reject(err);
+            } else {
+              console.log('✅ [TempNoteHandler] temp_notesテーブル作成完了');
+              resolve();
+            }
+          });
+        }
       });
     });
   }
@@ -169,10 +288,10 @@ class TempNoteHandler {
       return new Promise((resolve, reject) => {
         const selectSQL = `
           SELECT * FROM temp_notes 
-          WHERE child_id = ? AND staff_id = ? AND date_str = ? AND week_day = ?
+          WHERE child_id = ? AND week_day = ?
         `;
 
-        this.db.get(selectSQL, [childId, staffId, dateStr, weekDay], (err, row) => {
+        this.db.get(selectSQL, [childId, weekDay], (err, row) => {
           if (err) {
             console.error('❌ [TempNoteHandler] 一時メモ取得エラー:', err);
             reject({ success: false, error: err.message });
@@ -191,6 +310,15 @@ class TempNoteHandler {
       console.error('❌ [TempNoteHandler] 一時メモ取得処理エラー:', error);
       return { success: false, error: error.message };
     }
+  }
+
+  // データベース接続状態を確認
+  isDatabaseConnected() {
+    const isConnected = this.db !== null;
+    console.log('🔍 [TempNoteHandler] データベース接続状態:', isConnected ? '接続済み' : '未接続');
+    console.log('🔍 [TempNoteHandler] this.db:', this.db);
+    console.log('🔍 [TempNoteHandler] this.dbPath:', this.dbPath);
+    return isConnected;
   }
 
   // データベース接続を閉じる

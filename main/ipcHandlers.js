@@ -39,6 +39,16 @@ function registerIpcHandlers(mainWindow, tempNoteHandler) {
       if (!tempNoteHandler) {
         return { success: false, error: "tempNoteHandlerが初期化されていません" };
       }
+      
+      // データベース接続状態を確認
+      if (!tempNoteHandler.isDatabaseConnected()) {
+        console.log("🔄 [IPC] データベース未接続のため再初期化を試行");
+        const initResult = await tempNoteHandler.initDatabase();
+        if (!initResult.success) {
+          return { success: false, error: "データベースの再初期化に失敗しました: " + initResult.error };
+        }
+      }
+      
       return await tempNoteHandler.saveTempNote(data);
     });
     
@@ -48,6 +58,16 @@ function registerIpcHandlers(mainWindow, tempNoteHandler) {
       if (!tempNoteHandler) {
         return { success: false, error: "tempNoteHandlerが初期化されていません" };
       }
+      
+      // データベース接続状態を確認
+      if (!tempNoteHandler.isDatabaseConnected()) {
+        console.log("🔄 [IPC] データベース未接続のため再初期化を試行");
+        const initResult = await tempNoteHandler.initDatabase();
+        if (!initResult.success) {
+          return { success: false, error: "データベースの再初期化に失敗しました: " + initResult.error };
+        }
+      }
+      
       return await tempNoteHandler.getTempNote(data);
     });
     
