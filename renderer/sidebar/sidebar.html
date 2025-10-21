@@ -71,6 +71,113 @@
       border-color: #0056b3;
     }
 
+    /* notes表示のスタイル */
+    .notes-display {
+      margin-top: 5px;
+      padding: 8px;
+      background-color: #f8f9fa;
+      border: 1px solid #dee2e6;
+      border-radius: 4px;
+      font-size: 12px;
+      color: #6c757d;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      max-height: 100px;
+      overflow-y: auto;
+    }
+
+    /* アクティブなliのnotes表示 */
+    #childrenList li.active .notes-display {
+      background-color: #e3f2fd;
+      border-color: #90caf9;
+      color: #1976d2;
+    }
+
+    /* 時間入力コンテナ */
+    .time-input-container {
+      margin-bottom: 8px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #dee2e6;
+    }
+
+    /* 時間入力グループ（横並び） */
+    .time-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .time-label {
+      font-size: 11px;
+      font-weight: bold;
+      color: #495057;
+      margin-right: 4px;
+    }
+
+    .time-input {
+      width: 80px;
+      padding: 4px 6px;
+      border: 1px solid #ced4da;
+      border-radius: 3px;
+      font-size: 11px;
+      background-color: white;
+    }
+
+    .time-input:focus {
+      outline: none;
+      border-color: #007bff;
+      box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+    }
+
+    .memo-label {
+      font-size: 11px;
+      font-weight: bold;
+      color: #495057;
+      margin-right: 4px;
+      width: 100%;
+      margin-top: 8px;
+    }
+
+    .memo-textarea {
+      width: 100%;
+      padding: 6px;
+      border: 1px solid #ced4da;
+      border-radius: 3px;
+      font-size: 11px;
+      background-color: white;
+      resize: vertical;
+      min-height: 60px;
+      font-family: inherit;
+    }
+
+    .memo-textarea:focus {
+      outline: none;
+      border-color: #007bff;
+      box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+    }
+
+    .save-button {
+      padding: 4px 8px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 3px;
+      font-size: 10px;
+      cursor: pointer;
+      margin-left: auto;
+    }
+
+    .save-button:hover {
+      background-color: #0056b3;
+    }
+
+    .notes-content {
+      margin-top: 8px;
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
     /* レスポンシブデザイン */
     @media (max-width: 768px) {
       #dateSelect,
