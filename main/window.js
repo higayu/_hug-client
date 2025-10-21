@@ -6,6 +6,7 @@ function createMainWindow() {
   const mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
+    icon: path.join(__dirname, "../assets/favicon.ico"),
     webPreferences: {
       preload: path.join(__dirname, "../preload.js"),
       nodeIntegration: false,

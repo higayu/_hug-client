@@ -38,8 +38,14 @@
     ],
     "win": {
       "target": "nsis",
+      "icon": "assets/favicon.ico",
       "signAndEditExecutable": false,
-      "forceCodeSigning": false
+      "forceCodeSigning": false,
+      "requestedExecutionLevel": "asInvoker"
+    },
+    "mac": {
+    },
+    "linux": {
     },
     "extraResources": [
       {
