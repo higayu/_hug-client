@@ -1,7 +1,6 @@
 // ===== モジュール読み込み =====
 import { initTabs } from "./modules/tabs.js";
-import { loadConfig, AppState } from "./modules/config.js";
-import { loadIni } from "./modules/ini.js";
+import { AppState, loadAllReload } from "./modules/config.js";
 import { setupSidebar } from "./sidebar/sidebar.js";
 import { initHugActions, updateButtonVisibility } from "./modules/hugActions.js";
 import { initChildrenList } from "./modules/childrenList.js";
@@ -13,16 +12,10 @@ window.addEventListener("DOMContentLoaded", async () => {
   console.log("🚀 DOMContentLoaded 発火");
 
   // ===== 1️⃣ 設定読み込み =====
-  const ok = await loadConfig();
+  const ok = await loadAllReload();
   if (!ok) {
-    alert("❌ config.json の読み込みに失敗しました");
+    showErrorToast("❌ config.json の読み込みに失敗しました");
     return;
-  }
-
-  // ===== 1.5️⃣ ini.json読み込み =====
-  const iniOk = await loadIni();
-  if (!iniOk) {
-    console.warn("⚠️ ini.json の読み込みに失敗しました（デフォルト設定を使用）");
   }
 
   // ===== 2️⃣ サイドバー & タブ初期化 =====
@@ -39,7 +32,7 @@ window.addEventListener("DOMContentLoaded", async () => {
   // 少し遅延させて確実に初期化
   setTimeout(() => {
     console.log("🔄 設定エディターを初期化中...");
-    initSettingsEditor();
+    window.settingsEditor = initSettingsEditor();
   }, 200);
 
   // ===== 6️⃣ ボタンの表示を更新（少し遅延させて確実に実行） =====

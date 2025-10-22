@@ -1,8 +1,8 @@
 // renderer/modules/hugActions.js
-import { AppState,loadConfig } from "./config.js";
+import { AppState,loadAllReload } from "./config.js";
 import { initChildrenList } from "./childrenList.js";
 import { getActiveWebview } from "./webviewState.js";
-import { IniState, loadIni, isFeatureEnabled, getButtonConfig } from "./ini.js";
+import { isFeatureEnabled, getButtonConfig } from "./ini.js";
 import { showSuccessToast, showErrorToast } from "./toast/toast.js";
 
 export function initHugActions() {
@@ -111,23 +111,11 @@ export function initHugActions() {
     try {
       const result = await window.electronAPI.importConfigFile();
       if (result.success) {
-        alert("✅ 設定ファイルをコピーしました:\n" + result.destination);
-        // ===== ① config.json 読み込み =====
-          const ok = await loadConfig();
-          if (ok) {
-            console.log("OK");
-          } else {
-            alert("❌ 設定の読み込みに失敗しました");
-          }
-        // ===== ② ini.json 読み込み =====
-        const iniOk = await loadIni();
-        if (iniOk) {
-          console.log("✅ ini.json読み込み成功");
-          // UIを更新
-          updateButtonVisibility();
-        } else {
-          console.warn("⚠️ ini.json読み込み失敗");
-        }
+        showSuccessToast("✅ 設定ファイルをコピーしました:\n" + result.destination);
+        const ok = await loadAllReload();
+        if (ok) {
+          showSuccessToast("✅ 設定の再読み込みが完了しました");
+        } 
       } else {
         alert("⚠️ コピーがキャンセルまたは失敗しました");
       }
@@ -199,68 +187,28 @@ export function initHugActions() {
     }
   });
 
-  // ✅ ini.json 読み込み＋WebView更新＋子リスト再取得を統合
+
+  // ✅ ini.jsonの手動読み込み
   document.getElementById("Load-Ini").addEventListener("click", async () => {
     try {
-      console.log("🔄 ini.jsonを手動で読み込み中...");
-      const iniSuccess = await loadIni();
-
-      if (!iniSuccess) {
-        alert("❌ ini.jsonの読み込みに失敗しました");
-        return;
-      }
-
-      // UIを更新
-      updateButtonVisibility();
-      console.log("✅ ini.jsonの読み込みが完了しました:", IniState);
-
-      // === WebView再読み込み ===
-      const vw = getActiveWebview();
-      if (!vw) {
-        alert("❌ WebView が見つかりません");
-        return;
-      }
-
-      console.log("🔄 WebViewを再読み込み中...");
-      vw.reload();
-
-      // 再読み込み完了を待つ
-      await new Promise((resolve) => {
-        vw.addEventListener("did-finish-load", resolve, { once: true });
-      });
-      console.log("✅ WebView再読み込み完了");
-
-      // === 子どもリスト再取得 ===
-      if (typeof initChildrenList === "function") {
-        try {
-          console.log("📥 子どもリスト再取得中...");
-          AppState.childrenData = await window.electronAPI.GetChildrenByStaffAndDay(
-            AppState.STAFF_ID,
-            AppState.WEEK_DAY
-          );
-          await initChildrenList();
-          console.log("✅ 子どもリスト再取得完了");
-          showSuccessToast("✅ ini.json 読み込み & WebView 更新 完了");
-        } catch (err) {
-          console.error("❌ 子リスト再取得エラー:", err);
-          alert("子どもリストの再取得に失敗しました");
-        }
-      }
-
+      const ok = await loadAllReload();
+      if (ok) {
+        showSuccessToast("✅ 設定の再読み込みが完了しました");
+      } 
     } catch (err) {
-      console.error("❌ ini.json読み込み・更新統合エラー:", err);
+      console.error("❌ ini.json読み込みエラー:", err);
       alert("❌ エラーが発生しました: " + err.message);
     }
   });
-
-
 
   console.log("✅ Hug操作 初期化完了");
 }
 
 
-// ボタンの表示/非表示を制御する関数
+// ボタンの表示/非表示を制御する関数（統合版）
 export function updateButtonVisibility() {
+  console.log('🔄 [HUG_ACTIONS] ボタン表示制御を実行中...');
+  
   // 各ボタンの表示/非表示を制御
   const buttonMappings = {
     'individualSupportPlan': 'Individual_Support_Button',
@@ -277,12 +225,12 @@ export function updateButtonVisibility() {
     
     if (button) {
       const isEnabled = isFeatureEnabled(featureName);
-      console.log(`🔧 ボタン更新: ${buttonId}, 有効: ${isEnabled}`);
+      console.log(`🔧 [HUG_ACTIONS] ボタン更新: ${buttonId}, 有効: ${isEnabled}`);
       
       // テストボタンの場合は常に表示（デバッグ用）
       if (buttonId === 'test-double-get') {
         button.style.display = 'inline-block';
-        console.log(`🔧 テストボタンを強制表示: ${buttonId}`);
+        console.log(`🔧 [HUG_ACTIONS] テストボタンを強制表示: ${buttonId}`);
       } else {
         // ボタンの表示/非表示を制御
         button.style.display = isEnabled ? 'inline-block' : 'none';
@@ -292,14 +240,16 @@ export function updateButtonVisibility() {
       const config = getButtonConfig(featureName);
       if (config.buttonText) {
         button.textContent = config.buttonText;
-        console.log(`📝 ボタンテキスト更新: ${buttonId} -> ${config.buttonText}`);
+        console.log(`📝 [HUG_ACTIONS] ボタンテキスト更新: ${buttonId} -> ${config.buttonText}`);
       }
       if (config.buttonColor) {
         button.style.backgroundColor = config.buttonColor;
-        console.log(`🎨 ボタンカラー更新: ${buttonId} -> ${config.buttonColor}`);
+        console.log(`🎨 [HUG_ACTIONS] ボタンカラー更新: ${buttonId} -> ${config.buttonColor}`);
       }
     } else {
-      console.warn(`⚠️ ボタンが見つかりません: ${buttonId}`);
+      console.warn(`⚠️ [HUG_ACTIONS] ボタンが見つかりません: ${buttonId}`);
     }
   });
+  
+  console.log('✅ [HUG_ACTIONS] ボタン表示制御完了');
 }

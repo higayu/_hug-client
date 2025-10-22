@@ -1,6 +1,6 @@
 // renderer/modules/settingsEditor.js
-import { IniState, loadIni, saveIni, updateIniSetting } from "./ini.js";
-import { AppState, loadConfig, saveConfig } from "./config.js";
+import { IniState, saveIni, updateIniSetting } from "./ini.js";
+import { AppState, loadAllReload, saveConfig } from "./config.js";
 import { showSuccessToast, showErrorToast, showInfoToast } from "./toast/toast.js";
 
 export class SettingsEditor {
@@ -191,13 +191,7 @@ export class SettingsEditor {
       this.setupTabs();
     }
 
-    // 現在の設定を読み込み
-    console.log('🔄 [SETTINGS] ini.jsonを読み込み中...');
-    await loadIni();
-    
-    // バックアップを作成
-    this.originalSettings = JSON.parse(JSON.stringify(IniState));
-    console.log('✅ [SETTINGS] 設定のバックアップを作成しました');
+
     
     // フォームに現在の値を設定
     console.log('🔄 [SETTINGS] フォームに値を設定中...');
@@ -422,7 +416,7 @@ export class SettingsEditor {
         this.closeModal();
         
         // UIに反映
-        this.applySettingsToUI();
+        this.applyAllSettings();
       } else {
         alert('❌ 設定の保存に失敗しました');
       }
@@ -474,44 +468,154 @@ export class SettingsEditor {
     IniState.appSettings.window.alwaysOnTop = this.modal.querySelector('#window-always-on-top').checked;
   }
 
-  applySettingsToUI() {
+  // 統合された設定反映関数
+  applyAllSettings() {
+    console.log('🔄 [SETTINGS] 全設定を適用中...');
+    
+    try {
+      // 1. UI設定の適用
+      this.applyUISettings();
+      
+      // 2. ボタンの表示/非表示とスタイル更新
+      this.applyButtonSettings();
+      
+      // 3. カスタムボタンの適用
+      this.applyCustomButtons();
+      
+      console.log('✅ [SETTINGS] 全設定の適用完了');
+    } catch (error) {
+      console.error('❌ [SETTINGS] 設定適用エラー:', error);
+    }
+  }
+
+  // UI設定の適用
+  applyUISettings() {
+    const ui = IniState.appSettings.ui;
+    
     // 閉じるボタンの表示/非表示
-    const showCloseButtons = IniState.appSettings.ui.showCloseButtons;
+    const showCloseButtons = ui.showCloseButtons;
     document.querySelectorAll('.close-btn').forEach(btn => {
       btn.style.display = showCloseButtons ? 'inline' : 'none';
     });
 
     // テーマの適用
-    const theme = IniState.appSettings.ui.theme;
+    const theme = ui.theme;
     document.body.className = theme === 'dark' ? 'dark-theme' : '';
-
-    // ボタンの表示/非表示とスタイル更新
-    this.updateButtonVisibility();
+    
+    console.log('✅ [SETTINGS] UI設定を適用しました');
   }
 
-  updateButtonVisibility() {
+  // ボタン設定の適用
+  applyButtonSettings() {
     const features = IniState.appSettings.features;
     
-    // 各ボタンの表示/非表示を制御
-    Object.keys(features).forEach(featureName => {
-      const button = document.getElementById(featureName === 'testDoubleGet' ? 'test-double-get' : 
-                                          featureName === 'importSetting' ? 'Import-Setting' :
-                                          featureName === 'getUrl' ? 'Get-Url' : 
-                                          featureName === 'individualSupportPlan' ? 'Individual_Support_Button' :
-                                          featureName === 'specializedSupportPlan' ? 'Specialized-Support-Plan' : null);
+    // ボタンIDのマッピング
+    const buttonMappings = {
+      'individualSupportPlan': 'Individual_Support_Button',
+      'specializedSupportPlan': 'Specialized-Support-Plan',
+      'testDoubleGet': 'test-double-get',
+      'importSetting': 'Import-Setting',
+      'getUrl': 'Get-Url',
+      'loadIni': 'Load-Ini'
+    };
+    
+    // 各ボタンの表示/非表示とスタイルを制御
+    Object.keys(buttonMappings).forEach(featureName => {
+      const buttonId = buttonMappings[featureName];
+      const button = document.getElementById(buttonId);
       
       if (button) {
-        button.style.display = features[featureName].enabled ? 'inline-block' : 'none';
-        
-        // ボタンテキストとカラーを更新
-        if (features[featureName].buttonText) {
-          button.textContent = features[featureName].buttonText;
+        const feature = features[featureName];
+        if (feature) {
+          // ボタンの表示/非表示を制御
+          // テストボタンの場合は常に表示（デバッグ用）
+          if (buttonId === 'test-double-get') {
+            button.style.display = 'inline-block';
+          } else {
+            button.style.display = feature.enabled ? 'inline-block' : 'none';
+          }
+          
+          // ボタンテキストとカラーを更新
+          if (feature.buttonText) {
+            button.textContent = feature.buttonText;
+          }
+          if (feature.buttonColor) {
+            button.style.backgroundColor = feature.buttonColor;
+          }
+          
+          console.log(`🔧 [SETTINGS] ボタン設定適用: ${buttonId}, 有効: ${feature.enabled}`);
         }
-        if (features[featureName].buttonColor) {
-          button.style.backgroundColor = features[featureName].buttonColor;
-        }
+      } else {
+        console.warn(`⚠️ [SETTINGS] ボタンが見つかりません: ${buttonId}`);
       }
     });
+    
+    console.log('✅ [SETTINGS] ボタン設定を適用しました');
+  }
+
+  // カスタムボタンの適用
+  applyCustomButtons() {
+    const customButtons = IniState.appSettings.customButtons.filter(btn => btn.enabled);
+    
+    // カスタムボタンのコンテナを取得
+    const topContainer = document.getElementById('custom-buttons-top');
+    const bottomContainer = document.getElementById('custom-buttons-bottom');
+    
+    // 既存のカスタムボタンをクリア
+    if (topContainer) topContainer.innerHTML = '';
+    if (bottomContainer) bottomContainer.innerHTML = '';
+    
+    // カスタムボタンを生成
+    customButtons.forEach(button => {
+      const buttonElement = document.createElement('button');
+      buttonElement.className = 'custom-button';
+      buttonElement.textContent = button.text || 'カスタムボタン';
+      buttonElement.style.backgroundColor = button.color || '#007bff';
+      buttonElement.style.color = '#ffffff';
+      buttonElement.style.border = 'none';
+      buttonElement.style.padding = '8px 16px';
+      buttonElement.style.margin = '4px';
+      buttonElement.style.borderRadius = '4px';
+      buttonElement.style.cursor = 'pointer';
+      
+      // アクション設定
+      if (button.action) {
+        buttonElement.addEventListener('click', () => {
+          console.log(`🔘 [SETTINGS] カスタムボタンクリック: ${button.action}`);
+          // ここでカスタムアクションを実行
+          this.executeCustomAction(button.action);
+        });
+      }
+      
+      // 位置に応じてコンテナに追加
+      const targetContainer = button.position === 'bottom' ? bottomContainer : topContainer;
+      if (targetContainer) {
+        targetContainer.appendChild(buttonElement);
+      }
+    });
+    
+    console.log(`✅ [SETTINGS] カスタムボタン${customButtons.length}個を適用しました`);
+  }
+
+  // カスタムアクションの実行
+  executeCustomAction(action) {
+    try {
+      // カスタムアクションの実行ロジック
+      console.log(`🚀 [SETTINGS] カスタムアクション実行: ${action}`);
+      
+      // 例: 特定のアクションに応じた処理
+      switch (action) {
+        case 'customAction':
+          showInfoToast('カスタムアクションが実行されました');
+          break;
+        default:
+          showInfoToast(`カスタムアクション: ${action}`);
+          break;
+      }
+    } catch (error) {
+      console.error('❌ [SETTINGS] カスタムアクション実行エラー:', error);
+      showErrorToast('カスタムアクションの実行に失敗しました');
+    }
   }
 
   resetSettings() {
@@ -529,14 +633,11 @@ export class SettingsEditor {
   async reloadConfig() {
     try {
       console.log('🔄 [SETTINGS] Config.jsonを再読み込み中...');
-             const success = await loadConfig();
-             if (success) {
-               this.populateForm();
+             const ok = await loadAllReload();
+             if (ok) {
                showSuccessToast('✅ Config.jsonの再読み込みが完了しました');
-               console.log('✅ [SETTINGS] Config.json再読み込み成功');
              } else {
                showErrorToast('❌ Config.jsonの再読み込みに失敗しました');
-               console.error('❌ [SETTINGS] Config.json再読み込み失敗');
              }
     } catch (error) {
       console.error('❌ [SETTINGS] Config.json再読み込みエラー:', error);
@@ -597,4 +698,14 @@ export class SettingsEditor {
 // 設定エディターを初期化
 export function initSettingsEditor() {
   return new SettingsEditor();
+}
+
+// 統合された設定反映関数をエクスポート（他のファイルからも使用可能）
+export function applyAllSettings() {
+  // グローバルな設定エディターインスタンスが存在する場合
+  if (window.settingsEditor && typeof window.settingsEditor.applyAllSettings === 'function') {
+    window.settingsEditor.applyAllSettings();
+  } else {
+    console.warn('⚠️ [SETTINGS] 設定エディターインスタンスが見つかりません');
+  }
 }

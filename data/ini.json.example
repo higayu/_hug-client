@@ -27,12 +27,12 @@
         "buttonColor": "#28a745"
       },
       "testDoubleGet": {
-        "enabled": false,
+        "enabled": true,
         "buttonText": "テスト取得",
         "buttonColor": "#ffc107"
       },
       "importSetting": {
-        "enabled": true,
+        "enabled": false,
         "buttonText": "設定ファイル取得",
         "buttonColor": "#6c757d"
       },
@@ -42,8 +42,8 @@
         "buttonColor": "#17a2b8"
       },
       "loadIni": {
-        "enabled": true,
-        "buttonText": "ini.jsonの再読み込み",
+        "enabled": false,
+        "buttonText": "設定ファイルの再読み込み",
         "buttonColor": "#6f42c1"
       }
     },
