@@ -24,6 +24,16 @@ contextBridge.exposeInMainWorld("electronAPI", {
     }
   },
 
+  getStaffAndFacility: async () => {
+    try {
+      const result = await ipcRenderer.invoke("getStaffAndFacility");
+      return result;
+    } catch (err) {
+      console.error("❌ [preload] IPC 呼び出し失敗:", err);
+      throw err;
+    }
+  },
+
   openIndividualSupportPlan: (childId) => ipcRenderer.send("open-individual-support-plan", childId),
 
     // 既存のAPIに加えて...

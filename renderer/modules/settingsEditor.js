@@ -197,6 +197,10 @@ export class SettingsEditor {
     console.log('🔄 [SETTINGS] フォームに値を設定中...');
     this.populateForm();
     
+    // セレクトボックスを初期化
+    console.log('🔄 [SETTINGS] セレクトボックスを初期化中...');
+    await this.initializeSelectBoxes();
+    
     // カスタムボタンリストを更新
     console.log('🔄 [SETTINGS] カスタムボタンリストを更新中...');
     this.updateCustomButtonsList();
@@ -669,6 +673,83 @@ export class SettingsEditor {
     } catch (error) {
       console.error('❌ [SETTINGS] Config.json保存エラー:', error);
       showErrorToast('❌ エラーが発生しました: ' + error.message);
+    }
+  }
+
+  // セレクトボックスの初期化
+  async initializeSelectBoxes() {
+    if (!this.modal) return;
+
+    try {
+      // スタッフと施設のデータを取得
+      const data = await window.electronAPI.getStaffAndFacility();
+      
+      // スタッフセレクトボックスを初期化
+      const staffSelect = this.modal.querySelector('#config-staff-id');
+      if (staffSelect && data.staffs) {
+        // 既存のオプションをクリア（最初の「選択してください」以外）
+        while (staffSelect.children.length > 1) {
+          staffSelect.removeChild(staffSelect.lastChild);
+        }
+        
+        // スタッフデータを追加
+        data.staffs.forEach(staff => {
+          const option = document.createElement('option');
+          option.value = staff.id;
+          option.textContent = staff.name;
+          staffSelect.appendChild(option);
+        });
+        
+        console.log('✅ [SETTINGS] スタッフセレクトボックスを初期化しました');
+      }
+      
+      // 施設セレクトボックスを初期化
+      const facilitySelect = this.modal.querySelector('#config-facility-id');
+      if (facilitySelect && data.facilitys) {
+        // 既存のオプションをクリア（最初の「選択してください」以外）
+        while (facilitySelect.children.length > 1) {
+          facilitySelect.removeChild(facilitySelect.lastChild);
+        }
+        
+        // 施設データを追加
+        data.facilitys.forEach(facility => {
+          const option = document.createElement('option');
+          option.value = facility.id;
+          option.textContent = facility.name;
+          facilitySelect.appendChild(option);
+        });
+        
+        console.log('✅ [SETTINGS] 施設セレクトボックスを初期化しました');
+      }
+      
+      // 現在の値を設定
+      this.populateSelectBoxes();
+      
+    } catch (error) {
+      console.error('❌ [SETTINGS] セレクトボックス初期化エラー:', error);
+    }
+  }
+
+  // セレクトボックスの値を設定
+  populateSelectBoxes() {
+    if (!this.modal) return;
+
+    // スタッフIDの設定
+    const staffSelect = this.modal.querySelector('#config-staff-id');
+    if (staffSelect) {
+      const currentStaffId = AppState.STAFF_ID;
+      if (currentStaffId) {
+        staffSelect.value = currentStaffId;
+      }
+    }
+    
+    // 施設IDの設定
+    const facilitySelect = this.modal.querySelector('#config-facility-id');
+    if (facilitySelect) {
+      const currentFacilityId = AppState.FACILITY_ID;
+      if (currentFacilityId) {
+        facilitySelect.value = currentFacilityId;
+      }
     }
   }
 

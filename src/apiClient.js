@@ -41,6 +41,11 @@ async function fetchStaff() {
   return res.data;
 }
 
+async function getStaffAndFacility() {
+  const res = await apiClient.get("/houday/staff_facility_v");
+  return res.data;
+}
+
 /* ------------------------------
    facilitys
 ------------------------------ */
@@ -48,6 +53,7 @@ async function getFacilitys() {
   const res = await apiClient.get("/houday/facilitys");
   return res.data;
 }
+
 
 /* ------------------------------
    facility_children
@@ -125,6 +131,7 @@ async function callProcedure(procname, params = []) {
 ------------------------------ */
 module.exports = {
   fetchStaff,
+  getStaffAndFacility,
   getFacility_children,
   getFacilitys,
   fetchChildren,
