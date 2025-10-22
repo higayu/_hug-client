@@ -41,6 +41,37 @@ window.addEventListener("DOMContentLoaded", async () => {
     updateButtonVisibility();
   }, 100);
 
+  // ===== 7️⃣ 設定ファイルインポート後の再読み込み処理 =====
+  // 設定ファイルインポートボタンのイベントリスナーを追加
+  document.getElementById("Import-Setting").addEventListener("click", async () => {
+    try {
+      const result = await window.electronAPI.importConfigFile();
+      if (result.success) {
+        // 設定ファイルインポート後に設定を再読み込み
+        const reloadOk = await loadAllReload();
+        if (reloadOk) {
+          updateButtonVisibility(); // ボタン表示を更新
+          console.log("✅ 設定ファイルインポート後の再読み込み完了");
+        }
+      }
+    } catch (err) {
+      console.error("❌ 設定ファイルインポート後の再読み込みエラー:", err);
+    }
+  });
+
+  // ===== 8️⃣ ini.jsonの手動読み込み処理 =====
+  document.getElementById("Load-Ini").addEventListener("click", async () => {
+    try {
+      const reloadOk = await loadAllReload();
+      if (reloadOk) {
+        updateButtonVisibility(); // ボタン表示を更新
+        console.log("✅ ini.jsonの手動読み込み完了");
+      }
+    } catch (err) {
+      console.error("❌ ini.jsonの手動読み込みエラー:", err);
+    }
+  });
+
   console.log("🎉 初期化完了:", AppState);
 
   // ドロップダウンメニューの位置を動的に計算する関数

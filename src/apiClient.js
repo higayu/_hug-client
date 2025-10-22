@@ -42,10 +42,18 @@ async function fetchStaff() {
 }
 
 /* ------------------------------
-   Managers
+   facilitys
 ------------------------------ */
-async function getManager() {
-  const res = await apiClient.get("/houday/managers");
+async function getFacilitys() {
+  const res = await apiClient.get("/houday/facilitys");
+  return res.data;
+}
+
+/* ------------------------------
+   facility_children
+------------------------------ */
+async function getFacility_children() {
+  const res = await apiClient.get("/houday/facility_children");
   return res.data;
 }
 
@@ -117,7 +125,8 @@ async function callProcedure(procname, params = []) {
 ------------------------------ */
 module.exports = {
   fetchStaff,
-  getManager,
+  getFacility_children,
+  getFacilitys,
   fetchChildren,
   fetchChildById,
   createChild,

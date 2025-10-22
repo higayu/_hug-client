@@ -1,7 +1,6 @@
 // renderer/modules/reloadSettings.js
 import { loadConfig } from "./config.js";
 import { loadIni } from "./ini.js";
-import { updateButtonVisibility } from "./hugActions.js";
 
 /**
  * config.json と ini.json の両方を再読み込みしてUIに反映
@@ -22,7 +21,7 @@ export async function loadAllReload() {
     const iniOk = await loadIni();
     if (iniOk) {
       console.log("✅ ini.json の読み込み成功");
-      updateButtonVisibility();
+      // updateButtonVisibility() は mainRenderer.js で呼び出される
     } else {
       console.warn("⚠️ ini.json の読み込みに失敗しました");
     }

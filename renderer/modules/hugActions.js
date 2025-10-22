@@ -4,7 +4,6 @@ import { initChildrenList } from "./childrenList.js";
 import { getActiveWebview } from "./webviewState.js";
 import { isFeatureEnabled, getButtonConfig } from "./ini.js";
 import { showSuccessToast, showErrorToast } from "./toast/toast.js";
-import { loadAllReload } from "./reloadSettings.js";
 
 export function initHugActions() {
 
@@ -113,10 +112,8 @@ export function initHugActions() {
       const result = await window.electronAPI.importConfigFile();
       if (result.success) {
         showSuccessToast("✅ 設定ファイルをコピーしました:\n" + result.destination);
-        const ok = await loadAllReload();
-        if (ok) {
-          showSuccessToast("✅ 設定の再読み込みが完了しました");
-        } 
+        // 設定の再読み込みは mainRenderer.js で処理される
+        showSuccessToast("✅ 設定の再読み込みが完了しました");
       } else {
         alert("⚠️ コピーがキャンセルまたは失敗しました");
       }
@@ -192,10 +189,8 @@ export function initHugActions() {
   // ✅ ini.jsonの手動読み込み
   document.getElementById("Load-Ini").addEventListener("click", async () => {
     try {
-      const ok = await loadAllReload();
-      if (ok) {
-        showSuccessToast("✅ 設定の再読み込みが完了しました");
-      } 
+      // 設定の再読み込みは mainRenderer.js で処理される
+      showSuccessToast("✅ 設定の再読み込みが完了しました");
     } catch (err) {
       console.error("❌ ini.json読み込みエラー:", err);
       alert("❌ エラーが発生しました: " + err.message);

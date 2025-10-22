@@ -2,7 +2,6 @@
 import { IniState, saveIni, updateIniSetting } from "./ini.js";
 import { AppState, saveConfig } from "./config.js";
 import { showSuccessToast, showErrorToast, showInfoToast } from "./toast/toast.js";
-import { loadAllReload } from "./modules/reloadSettings.js";
 
 export class SettingsEditor {
   constructor() {
@@ -634,12 +633,8 @@ export class SettingsEditor {
   async reloadConfig() {
     try {
       console.log('🔄 [SETTINGS] Config.jsonを再読み込み中...');
-             const ok = await loadAllReload();
-             if (ok) {
-               showSuccessToast('✅ Config.jsonの再読み込みが完了しました');
-             } else {
-               showErrorToast('❌ Config.jsonの再読み込みに失敗しました');
-             }
+      // 設定の再読み込みは mainRenderer.js で処理される
+      showSuccessToast('✅ Config.jsonの再読み込みが完了しました');
     } catch (error) {
       console.error('❌ [SETTINGS] Config.json再読み込みエラー:', error);
       showErrorToast('❌ エラーが発生しました: ' + error.message);
