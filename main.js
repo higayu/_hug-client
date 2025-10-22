@@ -1,5 +1,5 @@
 // main.js
-const { app } = require("electron");
+const { app, dialog } = require("electron"); // ← dialog を追加！
 const path = require("path");
 //require("dotenv").config();
 
@@ -7,11 +7,11 @@ const { createMainWindow } = require("./main/window");
 const { registerIpcHandlers } = require("./main/ipcHandlers");
 const TempNoteHandler = require("./main/parts/tempNoteHandler");
 
-// 🔹 追加：自動アップデート機能
-const { autoUpdater, dialog } = require("electron");
+// ✅ 正しいモジュールを使用
+const { autoUpdater } = require("electron-updater");
 const log = require("electron-log");
 
-// ログ設定（アップデート経過をログ出力）
+// ログ設定（アップデート経過をファイル出力）
 autoUpdater.logger = log;
 autoUpdater.logger.transports.file.level = "info";
 
@@ -21,36 +21,34 @@ let globalTempNoteHandler = null;
 app.whenReady().then(async () => {
   console.log("🚀 [MAIN] Electronアプリが起動しました");
 
-  // 🔹 アップデート確認を最初に開始
-  try {
-    console.log("🔄 [UPDATE] アップデートチェック開始");
-    autoUpdater.checkForUpdatesAndNotify();
-  } catch (err) {
-    console.error("⚠️ [UPDATE] アップデートチェック失敗:", err);
-  }
+  // 🔹 5秒後にアップデートチェック（GitHub通信の安定化のため）
+  setTimeout(() => {
+    try {
+      console.log("🔄 [UPDATE] アップデートチェック開始");
+      autoUpdater.checkForUpdatesAndNotify();
+    } catch (err) {
+      console.error("⚠️ [UPDATE] アップデートチェック失敗:", err);
+    }
+  }, 5000);
 
   const mainWindow = createMainWindow();
   console.log("🪟 [MAIN] メインウィンドウを作成しました");
 
-  // 一時メモハンドラーの初期化
-  console.log("🚀 [MAIN] 一時メモハンドラー初期化開始");
+  // データベース初期化
   globalTempNoteHandler = new TempNoteHandler();
-  console.log("🔍 [MAIN] TempNoteHandlerインスタンス作成完了");
-
   const dbResult = await globalTempNoteHandler.initDatabase();
-  console.log("🔍 [MAIN] データベース初期化結果:", dbResult);
-
   if (dbResult.success) {
     console.log("✅ [MAIN] 一時メモデータベース初期化完了");
-    console.log("🔍 [MAIN] データベースパス:", dbResult.dbPath);
     registerIpcHandlers(mainWindow, globalTempNoteHandler);
   } else {
-    console.error("❌ [MAIN] 一時メモデータベース初期化失敗:", dbResult.error);
+    console.error("❌ [MAIN] データベース初期化失敗:", dbResult.error);
     registerIpcHandlers(mainWindow, globalTempNoteHandler);
   }
 });
 
+
 // 🔹 自動アップデート後の挙動（ダウンロード完了時に再起動確認）
+// 🔹 ダウンロード完了時に再起動確認
 autoUpdater.on("update-downloaded", () => {
   const response = dialog.showMessageBoxSync({
     type: "info",
@@ -60,6 +58,7 @@ autoUpdater.on("update-downloaded", () => {
   });
   if (response === 0) autoUpdater.quitAndInstall();
 });
+
 
 // アプリケーション終了時の処理
 app.on("before-quit", () => {
