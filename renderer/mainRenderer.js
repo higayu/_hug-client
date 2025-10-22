@@ -1,10 +1,11 @@
 // ===== モジュール読み込み =====
 import { initTabs } from "./modules/tabs.js";
-import { AppState, loadAllReload } from "./modules/config.js";
+import { AppState } from "./modules/config.js";
 import { setupSidebar } from "./sidebar/sidebar.js";
 import { initHugActions, updateButtonVisibility } from "./modules/hugActions.js";
 import { initChildrenList } from "./modules/childrenList.js";
 import { initSettingsEditor } from "./modules/settingsEditor.js";
+import { loadAllReload } from "./modules/reloadSettings.js";
 
 console.log("✅ mainRenderer.js 読み込み完了");
 

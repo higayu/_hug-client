@@ -69,7 +69,7 @@ export async function saveConfig() {
 // ==========================
 // ⚙️ config.json読み込み
 // ==========================
-async function loadConfig() {
+export async function loadConfig() {
   const output = document.getElementById("configOutput");
   try {
     const result = await window.electronAPI.readConfig();
@@ -91,38 +91,6 @@ async function loadConfig() {
   } catch (err) {
     console.error("❌ config.json 読み込み中にエラー:", err);
     if (output) output.textContent = "❌ エラー: " + err.message;
-    return false;
-  }
-}
-
-
-// ==========================
-// 🔁 config + ini 一括リロード
-// ==========================
-export async function loadAllReload() {
-  try {
-    console.log("🔄 全設定リロード開始...");
-
-    // ✅ config.json読み込み
-    const configOk = await loadConfig();
-    if (!configOk) {
-      console.warn("⚠️ config.json 読み込み失敗");
-      return false;
-    }
-
-    // ✅ ini.json読み込み
-    const iniOk = await loadIni();
-    if (iniOk) {
-      console.log("✅ ini.json 読み込み成功");
-      updateButtonVisibility();
-    } else {
-      console.warn("⚠️ ini.json 読み込み失敗");
-    }
-
-    console.log("✅ 全設定リロード完了");
-    return true;
-  } catch (err) {
-    console.error("❌ 全設定リロード中にエラー:", err);
     return false;
   }
 }

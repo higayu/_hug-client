@@ -1,9 +1,10 @@
 // renderer/modules/hugActions.js
-import { AppState,loadAllReload } from "./config.js";
+import { AppState } from "./config.js";
 import { initChildrenList } from "./childrenList.js";
 import { getActiveWebview } from "./webviewState.js";
 import { isFeatureEnabled, getButtonConfig } from "./ini.js";
 import { showSuccessToast, showErrorToast } from "./toast/toast.js";
+import { loadAllReload } from "./reloadSettings.js";
 
 export function initHugActions() {
 
