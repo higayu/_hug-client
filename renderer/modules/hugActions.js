@@ -199,25 +199,60 @@ export function initHugActions() {
     }
   });
 
-  // ✅ ini.jsonの手動読み込み
+  // ✅ ini.json 読み込み＋WebView更新＋子リスト再取得を統合
   document.getElementById("Load-Ini").addEventListener("click", async () => {
     try {
       console.log("🔄 ini.jsonを手動で読み込み中...");
-      const success = await loadIni();
-      
-      if (success) {
-        alert("✅ ini.jsonの読み込みが完了しました");
-        // UIを更新
-        updateButtonVisibility();
-        console.log("✅ 設定が更新されました:", IniState);
-      } else {
+      const iniSuccess = await loadIni();
+
+      if (!iniSuccess) {
         alert("❌ ini.jsonの読み込みに失敗しました");
+        return;
       }
+
+      // UIを更新
+      updateButtonVisibility();
+      console.log("✅ ini.jsonの読み込みが完了しました:", IniState);
+
+      // === WebView再読み込み ===
+      const vw = getActiveWebview();
+      if (!vw) {
+        alert("❌ WebView が見つかりません");
+        return;
+      }
+
+      console.log("🔄 WebViewを再読み込み中...");
+      vw.reload();
+
+      // 再読み込み完了を待つ
+      await new Promise((resolve) => {
+        vw.addEventListener("did-finish-load", resolve, { once: true });
+      });
+      console.log("✅ WebView再読み込み完了");
+
+      // === 子どもリスト再取得 ===
+      if (typeof initChildrenList === "function") {
+        try {
+          console.log("📥 子どもリスト再取得中...");
+          AppState.childrenData = await window.electronAPI.GetChildrenByStaffAndDay(
+            AppState.STAFF_ID,
+            AppState.WEEK_DAY
+          );
+          await initChildrenList();
+          console.log("✅ 子どもリスト再取得完了");
+          showSuccessToast("✅ ini.json 読み込み & WebView 更新 完了");
+        } catch (err) {
+          console.error("❌ 子リスト再取得エラー:", err);
+          alert("子どもリストの再取得に失敗しました");
+        }
+      }
+
     } catch (err) {
-      console.error("❌ ini.json読み込みエラー:", err);
+      console.error("❌ ini.json読み込み・更新統合エラー:", err);
       alert("❌ エラーが発生しました: " + err.message);
     }
   });
+
 
 
   console.log("✅ Hug操作 初期化完了");
