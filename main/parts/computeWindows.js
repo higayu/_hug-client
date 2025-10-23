@@ -8,6 +8,10 @@ function open_test_double_get(ipcMain) {
   // console.log("🔧 [MAIN] open_test_double_get 関数が呼び出されました");
   // console.log("🔍 [MAIN] isRegistered:", isRegistered);
   // console.log("🔍 [MAIN] ipcMain:", ipcMain ? "存在" : "未定義");
+
+    // 定数を先頭で定義
+  const facility_id = 3;
+  const date_str = "2025-10-23";
   
   if (isRegistered) {
     //console.log("⚠️ open-test-double-get は既に登録済みです");
@@ -21,8 +25,8 @@ function open_test_double_get(ipcMain) {
 
     try {
       openDoubleWebviewWithTabs(
+        `https://www.hug-ayumu.link/hug/wm/attendance.php?mode=detail&f_id=${facility_id}&date=${date_str}`,
         "https://www.hug-ayumu.link/hug/wm/record_proceedings.php",
-        "https://www.hug-ayumu.link/hug/wm/addition_plan_situation.php",
         "HUGデータ取得"
       );
       //console.log("✅ [MAIN] ダブルWebViewウィンドウを開きました");
