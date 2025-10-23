@@ -42,17 +42,20 @@ contextBridge.exposeInMainWorld("electronAPI", {
   Open_NowDayPage: (args) => ipcRenderer.send("Open_NowDayPage", args),
 
     // 既存のAPIに加えて...
-  open_test_double_get: () => {
+  open_test_double_get: (facility_id, date_str) => {
     const eventName = "open-test-double-get";
+    const args = { facility_id, date_str };
     console.log("📤 [PRELOAD] IPCイベントを送信します:", eventName);
+    console.log("📤 [PRELOAD] 引数:", args);
     console.log("🔍 [PRELOAD] ipcRenderer:", ipcRenderer ? "存在" : "未定義");
     try {
-      ipcRenderer.send(eventName);
+      ipcRenderer.send(eventName, args);
       console.log("✅ [PRELOAD] IPCイベントを送信しました:", eventName);
     } catch (error) {
       console.error("❌ [PRELOAD] IPCイベント送信に失敗:", error);
       console.error("❌ [PRELOAD] エラー詳細:", {
         eventName,
+        args,
         error: error.message,
         stack: error.stack
       });

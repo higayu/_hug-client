@@ -4,14 +4,11 @@ const path = require("path");
 
 let isRegistered = false;
 
-function open_test_double_get(ipcMain) {
+function open_test_double_get(ipcMain, facility_id, date_str) {
   // console.log("🔧 [MAIN] open_test_double_get 関数が呼び出されました");
   // console.log("🔍 [MAIN] isRegistered:", isRegistered);
   // console.log("🔍 [MAIN] ipcMain:", ipcMain ? "存在" : "未定義");
-
-    // 定数を先頭で定義
-  const facility_id = 3;
-  const date_str = "2025-10-23";
+  // console.log("🔍 [MAIN] 引数:", { facility_id, date_str });
   
   if (isRegistered) {
     //console.log("⚠️ open-test-double-get は既に登録済みです");
@@ -21,11 +18,16 @@ function open_test_double_get(ipcMain) {
  // console.log("✅ open-test-double-get IPCハンドラーを登録しました");
 
   // すべてのIPCイベントをログ出力するリスナーを追加
-  ipcMain.on("open-test-double-get", (event) => {
+  ipcMain.on("open-test-double-get", (event, args) => {
+    // 引数から施設IDと日付を取得（デフォルト値も設定）
+    const received_facility_id = args?.facility_id || facility_id;
+    const received_date_str = args?.date_str || date_str;
+    
+    console.log("🔍 [MAIN] 受信した引数:", { received_facility_id, received_date_str });
 
     try {
       openDoubleWebviewWithTabs(
-        `https://www.hug-ayumu.link/hug/wm/attendance.php?mode=detail&f_id=${facility_id}&date=${date_str}`,
+        `https://www.hug-ayumu.link/hug/wm/attendance.php?mode=detail&f_id=${received_facility_id}&date=${received_date_str}`,
         "https://www.hug-ayumu.link/hug/wm/record_proceedings.php",
         "HUGデータ取得"
       );

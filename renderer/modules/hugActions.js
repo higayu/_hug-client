@@ -89,10 +89,14 @@ export function initHugActions() {
   if (testButton) {
     testButton.addEventListener("click", () => {
       console.log("🔘 [RENDERER] テストボタンがクリックされました");
+      console.log("🔍 [RENDERER] AppState:", { 
+        FACILITY_ID: AppState.FACILITY_ID, 
+        DATE_STR: AppState.DATE_STR 
+      });
       try {
         if (window.electronAPI && window.electronAPI.open_test_double_get) {
           console.log("📤 [RENDERER] electronAPI.open_test_double_get を呼び出します");
-          window.electronAPI.open_test_double_get();
+          window.electronAPI.open_test_double_get(AppState.FACILITY_ID, AppState.DATE_STR);
         } else {
           console.error("❌ [RENDERER] window.electronAPI.open_test_double_get が見つかりません");
           console.log("🔍 [RENDERER] window.electronAPI:", window.electronAPI);
