@@ -66,7 +66,7 @@ function handleIniAccess(ipcMain) {
                 buttonColor: "#17a2b8"
               },
               loadIni: {
-                enabled: false,
+                enabled: true,
                 buttonText: "設定の再読み込み",
                 buttonColor: "#6f42c1"
               }

@@ -44,14 +44,14 @@ export async function initChildrenList() {
 
     children.forEach((c, i) => {
       const li = document.createElement("li");
-      li.textContent = `${c.children_id}: ${c.name}`;
+      li.textContent = `${c.children_id}: ${c.children_name}`;
       li.dataset.childId = c.children_id;
       li.style.cursor = "pointer";
 
       // 左クリックで選択
       li.addEventListener("click", () => {
         AppState.SELECT_CHILD = c.children_id;
-        AppState.SELECT_CHILD_NAME = c.name;
+        AppState.SELECT_CHILD_NAME = c.children_name;
         listEl.querySelectorAll("li").forEach(li => li.classList.remove("active"));
         li.classList.add("active");
         console.log(`🎯 選択: ${AppState.SELECT_CHILD_NAME} (${AppState.SELECT_CHILD})`);
@@ -162,7 +162,7 @@ export async function initChildrenList() {
 
       if (i === 0 && (!AppState.SELECT_CHILD || AppState.SELECT_CHILD === "")) {
         AppState.SELECT_CHILD = c.children_id;
-        AppState.SELECT_CHILD_NAME = c.name;
+        AppState.SELECT_CHILD_NAME = c.children_name;
         li.classList.add("active");
         console.log(`✨ 自動選択: ${AppState.SELECT_CHILD_NAME}`);
       }

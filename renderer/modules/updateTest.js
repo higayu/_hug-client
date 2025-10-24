@@ -17,9 +17,6 @@ export class UpdateTester {
     await updateDebugger.getDebugInfo();
     updateDebugger.displayDebugInfo();
     
-    // 手動チェックボタンを追加
-    this.addTestButtons();
-    
     this.isInitialized = true;
     console.log("✅ [UPDATE TEST] アップデートテスト機能初期化完了");
   }

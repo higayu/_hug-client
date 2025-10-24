@@ -2,12 +2,14 @@
 import { IniState, saveIni, updateIniSetting } from "./ini.js";
 import { AppState, saveConfig } from "./config.js";
 import { showSuccessToast, showErrorToast, showInfoToast } from "./toast/toast.js";
+import { UpdateTabHandler } from "./updateTabHandler.js";
 
 export class SettingsEditor {
   constructor() {
     this.modal = null;
     this.originalSettings = null;
     this.modalLoaded = false;
+    this.updateTabHandler = null;
     this.init();
   }
 
@@ -143,6 +145,10 @@ export class SettingsEditor {
           this.closeModal();
         }
       });
+
+      // アップデートタブのイベントリスナー
+      this.updateTabHandler = new UpdateTabHandler(this.modal);
+      this.updateTabHandler.setupUpdateTabListeners();
     }
   }
 
@@ -772,7 +778,6 @@ export class SettingsEditor {
   }
 }
 
-// 設定エディターを初期化
 export function initSettingsEditor() {
   return new SettingsEditor();
 }

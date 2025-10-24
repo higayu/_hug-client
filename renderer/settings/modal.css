@@ -376,3 +376,102 @@
 .password-toggle:hover {
   background-color: #f0f0f0;
 }
+
+/* === アップデートタブ用スタイル === */
+.update-debug-container {
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 15px;
+  margin: 10px 0;
+}
+
+.update-info-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #e9ecef;
+  font-family: 'Courier New', monospace;
+  font-size: 14px;
+}
+
+.update-info-item:last-child {
+  border-bottom: none;
+}
+
+.update-info-item strong {
+  color: #495057;
+  min-width: 180px;
+}
+
+.update-info-item span {
+  color: #6c757d;
+  font-weight: 500;
+}
+
+.update-controls {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 15px 0;
+}
+
+.update-controls button {
+  flex: 1;
+  min-width: 120px;
+  padding: 8px 12px;
+  font-size: 14px;
+}
+
+.update-log-container {
+  background: #1e1e1e;
+  color: #d4d4d4;
+  border-radius: 6px;
+  padding: 15px;
+  max-height: 200px;
+  overflow-y: auto;
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.log-item {
+  margin: 2px 0;
+  padding: 2px 0;
+}
+
+.log-item.info {
+  color: #4fc3f7;
+}
+
+.log-item.success {
+  color: #81c784;
+}
+
+.log-item.warning {
+  color: #ffb74d;
+}
+
+.log-item.error {
+  color: #e57373;
+}
+
+/* スクロールバーのスタイリング */
+.update-log-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.update-log-container::-webkit-scrollbar-track {
+  background: #2d2d2d;
+  border-radius: 4px;
+}
+
+.update-log-container::-webkit-scrollbar-thumb {
+  background: #555;
+  border-radius: 4px;
+}
+
+.update-log-container::-webkit-scrollbar-thumb:hover {
+  background: #777;
+}

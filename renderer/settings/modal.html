@@ -20,6 +20,7 @@
           <button class="tab-button" data-tab="window">ウィンドウ設定</button>
           <button class="tab-button" data-tab="config">Config.json設定</button>
           <button class="tab-button" data-tab="custom">カスタムボタン</button>
+          <button class="tab-button" data-tab="update">アップデート</button>
         </div>
 
         <!-- 機能設定タブ -->
@@ -195,6 +196,56 @@
             <!-- カスタムボタンが動的に追加される -->
           </div>
           <button id="add-custom-button" class="btn-primary">+ カスタムボタンを追加</button>
+        </div>
+
+        <!-- アップデートタブ -->
+        <div id="update-tab" class="tab-content">
+          <h3>🔧 アップデートデバッグ</h3>
+          <div class="setting-group">
+            <div id="update-debug-info" class="update-debug-container">
+              <div class="update-info-item">
+                <strong>📊 現在のバージョン:</strong> <span id="current-version">読み込み中...</span>
+              </div>
+              <div class="update-info-item">
+                <strong>🔍 チェック中:</strong> <span id="is-checking">読み込み中...</span>
+              </div>
+              <div class="update-info-item">
+                <strong>📅 最終チェック時刻:</strong> <span id="last-check-time">読み込み中...</span>
+              </div>
+              <div class="update-info-item">
+                <strong>🔢 チェック回数:</strong> <span id="check-count">読み込み中...</span>
+              </div>
+              <div class="update-info-item">
+                <strong>✅ アップデート利用可能:</strong> <span id="update-available">読み込み中...</span>
+              </div>
+              <div class="update-info-item">
+                <strong>🆕 新しいバージョン:</strong> <span id="new-version">読み込み中...</span>
+              </div>
+              <div class="update-info-item">
+                <strong>📥 ダウンロード進捗:</strong> <span id="download-progress">読み込み中...</span>
+              </div>
+              <div class="update-info-item" id="error-info" style="display: none;">
+                <strong>❌ 最後のエラー:</strong> <span id="last-error"></span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="setting-group">
+            <h4>操作</h4>
+            <div class="update-controls">
+              <button id="manual-check-update" class="btn-primary">🔄 手動チェック</button>
+              <button id="show-debug-console" class="btn-secondary">📊 コンソール表示</button>
+              <button id="toggle-auto-monitor" class="btn-secondary">⏰ 自動監視</button>
+              <button id="refresh-update-info" class="btn-secondary">🔄 情報更新</button>
+            </div>
+          </div>
+
+          <div class="setting-group">
+            <h4>ログ</h4>
+            <div id="update-log-container" class="update-log-container">
+              <div class="log-item">アプリ起動中...</div>
+            </div>
+          </div>
         </div>
       </div>
       <div class="modal-footer">
