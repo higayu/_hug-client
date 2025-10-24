@@ -53,20 +53,43 @@ export class UpdateTester {
         読み込み中...
       </div>
       <div>
-        <button onclick="updateTester.checkUpdates()" style="margin-right: 5px; padding: 3px 6px; font-size: 10px;">
+        <button id="checkUpdatesBtn" style="margin-right: 5px; padding: 3px 6px; font-size: 10px;">
           🔄 チェック
         </button>
-        <button onclick="updateTester.showDebugInfo()" style="margin-right: 5px; padding: 3px 6px; font-size: 10px;">
+        <button id="showDebugInfoBtn" style="margin-right: 5px; padding: 3px 6px; font-size: 10px;">
           📊 情報表示
         </button>
-        <button onclick="updateTester.toggleAutoUpdate()" style="padding: 3px 6px; font-size: 10px;">
+        <button id="toggleAutoUpdateBtn" style="padding: 3px 6px; font-size: 10px;">
           ⏰ 自動監視
         </button>
       </div>
     `;
 
     document.body.appendChild(testContainer);
+    
+    // イベントリスナーを設定
+    this.setupEventListeners();
+    
     console.log("✅ [UPDATE TEST] テストボタンを追加しました");
+  }
+
+  // イベントリスナーを設定
+  setupEventListeners() {
+    const checkBtn = document.getElementById('checkUpdatesBtn');
+    const debugBtn = document.getElementById('showDebugInfoBtn');
+    const autoBtn = document.getElementById('toggleAutoUpdateBtn');
+
+    if (checkBtn) {
+      checkBtn.addEventListener('click', () => this.checkUpdates());
+    }
+    if (debugBtn) {
+      debugBtn.addEventListener('click', () => this.showDebugInfo());
+    }
+    if (autoBtn) {
+      autoBtn.addEventListener('click', () => this.toggleAutoUpdate());
+    }
+
+    console.log("✅ [UPDATE TEST] イベントリスナーを設定しました");
   }
 
   // アップデートチェック
@@ -133,6 +156,9 @@ export class UpdateTester {
 
 // グローバルインスタンスを作成
 export const updateTester = new UpdateTester();
+
+// グローバルスコープに設定（HTMLのonclickからアクセス可能にする）
+window.updateTester = updateTester;
 
 // 自動初期化
 document.addEventListener('DOMContentLoaded', () => {
