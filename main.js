@@ -36,13 +36,25 @@ app.whenReady().then(async () => {
   console.log("🚀 [MAIN] Electronアプリが起動しました");
 
   // 🔹 5秒後にアップデートチェック（GitHub通信の安定化のため）
+  console.log("⏰ [UPDATE] 5秒後にアップデートチェックを開始します...");
   setTimeout(() => {
     try {
       console.log("🔄 [UPDATE] アップデートチェック開始");
+      console.log("🔧 [UPDATE DEBUG] 現在のバージョン:", app.getVersion());
+      console.log("🔧 [UPDATE DEBUG] パッケージ状態:", app.isPackaged ? "パッケージ済み" : "開発中");
+      console.log("🔧 [UPDATE DEBUG] プロセス引数:", process.argv);
+      
       updateDebugInfo.isChecking = true;
       updateDebugInfo.lastCheckTime = new Date().toISOString();
       updateDebugInfo.checkCount++;
       console.log("🔧 [UPDATE DEBUG] チェック開始:", updateDebugInfo);
+      
+      // アップデーターの設定を確認
+      console.log("🔧 [UPDATE DEBUG] autoUpdater設定:");
+      console.log("  - allowPrerelease:", autoUpdater.allowPrerelease);
+      console.log("  - autoDownload:", autoUpdater.autoDownload);
+      console.log("  - autoInstallOnAppQuit:", autoUpdater.autoInstallOnAppQuit);
+      
       autoUpdater.checkForUpdatesAndNotify();
     } catch (err) {
       console.error("⚠️ [UPDATE] アップデートチェック失敗:", err);

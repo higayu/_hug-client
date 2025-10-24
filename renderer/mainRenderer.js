@@ -6,6 +6,7 @@ import { initHugActions, updateButtonVisibility } from "./modules/hugActions.js"
 import { initChildrenList } from "./modules/childrenList.js";
 import { initSettingsEditor } from "./modules/settingsEditor.js";
 import { loadAllReload } from "./modules/reloadSettings.js";
+import { updateTester } from "./modules/updateTest.js";
 
 console.log("✅ mainRenderer.js 読み込み完了");
 
@@ -73,6 +74,10 @@ window.addEventListener("DOMContentLoaded", async () => {
   });
 
   console.log("🎉 初期化完了:", AppState);
+
+  // 🔧 アップデートテスト機能を初期化
+  console.log("🔧 アップデートテスト機能を初期化中...");
+  await updateTester.init();
 
   // ドロップダウンメニューの位置を動的に計算する関数
   function positionDropdown(button, dropdown) {
