@@ -73,6 +73,38 @@ function registerIpcHandlers(mainWindow, tempNoteHandler) {
     
     console.log("✅ [MAIN] 一時メモIPCハンドラー 登録完了");
     
+    // 🔧 アップデートデバッグ情報取得ハンドラー
+    ipcMain.handle('get-update-debug-info', async () => {
+      console.log("🔧 [IPC] アップデートデバッグ情報取得要求");
+      return {
+        success: true,
+        data: global.updateDebugInfo || {
+          isChecking: false,
+          lastCheckTime: null,
+          checkCount: 0,
+          lastError: null,
+          currentVersion: "不明",
+          updateAvailable: false,
+          downloadProgress: 0
+        }
+      };
+    });
+    
+    // 🔧 手動アップデートチェックハンドラー
+    ipcMain.handle('check-for-updates', async () => {
+      console.log("🔧 [IPC] 手動アップデートチェック要求");
+      try {
+        const { autoUpdater } = require("electron-updater");
+        const result = await autoUpdater.checkForUpdates();
+        console.log("🔧 [IPC] 手動アップデートチェック結果:", result);
+        return { success: true, data: result };
+      } catch (err) {
+        console.error("❌ [IPC] 手動アップデートチェックエラー:", err);
+        return { success: false, error: err.message };
+      }
+    });
+    
+    console.log("✅ [MAIN] アップデートデバッグハンドラー 登録完了");
     console.log("✅ [MAIN] すべてのIPCハンドラーを登録しました");
   } catch (error) {
     console.error("❌ [MAIN] IPCハンドラー登録中にエラー:", error);

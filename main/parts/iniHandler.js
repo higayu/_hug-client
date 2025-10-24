@@ -6,10 +6,10 @@ const { getDataPath } = require("./util");
 
 function resolveConfigPath() {
   if (app.isPackaged) {
-    // ✅ ビルド後: resources/data/config.json
-    return path.join(process.resourcesPath, "data", "ini.json");
+    // ✅ ビルド後: ユーザーディレクトリ/data/ini.json
+    return path.join(app.getPath("userData"), "data", "ini.json");
   } else {
-    // ✅ 開発時: プロジェクト直下の data/config.json
+    // ✅ 開発時: プロジェクト直下の data/ini.json
     return path.join(__dirname, "../../data/ini.json");
   }
 }
@@ -19,6 +19,108 @@ function handleIniAccess(ipcMain) {
   ipcMain.handle("read-ini", async () => {
     try {
       const filePath = resolveConfigPath();
+      
+      // ini.jsonが存在しない場合は自動生成
+      if (!fs.existsSync(filePath)) {
+        const defaultIni = {
+          version: "1.0.0",
+          appSettings: {
+            autoLogin: {
+              enabled: true,
+              username: "",
+              password: ""
+            },
+            ui: {
+              theme: "light",
+              language: "ja",
+              showCloseButtons: true,
+              autoRefresh: {
+                enabled: false,
+                interval: 30000
+              }
+            },
+            features: {
+              individualSupportPlan: {
+                enabled: true,
+                buttonText: "個別支援計画",
+                buttonColor: "#007bff"
+              },
+              specializedSupportPlan: {
+                enabled: true,
+                buttonText: "専門的支援計画",
+                buttonColor: "#28a745"
+              },
+              testDoubleGet: {
+                enabled: true,
+                buttonText: "テスト取得",
+                buttonColor: "#ffc107"
+              },
+              importSetting: {
+                enabled: false,
+                buttonText: "設定ファイル取得",
+                buttonColor: "#6c757d"
+              },
+              getUrl: {
+                enabled: true,
+                buttonText: "URL取得",
+                buttonColor: "#17a2b8"
+              },
+              loadIni: {
+                enabled: false,
+                buttonText: "設定の再読み込み",
+                buttonColor: "#6f42c1"
+              }
+            },
+            customButtons: [
+              {
+                id: "custom1",
+                enabled: true,
+                text: "カスタムボタン1",
+                color: "#dc3545",
+                action: "customAction1",
+                position: "top"
+              },
+              {
+                id: "custom2",
+                enabled: false,
+                text: "カスタムボタン2",
+                color: "#6f42c1",
+                action: "customAction2",
+                position: "bottom"
+              }
+            ],
+            window: {
+              width: 1200,
+              height: 800,
+              minWidth: 800,
+              minHeight: 600,
+              maximized: false,
+              alwaysOnTop: false
+            },
+            notifications: {
+              enabled: true,
+              sound: true,
+              desktop: true
+            }
+          },
+          userPreferences: {
+            lastLoginDate: "",
+            rememberWindowState: true,
+            showWelcomeMessage: true
+          }
+        };
+        
+        // ディレクトリが存在しない場合は作成
+        const dir = path.dirname(filePath);
+        if (!fs.existsSync(dir)) {
+          fs.mkdirSync(dir, { recursive: true });
+        }
+        
+        fs.writeFileSync(filePath, JSON.stringify(defaultIni, null, 2));
+        console.log("🆕 新しいini.jsonを作成しました:", filePath);
+        return { success: true, data: defaultIni };
+      }
+      
       const jsonData = JSON.parse(fs.readFileSync(filePath, "utf8"));
       return { success: true, data: jsonData };
     } catch (err) {
@@ -31,6 +133,13 @@ function handleIniAccess(ipcMain) {
   ipcMain.handle("save-ini", async (event, data) => {
     try {
       const filePath = resolveConfigPath();
+      
+      // ディレクトリが存在しない場合は作成
+      const dir = path.dirname(filePath);
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+      }
+      
       const jsonString = JSON.stringify(data, null, 2);
       fs.writeFileSync(filePath, jsonString, "utf8");
       console.log("✅ ini.json保存成功:", filePath);
@@ -45,6 +154,13 @@ function handleIniAccess(ipcMain) {
   ipcMain.handle("update-ini-setting", async (event, path, value) => {
     try {
       const filePath = resolveConfigPath();
+      
+      // ディレクトリが存在しない場合は作成
+      const dir = path.dirname(filePath);
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+      }
+      
       let data = {};
       
       // ファイルが存在する場合は読み込み

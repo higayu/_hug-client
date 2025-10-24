@@ -79,5 +79,10 @@ contextBridge.exposeInMainWorld("electronAPI", {
   
   getTempNote: (data) => ipcRenderer.invoke("getTempNote", data),
 
+  // 🔧 アップデートデバッグAPI
+  getUpdateDebugInfo: () => ipcRenderer.invoke("get-update-debug-info"),
+  
+  checkForUpdates: () => ipcRenderer.invoke("check-for-updates"),
+
 });
 

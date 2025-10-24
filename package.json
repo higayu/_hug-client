@@ -1,6 +1,6 @@
 {
   "name": "hug-client",
-  "version": "1.0.2",
+  "version": "1.0.1",
   "main": "main.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -52,9 +52,17 @@
         "from": "data/",
         "to": "data/",
         "filter": [
-          "**/*"
+          "**/*",
+          "!config.json"
         ]
       }
-    ]
+    ],
+    "publish": {
+      "provider": "github",
+      "owner": "higayu",
+      "repo": "hug-client",
+      "private": false,
+      "releaseType": "release"
+    }
   }
 }

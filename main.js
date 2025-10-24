@@ -15,6 +15,20 @@ const log = require("electron-log");
 autoUpdater.logger = log;
 autoUpdater.logger.transports.file.level = "info";
 
+// 🔧 デバッグ用のアップデート状態管理
+let updateDebugInfo = {
+  isChecking: false,
+  lastCheckTime: null,
+  checkCount: 0,
+  lastError: null,
+  currentVersion: app.getVersion(),
+  updateAvailable: false,
+  downloadProgress: 0
+};
+
+// グローバル変数として設定（IPCハンドラーからアクセス可能にする）
+global.updateDebugInfo = updateDebugInfo;
+
 // グローバル変数としてtempNoteHandlerを保存
 let globalTempNoteHandler = null;
 
@@ -25,9 +39,15 @@ app.whenReady().then(async () => {
   setTimeout(() => {
     try {
       console.log("🔄 [UPDATE] アップデートチェック開始");
+      updateDebugInfo.isChecking = true;
+      updateDebugInfo.lastCheckTime = new Date().toISOString();
+      updateDebugInfo.checkCount++;
+      console.log("🔧 [UPDATE DEBUG] チェック開始:", updateDebugInfo);
       autoUpdater.checkForUpdatesAndNotify();
     } catch (err) {
       console.error("⚠️ [UPDATE] アップデートチェック失敗:", err);
+      updateDebugInfo.lastError = err.message;
+      updateDebugInfo.isChecking = false;
     }
   }, 5000);
 
@@ -47,16 +67,72 @@ app.whenReady().then(async () => {
 });
 
 
-// 🔹 自動アップデート後の挙動（ダウンロード完了時に再起動確認）
-// 🔹 ダウンロード完了時に再起動確認
-autoUpdater.on("update-downloaded", () => {
+// 🔧 詳細なアップデートイベントハンドラー
+autoUpdater.on("checking-for-update", () => {
+  console.log("🔍 [UPDATE] アップデート確認中...");
+  updateDebugInfo.isChecking = true;
+});
+
+autoUpdater.on("update-available", (info) => {
+  console.log("✅ [UPDATE] アップデート利用可能:", info);
+  updateDebugInfo.updateAvailable = true;
+  updateDebugInfo.newVersion = info.version;
+  console.log("🔧 [UPDATE DEBUG] アップデート情報:", {
+    version: info.version,
+    releaseName: info.releaseName,
+    releaseNotes: info.releaseNotes,
+    releaseDate: info.releaseDate
+  });
+});
+
+autoUpdater.on("update-not-available", (info) => {
+  console.log("ℹ️ [UPDATE] アップデートなし（最新版）:", info);
+  updateDebugInfo.updateAvailable = false;
+  updateDebugInfo.isChecking = false;
+});
+
+autoUpdater.on("error", (err) => {
+  console.error("❌ [UPDATE] アップデートエラー:", err);
+  updateDebugInfo.lastError = err.message;
+  updateDebugInfo.isChecking = false;
+  console.log("🔧 [UPDATE DEBUG] エラー詳細:", {
+    message: err.message,
+    stack: err.stack,
+    code: err.code
+  });
+});
+
+autoUpdater.on("download-progress", (progressObj) => {
+  const log_message = `📥 [UPDATE] ダウンロード進捗: ${progressObj.percent}% (${progressObj.transferred}/${progressObj.total})`;
+  console.log(log_message);
+  updateDebugInfo.downloadProgress = progressObj.percent;
+  console.log("🔧 [UPDATE DEBUG] ダウンロード詳細:", {
+    percent: progressObj.percent,
+    transferred: progressObj.transferred,
+    total: progressObj.total,
+    bytesPerSecond: progressObj.bytesPerSecond
+  });
+});
+
+autoUpdater.on("update-downloaded", (info) => {
+  console.log("✅ [UPDATE] アップデートダウンロード完了:", info);
+  updateDebugInfo.downloadComplete = true;
+  console.log("🔧 [UPDATE DEBUG] ダウンロード完了情報:", {
+    version: info.version,
+    releaseName: info.releaseName,
+    releaseNotes: info.releaseNotes
+  });
+  
   const response = dialog.showMessageBoxSync({
     type: "info",
     title: "アップデート準備完了",
-    message: "新しいバージョンがダウンロードされました。今すぐ再起動して更新しますか？",
+    message: `新しいバージョン ${info.version} がダウンロードされました。今すぐ再起動して更新しますか？`,
     buttons: ["今すぐ再起動", "後で"]
   });
-  if (response === 0) autoUpdater.quitAndInstall();
+  if (response === 0) {
+    console.log("🔄 [UPDATE] アプリケーション再起動開始");
+    autoUpdater.quitAndInstall();
+  }
 });
 
 
