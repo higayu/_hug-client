@@ -62,7 +62,7 @@ const apiClient = axios.create({
    Staffs
 ------------------------------ */
 async function fetchStaff() {
-  const res = await apiClient.get("/houday/staffs");
+  const res = await apiClient.get("/houday/staff_v");
   return res.data;
 }
 

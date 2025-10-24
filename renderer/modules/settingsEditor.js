@@ -139,6 +139,14 @@ export class SettingsEditor {
         });
       }
 
+      // 施設セレクトボックスの変更イベント
+      const facilitySelect = this.modal.querySelector('#config-facility-id');
+      if (facilitySelect) {
+        facilitySelect.addEventListener('change', async () => {
+          await this.filterStaffByFacility();
+        });
+      }
+
       // モーダル外クリックで閉じる
       this.modal.addEventListener('click', (e) => {
         if (e.target === this.modal) {
@@ -701,8 +709,8 @@ export class SettingsEditor {
         // スタッフデータを追加
         data.staffs.forEach(staff => {
           const option = document.createElement('option');
-          option.value = staff.id;
-          option.textContent = staff.name;
+          option.value = staff.staff_id;
+          option.textContent = staff.staff_name;
           staffSelect.appendChild(option);
         });
         
@@ -775,6 +783,122 @@ export class SettingsEditor {
         toggleBtn.title = 'パスワードを表示';
       }
     }
+  }
+
+  // 施設IDに基づいてスタッフをフィルタリング
+  async filterStaffByFacility() {
+    if (!this.modal) return;
+
+    const facilitySelect = this.modal.querySelector('#config-facility-id');
+    const staffSelect = this.modal.querySelector('#config-staff-id');
+    
+    if (!facilitySelect || !staffSelect) return;
+
+    const selectedFacilityId = facilitySelect.value;
+    console.log('🔍 [SETTINGS] 選択された施設ID:', selectedFacilityId);
+
+    // 施設が選択されていない場合は全てのスタッフを表示
+    if (!selectedFacilityId || selectedFacilityId === '') {
+      this.showAllStaff();
+      return;
+    }
+
+    // スタッフデータを取得（AppStateから、またはAPIから直接取得）
+    let staffData = AppState.STAFF_DATA || [];
+    console.log('👥 [SETTINGS] AppState.STAFF_DATA:', staffData);
+    console.log('🔍 [SETTINGS] AppState.STAFF_DATA の長さ:', staffData.length);
+    
+    // スタッフデータが空の場合はAPIから再取得
+    if (staffData.length === 0) {
+      console.log('🔄 [SETTINGS] スタッフデータが空のため、APIから再取得します');
+      try {
+        const data = await window.electronAPI.getStaffAndFacility();
+        staffData = data.staffs || [];
+        AppState.STAFF_DATA = staffData;
+        console.log('✅ [SETTINGS] APIからスタッフデータを再取得しました:', staffData);
+      } catch (error) {
+        console.error('❌ [SETTINGS] スタッフデータの再取得に失敗:', error);
+        return;
+      }
+    }
+
+    // 選択された施設IDに基づいてスタッフをフィルタリング
+    const filteredStaff = staffData.filter(staff => {
+      if (!staff.facility_ids) return false;
+      
+      // facility_idsをカンマ区切りで分割して配列に変換
+      const facilityIds = staff.facility_ids.split(',').map(id => id.trim());
+      console.log(`👤 [SETTINGS] スタッフ ${staff.staff_name} の施設ID:`, facilityIds);
+      
+      // 選択された施設IDが含まれているかチェック
+      const isIncluded = facilityIds.includes(selectedFacilityId);
+      console.log(`✅ [SETTINGS] スタッフ ${staff.staff_name} は施設 ${selectedFacilityId} に所属:`, isIncluded);
+      
+      return isIncluded;
+    });
+
+    console.log('🔍 [SETTINGS] フィルタリング後のスタッフ:', filteredStaff);
+
+    // スタッフセレクトボックスの選択肢を更新
+    this.updateStaffSelectOptions(filteredStaff);
+  }
+
+  // 全てのスタッフを表示
+  async showAllStaff() {
+    if (!this.modal) return;
+
+    let staffData = AppState.STAFF_DATA || [];
+    
+    // スタッフデータが空の場合はAPIから再取得
+    if (staffData.length === 0) {
+      console.log('🔄 [SETTINGS] スタッフデータが空のため、APIから再取得します');
+      try {
+        const data = await window.electronAPI.getStaffAndFacility();
+        staffData = data.staffs || [];
+        AppState.STAFF_DATA = staffData;
+        console.log('✅ [SETTINGS] APIからスタッフデータを再取得しました:', staffData);
+      } catch (error) {
+        console.error('❌ [SETTINGS] スタッフデータの再取得に失敗:', error);
+        return;
+      }
+    }
+    
+    this.updateStaffSelectOptions(staffData);
+    console.log('👥 [SETTINGS] 全てのスタッフを表示しました');
+  }
+
+  // スタッフセレクトボックスの選択肢を更新
+  updateStaffSelectOptions(staffList) {
+    if (!this.modal) return;
+
+    const staffSelect = this.modal.querySelector('#config-staff-id');
+    if (!staffSelect) return;
+
+    // 現在の選択値を保存
+    const currentValue = staffSelect.value;
+
+    // 既存のオプションをクリア（最初の「選択してください」以外）
+    while (staffSelect.children.length > 1) {
+      staffSelect.removeChild(staffSelect.lastChild);
+    }
+
+    // フィルタリングされたスタッフデータを追加
+    staffList.forEach(staff => {
+      const option = document.createElement('option');
+      option.value = staff.staff_id;
+      option.textContent = staff.staff_name;
+      staffSelect.appendChild(option);
+    });
+
+    // 現在の選択値が新しいリストに含まれている場合は復元
+    if (currentValue && staffList.some(staff => staff.staff_id === currentValue)) {
+      staffSelect.value = currentValue;
+    } else {
+      // 含まれていない場合は最初のオプションを選択
+      staffSelect.selectedIndex = 0;
+    }
+
+    console.log(`✅ [SETTINGS] スタッフセレクトボックスを更新しました (${staffList.length}件)`);
   }
 }
 
