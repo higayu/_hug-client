@@ -199,7 +199,7 @@ class TempNoteHandler {
           // 新しいテーブルを作成
           const createTableSQL = `
             CREATE TABLE temp_notes (
-              child_id TEXT NOT NULL,
+              children_id TEXT NOT NULL,
               staff_id TEXT NOT NULL,
               date_str TEXT NOT NULL,
               week_day TEXT NOT NULL,
@@ -208,7 +208,7 @@ class TempNoteHandler {
               memo TEXT,
               created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
               updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-              PRIMARY KEY (child_id, week_day)
+              PRIMARY KEY (children_id, week_day)
             )
           `;
 
@@ -247,7 +247,7 @@ class TempNoteHandler {
       return new Promise((resolve, reject) => {
         const insertSQL = `
           INSERT OR REPLACE INTO temp_notes 
-          (child_id, staff_id, date_str, week_day, enter_time, exit_time, memo, updated_at)
+          (children_id, staff_id, date_str, week_day, enter_time, exit_time, memo, updated_at)
           VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
         `;
 
@@ -288,7 +288,7 @@ class TempNoteHandler {
       return new Promise((resolve, reject) => {
         const selectSQL = `
           SELECT * FROM temp_notes 
-          WHERE child_id = ? AND week_day = ?
+          WHERE children_id = ? AND week_day = ?
         `;
 
         this.db.get(selectSQL, [childId, weekDay], (err, row) => {

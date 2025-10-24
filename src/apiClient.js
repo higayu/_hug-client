@@ -73,7 +73,7 @@ async function fetchChildren() {
 
 async function fetchChildById(id) {
   const res = await apiClient.get("/houday/Children/search", {
-    params: { pk: "child_id", values: id },
+    params: { pk: "children_id", values: id },
   });
   return res.data[0];
 }
@@ -85,14 +85,14 @@ async function createChild(child) {
 
 async function updateChild(id, child) {
   const res = await apiClient.put("/houday/Children", child, {
-    params: { pk: "child_id", values: id },
+    params: { pk: "children_id", values: id },
   });
   return res.data;
 }
 
 async function deleteChild(id) {
   const res = await apiClient.delete("/houday/Children", {
-    params: { pk: "child_id", values: id },
+    params: { pk: "children_id", values: id },
   });
   return res.data;
 }

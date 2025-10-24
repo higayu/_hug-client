@@ -44,13 +44,13 @@ export async function initChildrenList() {
 
     children.forEach((c, i) => {
       const li = document.createElement("li");
-      li.textContent = `${c.child_id}: ${c.name}`;
-      li.dataset.childId = c.child_id;
+      li.textContent = `${c.children_id}: ${c.name}`;
+      li.dataset.childId = c.children_id;
       li.style.cursor = "pointer";
 
       // 左クリックで選択
       li.addEventListener("click", () => {
-        AppState.SELECT_CHILD = c.child_id;
+        AppState.SELECT_CHILD = c.children_id;
         AppState.SELECT_CHILD_NAME = c.name;
         listEl.querySelectorAll("li").forEach(li => li.classList.remove("active"));
         li.classList.add("active");
@@ -88,7 +88,7 @@ export async function initChildrenList() {
           const enterTimeInput = document.createElement("input");
           enterTimeInput.type = "time";
           enterTimeInput.className = "time-input";
-          enterTimeInput.id = `enter-${c.child_id}`;
+          enterTimeInput.id = `enter-${c.children_id}`;
           
           // 退出時間入力
           const exitTimeLabel = document.createElement("label");
@@ -98,7 +98,7 @@ export async function initChildrenList() {
           const exitTimeInput = document.createElement("input");
           exitTimeInput.type = "time";
           exitTimeInput.className = "time-input";
-          exitTimeInput.id = `exit-${c.child_id}`;
+          exitTimeInput.id = `exit-${c.children_id}`;
           
           // 時間グループに追加
           timeGroup.appendChild(enterTimeLabel);
@@ -113,7 +113,7 @@ export async function initChildrenList() {
           
           const memoTextarea = document.createElement("textarea");
           memoTextarea.className = "memo-textarea";
-          memoTextarea.id = `memo-${c.child_id}`;
+          memoTextarea.id = `memo-${c.children_id}`;
           memoTextarea.placeholder = "一時的なメモを入力してください...";
           memoTextarea.rows = 3;
           
@@ -123,25 +123,25 @@ export async function initChildrenList() {
           saveButton.className = "save-button";
           
           // 既存の一時メモを読み込み
-          loadTempNote(c.child_id, enterTimeInput, exitTimeInput, memoTextarea);
+          loadTempNote(c.children_id, enterTimeInput, exitTimeInput, memoTextarea);
           
           // 保存ボタンのイベント
           saveButton.addEventListener("click", async () => {
-            await saveTempNote(c.child_id, enterTimeInput.value, exitTimeInput.value, memoTextarea.value);
+            await saveTempNote(c.children_id, enterTimeInput.value, exitTimeInput.value, memoTextarea.value);
           });
           
           // 時間入力の変更時に自動保存
           enterTimeInput.addEventListener("change", async () => {
-            await saveTempNote(c.child_id, enterTimeInput.value, exitTimeInput.value, memoTextarea.value);
+            await saveTempNote(c.children_id, enterTimeInput.value, exitTimeInput.value, memoTextarea.value);
           });
           
           exitTimeInput.addEventListener("change", async () => {
-            await saveTempNote(c.child_id, enterTimeInput.value, exitTimeInput.value, memoTextarea.value);
+            await saveTempNote(c.children_id, enterTimeInput.value, exitTimeInput.value, memoTextarea.value);
           });
           
           // メモ入力の変更時に自動保存
           memoTextarea.addEventListener("input", async () => {
-            await saveTempNote(c.child_id, enterTimeInput.value, exitTimeInput.value, memoTextarea.value);
+            await saveTempNote(c.children_id, enterTimeInput.value, exitTimeInput.value, memoTextarea.value);
           });
           
           timeInputContainer.appendChild(timeGroup);
@@ -161,7 +161,7 @@ export async function initChildrenList() {
       });
 
       if (i === 0 && (!AppState.SELECT_CHILD || AppState.SELECT_CHILD === "")) {
-        AppState.SELECT_CHILD = c.child_id;
+        AppState.SELECT_CHILD = c.children_id;
         AppState.SELECT_CHILD_NAME = c.name;
         li.classList.add("active");
         console.log(`✨ 自動選択: ${AppState.SELECT_CHILD_NAME}`);
