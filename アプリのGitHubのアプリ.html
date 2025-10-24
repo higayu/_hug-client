@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>Hug Client 自動リリース手順書</title>
+  <title>Hug Client 自動リリース・アップデート手順書（Public版）</title>
   <style>
     body { font-family: "Segoe UI", sans-serif; line-height: 1.7; margin: 2em; color: #222; }
     h1, h2 { color: #005bbb; border-bottom: 2px solid #005bbb; padding-bottom: 4px; }
@@ -15,234 +15,41 @@
 </head>
 <body>
 
-<h1>🚀 Hug Client 自動リリース手順書</h1>
+<h1>🚀 Hug Client 自動リリース・アップデート手順書（Public版）</h1>
 
 <h2>1️⃣ 概要</h2>
-<p>この手順書は、Electronアプリ「<strong>Hug Client</strong>」を GitHub に自動リリースし、ユーザーが自動アップデートできるようにするためのものです。</p>
+<p>この手順書は、Electronアプリ「<strong>Hug Client</strong>」を GitHub Public リポジトリを利用して自動リリースし、ユーザーがトークン不要で自動アップデートできるようにする方法をまとめたものです。</p>
 
 <div class="note">
-  対応環境：Windows 10/11<br>
-  リポジトリ：<a href="https://github.com/higayu/hug-client" target="_blank">https://github.com/higayu/hug-client</a><br>
-  ビルドツール：electron-builder 26.x
+  ✅ リポジトリ：<a href="https://github.com/higayu/hug-client" target="_blank">https://github.com/higayu/hug-client</a><br>
+  ✅ 対応環境：Windows 10 / 11<br>
+  ✅ ビルドツール：electron-builder 26.x
 </div>
 
 <h2>2️⃣ 事前準備</h2>
-<h3>① GitHub トークンを発行</h3>
-<ol>
-  <li><a href="https://github.com/settings/personal-access-tokens" target="_blank">GitHub Personal Access Tokens ページ</a> を開く</li>
-  <li>「Fine-grained personal access token」を作成</li>
-  <li>対象リポジトリ：<code>higayu/hug-client</code></li>
-  <li>権限：<code>Contents: Read and write</code>、<code>Metadata: Read</code></li>
-  <li>発行されたトークンをコピー（例：<code>github_pat_XXXX...</code>）</li>
-</ol>
 
-<h3>② 環境変数に設定（Windows）</h3>
-<pre><code>setx GH_TOKEN "github_pat_xxxxxxxxxx"</code></pre>
-<p>設定後、新しい PowerShell を開き、確認：</p>
-<pre><code>echo $env:GH_TOKEN</code></pre>
+<h3>① リポジトリの公開設定</h3>
+<p>GitHubのリポジトリを <strong>Public（公開）</strong> に変更しておく。</p>
+<p>これにより、アップデート情報（<code>latest.yml</code>）が誰でもアクセス可能になり、ユーザー全員が自動アップデートを利用できます。</p>
 
-<h3>② electron-builder.yml作成</h3>
-<pre><code>
-appId: com.higayu.hugclient
-productName: Hug Client
-directories:
-  output: dist
+<h3>② トークン設定は不要</h3>
+<p>Publicリポジトリでは、<strong>GH_TOKENの設定は不要</strong>です。  
+electron-builder は自動的にGitHub Releasesにアップロードします。</p>
 
-files:
-  - build/**/*
-  - assets/**
-  - data/**
-  - main/**
-  - renderer/**
-  - package.json
-  - preload.js
+<h2>3️⃣ package.json設定</h2>
 
-win:
-  target: nsis
-  icon: assets/favicon.ico
-
-nsis:
-  oneClick: false
-  perMachine: false
-  allowToChangeInstallationDirectory: true
-  createDesktopShortcut: true
-  createStartMenuShortcut: true
-  shortcutName: "Hug Client"
-
-publish:
-  provider: github
-  owner: higayu
-  repo: hug-client
-  private: true
-</code></pre>
-
-<h3>main.jsを修正</h3>
-<p>自動アップロード設定を追加</p>
-<pre><code>
-// main.js
-const { app } = require("electron");
-const path = require("path");
-//require("dotenv").config();
-
-const { createMainWindow } = require("./main/window");
-const { registerIpcHandlers } = require("./main/ipcHandlers");
-const TempNoteHandler = require("./main/parts/tempNoteHandler");
-
-// 🔹 追加：自動アップデート機能
-const { autoUpdater, dialog } = require("electron");
-const log = require("electron-log");
-
-// ログ設定（アップデート経過をログ出力）
-autoUpdater.logger = log;
-autoUpdater.logger.transports.file.level = "info";
-
-// グローバル変数としてtempNoteHandlerを保存
-let globalTempNoteHandler = null;
-
-app.whenReady().then(async () => {
-  console.log("🚀 [MAIN] Electronアプリが起動しました");
-
-  // 🔹 アップデート確認を最初に開始
-  try {
-    console.log("🔄 [UPDATE] アップデートチェック開始");
-    autoUpdater.checkForUpdatesAndNotify();
-  } catch (err) {
-    console.error("⚠️ [UPDATE] アップデートチェック失敗:", err);
-  }
-
-  const mainWindow = createMainWindow();
-  console.log("🪟 [MAIN] メインウィンドウを作成しました");
-
-  // 一時メモハンドラーの初期化
-  console.log("🚀 [MAIN] 一時メモハンドラー初期化開始");
-  globalTempNoteHandler = new TempNoteHandler();
-  console.log("🔍 [MAIN] TempNoteHandlerインスタンス作成完了");
-
-  const dbResult = await globalTempNoteHandler.initDatabase();
-  console.log("🔍 [MAIN] データベース初期化結果:", dbResult);
-
-  if (dbResult.success) {
-    console.log("✅ [MAIN] 一時メモデータベース初期化完了");
-    console.log("🔍 [MAIN] データベースパス:", dbResult.dbPath);
-    registerIpcHandlers(mainWindow, globalTempNoteHandler);
-  } else {
-    console.error("❌ [MAIN] 一時メモデータベース初期化失敗:", dbResult.error);
-    registerIpcHandlers(mainWindow, globalTempNoteHandler);
-  }
-});
-
-// 🔹 自動アップデート後の挙動（ダウンロード完了時に再起動確認）
-autoUpdater.on("update-downloaded", () => {
-  const response = dialog.showMessageBoxSync({
-    type: "info",
-    title: "アップデート準備完了",
-    message: "新しいバージョンがダウンロードされました。今すぐ再起動して更新しますか？",
-    buttons: ["今すぐ再起動", "後で"]
-  });
-  if (response === 0) autoUpdater.quitAndInstall();
-});
-
-// アプリケーション終了時の処理
-app.on("before-quit", () => {
-  console.log("🔄 [MAIN] アプリケーション終了前の処理開始");
-  if (globalTempNoteHandler) {
-    console.log("🔒 [MAIN] データベース接続を閉じています...");
-    globalTempNoteHandler.closeDatabase();
-    console.log("✅ [MAIN] データベース接続を閉じました");
-  }
-});
-
-app.on("window-all-closed", () => {
-  console.log("🪟 [MAIN] すべてのウィンドウが閉じられました");
-  if (process.platform !== "darwin") {
-    console.log("🔄 [MAIN] アプリケーションを終了しています...");
-    app.quit();
-  }
-});
-</code></pre>
-
-<h2>3️⃣ 自動リリースの手順</h2>
-
-<h3>① ビルド＆リリース実行</h3>
-<pre><code>npx electron-builder --win --publish always</code></pre>
-
-<p>このコマンドで以下が自動的に行われます：</p>
-<ul>
-  <li>Electronアプリをビルド</li>
-  <li>Windowsインストーラ（Setup.exe）を作成</li>
-  <li>GitHub Releases にアップロード</li>
-</ul>
-
-<h3>② 成功時のログ例</h3>
-<pre><code>• publishing publisher=Github (owner: higayu, project: hug-client)
-• uploading file=Hug-Client-Setup-1.0.0.exe provider=github
-• uploaded Hug-Client-Setup-1.0.0.exe to GitHub
-</code></pre>
-
-<h3>③ リリース確認</h3>
-<p>GitHub Releases ページを開く：</p>
-<p><a href="https://github.com/higayu/hug-client/releases" target="_blank">
-  https://github.com/higayu/hug-client/releases
-</a></p>
-
-<p>次のファイルが存在すれば成功です：</p>
-<ul>
-  <li><code>Hug-Client-Setup-1.0.0.exe</code>（インストーラ）</li>
-  <li><code>Hug-Client-Setup-1.0.0.exe.blockmap</code>（差分ファイル）</li>
-  <li><code>latest.yml</code>（アップデート情報）</li>
-</ul>
-
-<h2>4️⃣ 次回アップデート（新バージョン）</h2>
-
-<ol>
-  <li><code>package.json</code> の <code>version</code> を更新（例：1.1.0）</li>
-  <li>修正後、再度コマンド実行：</li>
-</ol>
-<pre><code>npx electron-builder --win --publish always</code></pre>
-
-<p>→ GitHub に新しい <code>v1.1.0</code> リリースが作成され、ユーザーはアプリ起動時に自動アップデートされます。</p>
-
-<h2>5️⃣ トラブルシューティング</h2>
-<ul>
-  <li><strong>「Cannot find module 'electron-log'」</strong> → <code>npm install electron-log</code></li>
-  <li><strong>「GH_TOKEN 未設定」</strong> → <code>echo $env:GH_TOKEN</code> で確認</li>
-  <li><strong>「Releases に反映されない」</strong> → GitHubトークンの権限を再確認</li>
-</ul>
-
-<hr>
-<p style="text-align:center;color:#666;">© 2025 Hug Client / Developer: higayu</p>
-
-<h1>🔄 Hug Client 自動アップデート仕組みと手順</h1>
-
-<h2>1️⃣ 概要</h2>
-<p>このドキュメントでは、Electronアプリ「<strong>Hug Client</strong>」の自動アップデート機能の仕組みと、
-GitHubリリースを利用した更新手順について説明します。</p>
-
-<div class="note">
-  アプリが自動でアップデートを検出するには、<br>
-  <strong>package.json の "version" を更新する</strong> 必要があります。
-</div>
-
-<h3>package.jsonのコード</h3>
-<pre><code>
-{
+<pre><code>{
   "name": "hug-client",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "main": "main.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "start": "electron .",
     "dist": "electron-builder"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
   "dependencies": {
     "axios": "^1.12.2",
-    "dotenv": "^17.2.3",
     "electron-log": "^5.4.3",
-    "puppeteer": "^24.23.0",
+    "electron-updater": "^6.6.2",
     "sqlite3": "^5.1.6"
   },
   "devDependencies": {
@@ -260,104 +67,202 @@ GitHubリリースを利用した更新手順について説明します。</p>
       "main/**/*",
       "preload.js",
       "renderer/**/*",
-      "puppeteer/**/*",
       "src/**/*",
       "package.json"
     ],
     "win": {
       "target": "nsis",
-      "icon": "assets/favicon.ico",
-      "signAndEditExecutable": false,
-      "forceCodeSigning": false,
-      "requestedExecutionLevel": "asInvoker"
+      "icon": "assets/favicon.ico"
     },
-    "mac": {},
-    "linux": {},
     "extraResources": [
       {
         "from": "data/",
         "to": "data/",
-        "filter": [
-          "**/*"
-        ]
+        "filter": ["**/*", "!config.json"]
       }
-    ]
+    ],
+    "publish": {
+      "provider": "github",
+      "owner": "higayu",
+      "repo": "hug-client",
+      "private": false,
+      "releaseType": "release"
+    }
   }
 }
 </code></pre>
 
-<h2>2️⃣ 自動アップデートの仕組み</h2>
+<div class="note">
+  🔒 <code>config.json</code> は同梱されず、外部公開されません。<br>
+  🔓 <code>private: false</code> によりトークン不要で全ユーザー更新可能。<br>
+  🆕 初回起動時に <code>config.json</code> と <code>ini.json</code> が自動生成されます。
+</div>
 
-<p>Hug Client は、Electron の <code>autoUpdater</code> モジュールを使用して GitHub Releases を監視します。</p>
+<h2>4️⃣ main.js（自動アップデート設定）</h2>
 
-<ul>
-  <li>ビルド時に <code>package.json</code> の <strong>version</strong> が <code>latest.yml</code> に書き込まれる</li>
-  <li>アプリ起動時に <code>autoUpdater.checkForUpdatesAndNotify()</code> が実行される</li>
-  <li>GitHub 上の <code>latest.yml</code> とローカルのバージョンを比較</li>
-  <li>バージョンが異なる場合、新しいインストーラを自動ダウンロード</li>
-  <li>ダウンロード完了後、再起動で新バージョンを適用</li>
-</ul>
+<pre><code>
+// main.js
+const { app, dialog } = require("electron");
+const { autoUpdater } = require("electron-updater");
+const log = require("electron-log");
 
-<h3>仕組み図</h3>
-<pre>
-┌────────────────────┐
-│ GitHub Releases     │
-│  ├─ Hug-Client-Setup-1.1.0.exe
-│  ├─ Hug-Client-Setup-1.1.0.exe.blockmap
-│  └─ latest.yml  ← 最新バージョン情報
-└────────────────────┘
-             ↑
-             │ autoUpdater が照合
-             ↓
-┌────────────────────┐
-│ ユーザーのPC         │
-│  Hug Client v1.0.0   │
-│  ↑ app.getVersion()  │
-│  ↓ 比較              │
-│  → v1.1.0 を自動DL   │
-└────────────────────┘
-</pre>
+// 🔧 デバッグ用のアップデート状態管理
+let updateDebugInfo = {
+  isChecking: false,
+  lastCheckTime: null,
+  checkCount: 0,
+  lastError: null,
+  currentVersion: app.getVersion(),
+  updateAvailable: false,
+  downloadProgress: 0
+};
 
-<h2>3️⃣ バージョン更新の手順</h2>
+// グローバル変数として設定（IPCハンドラーからアクセス可能にする）
+global.updateDebugInfo = updateDebugInfo;
 
-<h3>① 修正前の package.json</h3>
-<pre><code>"version": "1.0.0"</code></pre>
+autoUpdater.logger = log;
+autoUpdater.logger.transports.file.level = "info";
 
-<h3>② 修正後</h3>
-<pre><code>"version": "1.1.0"</code></pre>
+app.whenReady().then(async () => {
+  console.log("🚀 [MAIN] Electronアプリが起動しました");
 
-<h3>③ ビルド＆リリース</h3>
+  // 🔹 5秒後にアップデートチェック（GitHub通信の安定化のため）
+  console.log("⏰ [UPDATE] 5秒後にアップデートチェックを開始します...");
+  setTimeout(() => {
+    try {
+      console.log("🔄 [UPDATE] アップデートチェック開始");
+      console.log("🔧 [UPDATE DEBUG] 現在のバージョン:", app.getVersion());
+      console.log("🔧 [UPDATE DEBUG] パッケージ状態:", app.isPackaged ? "パッケージ済み" : "開発中");
+      
+      updateDebugInfo.isChecking = true;
+      updateDebugInfo.lastCheckTime = new Date().toISOString();
+      updateDebugInfo.checkCount++;
+      
+      autoUpdater.checkForUpdatesAndNotify();
+    } catch (err) {
+      console.error("⚠️ [UPDATE] アップデートチェック失敗:", err);
+      updateDebugInfo.lastError = err.message;
+      updateDebugInfo.isChecking = false;
+    }
+  }, 5000);
+
+  const mainWindow = createMainWindow();
+  globalTempNoteHandler = new TempNoteHandler();
+  await globalTempNoteHandler.initDatabase();
+  registerIpcHandlers(mainWindow, globalTempNoteHandler);
+});
+
+// 🔧 詳細なアップデートイベントハンドラー
+autoUpdater.on("checking-for-update", () => {
+  console.log("🔍 [UPDATE] アップデート確認中...");
+  updateDebugInfo.isChecking = true;
+});
+
+autoUpdater.on("update-available", (info) => {
+  console.log("✅ [UPDATE] アップデート利用可能:", info);
+  updateDebugInfo.updateAvailable = true;
+  updateDebugInfo.newVersion = info.version;
+});
+
+autoUpdater.on("update-not-available", (info) => {
+  console.log("ℹ️ [UPDATE] アップデートなし（最新版）:", info);
+  updateDebugInfo.updateAvailable = false;
+  updateDebugInfo.isChecking = false;
+});
+
+autoUpdater.on("error", (err) => {
+  console.error("❌ [UPDATE] アップデートエラー:", err);
+  updateDebugInfo.lastError = err.message;
+  updateDebugInfo.isChecking = false;
+});
+
+autoUpdater.on("download-progress", (progressObj) => {
+  const log_message = `📥 [UPDATE] ダウンロード進捗: ${progressObj.percent}%`;
+  console.log(log_message);
+  updateDebugInfo.downloadProgress = progressObj.percent;
+});
+
+autoUpdater.on("update-downloaded", (info) => {
+  console.log("✅ [UPDATE] アップデートダウンロード完了:", info);
+  updateDebugInfo.downloadComplete = true;
+  
+  const response = dialog.showMessageBoxSync({
+    type: "info",
+    title: "アップデート準備完了",
+    message: `新しいバージョン ${info.version} がダウンロードされました。今すぐ再起動して更新しますか？`,
+    buttons: ["今すぐ再起動", "後で"]
+  });
+  if (response === 0) {
+    console.log("🔄 [UPDATE] アプリケーション再起動開始");
+    autoUpdater.quitAndInstall();
+  }
+});
+</code></pre>
+
+---
+
+<h2>5️⃣ リリース手順</h2>
+
+<h3>① バージョンを更新</h3>
+<pre><code>"version": "1.0.2"</code></pre>
+
+<h3>② コマンド実行</h3>
 <pre><code>npx electron-builder --win --publish always</code></pre>
 
-<p>これで、GitHub に新しいリリース <code>v1.1.0</code> が自動で作成され、
-ユーザーのアプリは次回起動時に自動でアップデートを取得します。</p>
+<h3>③ 成功時の出力例</h3>
+<pre><code>• publishing publisher=Github (owner: higayu, project: hug-client)
+• uploading file=Hug-Client-Setup-1.0.2.exe provider=github
+• uploaded Hug-Client-Setup-1.0.2.exe to GitHub
+</code></pre>
 
-<h2>4️⃣ 注意点</h2>
-<ul>
-  <li><strong>version を変更しないと更新されない：</strong> GitHub の <code>latest.yml</code> が同一バージョン扱いになります。</li>
-  <li><strong>セマンティックバージョニング</strong>を推奨：
-    <ul>
-      <li>軽微な修正 → 1.0.1</li>
-      <li>機能追加 → 1.1.0</li>
-      <li>大幅変更 → 2.0.0</li>
-    </ul>
-  </li>
-  <li>同じバージョンで再ビルドしても自動更新は発動しません。</li>
-</ul>
+---
 
-<h2>5️⃣ 動作確認</h2>
+<h2>6️⃣ 公開確認</h2>
+
 <p>GitHub Releases ページ：</p>
 <p><a href="https://github.com/higayu/hug-client/releases" target="_blank">
-  https://github.com/higayu/hug-client/releases
+https://github.com/higayu/hug-client/releases
 </a></p>
 
+<p>次の3つのファイルがあればOK：</p>
 <ul>
-  <li><code>Hug-Client-Setup-1.1.0.exe</code></li>
-  <li><code>Hug-Client-Setup-1.1.0.exe.blockmap</code></li>
+  <li><code>Hug-Client-Setup-1.0.2.exe</code></li>
+  <li><code>Hug-Client-Setup-1.0.2.exe.blockmap</code></li>
   <li><code>latest.yml</code></li>
 </ul>
 
-<p>これらのファイルが存在し、ユーザーがアプリを起動すると自動更新が行われます。</p>
+---
+
+<h2>7️⃣ 自動アップデート動作確認</h2>
+
+<p>旧バージョン（例：v1.0.1）をインストールしたPCでアプリを起動し、  
+約5秒後に「アップデート準備完了」ダイアログが出れば成功です 🎉</p>
+
+<p><strong>確認URL：</strong>  
+<a href="https://github.com/higayu/hug-client/releases/latest/download/latest.yml" target="_blank">https://github.com/higayu/hug-client/releases/latest/download/latest.yml</a></p>
+
+<h3>🔧 デバッグ機能</h3>
+<p>アプリ内の設定モーダルに「アップデート」タブが追加されており、以下の機能が利用できます：</p>
+<ul>
+  <li>📊 リアルタイムでアップデート状態を表示</li>
+  <li>🔄 手動でアップデートチェック</li>
+  <li>📊 デバッグ情報をコンソールに表示</li>
+  <li>⏰ 自動監視の開始/停止</li>
+  <li>📝 詳細なログ表示</li>
+</ul>
+
+---
+
+<h2>8️⃣ トラブルシューティング</h2>
+<ul>
+  <li>🔸 アップデートが出ない → 最新リリースが「Draft」になっていないか確認</li>
+  <li>🔸 <code>latest.yml</code> が404 → リポジトリをPublicに設定したか確認</li>
+  <li>🔸 <code>config.json</code> が含まれる → <code>extraResources.filter</code> を再確認</li>
+  <li>🔸 「update-downloaded」が出ない → <code>autoUpdater</code> のログを確認（<code>%APPDATA%/hug-client/logs/main.log</code>）</li>
+  <li>🔸 設定ファイルが見つからない → 初回起動時に自動生成されるため、アプリを再起動</li>
+  <li>🔸 アップデート状態が分からない → 設定モーダルの「アップデート」タブで詳細確認</li>
+  <li>🔸 デバッグ情報が必要 → 設定モーダル → アップデートタブ → 「📊 コンソール表示」ボタン</li>
+</ul>
 
 <hr>
 <p style="text-align:center;color:#666;">© 2025 Hug Client / Developer: higayu</p>
