@@ -1,55 +1,8 @@
 // src/apiClient.js
 const axios = require("axios");
-const fs = require("fs");
-const path = require("path");
-const { app } = require("electron");
+const { loadConfig } = require("./configUtils");
 
-// ✅ config.json のパスを取得（ユーザーディレクトリベース）
-function getDataPath(...paths) {
-  if (app.isPackaged) {
-    // ✅ ビルド後: ユーザーディレクトリ/data/config.json
-    return path.join(app.getPath("userData"), "data", ...paths);
-  } else {
-    // ✅ 開発時: プロジェクト直下の data/config.json
-    return path.join(__dirname, "..", "data", ...paths);
-  }
-}
-
-// ✅ config.json を読み込む関数
-function loadConfig() {
-  try {
-    const configPath = getDataPath("config.json");
-    
-    // ファイルが存在しない場合はデフォルト設定を返す
-    if (!fs.existsSync(configPath)) {
-      console.log("⚠️ config.json が見つかりません。デフォルト設定を使用します。");
-      return {
-        HUG_USERNAME: "",
-        HUG_PASSWORD: "",
-        VITE_API_BASE_URL: "http://192.168.1.229:3001/api",
-        STAFF_ID: "",
-        FACILITY_ID: ""
-      };
-    }
-    
-    const raw = fs.readFileSync(configPath, "utf8");
-    const json = JSON.parse(raw);
-    console.log("✅ config.json 読み込み成功:", json);
-    return json;
-  } catch (err) {
-    console.error("❌ config.json 読み込み失敗:", err);
-    console.log("⚠️ デフォルト設定を使用します。");
-    return {
-      HUG_USERNAME: "",
-      HUG_PASSWORD: "",
-      VITE_API_BASE_URL: "http://192.168.1.229:3001/api",
-      STAFF_ID: "",
-      FACILITY_ID: ""
-    };
-  }
-}
-
-// ✅ 読み込み実行
+// ✅ 設定読み込み実行
 const config = loadConfig();
 
 // ✅ axiosクライアント生成
@@ -103,24 +56,16 @@ async function fetchChildById(id) {
   return res.data[0];
 }
 
-async function createChild(child) {
-  const res = await apiClient.post("/houday/Children", child);
+
+/* ------------------------------
+   初回・体験
+------------------------------ */
+
+async function getExperience_children_v() {
+  const res = await apiClient.get("/houday/experience_children_v");
   return res.data;
 }
 
-async function updateChild(id, child) {
-  const res = await apiClient.put("/houday/Children", child, {
-    params: { pk: "children_id", values: id },
-  });
-  return res.data;
-}
-
-async function deleteChild(id) {
-  const res = await apiClient.delete("/houday/Children", {
-    params: { pk: "children_id", values: id },
-  });
-  return res.data;
-}
 
 /* ------------------------------
    Stored Procedures
@@ -161,8 +106,6 @@ module.exports = {
   getFacilitys,
   fetchChildren,
   fetchChildById,
-  createChild,
-  updateChild,
-  deleteChild,
+  getExperience_children_v,
   callProcedure,
 };

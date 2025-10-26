@@ -29,22 +29,29 @@ export async function initChildrenList() {
   updateSidebarValues(AppState.DATE_STR, AppState.WEEK_DAY);
 
   async function loadChildren() {
-    const data = await window.electronAPI.GetChildrenByStaffAndDay(AppState.STAFF_ID, AppState.WEEK_DAY);
-    AppState.childrenData = data;
+    // facilitySelectの値を取得
+    const facilitySelect = document.getElementById("facilitySelect");
+    const facility_id = facilitySelect ? facilitySelect.value : null;
+    
+    const data = await window.electronAPI.GetChildrenByStaffAndDay(AppState.STAFF_ID, AppState.WEEK_DAY, facility_id);
+    AppState.childrenData = data.week_children;
+    AppState.waiting_childrenData = data.waiting_children;
+    AppState.Experience_childrenData = data.Experience_children;
+    console.log('Apiのdata:', data);
     renderList(data);
   }
 
-  function renderList(children) {
+  function renderList(data) {
     listEl.replaceChildren();
 
-    if (!children || children.length === 0) {
+    if (!data || !data.week_children || data.week_children.length === 0) {
       listEl.innerHTML = "<li>該当する子どもがいません</li>";
       return;
     }
 
-    children.forEach((c, i) => {
+    data.week_children.forEach((c, i) => {
       const li = document.createElement("li");
-      li.textContent = `${c.children_id}: ${c.children_name}`;
+      li.textContent = `${c.children_id}: ${c.children_name}　:${c.pc_name?c.pc_name:""}`;
       li.dataset.childId = c.children_id;
       li.style.cursor = "pointer";
 

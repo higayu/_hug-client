@@ -34,7 +34,7 @@ export const SettingsConfig = {
     },
     {
       id: 'additionCompare',
-      name: 'テスト取得',
+      name: '加算比較',
       type: 'checkbox',
       path: 'appSettings.features.additionCompare.enabled'
     },

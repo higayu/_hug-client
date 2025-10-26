@@ -16,11 +16,11 @@ contextBridge.exposeInMainWorld("electronAPI", {
 
     // API 呼び出し (main 経由)
   // ✅ 子ども一覧取得 (引数を明示的にログ出力)
-  GetChildrenByStaffAndDay: async (staffId, date) => {
+  GetChildrenByStaffAndDay: async (staffId, date, facility_id) => {
     console.log("📤 [preload] GetChildrenByStaffAndDay 呼び出し");
-    console.log("  ↳ 渡す引数:", { staffId, date });
+    console.log("  ↳ 渡す引数:", { staffId, date, facility_id });
     try {
-      const result = await ipcRenderer.invoke("GetChildrenByStaffAndDay", { staffId, date });
+      const result = await ipcRenderer.invoke("GetChildrenByStaffAndDay", { staffId, date, facility_id });
       console.log("📥 [preload] main からの応答:", result);
       return result;
     } catch (err) {
@@ -28,6 +28,16 @@ contextBridge.exposeInMainWorld("electronAPI", {
       throw err;
     }
   },
+
+  //     // API 呼び出し (main 経由)
+  // // ✅ キャンセル待ち子ども一覧取得 (引数を明示的にログ出力)
+  // Get_waiting_children_pc: async (facility_id) => {
+  //   console.log("📤 [preload] Get_waiting_children_pc 呼び出し");
+  //   console.log("  ↳ 渡す引数:", { facility_id });
+  //   const result = await ipcRenderer.invoke("Get_waiting_children_pc", { facility_id });
+  //   console.log("📥 [preload] main からの応答:", result);
+  //   return result;
+  // },
 
   getStaffAndFacility: async () => {
     try {

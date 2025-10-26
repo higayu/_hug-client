@@ -26,9 +26,14 @@ export function initHugActions() {
     console.log("✅ 再読み込み完了。子どもリストを再取得");
     if (typeof initChildrenList === "function") {
       try {
+        // facilitySelectの値を取得
+        const facilitySelect = document.getElementById("facilitySelect");
+        const facility_id = facilitySelect ? facilitySelect.value : null;
+        
         AppState.childrenData = await window.electronAPI.GetChildrenByStaffAndDay(
           AppState.STAFF_ID,
-          AppState.WEEK_DAY
+          AppState.WEEK_DAY,
+          facility_id
         );
         await initChildrenList();
       } catch (err) {

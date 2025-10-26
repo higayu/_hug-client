@@ -12,6 +12,8 @@ export const AppState = {
   SELECT_CHILD: "",
   SELECT_CHILD_NAME: "",
   childrenData: [],
+  waiting_childrenData: [],
+  Experience_childrenData: [],
   closeButtonsVisible:true,
   STAFF_DATA: [],
   FACILITY_DATA: [],
