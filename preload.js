@@ -2,7 +2,12 @@ const { contextBridge, ipcRenderer } = require("electron");
 
 console.log("✅ preload.js が読み込まれた");
 
+// デバッグモード判定
+const isDebugMode = process.argv.includes('--dev') || process.argv.includes('--debug');
+
 contextBridge.exposeInMainWorld("electronAPI", {
+  // デバッグモード情報を提供
+  isDebugMode: () => isDebugMode,
   hugLogin: () => ipcRenderer.invoke("hug-login"),
   doAutoLogin: (username, password) =>
     ipcRenderer.invoke("do-auto-login", { username, password }),
@@ -43,7 +48,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
 
     // 既存のAPIに加えて...
   open_test_double_get: (facility_id, date_str) => {
-    const eventName = "open-test-double-get";
+    const eventName = "open-addition-compare-btn";
     const args = { facility_id, date_str };
     console.log("📤 [PRELOAD] IPCイベントを送信します:", eventName);
     console.log("📤 [PRELOAD] 引数:", args);

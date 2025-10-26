@@ -6,7 +6,9 @@ import { initHugActions, updateButtonVisibility } from "./modules/hugActions.js"
 import { initChildrenList } from "./modules/childrenList.js";
 import { initSettingsEditor } from "./modules/settingsEditor.js";
 import { loadAllReload } from "./modules/reloadSettings.js";
-import { updateTester } from "./modules/updateTest.js";
+import { updateUI } from "./modules/updateUI.js";
+import { customButtonManager } from "./modules/customButtons.js";
+import { buttonVisibilityManager } from "./modules/buttonVisibility.js";
 
 console.log("✅ mainRenderer.js 読み込み完了");
 
@@ -66,6 +68,10 @@ window.addEventListener("DOMContentLoaded", async () => {
       const reloadOk = await loadAllReload();
       if (reloadOk) {
         updateButtonVisibility(); // ボタン表示を更新
+        // カスタムボタンも再読み込み
+        await customButtonManager.reloadCustomButtons();
+        // ボタン表示制御も再読み込み
+        await buttonVisibilityManager.reloadButtonVisibility();
         console.log("✅ ini.jsonの手動読み込み完了");
       }
     } catch (err) {
@@ -75,9 +81,24 @@ window.addEventListener("DOMContentLoaded", async () => {
 
   console.log("🎉 初期化完了:", AppState);
 
-  // 🔧 アップデートテスト機能を初期化
-  console.log("🔧 アップデートテスト機能を初期化中...");
-  await updateTester.init();
+  // 🔄 アップデートUI機能を初期化
+  const isDebugMode = window.electronAPI.isDebugMode();
+  console.log("🔄 アップデートUI機能を初期化中...");
+  await updateUI.init();
+  
+  // デバッグモードの場合、追加のUIボタンを表示
+  if (isDebugMode) {
+    console.log("🔧 デバッグモード: 追加UIボタンを表示します");
+    updateUI.addUpdateButtons();
+  }
+
+  // ===== 9️⃣ カスタムボタンマネージャー初期化 =====
+  console.log("🔧 カスタムボタンマネージャーを初期化中...");
+  await customButtonManager.init();
+
+  // ===== 🔟 ボタン表示制御マネージャー初期化 =====
+  console.log("🔧 ボタン表示制御マネージャーを初期化中...");
+  await buttonVisibilityManager.init();
 
   // ドロップダウンメニューの位置を動的に計算する関数
   function positionDropdown(button, dropdown) {
@@ -139,6 +160,23 @@ window.addEventListener("DOMContentLoaded", async () => {
     }
   });
 
+  // ========= カスタムツールナビゲーション =====
+  const customBtn = document.getElementById("custom-btn");
+  const customPanel = document.getElementById("custom-panel");
+
+  customBtn.addEventListener("click", () => {
+    customPanel.classList.toggle("open");
+    if (customPanel.classList.contains("open")) {
+      positionDropdown(customBtn, customPanel);
+    }
+  });
+
+  document.addEventListener("click", (e) => {
+    if (!customPanel.contains(e.target) && e.target !== customBtn) {
+      customPanel.classList.remove("open");
+    }
+  });
+
   // ウィンドウリサイズ時にドロップダウンの位置を再計算
   window.addEventListener("resize", () => {
     if (panel.classList.contains("open")) {
@@ -149,6 +187,9 @@ window.addEventListener("DOMContentLoaded", async () => {
     }
     if (panel_special.classList.contains("open")) {
       positionDropdown(panel_special_Btn, panel_special);
+    }
+    if (customPanel.classList.contains("open")) {
+      positionDropdown(customBtn, customPanel);
     }
   });
 

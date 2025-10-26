@@ -33,10 +33,10 @@ export const SettingsConfig = {
       path: 'appSettings.features.specializedSupportPlan.enabled'
     },
     {
-      id: 'testDoubleGet',
+      id: 'additionCompare',
       name: 'テスト取得',
       type: 'checkbox',
-      path: 'appSettings.features.testDoubleGet.enabled'
+      path: 'appSettings.features.additionCompare.enabled'
     },
     {
       id: 'importSetting',

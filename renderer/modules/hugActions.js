@@ -85,7 +85,7 @@ export function initHugActions() {
   });
 
     // ✅ テスト データ取得（別ウインドウ）
-  const testButton = document.getElementById("test-double-get");
+  const testButton = document.getElementById("addition-compare-btn");
   if (testButton) {
     testButton.addEventListener("click", () => {
       console.log("🔘 [RENDERER] テストボタンがクリックされました");
@@ -107,7 +107,7 @@ export function initHugActions() {
     });
     console.log("✅ テストボタンのイベントリスナーを設定しました");
   } else {
-    console.error("❌ テストボタンが見つかりません: test-double-get");
+    console.error("❌ テストボタンが見つかりません: addition-compare-btn");
   }
   
   // 「設定ファイルの取得」ボタンのクリックイベント
@@ -213,10 +213,10 @@ export function updateButtonVisibility() {
   const buttonMappings = {
     'individualSupportPlan': 'Individual_Support_Button',
     'specializedSupportPlan': 'Specialized-Support-Plan',
-    'testDoubleGet': 'test-double-get',
+    'additionCompare': 'addition-compare-btn',
     'importSetting': 'Import-Setting',
     'getUrl': 'Get-Url',
-    'loadIni': 'Load-Ini'
+    'loadIni': 'Load-Ini',
   };
 
   Object.keys(buttonMappings).forEach(featureName => {
@@ -228,7 +228,7 @@ export function updateButtonVisibility() {
       console.log(`🔧 [HUG_ACTIONS] ボタン更新: ${buttonId}, 有効: ${isEnabled}`);
       
       // テストボタンの場合は常に表示（デバッグ用）
-      if (buttonId === 'test-double-get') {
+      if (buttonId === 'addition-compare-btn') {
         button.style.display = 'inline-block';
         console.log(`🔧 [HUG_ACTIONS] テストボタンを強制表示: ${buttonId}`);
       } else {

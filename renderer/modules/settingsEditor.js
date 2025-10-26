@@ -131,6 +131,9 @@ export class SettingsEditor {
         });
       }
 
+      // テキスト入力フィールドのイベントリスナー
+      this.setupTextInputListeners();
+
       // パスワード表示切替え
       const togglePasswordBtn = this.modal.querySelector('#toggle-password');
       if (togglePasswordBtn) {
@@ -531,7 +534,7 @@ export class SettingsEditor {
     const buttonMappings = {
       'individualSupportPlan': 'Individual_Support_Button',
       'specializedSupportPlan': 'Specialized-Support-Plan',
-      'testDoubleGet': 'test-double-get',
+      'additionCompare': 'addition-compare-btn',
       'importSetting': 'Import-Setting',
       'getUrl': 'Get-Url',
       'loadIni': 'Load-Ini'
@@ -546,12 +549,7 @@ export class SettingsEditor {
         const feature = features[featureName];
         if (feature) {
           // ボタンの表示/非表示を制御
-          // テストボタンの場合は常に表示（デバッグ用）
-          if (buttonId === 'test-double-get') {
-            button.style.display = 'inline-block';
-          } else {
-            button.style.display = feature.enabled ? 'inline-block' : 'none';
-          }
+          button.style.display = feature.enabled ? 'inline-block' : 'none';
           
           // ボタンテキストとカラーを更新
           if (feature.buttonText) {
@@ -899,6 +897,48 @@ export class SettingsEditor {
     }
 
     console.log(`✅ [SETTINGS] スタッフセレクトボックスを更新しました (${staffList.length}件)`);
+  }
+
+  // テキスト入力フィールドのイベントリスナーを設定
+  setupTextInputListeners() {
+    if (!this.modal) return;
+
+    // ボタンテキスト入力フィールド
+    const features = IniState.appSettings.features;
+    Object.keys(features).forEach(featureName => {
+      const textInput = this.modal.querySelector(`#text-${featureName}`);
+      if (textInput) {
+        textInput.addEventListener('input', (e) => {
+          const newValue = e.target.value;
+          console.log(`🔧 [SETTINGS] ${featureName}のテキストを変更: ${newValue}`);
+          
+          // リアルタイムで設定を更新
+          this.updateFeatureSetting(featureName, 'buttonText', newValue);
+        });
+      }
+    });
+
+    // ボタンカラー入力フィールド
+    Object.keys(features).forEach(featureName => {
+      const colorInput = this.modal.querySelector(`#color-${featureName}`);
+      if (colorInput) {
+        colorInput.addEventListener('change', (e) => {
+          const newValue = e.target.value;
+          console.log(`🔧 [SETTINGS] ${featureName}のカラーを変更: ${newValue}`);
+          
+          // リアルタイムで設定を更新
+          this.updateFeatureSetting(featureName, 'buttonColor', newValue);
+        });
+      }
+    });
+  }
+
+  // 機能設定を更新
+  updateFeatureSetting(featureName, property, value) {
+    if (IniState.appSettings.features[featureName]) {
+      IniState.appSettings.features[featureName][property] = value;
+      console.log(`✅ [SETTINGS] ${featureName}.${property}を更新: ${value}`);
+    }
   }
 }
 

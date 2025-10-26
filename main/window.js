@@ -17,7 +17,13 @@ function createMainWindow() {
   });
 
   mainWindow.loadFile("renderer/index.html");
-  mainWindow.webContents.openDevTools();
+  
+  // デバッグモード時のみDeveloperToolを開く
+  const isDebugMode = process.argv.includes('--dev') || process.argv.includes('--debug');
+  if (isDebugMode) {
+    mainWindow.webContents.openDevTools();//開発者ツールを開く
+  }
+  
   return mainWindow;
 }
 

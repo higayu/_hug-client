@@ -27,9 +27,9 @@ export const IniState = {
         buttonText: "専門的支援計画",
         buttonColor: "#28a745"
       },
-      testDoubleGet: {
+      additionCompare: {
         enabled: false,
-        buttonText: "テスト取得",
+        buttonText: "加算比較",
         buttonColor: "#ffc107"
       },
       importSetting: {

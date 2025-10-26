@@ -311,7 +311,7 @@ body {
 }
 
 /* テストボタン */
-#test-double-get {
+#addition-compare-btn {
   background-color: #ff9800;
   color: white;
   border: none;
@@ -324,12 +324,12 @@ body {
   flex-shrink: 0;
 }
 
-#test-double-get:hover {
+#addition-compare-btn:hover {
   background-color: #ffb74d;
   transform: scale(1.05);
 }
 
-#test-double-get:active {
+#addition-compare-btn:active {
   background-color: #f57c00;
   transform: scale(0.97);
 }

@@ -11,14 +11,14 @@ function open_test_double_get(ipcMain, facility_id, date_str) {
   // console.log("🔍 [MAIN] 引数:", { facility_id, date_str });
   
   if (isRegistered) {
-    //console.log("⚠️ open-test-double-get は既に登録済みです");
+    //console.log("⚠️ open-addition-compare-btn は既に登録済みです");
     return;
   }
   isRegistered = true;
- // console.log("✅ open-test-double-get IPCハンドラーを登録しました");
+ // console.log("✅ open-addition-compare-btn IPCハンドラーを登録しました");
 
   // すべてのIPCイベントをログ出力するリスナーを追加
-  ipcMain.on("open-test-double-get", (event, args) => {
+  ipcMain.on("open-addition-compare-btn", (event, args) => {
     // 引数から施設IDと日付を取得（デフォルト値も設定）
     const received_facility_id = args?.facility_id || facility_id;
     const received_date_str = args?.date_str || date_str;

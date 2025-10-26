@@ -1,5 +1,5 @@
 // renderer/modules/updateTabHandler.js
-import { updateDebugger } from "./updateDebug.js";
+import { updateManager } from "./updateManager.js";
 
 export class UpdateTabHandler {
   constructor(modal) {
@@ -51,7 +51,7 @@ export class UpdateTabHandler {
       console.log('🔧 [UPDATE] 手動アップデートチェック開始');
       this.addLog('🔄 手動アップデートチェックを開始...', 'info');
       
-      const result = await updateDebugger.checkForUpdates();
+      const result = await updateManager.checkForUpdates();
       if (result) {
         this.addLog('✅ 手動チェック完了: ' + JSON.stringify(result), 'success');
       } else {
@@ -68,25 +68,19 @@ export class UpdateTabHandler {
   // デバッグ情報をコンソールに表示
   showDebugConsole() {
     console.log('🔧 [UPDATE] デバッグ情報をコンソールに表示');
-    updateDebugger.displayDebugInfo();
+    updateManager.displayUpdateInfo();
     this.addLog('📊 デバッグ情報をコンソールに表示しました', 'info');
   }
 
-  // 自動監視の切り替え
+  // 自動監視の切り替え（機能削除済み）
   toggleAutoMonitor() {
-    if (updateDebugger.updateInterval) {
-      updateDebugger.stopAutoUpdate();
-      this.addLog('⏹️ 自動監視を停止しました', 'info');
-    } else {
-      updateDebugger.startAutoUpdate();
-      this.addLog('▶️ 自動監視を開始しました', 'info');
-    }
+    this.addLog('⚠️ 自動監視機能は削除されました', 'warning');
   }
 
   // アップデート情報を更新
   async refreshUpdateInfo() {
     try {
-      await updateDebugger.getDebugInfo();
+      await updateManager.getUpdateInfo();
       this.updateUpdateInfoDisplay();
       this.addLog('🔄 アップデート情報を更新しました', 'info');
     } catch (err) {
@@ -99,7 +93,7 @@ export class UpdateTabHandler {
   updateUpdateInfoDisplay() {
     if (!this.modal) return;
 
-    const info = updateDebugger.debugInfo;
+    const info = updateManager.debugInfo;
     if (!info) return;
 
     // 各要素を更新
