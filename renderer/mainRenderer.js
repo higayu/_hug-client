@@ -7,7 +7,7 @@ import { initChildrenList } from "./modules/data/childrenList.js";
 import { initSettingsEditor } from "./modules/ui/settingsEditor.js";
 import { loadAllReload } from "./modules/actions/reloadSettings.js";
 import { updateUI } from "./modules/update/updateUI.js";
-import { customButtonManager } from "./modules/ui/customButtons.js";
+import { customButtonManager } from "./modules/actions/customButtons.js";
 import { buttonVisibilityManager } from "./modules/ui/buttonVisibility.js";
 
 console.log("✅ mainRenderer.js 読み込み完了");

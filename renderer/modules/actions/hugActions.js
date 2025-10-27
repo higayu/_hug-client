@@ -89,30 +89,30 @@ export function initHugActions() {
     window.electronAPI.openSpecializedSupportPlan(AppState.SELECT_CHILD);
   });
 
-    // ✅ 加算比較ボタン（別ウインドウ）
+  // ✅ 加算比較ボタン（別ウインドウ）
   const additionCompareBtn = document.getElementById("addition-compare-btn");
   if (additionCompareBtn) {
     additionCompareBtn.addEventListener("click", () => {
-      console.log("🔘 [RENDERER] テストボタンがクリックされました");
-      console.log("🔍 [RENDERER] AppState:", { 
+      console.log("🔘 [HUG_ACTIONS] 加算比較ボタンがクリックされました");
+      console.log("🔍 [HUG_ACTIONS] AppState:", { 
         FACILITY_ID: AppState.FACILITY_ID, 
         DATE_STR: AppState.DATE_STR 
       });
       try {
         if (window.electronAPI && window.electronAPI.open_addition_compare_btn) {
-          console.log("📤 [RENDERER] electronAPI.open_addition_compare_btn を呼び出します");
+          console.log("📤 [HUG_ACTIONS] electronAPI.open_addition_compare_btn を呼び出します");
           window.electronAPI.open_addition_compare_btn(AppState.FACILITY_ID, AppState.DATE_STR);
         } else {
-          console.error("❌ [RENDERER] window.electronAPI.open_addition_compare_btn が見つかりません");
-          console.log("🔍 [RENDERER] window.electronAPI:", window.electronAPI);
+          console.error("❌ [HUG_ACTIONS] window.electronAPI.open_addition_compare_btn が見つかりません");
+          console.log("🔍 [HUG_ACTIONS] window.electronAPI:", window.electronAPI);
         }
       } catch (error) {
-        console.error("❌ [RENDERER] テストボタンクリック処理でエラー:", error);
+        console.error("❌ [HUG_ACTIONS] 加算比較ボタンクリック処理でエラー:", error);
       }
     });
-    console.log("✅ テストボタンのイベントリスナーを設定しました");
+    console.log("✅ 加算比較ボタンのイベントリスナーを設定しました");
   } else {
-    console.error("❌ テストボタンが見つかりません: addition-compare-btn");
+    console.error("❌ 加算比較ボタンが見つかりません: addition-compare-btn");
   }
   
   // 「設定ファイルの取得」ボタンのクリックイベント

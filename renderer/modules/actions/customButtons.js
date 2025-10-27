@@ -1,5 +1,7 @@
-// modules/ui/customButtons.js
+// modules/actions/customButtons.js
 import { getCustomButtons, loadIni } from '../config/ini.js';
+import { AppState } from '../config/config.js';
+import { getActiveWebview } from '../data/webviewState.js';
 
 export class CustomButtonManager {
   constructor() {
@@ -100,6 +102,9 @@ export class CustomButtonManager {
       case 'customAction2':
         this.handleCustomAction2(buttonConfig);
         break;
+      case 'additionCompare':
+        this.handleAdditionCompare(buttonConfig);
+        break;
       default:
         this.handleDefaultAction(buttonConfig);
         break;
@@ -143,6 +148,26 @@ export class CustomButtonManager {
     alert(`カスタムアクション2が実行されました！\nボタン: ${buttonConfig.text}\nID: ${buttonConfig.id}`);
     
     // ここに実際の処理を追加
+  }
+
+  // 加算比較ボタンの処理
+  handleAdditionCompare(buttonConfig) {
+    console.log("🔘 [CUSTOM_BUTTONS] 加算比較ボタンがクリックされました");
+    console.log("🔍 [CUSTOM_BUTTONS] AppState:", { 
+      FACILITY_ID: AppState.FACILITY_ID, 
+      DATE_STR: AppState.DATE_STR 
+    });
+    try {
+      if (window.electronAPI && window.electronAPI.open_addition_compare_btn) {
+        console.log("📤 [CUSTOM_BUTTONS] electronAPI.open_addition_compare_btn を呼び出します");
+        window.electronAPI.open_addition_compare_btn(AppState.FACILITY_ID, AppState.DATE_STR);
+      } else {
+        console.error("❌ [CUSTOM_BUTTONS] window.electronAPI.open_addition_compare_btn が見つかりません");
+        console.log("🔍 [CUSTOM_BUTTONS] window.electronAPI:", window.electronAPI);
+      }
+    } catch (error) {
+      console.error("❌ [CUSTOM_BUTTONS] 加算比較ボタンクリック処理でエラー:", error);
+    }
   }
 
   // デフォルトアクションの処理
