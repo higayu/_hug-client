@@ -1,4 +1,4 @@
-// modules/ini.js
+// modules/config/ini.js
 import { COLORS, DEFAULTS, FEATURES, MESSAGES } from "./const.js";
 
 export const IniState = {

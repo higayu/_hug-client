@@ -1,4 +1,4 @@
-// modules/const.js
+// modules/config/const.js
 // アプリケーション全体で使用する定数定義
 
 // ==========================

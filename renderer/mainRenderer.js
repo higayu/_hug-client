@@ -1,14 +1,14 @@
 // ===== モジュール読み込み =====
-import { initTabs } from "./modules/tabs.js";
-import { AppState } from "./modules/config.js";
+import { initTabs } from "./modules/ui/tabs.js";
+import { AppState } from "./modules/config/config.js";
 import { setupSidebar } from "./sidebar/sidebar.js";
-import { initHugActions, updateButtonVisibility } from "./modules/hugActions.js";
-import { initChildrenList } from "./modules/childrenList.js";
-import { initSettingsEditor } from "./modules/settingsEditor.js";
-import { loadAllReload } from "./modules/reloadSettings.js";
-import { updateUI } from "./modules/updateUI.js";
-import { customButtonManager } from "./modules/customButtons.js";
-import { buttonVisibilityManager } from "./modules/buttonVisibility.js";
+import { initHugActions, updateButtonVisibility } from "./modules/actions/hugActions.js";
+import { initChildrenList } from "./modules/data/childrenList.js";
+import { initSettingsEditor } from "./modules/ui/settingsEditor.js";
+import { loadAllReload } from "./modules/actions/reloadSettings.js";
+import { updateUI } from "./modules/update/updateUI.js";
+import { customButtonManager } from "./modules/ui/customButtons.js";
+import { buttonVisibilityManager } from "./modules/ui/buttonVisibility.js";
 
 console.log("✅ mainRenderer.js 読み込み完了");
 

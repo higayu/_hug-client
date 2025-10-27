@@ -1,8 +1,8 @@
-// renderer/modules/settingsEditor.js
-import { IniState, saveIni, updateIniSetting } from "./ini.js";
-import { AppState, saveConfig } from "./config.js";
+// renderer/modules/ui/settingsEditor.js
+import { IniState, saveIni, updateIniSetting } from "../config/ini.js";
+import { AppState, saveConfig } from "../config/config.js";
 import { showSuccessToast, showErrorToast, showInfoToast } from "./toast/toast.js";
-import { UpdateTabHandler } from "./updateTabHandler.js";
+import { UpdateTabHandler } from "../update/updateTabHandler.js";
 
 export class SettingsEditor {
   constructor() {

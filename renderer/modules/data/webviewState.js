@@ -1,4 +1,4 @@
-// modules/webviewState.js
+// modules/data/webviewState.js
 let activeWebview = null;
 
 /**

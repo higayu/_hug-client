@@ -1,6 +1,6 @@
-// modules/childrenList.js
-import { AppState,getWeekdayFromDate } from "./config.js";
-import { initSidebar, updateSidebarValues } from "../sidebar/sidebar.js";
+// modules/data/staff_facility.js
+import { AppState,getWeekdayFromDate } from "../config/config.js";
+import { initSidebar, updateSidebarValues } from "../../sidebar/sidebar.js";
 
 export async function initStaffFacility() {
   async function loadStaffFacility() {

@@ -1,4 +1,4 @@
-// modules/updateUI.js
+// modules/update/updateUI.js
 import { updateManager } from './updateManager.js';
 
 // アップデートUI機能

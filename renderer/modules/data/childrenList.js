@@ -1,6 +1,6 @@
-// modules/childrenList.js
-import { AppState,getWeekdayFromDate } from "./config.js";
-import { initSidebar, updateSidebarValues } from "../sidebar/sidebar.js";
+// modules/data/childrenList.js
+import { AppState,getWeekdayFromDate } from "../config/config.js";
+import { initSidebar, updateSidebarValues } from "../../sidebar/sidebar.js";
 import { 
   ELEMENT_IDS, 
   CSS_CLASSES, 
@@ -9,7 +9,7 @@ import {
   STYLES, 
   EVENTS,
   PATHS 
-} from "./const.js";
+} from "../config/const.js";
 
 export async function initChildrenList() {
   const settingsEl = document.getElementById(ELEMENT_IDS.SETTINGS);

@@ -1,6 +1,6 @@
-// modules/tabs.js
-import { AppState,getDateString} from "./config.js";
-import { setActiveWebview, getActiveWebview } from "./webviewState.js";
+// modules/ui/tabs.js
+import { AppState,getDateString} from "../config/config.js";
+import { setActiveWebview, getActiveWebview } from "../data/webviewState.js";
 
 export function initTabs() {
   const tabsContainer = document.getElementById("tabs");

@@ -1,6 +1,6 @@
-// modules/config.js
+// modules/config/config.js
 import { loadIni } from "./ini.js";
-import { updateButtonVisibility } from "./hugActions.js";
+import { updateButtonVisibility } from "../actions/hugActions.js";
 import { ELEMENT_IDS, MESSAGES, WEEKDAYS, DEFAULT_APP_STATE } from "./const.js";
 
 export const AppState = { ...DEFAULT_APP_STATE };

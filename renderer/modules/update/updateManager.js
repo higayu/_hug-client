@@ -1,4 +1,4 @@
-// modules/updateManager.js
+// modules/update/updateManager.js
 export class UpdateManager {
   constructor() {
     this.debugInfo = null;

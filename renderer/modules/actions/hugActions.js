@@ -1,9 +1,9 @@
-// renderer/modules/hugActions.js
-import { AppState } from "./config.js";
-import { initChildrenList } from "./childrenList.js";
-import { getActiveWebview } from "./webviewState.js";
-import { isFeatureEnabled, getButtonConfig } from "./ini.js";
-import { showSuccessToast, showErrorToast } from "./toast/toast.js";
+// renderer/modules/actions/hugActions.js
+import { AppState } from "../config/config.js";
+import { initChildrenList } from "../data/childrenList.js";
+import { getActiveWebview } from "../data/webviewState.js";
+import { isFeatureEnabled, getButtonConfig } from "../config/ini.js";
+import { showSuccessToast, showErrorToast } from "../ui/toast/toast.js";
 
 export function initHugActions() {
 

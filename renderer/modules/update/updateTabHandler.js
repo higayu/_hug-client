@@ -1,4 +1,4 @@
-// renderer/modules/updateTabHandler.js
+// renderer/modules/update/updateTabHandler.js
 import { updateManager } from "./updateManager.js";
 
 export class UpdateTabHandler {

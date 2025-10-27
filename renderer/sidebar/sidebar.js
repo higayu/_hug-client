@@ -1,8 +1,8 @@
 // sidebar/sidebar.js
 // サイドバー機能のJavaScript
 
-import { AppState, getWeekdayFromDate } from "../modules/config.js";
-import { showInfoToast } from "../modules/toast/toast.js";
+import { AppState, getWeekdayFromDate } from "../modules/config/config.js";
+import { showInfoToast } from "../modules/ui/toast/toast.js";
 
 /**
  * サイドバーを初期化する

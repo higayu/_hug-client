@@ -1,5 +1,5 @@
-// modules/buttonVisibility.js
-import { isFeatureEnabled, getButtonConfig, loadIni } from './ini.js';
+// modules/ui/buttonVisibility.js
+import { isFeatureEnabled, getButtonConfig, loadIni } from '../config/ini.js';
 
 export class ButtonVisibilityManager {
   constructor() {

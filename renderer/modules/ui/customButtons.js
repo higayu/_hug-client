@@ -1,5 +1,5 @@
-// modules/customButtons.js
-import { getCustomButtons, loadIni } from './ini.js';
+// modules/ui/customButtons.js
+import { getCustomButtons, loadIni } from '../config/ini.js';
 
 export class CustomButtonManager {
   constructor() {

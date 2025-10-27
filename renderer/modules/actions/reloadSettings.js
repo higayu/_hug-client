@@ -1,6 +1,6 @@
-// renderer/modules/reloadSettings.js
-import { loadConfig } from "./config.js";
-import { loadIni } from "./ini.js";
+// renderer/modules/actions/reloadSettings.js
+import { loadConfig } from "../config/config.js";
+import { loadIni } from "../config/ini.js";
 
 /**
  * config.json と ini.json の両方を再読み込みしてUIに反映
