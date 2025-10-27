@@ -28,6 +28,9 @@ export async function initChildrenList() {
   // サイドバーの値を更新
   updateSidebarValues(AppState.DATE_STR, AppState.WEEK_DAY);
 
+  // 折りたたみ機能を初期化
+  initCollapsibleSections();
+
   async function loadChildren() {
     // facilitySelectの値を取得
     const facilitySelect = document.getElementById("facilitySelect");
@@ -260,6 +263,32 @@ export async function initChildrenList() {
 
   await loadChildren();
   console.log("✅ 子ども一覧 初期化完了");
+}
+
+// 折りたたみセクションの初期化
+function initCollapsibleSections() {
+  const waitingHeader = document.getElementById("waitingHeader");
+  const waitingList = document.getElementById("waitingChildrenList");
+  
+  if (waitingHeader && waitingList) {
+    // 初期状態は折りたたみ
+    waitingList.classList.add("collapsed");
+    waitingHeader.classList.add("collapsed");
+    
+    waitingHeader.addEventListener("click", () => {
+      const isCollapsed = waitingList.classList.contains("collapsed");
+      
+      if (isCollapsed) {
+        // 展開
+        waitingList.classList.remove("collapsed");
+        waitingHeader.classList.remove("collapsed");
+      } else {
+        // 折りたたみ
+        waitingList.classList.add("collapsed");
+        waitingHeader.classList.add("collapsed");
+      }
+    });
+  }
 }
 
 // 一時メモの保存関数
