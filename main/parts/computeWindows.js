@@ -96,7 +96,6 @@ function openDoubleWebviewWithTabs(url1, url2, label) {
     #resultView { position:absolute; top:0; left:0; width:100%; height:100%; background:#fafafa; overflow:auto;
       white-space:pre; font-family:monospace; padding:20px; display:none; }
 
-    #getDataBtn { position:absolute; top:10px; right:20px; z-index:5; padding:8px 12px; }
 
     #resultView h2 {
       background:#f3f3f3; padding:6px 10px; border-left:5px solid #888;
@@ -145,6 +144,20 @@ function openDoubleWebviewWithTabs(url1, url2, label) {
        border-radius: 6px;
        padding: 6px;
     }
+    
+    button {
+      padding: 8px 12px;
+      background: #007acc;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    
+    button:hover {
+      background: #005a9e;
+    }
 
   </style>
 </head>
@@ -154,7 +167,10 @@ function openDoubleWebviewWithTabs(url1, url2, label) {
     <div id="tabResult" class="tab">📊 取得結果</div>
   </div>
   <div id="content">
-    <button id="getDataBtn">📥 データ取得</button>
+    <div style="position:absolute; top:10px; right:20px; z-index:5; display:flex; gap:10px;">
+      <button id="clickAdditionBtn">➕ 加算登録クリック</button>
+      <button id="getDataBtn">📥 データ取得</button>
+    </div>
     <div id="webviews">
       <webview id="left"
         src="` + url1 + `"
@@ -192,6 +208,38 @@ function openDoubleWebviewWithTabs(url1, url2, label) {
       resultView.style.display = "block";
     });
 
+    // 加算登録ラジオボタンクリック処理
+    async function clickAdditionRadio() {
+      try {
+        console.log("🟢 加算登録ラジオボタンをクリック中...");
+        
+        const success = await left.executeJavaScript(\`
+          const radio = document.querySelector('input[type="radio"][name="tableChange"][value="2"]');
+          if (radio) {
+            radio.click();
+            console.log("✅ 加算登録ラジオボタンをクリックしました");
+            true;
+          } else {
+            console.log("❌ 加算登録ラジオボタンが見つかりません");
+            false;
+          }
+        \`);
+        
+        if (success) {
+          console.log("✅ 加算登録ラジオボタンのクリックが完了しました");
+        } else {
+          console.log("⚠️ 加算登録ラジオボタンのクリックに失敗しました");
+        }
+      } catch (error) {
+        console.error("❌ 加算登録ラジオボタンクリック中にエラー:", error);
+      }
+    }
+
+    // 加算登録クリックボタン
+    document.getElementById("clickAdditionBtn").addEventListener("click", async () => {
+      await clickAdditionRadio();
+    });
+
     // データ取得
     document.getElementById("getDataBtn").addEventListener("click", async () => {
       try {
@@ -208,6 +256,9 @@ function openDoubleWebviewWithTabs(url1, url2, label) {
 
         await waitForPageReady(left);
         await waitForPageReady(right);
+        
+        // 加算登録ラジオボタンをクリック
+        await clickAdditionRadio();
 
         const htmlLeft = await left.executeJavaScript(\`
           console.log("🔍 左ページ:", document.title);

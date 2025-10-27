@@ -89,6 +89,26 @@ export class CustomButtonManager {
     console.log(`✅ カスタムボタンを作成: ${buttonConfig.text} (${buttonConfig.id})`);
   }
 
+  // 加算比較ボタンの処理
+  handleAdditionCompare(buttonConfig) {
+    console.log("🔘 [CUSTOM_BUTTONS] 加算比較ボタンがクリックされました");
+    console.log("🔍 [CUSTOM_BUTTONS] AppState:", { 
+      FACILITY_ID: AppState.FACILITY_ID, 
+      DATE_STR: AppState.DATE_STR 
+    });
+    try {
+      if (window.electronAPI && window.electronAPI.open_addition_compare_btn) {
+        console.log("📤 [CUSTOM_BUTTONS] electronAPI.open_addition_compare_btn を呼び出します");
+        window.electronAPI.open_addition_compare_btn(AppState.FACILITY_ID, AppState.DATE_STR);
+      } else {
+        console.error("❌ [CUSTOM_BUTTONS] window.electronAPI.open_addition_compare_btn が見つかりません");
+        console.log("🔍 [CUSTOM_BUTTONS] window.electronAPI:", window.electronAPI);
+      }
+    } catch (error) {
+      console.error("❌ [CUSTOM_BUTTONS] 加算比較ボタンクリック処理でエラー:", error);
+    }
+  }
+
   // カスタムボタンのクリック処理
   handleCustomButtonClick(buttonConfig) {
     console.log(`🔧 カスタムボタンがクリックされました: ${buttonConfig.text}`);
@@ -150,25 +170,6 @@ export class CustomButtonManager {
     // ここに実際の処理を追加
   }
 
-  // 加算比較ボタンの処理
-  handleAdditionCompare(buttonConfig) {
-    console.log("🔘 [CUSTOM_BUTTONS] 加算比較ボタンがクリックされました");
-    console.log("🔍 [CUSTOM_BUTTONS] AppState:", { 
-      FACILITY_ID: AppState.FACILITY_ID, 
-      DATE_STR: AppState.DATE_STR 
-    });
-    try {
-      if (window.electronAPI && window.electronAPI.open_addition_compare_btn) {
-        console.log("📤 [CUSTOM_BUTTONS] electronAPI.open_addition_compare_btn を呼び出します");
-        window.electronAPI.open_addition_compare_btn(AppState.FACILITY_ID, AppState.DATE_STR);
-      } else {
-        console.error("❌ [CUSTOM_BUTTONS] window.electronAPI.open_addition_compare_btn が見つかりません");
-        console.log("🔍 [CUSTOM_BUTTONS] window.electronAPI:", window.electronAPI);
-      }
-    } catch (error) {
-      console.error("❌ [CUSTOM_BUTTONS] 加算比較ボタンクリック処理でエラー:", error);
-    }
-  }
 
   // デフォルトアクションの処理
   handleDefaultAction(buttonConfig) {
