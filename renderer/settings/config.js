@@ -52,7 +52,7 @@ export const SettingsConfig = {
     },
     {
       id: 'loadIni',
-      name: 'ini.jsonの再読み込み',
+      name: '設定の再読み込み',
       type: 'checkbox',
       path: 'appSettings.features.loadIni.enabled'
     }
