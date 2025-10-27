@@ -5,7 +5,7 @@ const { handleApiCalls } = require("./parts/apiHandler");
 const { handleConfigAccess } = require("./parts/configHandler");
 const { handleIniAccess } = require("./parts/iniHandler");
 const { registerPlanWindows } = require("./parts/planWindows");
-const { open_test_double_get } = require("./parts/computeWindows");
+const { open_addition_compare_btn } = require("./parts/computeWindows");
 
 function registerIpcHandlers(mainWindow, tempNoteHandler) {
   console.log("🔧 [MAIN] IPCハンドラーを登録中...");
@@ -29,8 +29,8 @@ function registerIpcHandlers(mainWindow, tempNoteHandler) {
     registerPlanWindows(ipcMain);
     console.log("✅ [MAIN] registerPlanWindows 登録完了");
     
-    open_test_double_get(ipcMain);
-    console.log("✅ [MAIN] open_test_double_get 登録完了");
+    open_addition_compare_btn(ipcMain);
+    console.log("✅ [MAIN] open_addition_compare_btn 登録完了");
     
     // 一時メモのIPCハンドラー
     ipcMain.handle('saveTempNote', async (event, data) => {

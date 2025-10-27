@@ -57,7 +57,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
   Open_NowDayPage: (args) => ipcRenderer.send("Open_NowDayPage", args),
 
     // 既存のAPIに加えて...
-  open_test_double_get: (facility_id, date_str) => {
+  open_addition_compare_btn: (facility_id, date_str) => {
     const eventName = "open-addition-compare-btn";
     const args = { facility_id, date_str };
     console.log("📤 [PRELOAD] IPCイベントを送信します:", eventName);

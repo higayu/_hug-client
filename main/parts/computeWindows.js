@@ -4,8 +4,8 @@ const path = require("path");
 
 let isRegistered = false;
 
-function open_test_double_get(ipcMain, facility_id, date_str) {
-  // console.log("🔧 [MAIN] open_test_double_get 関数が呼び出されました");
+function open_addition_compare_btn(ipcMain, facility_id, date_str) {
+  // console.log("🔧 [MAIN] open_addition_compare_btn 関数が呼び出されました");
   // console.log("🔍 [MAIN] isRegistered:", isRegistered);
   // console.log("🔍 [MAIN] ipcMain:", ipcMain ? "存在" : "未定義");
   // console.log("🔍 [MAIN] 引数:", { facility_id, date_str });
@@ -255,4 +255,4 @@ function openDoubleWebviewWithTabs(url1, url2, label) {
   });
 }
 
-module.exports = { open_test_double_get };
+module.exports = { open_addition_compare_btn };
