@@ -36,24 +36,24 @@ app.whenReady().then(async () => {
   console.log("🚀 [MAIN] Electronアプリが起動しました");
 
   // 🔹 5秒後にアップデートチェック（GitHub通信の安定化のため）
-  console.log("⏰ [UPDATE] 5秒後にアップデートチェックを開始します...");
+  //console.log("⏰ [UPDATE] 5秒後にアップデートチェックを開始します...");
   setTimeout(() => {
     try {
-      console.log("🔄 [UPDATE] アップデートチェック開始");
-      console.log("🔧 [UPDATE DEBUG] 現在のバージョン:", app.getVersion());
-      console.log("🔧 [UPDATE DEBUG] パッケージ状態:", app.isPackaged ? "パッケージ済み" : "開発中");
-      console.log("🔧 [UPDATE DEBUG] プロセス引数:", process.argv);
+      // console.log("🔄 [UPDATE] アップデートチェック開始");
+      // console.log("🔧 [UPDATE DEBUG] 現在のバージョン:", app.getVersion());
+      // console.log("🔧 [UPDATE DEBUG] パッケージ状態:", app.isPackaged ? "パッケージ済み" : "開発中");
+      // console.log("🔧 [UPDATE DEBUG] プロセス引数:", process.argv);
       
       updateDebugInfo.isChecking = true;
       updateDebugInfo.lastCheckTime = new Date().toISOString();
       updateDebugInfo.checkCount++;
-      console.log("🔧 [UPDATE DEBUG] チェック開始:", updateDebugInfo);
+      // console.log("🔧 [UPDATE DEBUG] チェック開始:", updateDebugInfo);
       
       // アップデーターの設定を確認
-      console.log("🔧 [UPDATE DEBUG] autoUpdater設定:");
-      console.log("  - allowPrerelease:", autoUpdater.allowPrerelease);
-      console.log("  - autoDownload:", autoUpdater.autoDownload);
-      console.log("  - autoInstallOnAppQuit:", autoUpdater.autoInstallOnAppQuit);
+      // console.log("🔧 [UPDATE DEBUG] autoUpdater設定:");
+      // console.log("  - allowPrerelease:", autoUpdater.allowPrerelease);
+      // console.log("  - autoDownload:", autoUpdater.autoDownload);
+      // console.log("  - autoInstallOnAppQuit:", autoUpdater.autoInstallOnAppQuit);
       
       autoUpdater.checkForUpdatesAndNotify();
     } catch (err) {
@@ -64,7 +64,7 @@ app.whenReady().then(async () => {
   }, 5000);
 
   const mainWindow = createMainWindow();
-  console.log("🪟 [MAIN] メインウィンドウを作成しました");
+  //console.log("🪟 [MAIN] メインウィンドウを作成しました");
 
   // データベース初期化
   globalTempNoteHandler = new TempNoteHandler();
@@ -81,59 +81,59 @@ app.whenReady().then(async () => {
 
 // 🔧 詳細なアップデートイベントハンドラー
 autoUpdater.on("checking-for-update", () => {
-  console.log("🔍 [UPDATE] アップデート確認中...");
+  // console.log("🔍 [UPDATE] アップデート確認中...");
   updateDebugInfo.isChecking = true;
 });
 
 autoUpdater.on("update-available", (info) => {
-  console.log("✅ [UPDATE] アップデート利用可能:", info);
+  // console.log("✅ [UPDATE] アップデート利用可能:", info);
   updateDebugInfo.updateAvailable = true;
   updateDebugInfo.newVersion = info.version;
-  console.log("🔧 [UPDATE DEBUG] アップデート情報:", {
-    version: info.version,
-    releaseName: info.releaseName,
-    releaseNotes: info.releaseNotes,
-    releaseDate: info.releaseDate
-  });
+  // console.log("🔧 [UPDATE DEBUG] アップデート情報:", {
+  //   version: info.version,
+  //   releaseName: info.releaseName,
+  //   releaseNotes: info.releaseNotes,
+  //   releaseDate: info.releaseDate
+  // });
 });
 
 autoUpdater.on("update-not-available", (info) => {
-  console.log("ℹ️ [UPDATE] アップデートなし（最新版）:", info);
+  // console.log("ℹ️ [UPDATE] アップデートなし（最新版）:", info);
   updateDebugInfo.updateAvailable = false;
   updateDebugInfo.isChecking = false;
 });
 
 autoUpdater.on("error", (err) => {
-  console.error("❌ [UPDATE] アップデートエラー:", err);
+  // console.error("❌ [UPDATE] アップデートエラー:", err);
   updateDebugInfo.lastError = err.message;
   updateDebugInfo.isChecking = false;
-  console.log("🔧 [UPDATE DEBUG] エラー詳細:", {
-    message: err.message,
-    stack: err.stack,
-    code: err.code
-  });
+  // console.log("🔧 [UPDATE DEBUG] エラー詳細:", {
+  //   message: err.message,
+  //   stack: err.stack,
+  //   code: err.code
+  // });
 });
 
 autoUpdater.on("download-progress", (progressObj) => {
-  const log_message = `📥 [UPDATE] ダウンロード進捗: ${progressObj.percent}% (${progressObj.transferred}/${progressObj.total})`;
-  console.log(log_message);
+  // const log_message = `📥 [UPDATE] ダウンロード進捗: ${progressObj.percent}% (${progressObj.transferred}/${progressObj.total})`;
+  // console.log(log_message);
   updateDebugInfo.downloadProgress = progressObj.percent;
-  console.log("🔧 [UPDATE DEBUG] ダウンロード詳細:", {
-    percent: progressObj.percent,
-    transferred: progressObj.transferred,
-    total: progressObj.total,
-    bytesPerSecond: progressObj.bytesPerSecond
-  });
+  // console.log("🔧 [UPDATE DEBUG] ダウンロード詳細:", {
+  //   percent: progressObj.percent,
+  //   transferred: progressObj.transferred,
+  //   total: progressObj.total,
+  //   bytesPerSecond: progressObj.bytesPerSecond
+  // });
 });
 
 autoUpdater.on("update-downloaded", (info) => {
-  console.log("✅ [UPDATE] アップデートダウンロード完了:", info);
+  // console.log("✅ [UPDATE] アップデートダウンロード完了:", info);
   updateDebugInfo.downloadComplete = true;
-  console.log("🔧 [UPDATE DEBUG] ダウンロード完了情報:", {
-    version: info.version,
-    releaseName: info.releaseName,
-    releaseNotes: info.releaseNotes
-  });
+  // console.log("🔧 [UPDATE DEBUG] ダウンロード完了情報:", {
+  //   version: info.version,
+  //   releaseName: info.releaseName,
+  //   releaseNotes: info.releaseNotes
+  // });
   
   const response = dialog.showMessageBoxSync({
     type: "info",

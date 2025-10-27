@@ -1,7 +1,7 @@
 // modules/actions/customButtons.js
 import { getCustomButtons, loadCustomButtons } from '../config/customButtons.js';
 import { AppState } from '../config/config.js';
-import { getActiveWebview } from '../data/webviewState.js';
+import { getActiveWebview, setActiveWebview } from '../data/webviewState.js';
 
 export class CustomButtonManager {
   constructor() {
@@ -127,6 +127,119 @@ export class CustomButtonManager {
     }
   }
 
+    // カスタムアクション1の処理
+  async handleCustomAction1(buttonConfig) {
+    console.log("🔧 カスタムアクション1を実行");
+    console.log("🔍 [CUSTOM_BUTTONS] AppState:", { 
+      FACILITY_ID: AppState.FACILITY_ID, 
+      DATE_STR: AppState.DATE_STR 
+    });
+
+    // 新しいwebviewを作成
+    const content = document.getElementById("content");
+    const tabsContainer = document.getElementById("tabs");
+    const addTabBtn = tabsContainer.querySelector("button:last-child");
+
+    const newId = `hugview-${Date.now()}-${document.querySelectorAll("webview").length}`;
+    const newWebview = document.createElement("webview");
+    newWebview.id = newId;
+    
+    // 指定されたURLを設定
+    const targetUrl = `https://www.hug-ayumu.link/hug/wm/attendance.php?mode=add&date=${AppState.DATE_STR}&f_id=${AppState.FACILITY_ID}`;
+    newWebview.src = targetUrl;
+    newWebview.allowpopups = true;
+    newWebview.webSecurity = false; // セキュリティ制限を無効化
+    newWebview.nodeintegration = false;
+    newWebview.style.cssText = "position:absolute;top:0;left:0;width:100%;height:100%;";
+    newWebview.classList.add("hidden");
+    content.appendChild(newWebview);
+
+    // タブボタンを作成
+    const tabButton = document.createElement("button");
+    tabButton.innerHTML = `
+      ${buttonConfig.text}
+      <span class="close-btn"${AppState.closeButtonsVisible ? "" : " style='display:none'"}>❌</span>
+    `;
+    tabButton.dataset.target = newId;
+    tabsContainer.insertBefore(tabButton, addTabBtn);
+
+    // タブクリック（アクティブ切替）
+    tabButton.addEventListener("click", () => {
+      document.querySelectorAll("webview").forEach(v => v.classList.add("hidden"));
+      newWebview.classList.remove("hidden");
+      setActiveWebview(newWebview);
+    });
+
+    // 閉じる処理
+    const closeBtn = tabButton.querySelector(".close-btn");
+    closeBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (!confirm("このタブを閉じますか？")) return;
+      newWebview.remove();
+      tabButton.remove();
+
+      // 閉じたタブがアクティブならデフォルトに戻す
+      if (getActiveWebview() === newWebview) {
+        const defaultView = document.getElementById("hugview");
+        defaultView.classList.remove("hidden");
+        setActiveWebview(defaultView);
+        tabsContainer.querySelector(`button[data-target="hugview"]`)?.classList.add("active-tab");
+      }
+    });
+
+    // webviewの読み込み完了を待つ
+    newWebview.addEventListener("did-finish-load", () => {
+      console.log("🔍 [CUSTOM_BUTTONS] webview読み込み完了、select要素を設定中...");
+      
+      // 少し遅延を入れてからselect要素にアクセス
+      setTimeout(() => {
+        try {
+          if (AppState.SELECT_CHILD) {
+            // webview内でJavaScriptを実行してselect要素を設定
+            const script = `
+              (function() {
+                const selectElement = document.getElementById("name_list");
+                if (selectElement) {
+                  selectElement.value = "${AppState.SELECT_CHILD}";
+                  console.log("✅ select要素を設定:", "${AppState.SELECT_CHILD}");
+                  
+                  // onchangeイベントを手動で発火
+                  const changeEvent = new Event('change', { bubbles: true });
+                  selectElement.dispatchEvent(changeEvent);
+                  console.log("✅ onchangeイベントを発火しました");
+                  
+                  return true;
+                } else {
+                  console.warn("⚠️ select要素が見つかりません");
+                  return false;
+                }
+              })();
+            `;
+            
+            newWebview.executeJavaScript(script).then((result) => {
+              if (result) {
+                console.log(`✅ [CUSTOM_BUTTONS] select要素を設定完了: ${AppState.SELECT_CHILD}`);
+              } else {
+                console.warn("⚠️ [CUSTOM_BUTTONS] select要素の設定に失敗しました");
+              }
+            }).catch((error) => {
+              console.error("❌ [CUSTOM_BUTTONS] executeJavaScriptでエラー:", error);
+            });
+          } else {
+            console.warn("⚠️ [CUSTOM_BUTTONS] SELECT_CHILDが設定されていません");
+          }
+        } catch (error) {
+          console.error("❌ [CUSTOM_BUTTONS] select要素の設定でエラー:", error);
+        }
+      }, 1000); // 1秒遅延
+    });
+
+    // 新しいタブをアクティブにする
+    tabButton.click();
+    
+    console.log(`✅ [CUSTOM_BUTTONS] カスタムアクション1完了: ${targetUrl}`);
+  }
+
   // カスタムボタンのクリック処理
   handleCustomButtonClick(buttonConfig) {
     console.log(`🔧 カスタムボタンがクリックされました: ${buttonConfig.text}`);
@@ -149,36 +262,6 @@ export class CustomButtonManager {
     }
   }
 
-  // カスタムアクション1の処理
-  async handleCustomAction1(buttonConfig) {
-    console.log("🔧 カスタムアクション1を実行");
-    alert(`カスタムアクション1が実行されました！\nボタン: ${buttonConfig.text}\nID: ${buttonConfig.id}`);
-    const vw = getActiveWebview();
-    if (!vw) return alert("Webview が見つかりません");
-
-    await new Promise((resolve) => {
-      if (vw.isLoading()) {
-        vw.addEventListener("did-finish-load", resolve, { once: true });
-      } else {
-        resolve();
-      }
-    });
-
-
-    console.log("🚀 自動ログイン開始...");
-    try {
-      await vw.executeJavaScript(`
-        document.querySelector('input[name="username"]').value = ${JSON.stringify(AppState.HUG_USERNAME)};
-        document.querySelector('input[name="password"]').value = ${JSON.stringify(AppState.HUG_PASSWORD)};
-        const checkbox = document.querySelector('input[name="setexpire"]');
-        if (checkbox && !checkbox.checked) checkbox.click();
-        document.querySelector("input.btn-login")?.click();
-      `);
-    } catch (err) {
-      console.error("❌ ログインスクリプト実行エラー:", err);
-      alert("ログインスクリプト実行に失敗しました");
-    }
-  }
 
   // カスタムアクション2の処理
   handleCustomAction2(buttonConfig) {
