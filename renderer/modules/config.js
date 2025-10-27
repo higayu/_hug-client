@@ -1,38 +1,21 @@
 // modules/config.js
 import { loadIni } from "./ini.js";
 import { updateButtonVisibility } from "./hugActions.js";
+import { ELEMENT_IDS, MESSAGES, WEEKDAYS, DEFAULT_APP_STATE } from "./const.js";
 
-export const AppState = {
-  HUG_USERNAME: "",
-  HUG_PASSWORD: "",
-  STAFF_ID: "",
-  FACILITY_ID: "",
-  DATE_STR: "",
-  WEEK_DAY: "",
-  SELECT_CHILD: "",
-  SELECT_CHILD_NAME: "",
-  childrenData: [],
-  waiting_childrenData: [],
-  Experience_childrenData: [],
-  closeButtonsVisible:true,
-  STAFF_DATA: [],
-  FACILITY_DATA: [],
-  STAFF_AND_FACILITY_DATA: [],
-};
+export const AppState = { ...DEFAULT_APP_STATE };
 
 // ...既存の AppState 定義などのあとに追記
 export function getWeekdayFromDate(dateStr) {
   // 例: dateStr = "2025-10-11"
   const date = new Date(dateStr);
-  const weekdays = ["日", "月", "火", "水", "木", "金", "土"];
-  return weekdays[date.getDay()];
+  return WEEKDAYS[date.getDay()];
 }
 
 function getTodayWeekday(offset = 0) {
-  const weekdays = ["日", "月", "火", "水", "木", "金", "土"];
   const date = new Date();
   date.setDate(date.getDate() + offset);
-  return weekdays[date.getDay()];
+  return WEEKDAYS[date.getDay()];
 }
 
 export function getDateString(offset = 0) {
@@ -63,10 +46,10 @@ export async function saveConfig() {
       return false;
     }
 
-    console.log("✅ config.json保存成功");
+    console.log(MESSAGES.SUCCESS.CONFIG_SAVED);
     return true;
   } catch (err) {
-    console.error("❌ config.json保存中にエラー:", err);
+    console.error(MESSAGES.ERROR.CONFIG_SAVE, err);
     return false;
   }
 }
@@ -75,7 +58,7 @@ export async function saveConfig() {
 // ⚙️ config.json読み込み
 // ==========================
 export async function loadConfig() {
-  const output = document.getElementById("configOutput");
+  const output = document.getElementById(ELEMENT_IDS.CONFIG_OUTPUT);
   try {
     const result = await window.electronAPI.readConfig();
     if (!result.success) {
@@ -90,11 +73,11 @@ export async function loadConfig() {
     AppState.DATE_STR = getDateString();
     AppState.WEEK_DAY = getTodayWeekday();
 
-    console.log("✅ config.json 読み込み成功:", AppState);
+    console.log(MESSAGES.SUCCESS.CONFIG_LOADED, AppState);
     if (output) output.textContent = JSON.stringify(data, null, 2);
     return true;
   } catch (err) {
-    console.error("❌ config.json 読み込み中にエラー:", err);
+    console.error(MESSAGES.ERROR.CONFIG_LOAD, err);
     if (output) output.textContent = "❌ エラー: " + err.message;
     return false;
   }

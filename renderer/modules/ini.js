@@ -1,4 +1,6 @@
 // modules/ini.js
+import { COLORS, DEFAULTS, FEATURES, MESSAGES } from "./const.js";
+
 export const IniState = {
   // デフォルト設定
   appSettings: {
@@ -7,61 +9,11 @@ export const IniState = {
       username: "",
       password: ""
     },
-    ui: {
-      theme: "light",
-      language: "ja",
-      showCloseButtons: true,
-      autoRefresh: {
-        enabled: false,
-        interval: 30000
-      }
-    },
-    features: {
-      individualSupportPlan: {
-        enabled: true,
-        buttonText: "個別支援計画",
-        buttonColor: "#007bff"
-      },
-      specializedSupportPlan: {
-        enabled: true,
-        buttonText: "専門的支援計画",
-        buttonColor: "#28a745"
-      },
-      additionCompare: {
-        enabled: false,
-        buttonText: "加算比較",
-        buttonColor: "#ffc107"
-      },
-      importSetting: {
-        enabled: true,
-        buttonText: "設定ファイル取得",
-        buttonColor: "#6c757d"
-      },
-      getUrl: {
-        enabled: true,
-        buttonText: "URL取得",
-        buttonColor: "#17a2b8"
-      },
-      loadIni: {
-        enabled: true,
-        buttonText: "ini.jsonの再読み込み",
-        buttonColor: "#6f42c1"
-      }
-    },
+    ui: DEFAULTS.UI,
+    features: FEATURES,
     customButtons: [],
-    window: {
-      width: 1200,
-      height: 800,
-      minWidth: 800,
-      minHeight: 600,
-      maximized: false,
-      alwaysOnTop: false
-    },
-    notifications: {
-      enabled: true,
-      sound: true,
-      desktop: true
-    }
+    window: DEFAULTS.WINDOW,
+    notifications: DEFAULTS.NOTIFICATIONS
   },
   userPreferences: {
     lastLoginDate: "",
@@ -76,7 +28,7 @@ export async function loadIni() {
     const result = await window.electronAPI.readIni();
 
     if (!result.success) {
-      console.error("❌ ini.json読み込みエラー:", result.error);
+      console.error(MESSAGES.ERROR.INI_LOAD, result.error);
       return false;
     }
 
@@ -86,10 +38,10 @@ export async function loadIni() {
     IniState.appSettings = { ...IniState.appSettings, ...data.appSettings };
     IniState.userPreferences = { ...IniState.userPreferences, ...data.userPreferences };
 
-    console.log("✅ ini.json読み込み成功:", IniState);
+    console.log(MESSAGES.SUCCESS.INI_LOADED, IniState);
     return true;
   } catch (err) {
-    console.error("❌ ini.json読み込み中にエラー:", err);
+    console.error(MESSAGES.ERROR.INI_LOAD, err);
     return false;
   }
 }
@@ -106,14 +58,14 @@ export async function saveIni() {
     const result = await window.electronAPI.saveIni(data);
     
     if (!result.success) {
-      console.error("❌ ini.json保存エラー:", result.error);
+      console.error(MESSAGES.ERROR.INI_SAVE, result.error);
       return false;
     }
 
-    console.log("✅ ini.json保存成功");
+    console.log(MESSAGES.SUCCESS.INI_SAVED);
     return true;
   } catch (err) {
-    console.error("❌ ini.json保存中にエラー:", err);
+    console.error(MESSAGES.ERROR.INI_SAVE, err);
     return false;
   }
 }
