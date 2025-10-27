@@ -181,8 +181,9 @@ export async function initChildrenList() {
         if (i === 0 && (!AppState.SELECT_CHILD || AppState.SELECT_CHILD === "")) {
           AppState.SELECT_CHILD = c.children_id;
           AppState.SELECT_CHILD_NAME = c.children_name;
+          AppState.SELECT_PC_NAME = c.pc_name?c.pc_name:"";
           li.classList.add(CSS_CLASSES.ACTIVE);
-          console.log(`${MESSAGES.INFO.AUTO_SELECT}: ${AppState.SELECT_CHILD_NAME}`);
+          console.log(`選択状態を変更する: ${AppState.SELECT_CHILD_NAME}:${AppState.SELECT_PC_NAME}`);
         }
 
         listEl.appendChild(li);
@@ -208,6 +209,7 @@ export async function initChildrenList() {
           li.addEventListener(EVENTS.CLICK, () => {
             AppState.SELECT_CHILD = c.children_id;
             AppState.SELECT_CHILD_NAME = c.children_name;
+            AppState.SELECT_PC_NAME = c.pc_name?c.pc_name:"";
             // 他のリストのアクティブ状態をクリア
             document.querySelectorAll(`#${ELEMENT_IDS.CHILDREN_LIST} li, #${ELEMENT_IDS.WAITING_CHILDREN_LIST} li, #${ELEMENT_IDS.EXPERIENCE_CHILDREN_LIST} li`).forEach(li => li.classList.remove(CSS_CLASSES.ACTIVE));
             li.classList.add(CSS_CLASSES.ACTIVE);
@@ -238,6 +240,7 @@ export async function initChildrenList() {
           li.addEventListener(EVENTS.CLICK, () => {
             AppState.SELECT_CHILD = c.children_id;
             AppState.SELECT_CHILD_NAME = c.children_name;
+            AppState.SELECT_PC_NAME = "";
             // 他のリストのアクティブ状態をクリア
             document.querySelectorAll(`#${ELEMENT_IDS.CHILDREN_LIST} li, #${ELEMENT_IDS.WAITING_CHILDREN_LIST} li, #${ELEMENT_IDS.EXPERIENCE_CHILDREN_LIST} li`).forEach(li => li.classList.remove(CSS_CLASSES.ACTIVE));
             li.classList.add(CSS_CLASSES.ACTIVE);

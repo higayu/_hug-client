@@ -195,9 +195,12 @@ export class CustomButtonManager {
       setTimeout(() => {
         try {
           if (AppState.SELECT_CHILD) {
-            // webview内でJavaScriptを実行してselect要素を設定
+            // webview内でJavaScriptを実行してselect要素と備考欄を設定
             const script = `
               (function() {
+                let success = true;
+                
+                // select要素を設定
                 const selectElement = document.getElementById("name_list");
                 if (selectElement) {
                   selectElement.value = "${AppState.SELECT_CHILD}";
@@ -207,20 +210,30 @@ export class CustomButtonManager {
                   const changeEvent = new Event('change', { bubbles: true });
                   selectElement.dispatchEvent(changeEvent);
                   console.log("✅ onchangeイベントを発火しました");
-                  
-                  return true;
                 } else {
                   console.warn("⚠️ select要素が見つかりません");
-                  return false;
+                  success = false;
                 }
+                
+                // 備考欄のinput要素を設定
+                const noteInput = document.querySelector('input[name="note"]');
+                if (noteInput) {
+                  noteInput.value = "${AppState.SELECT_PC_NAME || ''}";
+                  console.log("✅ 備考欄を設定:", "${AppState.SELECT_PC_NAME || ''}");
+                } else {
+                  console.warn("⚠️ 備考欄のinput要素が見つかりません");
+                  success = false;
+                }
+                
+                return success;
               })();
             `;
             
             newWebview.executeJavaScript(script).then((result) => {
               if (result) {
-                console.log(`✅ [CUSTOM_BUTTONS] select要素を設定完了: ${AppState.SELECT_CHILD}`);
+                console.log(`✅ [CUSTOM_BUTTONS] 設定完了 - 子ども: ${AppState.SELECT_CHILD}, 備考: ${AppState.SELECT_PC_NAME || ''}`);
               } else {
-                console.warn("⚠️ [CUSTOM_BUTTONS] select要素の設定に失敗しました");
+                console.warn("⚠️ [CUSTOM_BUTTONS] 一部の要素の設定に失敗しました");
               }
             }).catch((error) => {
               console.error("❌ [CUSTOM_BUTTONS] executeJavaScriptでエラー:", error);
