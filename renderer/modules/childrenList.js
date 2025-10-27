@@ -42,140 +42,202 @@ export async function initChildrenList() {
   }
 
   function renderList(data) {
+    // 通常の子どもリスト
     listEl.replaceChildren();
 
     if (!data || !data.week_children || data.week_children.length === 0) {
       listEl.innerHTML = "<li>該当する子どもがいません</li>";
-      return;
+    } else {
+      data.week_children.forEach((c, i) => {
+        const li = document.createElement("li");
+        li.textContent = `${c.children_id}: ${c.children_name}　:${c.pc_name?c.pc_name:""}`;
+        li.dataset.childId = c.children_id;
+        li.style.cursor = "pointer";
+
+        // 左クリックで選択
+        li.addEventListener("click", () => {
+          AppState.SELECT_CHILD = c.children_id;
+          AppState.SELECT_CHILD_NAME = c.children_name;
+          listEl.querySelectorAll("li").forEach(li => li.classList.remove("active"));
+          li.classList.add("active");
+          console.log(`🎯 選択: ${AppState.SELECT_CHILD_NAME} (${AppState.SELECT_CHILD})`);
+        });
+
+        // 右クリックでnotes表示/非表示
+        li.addEventListener("contextmenu", (e) => {
+          e.preventDefault();
+          
+          // 既存のnotes表示をチェック
+          let notesDiv = li.querySelector('.notes-display');
+          
+          if (notesDiv) {
+            // 既に表示されている場合は非表示
+            notesDiv.remove();
+          } else {
+            // notesを表示
+            notesDiv = document.createElement("div");
+            notesDiv.className = "notes-display";
+            
+            // 時間入力コンテナを作成
+            const timeInputContainer = document.createElement("div");
+            timeInputContainer.className = "time-input-container";
+            
+            // 時間入力グループ（横並び）
+            const timeGroup = document.createElement("div");
+            timeGroup.className = "time-group";
+            
+            // 入室時間入力
+            const enterTimeLabel = document.createElement("label");
+            enterTimeLabel.textContent = "入室:";
+            enterTimeLabel.className = "time-label";
+            
+            const enterTimeInput = document.createElement("input");
+            enterTimeInput.type = "time";
+            enterTimeInput.className = "time-input";
+            enterTimeInput.id = `enter-${c.children_id}`;
+            
+            // 退出時間入力
+            const exitTimeLabel = document.createElement("label");
+            exitTimeLabel.textContent = "退出:";
+            exitTimeLabel.className = "time-label";
+            
+            const exitTimeInput = document.createElement("input");
+            exitTimeInput.type = "time";
+            exitTimeInput.className = "time-input";
+            exitTimeInput.id = `exit-${c.children_id}`;
+            
+            // 時間グループに追加
+            timeGroup.appendChild(enterTimeLabel);
+            timeGroup.appendChild(enterTimeInput);
+            timeGroup.appendChild(exitTimeLabel);
+            timeGroup.appendChild(exitTimeInput);
+            
+            // メモ入力テキストエリア
+            const memoLabel = document.createElement("label");
+            memoLabel.textContent = "メモ:";
+            memoLabel.className = "memo-label";
+            
+            const memoTextarea = document.createElement("textarea");
+            memoTextarea.className = "memo-textarea";
+            memoTextarea.id = `memo-${c.children_id}`;
+            memoTextarea.placeholder = "一時的なメモを入力してください...";
+            memoTextarea.rows = 3;
+            
+            // 保存ボタン
+            const saveButton = document.createElement("button");
+            saveButton.textContent = "保存";
+            saveButton.className = "save-button";
+            
+            // 既存の一時メモを読み込み
+            loadTempNote(c.children_id, enterTimeInput, exitTimeInput, memoTextarea);
+            
+            // 保存ボタンのイベント
+            saveButton.addEventListener("click", async () => {
+              await saveTempNote(c.children_id, enterTimeInput.value, exitTimeInput.value, memoTextarea.value);
+            });
+            
+            // 時間入力の変更時に自動保存
+            enterTimeInput.addEventListener("change", async () => {
+              await saveTempNote(c.children_id, enterTimeInput.value, exitTimeInput.value, memoTextarea.value);
+            });
+            
+            exitTimeInput.addEventListener("change", async () => {
+              await saveTempNote(c.children_id, enterTimeInput.value, exitTimeInput.value, memoTextarea.value);
+            });
+            
+            // メモ入力の変更時に自動保存
+            memoTextarea.addEventListener("input", async () => {
+              await saveTempNote(c.children_id, enterTimeInput.value, exitTimeInput.value, memoTextarea.value);
+            });
+            
+            timeInputContainer.appendChild(timeGroup);
+            timeInputContainer.appendChild(memoLabel);
+            timeInputContainer.appendChild(memoTextarea);
+            timeInputContainer.appendChild(saveButton);
+            
+            // notes内容
+            const notesContent = document.createElement("div");
+            notesContent.className = "notes-content";
+            notesContent.textContent = c.notes || "メモがありません";
+            
+            notesDiv.appendChild(timeInputContainer);
+            notesDiv.appendChild(notesContent);
+            li.appendChild(notesDiv);
+          }
+        });
+
+        if (i === 0 && (!AppState.SELECT_CHILD || AppState.SELECT_CHILD === "")) {
+          AppState.SELECT_CHILD = c.children_id;
+          AppState.SELECT_CHILD_NAME = c.children_name;
+          li.classList.add("active");
+          console.log(`✨ 自動選択: ${AppState.SELECT_CHILD_NAME}`);
+        }
+
+        listEl.appendChild(li);
+      });
     }
 
-    data.week_children.forEach((c, i) => {
-      const li = document.createElement("li");
-      li.textContent = `${c.children_id}: ${c.children_name}　:${c.pc_name?c.pc_name:""}`;
-      li.dataset.childId = c.children_id;
-      li.style.cursor = "pointer";
-
-      // 左クリックで選択
-      li.addEventListener("click", () => {
-        AppState.SELECT_CHILD = c.children_id;
-        AppState.SELECT_CHILD_NAME = c.children_name;
-        listEl.querySelectorAll("li").forEach(li => li.classList.remove("active"));
-        li.classList.add("active");
-        console.log(`🎯 選択: ${AppState.SELECT_CHILD_NAME} (${AppState.SELECT_CHILD})`);
-      });
-
-      // 右クリックでnotes表示/非表示
-      li.addEventListener("contextmenu", (e) => {
-        e.preventDefault();
-        
-        // 既存のnotes表示をチェック
-        let notesDiv = li.querySelector('.notes-display');
-        
-        if (notesDiv) {
-          // 既に表示されている場合は非表示
-          notesDiv.remove();
-        } else {
-          // notesを表示
-          notesDiv = document.createElement("div");
-          notesDiv.className = "notes-display";
+    // キャンセル待ち子どもリスト
+    const waitingListEl = document.getElementById("waitingChildrenList");
+    if (waitingListEl) {
+      waitingListEl.replaceChildren();
+      
+      if (!data || !data.waiting_children || data.waiting_children.length === 0) {
+        waitingListEl.innerHTML = "<li>キャンセル待ちの子どもはいません</li>";
+      } else {
+        data.waiting_children.forEach((c) => {
+          const li = document.createElement("li");
+          li.textContent = `${c.children_id}: ${c.children_name}　:${c.pc_name?c.pc_name:""}`;
+          li.dataset.childId = c.children_id;
+          li.style.cursor = "pointer";
+          li.style.backgroundColor = "#fff3cd";
+          li.style.borderColor = "#ffeaa7";
           
-          // 時間入力コンテナを作成
-          const timeInputContainer = document.createElement("div");
-          timeInputContainer.className = "time-input-container";
-          
-          // 時間入力グループ（横並び）
-          const timeGroup = document.createElement("div");
-          timeGroup.className = "time-group";
-          
-          // 入室時間入力
-          const enterTimeLabel = document.createElement("label");
-          enterTimeLabel.textContent = "入室:";
-          enterTimeLabel.className = "time-label";
-          
-          const enterTimeInput = document.createElement("input");
-          enterTimeInput.type = "time";
-          enterTimeInput.className = "time-input";
-          enterTimeInput.id = `enter-${c.children_id}`;
-          
-          // 退出時間入力
-          const exitTimeLabel = document.createElement("label");
-          exitTimeLabel.textContent = "退出:";
-          exitTimeLabel.className = "time-label";
-          
-          const exitTimeInput = document.createElement("input");
-          exitTimeInput.type = "time";
-          exitTimeInput.className = "time-input";
-          exitTimeInput.id = `exit-${c.children_id}`;
-          
-          // 時間グループに追加
-          timeGroup.appendChild(enterTimeLabel);
-          timeGroup.appendChild(enterTimeInput);
-          timeGroup.appendChild(exitTimeLabel);
-          timeGroup.appendChild(exitTimeInput);
-          
-          // メモ入力テキストエリア
-          const memoLabel = document.createElement("label");
-          memoLabel.textContent = "メモ:";
-          memoLabel.className = "memo-label";
-          
-          const memoTextarea = document.createElement("textarea");
-          memoTextarea.className = "memo-textarea";
-          memoTextarea.id = `memo-${c.children_id}`;
-          memoTextarea.placeholder = "一時的なメモを入力してください...";
-          memoTextarea.rows = 3;
-          
-          // 保存ボタン
-          const saveButton = document.createElement("button");
-          saveButton.textContent = "保存";
-          saveButton.className = "save-button";
-          
-          // 既存の一時メモを読み込み
-          loadTempNote(c.children_id, enterTimeInput, exitTimeInput, memoTextarea);
-          
-          // 保存ボタンのイベント
-          saveButton.addEventListener("click", async () => {
-            await saveTempNote(c.children_id, enterTimeInput.value, exitTimeInput.value, memoTextarea.value);
+          // 左クリックで選択
+          li.addEventListener("click", () => {
+            AppState.SELECT_CHILD = c.children_id;
+            AppState.SELECT_CHILD_NAME = c.children_name;
+            // 他のリストのアクティブ状態をクリア
+            document.querySelectorAll("#childrenList li, #waitingChildrenList li, #ExperienceChildrenList li").forEach(li => li.classList.remove("active"));
+            li.classList.add("active");
+            console.log(`🎯 選択: ${AppState.SELECT_CHILD_NAME} (${AppState.SELECT_CHILD})`);
           });
           
-          // 時間入力の変更時に自動保存
-          enterTimeInput.addEventListener("change", async () => {
-            await saveTempNote(c.children_id, enterTimeInput.value, exitTimeInput.value, memoTextarea.value);
-          });
-          
-          exitTimeInput.addEventListener("change", async () => {
-            await saveTempNote(c.children_id, enterTimeInput.value, exitTimeInput.value, memoTextarea.value);
-          });
-          
-          // メモ入力の変更時に自動保存
-          memoTextarea.addEventListener("input", async () => {
-            await saveTempNote(c.children_id, enterTimeInput.value, exitTimeInput.value, memoTextarea.value);
-          });
-          
-          timeInputContainer.appendChild(timeGroup);
-          timeInputContainer.appendChild(memoLabel);
-          timeInputContainer.appendChild(memoTextarea);
-          timeInputContainer.appendChild(saveButton);
-          
-          // notes内容
-          const notesContent = document.createElement("div");
-          notesContent.className = "notes-content";
-          notesContent.textContent = c.notes || "メモがありません";
-          
-          notesDiv.appendChild(timeInputContainer);
-          notesDiv.appendChild(notesContent);
-          li.appendChild(notesDiv);
-        }
-      });
-
-      if (i === 0 && (!AppState.SELECT_CHILD || AppState.SELECT_CHILD === "")) {
-        AppState.SELECT_CHILD = c.children_id;
-        AppState.SELECT_CHILD_NAME = c.children_name;
-        li.classList.add("active");
-        console.log(`✨ 自動選択: ${AppState.SELECT_CHILD_NAME}`);
+          waitingListEl.appendChild(li);
+        });
       }
+    }
 
-      listEl.appendChild(li);
-    });
+    // 体験子どもリスト
+    const experienceListEl = document.getElementById("ExperienceChildrenList");
+    if (experienceListEl) {
+      experienceListEl.replaceChildren();
+      
+      if (!data || !data.Experience_children || data.Experience_children.length === 0) {
+        experienceListEl.innerHTML = "<li>体験の子どもはいません</li>";
+      } else {
+        data.Experience_children.forEach((c) => {
+          const li = document.createElement("li");
+          li.textContent = `${c.children_id}: ${c.children_name}　:${c.pc_name?c.pc_name:""}`;
+          li.dataset.childId = c.children_id;
+          li.style.cursor = "pointer";
+          li.style.backgroundColor = "#d1ecf1";
+          li.style.borderColor = "#bee5eb";
+          
+          // 左クリックで選択
+          li.addEventListener("click", () => {
+            AppState.SELECT_CHILD = c.children_id;
+            AppState.SELECT_CHILD_NAME = c.children_name;
+            // 他のリストのアクティブ状態をクリア
+            document.querySelectorAll("#childrenList li, #waitingChildrenList li, #ExperienceChildrenList li").forEach(li => li.classList.remove("active"));
+            li.classList.add("active");
+            console.log(`🎯 選択: ${AppState.SELECT_CHILD_NAME} (${AppState.SELECT_CHILD})`);
+          });
+          
+          experienceListEl.appendChild(li);
+        });
+      }
+    }
   }
 
   // 🌟 曜日選択
