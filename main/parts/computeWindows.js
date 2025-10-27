@@ -259,11 +259,19 @@ function openDoubleWebviewWithTabs(url1, url2, label) {
         
         // 加算登録ラジオボタンをクリック
         await clickAdditionRadio();
+        
+        // テーブルが完全に読み込まれるまで少し待機
+        await new Promise(r => setTimeout(r, 1000));
 
         const htmlLeft = await left.executeJavaScript(\`
           console.log("🔍 左ページ:", document.title);
-          const el = document.querySelector("table");
-          if (!el) throw new Error("左ページに<table>が見つかりません");
+          let el = document.querySelector("table.js_adding_table");
+          if (!el) {
+            console.log("⚠️ js_adding_tableクラスのテーブルが見つかりません。通常のtableを探します...");
+            el = document.querySelector("table");
+            if (!el) throw new Error("左ページにテーブルが見つかりません");
+          }
+          console.log("✅ テーブルを取得しました:", el.className);
           el.outerHTML;
         \`);
 
