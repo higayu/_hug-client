@@ -202,8 +202,7 @@ export async function initChildrenList() {
           li.textContent = `${c.children_id}: ${c.children_name}　:${c.pc_name?c.pc_name:""}`;
           li.dataset.childId = c.children_id;
           li.style.cursor = "pointer";
-          li.style.backgroundColor = COLORS.WAITING_BG;
-          li.style.borderColor = COLORS.WAITING_BORDER;
+          li.classList.add(CSS_CLASSES.WAITING_ITEM);
           
           // 左クリックで選択
           li.addEventListener(EVENTS.CLICK, () => {
@@ -233,8 +232,7 @@ export async function initChildrenList() {
           li.textContent = `${c.children_id}: ${c.children_name}　:${c.pc_name?c.pc_name:""}`;
           li.dataset.childId = c.children_id;
           li.style.cursor = "pointer";
-          li.style.backgroundColor = COLORS.EXPERIENCE_BG;
-          li.style.borderColor = COLORS.EXPERIENCE_BORDER;
+          li.classList.add(CSS_CLASSES.EXPERIENCE_ITEM);
           
           // 左クリックで選択
           li.addEventListener(EVENTS.CLICK, () => {

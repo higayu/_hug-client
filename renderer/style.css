@@ -181,6 +181,56 @@ body {
   border-left: 4px solid #0288d1;
 }
 
+/* === キャンセル待ち児童リスト === */
+#waitingChildrenList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+#waitingChildrenList li {
+  padding: 6px 10px;
+  border-bottom: 1px solid #ddd;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+#waitingChildrenList li:hover {
+  background: #fff3cd;
+}
+
+#waitingChildrenList li.active {
+  background: linear-gradient(180deg, #b3e5fc, #4fc3f7);
+  color: #000;
+  font-weight: bold;
+  border-left: 4px solid #0288d1;
+}
+
+/* === 体験児童リスト === */
+#ExperienceChildrenList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+#ExperienceChildrenList li {
+  padding: 6px 10px;
+  border-bottom: 1px solid #ddd;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+#ExperienceChildrenList li:hover {
+  background: #d1ecf1;
+}
+
+#ExperienceChildrenList li.active {
+  background: linear-gradient(180deg, #b3e5fc, #4fc3f7);
+  color: #000;
+  font-weight: bold;
+  border-left: 4px solid #0288d1;
+}
+
 /* ===== ナビゲーションメニュー ===== */
 .globalNav {
   position: relative;

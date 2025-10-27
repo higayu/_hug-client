@@ -90,6 +90,8 @@ export const CSS_CLASSES = {
   // リスト関連
   ACTIVE: "active",
   SELECTED: "selected",
+  WAITING_ITEM: "waiting-item",
+  EXPERIENCE_ITEM: "experience-item",
   
   // 折りたたみ関連
   COLLAPSED: "collapsed",
