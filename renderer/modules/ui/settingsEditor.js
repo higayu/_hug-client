@@ -534,7 +534,6 @@ export class SettingsEditor {
     const buttonMappings = {
       'individualSupportPlan': 'Individual_Support_Button',
       'specializedSupportPlan': 'Specialized-Support-Plan',
-      'additionCompare': 'addition-compare-btn',
       'importSetting': 'Import-Setting',
       'getUrl': 'Get-Url',
       'loadIni': 'Load-Ini'

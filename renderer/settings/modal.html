@@ -36,10 +36,6 @@
               <span>専門的支援計画</span>
             </label>
             <label class="setting-item">
-              <input type="checkbox" id="feature-additionCompare" data-path="appSettings.features.additionCompare.enabled">
-              <span>加算比較</span>
-            </label>
-            <label class="setting-item">
               <input type="checkbox" id="feature-importSetting" data-path="appSettings.features.importSetting.enabled">
               <span>設定ファイル取得</span>
             </label>
@@ -64,10 +60,6 @@
               <input type="text" id="text-specializedSupportPlan" data-path="appSettings.features.specializedSupportPlan.buttonText">
             </div>
             <div class="setting-item">
-              <label for="text-additionCompare">加算比較:</label>
-              <input type="text" id="text-additionCompare" data-path="appSettings.features.additionCompare.buttonText">
-            </div>
-            <div class="setting-item">
               <label for="text-loadIni">ini.jsonの再読み込み:</label>
               <input type="text" id="text-loadIni" data-path="appSettings.features.loadIni.buttonText">
             </div>
@@ -82,10 +74,6 @@
             <div class="setting-item">
               <label for="color-specializedSupportPlan">専門的支援計画:</label>
               <input type="color" id="color-specializedSupportPlan" data-path="appSettings.features.specializedSupportPlan.buttonColor">
-            </div>
-            <div class="setting-item">
-              <label for="color-additionCompare">テスト取得:</label>
-              <input type="color" id="color-additionCompare" data-path="appSettings.features.additionCompare.buttonColor">
             </div>
             <div class="setting-item">
               <label for="color-loadIni">ini.jsonの再読み込み:</label>
@@ -192,6 +180,10 @@
         <!-- カスタムボタン設定タブ -->
         <div id="custom-tab" class="tab-content">
           <h3>カスタムボタン</h3>
+          <p class="setting-description">
+            カスタムボタンは自由に追加・編集・削除できます。<br>
+            加算比較ボタンもここで管理されます。
+          </p>
           <div id="custom-buttons-list" class="setting-group">
             <!-- カスタムボタンが動的に追加される -->
           </div>

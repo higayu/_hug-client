@@ -89,31 +89,6 @@ export function initHugActions() {
     window.electronAPI.openSpecializedSupportPlan(AppState.SELECT_CHILD);
   });
 
-  // ✅ 加算比較ボタン（別ウインドウ）
-  const additionCompareBtn = document.getElementById("addition-compare-btn");
-  if (additionCompareBtn) {
-    additionCompareBtn.addEventListener("click", () => {
-      console.log("🔘 [HUG_ACTIONS] 加算比較ボタンがクリックされました");
-      console.log("🔍 [HUG_ACTIONS] AppState:", { 
-        FACILITY_ID: AppState.FACILITY_ID, 
-        DATE_STR: AppState.DATE_STR 
-      });
-      try {
-        if (window.electronAPI && window.electronAPI.open_addition_compare_btn) {
-          console.log("📤 [HUG_ACTIONS] electronAPI.open_addition_compare_btn を呼び出します");
-          window.electronAPI.open_addition_compare_btn(AppState.FACILITY_ID, AppState.DATE_STR);
-        } else {
-          console.error("❌ [HUG_ACTIONS] window.electronAPI.open_addition_compare_btn が見つかりません");
-          console.log("🔍 [HUG_ACTIONS] window.electronAPI:", window.electronAPI);
-        }
-      } catch (error) {
-        console.error("❌ [HUG_ACTIONS] 加算比較ボタンクリック処理でエラー:", error);
-      }
-    });
-    console.log("✅ 加算比較ボタンのイベントリスナーを設定しました");
-  } else {
-    console.error("❌ 加算比較ボタンが見つかりません: addition-compare-btn");
-  }
   
   // 「設定ファイルの取得」ボタンのクリックイベント
   document.getElementById("Import-Setting").addEventListener("click", async () => {
@@ -218,7 +193,6 @@ export function updateButtonVisibility() {
   const buttonMappings = {
     'individualSupportPlan': 'Individual_Support_Button',
     'specializedSupportPlan': 'Specialized-Support-Plan',
-    'additionCompare': 'addition-compare-btn',
     'importSetting': 'Import-Setting',
     'getUrl': 'Get-Url',
     'loadIni': 'Load-Ini',
@@ -232,14 +206,8 @@ export function updateButtonVisibility() {
       const isEnabled = isFeatureEnabled(featureName);
       console.log(`🔧 [HUG_ACTIONS] ボタン更新: ${buttonId}, 有効: ${isEnabled}`);
       
-      // テストボタンの場合は常に表示（デバッグ用）
-      if (buttonId === 'addition-compare-btn') {
-        button.style.display = 'inline-block';
-        console.log(`🔧 [HUG_ACTIONS] テストボタンを強制表示: ${buttonId}`);
-      } else {
-        // ボタンの表示/非表示を制御
-        button.style.display = isEnabled ? 'inline-block' : 'none';
-      }
+      // ボタンの表示/非表示を制御
+      button.style.display = isEnabled ? 'inline-block' : 'none';
       
       // ボタンテキストとカラーを更新
       const config = getButtonConfig(featureName);
