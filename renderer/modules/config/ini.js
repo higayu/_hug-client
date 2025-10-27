@@ -25,6 +25,7 @@ export const IniState = {
 // ini.json読み込み
 export async function loadIni() {
   try {
+    console.log("🔄 [INI] ini.json読み込み開始");
     const result = await window.electronAPI.readIni();
 
     if (!result.success) {
@@ -33,11 +34,15 @@ export async function loadIni() {
     }
 
     const data = result.data;
+    console.log("🔍 [INI] 読み込んだデータ:", data);
+    console.log("🔍 [INI] customButtons:", data.appSettings?.customButtons);
     
     // 設定をマージ（デフォルト値と組み合わせ）
     IniState.appSettings = { ...IniState.appSettings, ...data.appSettings };
     IniState.userPreferences = { ...IniState.userPreferences, ...data.userPreferences };
 
+    console.log("✅ [INI] マージ後のIniState:", IniState);
+    console.log("✅ [INI] マージ後のcustomButtons:", IniState.appSettings.customButtons);
     console.log(MESSAGES.SUCCESS.INI_LOADED, IniState);
     return true;
   } catch (err) {
@@ -111,7 +116,13 @@ export function getButtonConfig(buttonName) {
 
 // カスタムボタンの設定を取得
 export function getCustomButtons() {
-  return IniState.appSettings.customButtons.filter(btn => btn.enabled);
+  console.log("🔍 [INI] getCustomButtons呼び出し");
+  console.log("🔍 [INI] IniState.appSettings.customButtons:", IniState.appSettings.customButtons);
+  
+  const enabledButtons = IniState.appSettings.customButtons.filter(btn => btn.enabled);
+  console.log("🔍 [INI] 有効なカスタムボタン:", enabledButtons);
+  
+  return enabledButtons;
 }
 
 // UI設定を取得

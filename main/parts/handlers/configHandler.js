@@ -2,7 +2,7 @@
 const fs = require("fs");
 const path = require("path");
 const { app, dialog } = require("electron");
-const { getDataPath } = require("./util");
+const { getDataPath } = require("../utils/util");
 
 function resolveConfigPath() {
   if (app.isPackaged) {
@@ -24,9 +24,9 @@ function handleConfigAccess(ipcMain) {
         const defaultConfig = {
           HUG_USERNAME: "",
           HUG_PASSWORD: "",
-          VITE_API_BASE_URL: "http://192.168.1.229:3001/api",
+          VITE_API_BASE_URL: "http://192.168.3.35:3001/api",
           STAFF_ID: "",
-          FACILITY_ID: ""
+          FACILITY_ID: "3"
         };
         
         // ディレクトリが存在しない場合は作成

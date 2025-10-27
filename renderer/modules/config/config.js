@@ -60,24 +60,31 @@ export async function saveConfig() {
 export async function loadConfig() {
   const output = document.getElementById(ELEMENT_IDS.CONFIG_OUTPUT);
   try {
+    console.log("🔄 [CONFIG] config.json読み込み開始");
     const result = await window.electronAPI.readConfig();
+    console.log("🔍 [CONFIG] readConfig結果:", result);
+    
     if (!result.success) {
-      output.textContent = "❌ 読み込みエラー: " + result.error;
+      console.error("❌ [CONFIG] 読み込みエラー:", result.error);
+      if (output) output.textContent = "❌ 読み込みエラー: " + result.error;
       return false;
     }
 
     const data = result.data;
+    console.log("🔍 [CONFIG] 読み込んだデータ:", data);
+    
     Object.assign(AppState, data);
+    console.log("🔍 [CONFIG] AppStateにマージ後:", AppState);
 
     // 自動で日付と曜日を設定
     AppState.DATE_STR = getDateString();
     AppState.WEEK_DAY = getTodayWeekday();
 
-    console.log(MESSAGES.SUCCESS.CONFIG_LOADED, AppState);
+    console.log("✅ [CONFIG] config.json読み込み成功:", AppState);
     if (output) output.textContent = JSON.stringify(data, null, 2);
     return true;
   } catch (err) {
-    console.error(MESSAGES.ERROR.CONFIG_LOAD, err);
+    console.error("❌ [CONFIG] config.json読み込みエラー:", err);
     if (output) output.textContent = "❌ エラー: " + err.message;
     return false;
   }

@@ -99,5 +99,10 @@ contextBridge.exposeInMainWorld("electronAPI", {
   
   checkForUpdates: () => ipcRenderer.invoke("check-for-updates"),
 
+  // カスタムボタン関連
+  readCustomButtons: () => ipcRenderer.invoke("read-custom-buttons"),
+  saveCustomButtons: (data) => ipcRenderer.invoke("save-custom-buttons", data),
+  readAvailableActions: () => ipcRenderer.invoke("read-available-actions"),
+
 });
 

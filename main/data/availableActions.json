@@ -1,0 +1,61 @@
+{
+  "version": "1.0.0",
+  "availableActions": [
+    {
+      "id": "additionCompare",
+      "name": "加算比較",
+      "description": "加算登録の比較機能を実行します",
+      "category": "比較機能",
+      "icon": "📊"
+    },
+    {
+      "id": "customAction1",
+      "name": "カスタムアクション1",
+      "description": "カスタムアクション1を実行します",
+      "category": "カスタム",
+      "icon": "🔧"
+    },
+    {
+      "id": "customAction2",
+      "name": "カスタムアクション2",
+      "description": "カスタムアクション2を実行します",
+      "category": "カスタム",
+      "icon": "⚙️"
+    },
+    {
+      "id": "login",
+      "name": "自動ログイン",
+      "description": "HUGシステムに自動ログインします",
+      "category": "認証",
+      "icon": "🔐"
+    },
+    {
+      "id": "exportData",
+      "name": "データエクスポート",
+      "description": "現在のデータをエクスポートします",
+      "category": "データ管理",
+      "icon": "📤"
+    },
+    {
+      "id": "importData",
+      "name": "データインポート",
+      "description": "外部データをインポートします",
+      "category": "データ管理",
+      "icon": "📥"
+    },
+    {
+      "id": "refreshData",
+      "name": "データ更新",
+      "description": "データを最新の状態に更新します",
+      "category": "データ管理",
+      "icon": "🔄"
+    },
+    {
+      "id": "openSettings",
+      "name": "設定を開く",
+      "description": "アプリケーション設定を開きます",
+      "category": "設定",
+      "icon": "⚙️"
+    }
+  ]
+}

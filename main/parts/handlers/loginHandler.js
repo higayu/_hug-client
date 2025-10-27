@@ -1,5 +1,5 @@
 // main/parts/loginHandler.js
-const { loginHug } = require("../../puppeteer/login");
+const { loginHug } = require("../../../puppeteer/login");
 
 function handleLogin(ipcMain, mainWindow) {
   ipcMain.handle("hug-login", async () => {

@@ -1,5 +1,5 @@
 // modules/actions/customButtons.js
-import { getCustomButtons, loadIni } from '../config/ini.js';
+import { getCustomButtons, loadCustomButtons } from '../config/customButtons.js';
 import { AppState } from '../config/config.js';
 import { getActiveWebview } from '../data/webviewState.js';
 
@@ -15,8 +15,8 @@ export class CustomButtonManager {
     
     console.log("🔧 カスタムボタンマネージャーを初期化中...");
     
-    // ini.jsonを読み込み
-    await loadIni();
+    // カスタムボタンを読み込み
+    await loadCustomButtons();
     
     // カスタムボタンを取得
     this.customButtons = getCustomButtons();
@@ -37,14 +37,23 @@ export class CustomButtonManager {
       return;
     }
 
+    console.log("🔍 [CUSTOM_BUTTONS] カスタムボタン生成開始");
+    console.log("🔍 [CUSTOM_BUTTONS] customPanel:", customPanel);
+    console.log("🔍 [CUSTOM_BUTTONS] this.customButtons:", this.customButtons);
+
     // 既存のカスタムボタンをクリア（テストボタン以外）
     const existingButtons = customPanel.querySelectorAll('li:not(:first-child)');
+    console.log("🔍 [CUSTOM_BUTTONS] 既存ボタン数:", existingButtons.length);
     existingButtons.forEach(btn => btn.remove());
 
     // 有効なカスタムボタンを生成
-    this.customButtons.forEach(buttonConfig => {
+    this.customButtons.forEach((buttonConfig, index) => {
+      console.log(`🔍 [CUSTOM_BUTTONS] ボタン${index}:`, buttonConfig);
       if (buttonConfig.enabled) {
+        console.log(`✅ [CUSTOM_BUTTONS] ボタン${index}を生成:`, buttonConfig.text);
         this.createCustomButton(buttonConfig);
+      } else {
+        console.log(`⏭️ [CUSTOM_BUTTONS] ボタン${index}は無効:`, buttonConfig.text);
       }
     });
 
@@ -54,7 +63,12 @@ export class CustomButtonManager {
   // 個別のカスタムボタンを作成
   createCustomButton(buttonConfig) {
     const customPanel = document.getElementById('custom-panel');
-    if (!customPanel) return;
+    if (!customPanel) {
+      console.error("❌ [CUSTOM_BUTTONS] customPanelが見つかりません");
+      return;
+    }
+
+    console.log("🔍 [CUSTOM_BUTTONS] ボタン作成開始:", buttonConfig);
 
     const listItem = document.createElement('li');
     const button = document.createElement('button');
@@ -80,18 +94,21 @@ export class CustomButtonManager {
 
     // クリックイベント
     button.addEventListener('click', () => {
+      console.log("🔘 [CUSTOM_BUTTONS] ボタンクリック:", buttonConfig.id, buttonConfig.action);
       this.handleCustomButtonClick(buttonConfig);
     });
 
     listItem.appendChild(button);
     customPanel.appendChild(listItem);
 
-    console.log(`✅ カスタムボタンを作成: ${buttonConfig.text} (${buttonConfig.id})`);
+    console.log(`✅ [CUSTOM_BUTTONS] カスタムボタンを作成: ${buttonConfig.text} (${buttonConfig.id})`);
+    console.log("🔍 [CUSTOM_BUTTONS] customPanelの子要素数:", customPanel.children.length);
   }
 
   // 加算比較ボタンの処理
   handleAdditionCompare(buttonConfig) {
     console.log("🔘 [CUSTOM_BUTTONS] 加算比較ボタンがクリックされました");
+    console.log("🔍 [CUSTOM_BUTTONS] buttonConfig:", buttonConfig);
     console.log("🔍 [CUSTOM_BUTTONS] AppState:", { 
       FACILITY_ID: AppState.FACILITY_ID, 
       DATE_STR: AppState.DATE_STR 
@@ -99,6 +116,7 @@ export class CustomButtonManager {
     try {
       if (window.electronAPI && window.electronAPI.open_addition_compare_btn) {
         console.log("📤 [CUSTOM_BUTTONS] electronAPI.open_addition_compare_btn を呼び出します");
+        console.log("📤 [CUSTOM_BUTTONS] 引数:", AppState.FACILITY_ID, AppState.DATE_STR);
         window.electronAPI.open_addition_compare_btn(AppState.FACILITY_ID, AppState.DATE_STR);
       } else {
         console.error("❌ [CUSTOM_BUTTONS] window.electronAPI.open_addition_compare_btn が見つかりません");
@@ -182,7 +200,7 @@ export class CustomButtonManager {
   // カスタムボタンを再読み込み
   async reloadCustomButtons() {
     console.log("🔄 カスタムボタンを再読み込み中...");
-    await loadIni();
+    await loadCustomButtons();
     this.customButtons = getCustomButtons();
     this.generateCustomButtons();
     console.log("✅ カスタムボタンの再読み込み完了");

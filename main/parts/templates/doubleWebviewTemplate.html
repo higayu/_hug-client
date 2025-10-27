@@ -1,83 +1,3 @@
-// main/parts/computeWindows.js
-const { BrowserWindow } = require("electron");
-const path = require("path");
-
-let isRegistered = false;
-
-function open_addition_compare_btn(ipcMain, facility_id, date_str) {
-  // console.log("🔧 [MAIN] open_addition_compare_btn 関数が呼び出されました");
-  // console.log("🔍 [MAIN] isRegistered:", isRegistered);
-  // console.log("🔍 [MAIN] ipcMain:", ipcMain ? "存在" : "未定義");
-  // console.log("🔍 [MAIN] 引数:", { facility_id, date_str });
-  
-  if (isRegistered) {
-    //console.log("⚠️ open-addition-compare-btn は既に登録済みです");
-    return;
-  }
-  isRegistered = true;
- // console.log("✅ open-addition-compare-btn IPCハンドラーを登録しました");
-
-  // すべてのIPCイベントをログ出力するリスナーを追加
-  ipcMain.on("open-addition-compare-btn", (event, args) => {
-    // 引数から施設IDと日付を取得（デフォルト値も設定）
-    const received_facility_id = args?.facility_id || facility_id;
-    const received_date_str = args?.date_str || date_str;
-    
-    console.log("🔍 [MAIN] 受信した引数:", { received_facility_id, received_date_str });
-
-    try {
-      openDoubleWebviewWithTabs(
-        `https://www.hug-ayumu.link/hug/wm/attendance.php?mode=detail&f_id=${received_facility_id}&date=${received_date_str}`,
-        "https://www.hug-ayumu.link/hug/wm/record_proceedings.php",
-        "HUGデータ取得"
-      );
-      //console.log("✅ [MAIN] ダブルWebViewウィンドウを開きました");
-    } catch (error) {
-      console.error("❌ [MAIN] ダブルWebViewウィンドウの作成に失敗:", error);
-    }
-  });
-
-  // デバッグ用：IPCイベントの監視（正しい方法）
-  const originalOn = ipcMain.on;
-  ipcMain.on = function(channel, listener) {
-    console.log("🔍 [MAIN] IPCハンドラーを登録:", channel);
-    return originalOn.call(this, channel, listener);
-  };
-}
-
-function openDoubleWebviewWithTabs(url1, url2, label) {
-  const win = new BrowserWindow({
-    width: 1800,
-    height: 900,
-    webPreferences: {
-      preload: path.join(__dirname, "../../preload.js"),
-      contextIsolation: true,
-      nodeIntegration: false,
-      webviewTag: true,
-      sandbox: false,        // ← 🔥 これを追加
-      webSecurity: false,   // ← 追加
-    },
-  });
-
-  function resolvePreloadPath() {
-    const fs = require("fs");
-    // ① 開発時（npm start等）
-    const devPath = path.join(__dirname, "../../preload.js");
-    // ② パッケージ後
-    const prodPath = path.join(process.resourcesPath, "data", "preload.js");
-
-    if (fs.existsSync(devPath)) return devPath;
-    if (fs.existsSync(prodPath)) return prodPath;
-    console.warn("⚠ preload.js が見つかりません。", devPath, prodPath);
-    return devPath;
-  }
-
-
-
-  console.log(`🆕 ${label}ウィンドウを開きます (2画面＋タブ)`);
-  const preloadPath = resolvePreloadPath();
-
- const html = `
 <!DOCTYPE html>
 <html>
 <head>
@@ -95,7 +15,6 @@ function openDoubleWebviewWithTabs(url1, url2, label) {
     #left { border-right:2px solid #ccc; }
     #resultView { position:absolute; top:0; left:0; width:100%; height:100%; background:#fafafa; overflow:auto;
       white-space:pre; font-family:monospace; padding:20px; display:none; }
-
 
     #resultView h2 {
       background:#f3f3f3; padding:6px 10px; border-left:5px solid #888;
@@ -173,13 +92,13 @@ function openDoubleWebviewWithTabs(url1, url2, label) {
     </div>
     <div id="webviews">
       <webview id="left"
-        src="` + url1 + `"
-        preload="file://` + preloadPath + `"
+        src="{{URL1}}"
+        preload="file://{{PRELOAD_PATH}}"
         allowpopups
         disablewebsecurity></webview>
       <webview id="right"
-        src="` + url2 + `"
-        preload="file://` + preloadPath + `"
+        src="{{URL2}}"
+        preload="file://{{PRELOAD_PATH}}"
         allowpopups
         disablewebsecurity></webview>
     </div>
@@ -213,7 +132,7 @@ function openDoubleWebviewWithTabs(url1, url2, label) {
       try {
         console.log("🟢 加算登録ラジオボタンをクリック中...");
         
-        const success = await left.executeJavaScript(\`
+        const success = await left.executeJavaScript(`
           const radio = document.querySelector('input[type="radio"][name="tableChange"][value="2"]');
           if (radio) {
             radio.click();
@@ -223,7 +142,7 @@ function openDoubleWebviewWithTabs(url1, url2, label) {
             console.log("❌ 加算登録ラジオボタンが見つかりません");
             false;
           }
-        \`);
+        `);
         
         if (success) {
           console.log("✅ 加算登録ラジオボタンのクリックが完了しました");
@@ -263,7 +182,7 @@ function openDoubleWebviewWithTabs(url1, url2, label) {
         // テーブルが完全に読み込まれるまで少し待機
         await new Promise(r => setTimeout(r, 1000));
 
-        const htmlLeft = await left.executeJavaScript(\`
+        const htmlLeft = await left.executeJavaScript(`
           console.log("🔍 左ページ:", document.title);
           let el = document.querySelector("table.js_adding_table");
           if (!el) {
@@ -273,14 +192,14 @@ function openDoubleWebviewWithTabs(url1, url2, label) {
           }
           console.log("✅ テーブルを取得しました:", el.className);
           el.outerHTML;
-        \`);
+        `);
 
-        const htmlRight = await right.executeJavaScript(\`
+        const htmlRight = await right.executeJavaScript(`
           console.log("🔍 右ページ:", document.title);
           const el = document.querySelector("table");
           if (!el) throw new Error("右ページに<table>が見つかりません");
           el.outerHTML;
-        \`);
+        `);
 
         resultView.innerHTML =
           '<div id="resultContainer">' +
@@ -304,14 +223,3 @@ function openDoubleWebviewWithTabs(url1, url2, label) {
   </script>
 </body>
 </html>
-`;
-
-
-
-  win.loadURL("data:text/html;charset=utf-8," + encodeURIComponent(html));
-  win.webContents.once("did-finish-load", () => {
-    console.log(`✅ ${label}ウィンドウ（2ページ＋結果タブ）読み込み完了`);
-  });
-}
-
-module.exports = { open_addition_compare_btn };

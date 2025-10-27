@@ -5,7 +5,7 @@ const path = require("path");
 
 const { createMainWindow } = require("./main/window");
 const { registerIpcHandlers } = require("./main/ipcHandlers");
-const TempNoteHandler = require("./main/parts/tempNoteHandler");
+const TempNoteHandler = require("./main/parts/handlers/tempNoteHandler");
 
 // ✅ 正しいモジュールを使用
 const { autoUpdater } = require("electron-updater");

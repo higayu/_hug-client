@@ -2,7 +2,7 @@
 const fs = require("fs");
 const path = require("path");
 const { app, dialog } = require("electron");
-const { getDataPath } = require("./util");
+const { getDataPath } = require("../utils/util");
 
 function resolveConfigPath() {
   if (app.isPackaged) {
@@ -73,12 +73,20 @@ function handleIniAccess(ipcMain) {
             },
             customButtons: [
               {
+                id: "addition-compare-btn",
+                enabled: true,
+                text: "加算の比較",
+                color: "#f9d4fc",
+                action: "additionCompare",
+                order: 1
+              },
+              {
                 id: "custom1",
                 enabled: true,
                 text: "カスタムボタン1",
                 color: "#dc3545",
                 action: "customAction1",
-                position: "top"
+                order: 2
               },
               {
                 id: "custom2",
@@ -86,7 +94,7 @@ function handleIniAccess(ipcMain) {
                 text: "カスタムボタン2",
                 color: "#6f42c1",
                 action: "customAction2",
-                position: "bottom"
+                order: 3
               }
             ],
             window: {

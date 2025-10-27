@@ -1,6 +1,18 @@
 // renderer/modules/ui/settingsEditor.js
 import { IniState, saveIni, updateIniSetting } from "../config/ini.js";
 import { AppState, saveConfig } from "../config/config.js";
+import { 
+  CustomButtonsState, 
+  loadCustomButtons, 
+  loadAvailableActions, 
+  saveCustomButtons,
+  getCustomButtons,
+  getAvailableActions,
+  getActionsByCategory,
+  addCustomButton,
+  updateCustomButton,
+  removeCustomButton
+} from "../config/customButtons.js";
 import { showSuccessToast, showErrorToast, showInfoToast } from "./toast/toast.js";
 import { UpdateTabHandler } from "../update/updateTabHandler.js";
 
@@ -17,6 +29,23 @@ export class SettingsEditor {
     console.log('🔄 [SETTINGS] 設定エディターを初期化中...');
     
     try {
+      // 設定を再読み込みして確実に最新の状態にする
+      console.log('🔄 [SETTINGS] 設定を再読み込み中...');
+      const { loadIni } = await import('../config/ini.js');
+      const { loadConfig } = await import('../config/config.js');
+      
+      await loadIni();
+      await loadConfig();
+      
+      // カスタムボタンと利用可能なアクションを読み込み
+      console.log('🔄 [SETTINGS] カスタムボタンを読み込み中...');
+      await loadCustomButtons();
+      await loadAvailableActions();
+      
+      console.log('🔍 [SETTINGS] IniState確認:', IniState);
+      console.log('🔍 [SETTINGS] AppState確認:', AppState);
+      console.log('🔍 [SETTINGS] CustomButtonsState確認:', CustomButtonsState);
+      
       // まずイベントリスナーを設定（モーダルは後で読み込む）
       this.setupEventListeners();
       console.log('✅ [SETTINGS] イベントリスナーを設定しました');
@@ -25,6 +54,7 @@ export class SettingsEditor {
       console.log('✅ [SETTINGS] 設定エディターの初期化完了');
     } catch (error) {
       console.error('❌ [SETTINGS] 初期化エラー:', error);
+      console.error('❌ [SETTINGS] エラーの詳細:', error.stack);
     }
   }
 
@@ -200,6 +230,11 @@ export class SettingsEditor {
   async openModal() {
     console.log('🔄 [SETTINGS] 設定モーダルを開こうとしています...');
     
+    // 設定の状態を確認
+    console.log('🔍 [SETTINGS] 現在のIniState:', IniState);
+    console.log('🔍 [SETTINGS] 現在のAppState:', AppState);
+    console.log('🔍 [SETTINGS] customButtons:', IniState.appSettings.customButtons);
+    
     // モーダルが読み込まれていない場合は読み込み
     if (!this.modalLoaded) {
       console.log('🔄 [SETTINGS] モーダルを読み込み中...');
@@ -208,11 +243,9 @@ export class SettingsEditor {
       this.setupTabs();
     }
 
-
-    
     // フォームに現在の値を設定
     console.log('🔄 [SETTINGS] フォームに値を設定中...');
-    this.populateForm();
+    await this.populateForm();
     
     // セレクトボックスを初期化
     console.log('🔄 [SETTINGS] セレクトボックスを初期化中...');
@@ -221,6 +254,13 @@ export class SettingsEditor {
     // カスタムボタンリストを更新
     console.log('🔄 [SETTINGS] カスタムボタンリストを更新中...');
     this.updateCustomButtonsList();
+    
+    // カスタムボタンを表示
+    console.log('🔄 [SETTINGS] カスタムボタンを表示中...');
+    this.applyCustomButtons();
+    
+    // 新しいカスタムボタン作成UIを初期化
+    this.initializeNewButtonUI();
     
     // モーダルを表示
     if (this.modal) {
@@ -237,8 +277,18 @@ export class SettingsEditor {
     }
   }
 
-  populateForm() {
-    if (!this.modal) return;
+  async populateForm() {
+    if (!this.modal) {
+      console.error("❌ [SETTINGS] モーダルが存在しません");
+      return;
+    }
+
+    console.log("🔍 [SETTINGS] フォームに値を設定中...");
+
+    // AppStateは既にインポート済み
+    console.log("🔍 [SETTINGS] AppState:", AppState);
+    console.log("🔍 [SETTINGS] AppState.HUG_USERNAME:", AppState.HUG_USERNAME);
+    console.log("🔍 [SETTINGS] AppState.FACILITY_ID:", AppState.FACILITY_ID);
 
     // 機能の有効/無効
     const features = IniState.appSettings.features;
@@ -315,112 +365,273 @@ export class SettingsEditor {
     }
 
     // Config.json設定
+    console.log("🔄 [SETTINGS] Config.json設定をフォームに設定中...");
+    console.log("🔍 [SETTINGS] AppState全体:", AppState);
+    console.log("🔍 [SETTINGS] HUG_USERNAME:", AppState.HUG_USERNAME);
+    console.log("🔍 [SETTINGS] HUG_PASSWORD:", AppState.HUG_PASSWORD ? "***" : "空");
+    console.log("🔍 [SETTINGS] VITE_API_BASE_URL:", AppState.VITE_API_BASE_URL);
+    console.log("🔍 [SETTINGS] STAFF_ID:", AppState.STAFF_ID);
+    console.log("🔍 [SETTINGS] FACILITY_ID:", AppState.FACILITY_ID);
+    
     const configUsername = this.modal.querySelector('#config-username');
     if (configUsername) {
       configUsername.value = AppState.HUG_USERNAME || '';
+      console.log("🔍 [SETTINGS] HUG_USERNAME設定:", configUsername.value);
+    } else {
+      console.warn("⚠️ [SETTINGS] config-username要素が見つかりません");
     }
     
     const configPassword = this.modal.querySelector('#config-password');
     if (configPassword) {
       configPassword.value = AppState.HUG_PASSWORD || '';
+      console.log("🔍 [SETTINGS] HUG_PASSWORD設定:", configPassword.value ? "***" : "空");
+    } else {
+      console.warn("⚠️ [SETTINGS] config-password要素が見つかりません");
     }
     
     const configApiUrl = this.modal.querySelector('#config-api-url');
     if (configApiUrl) {
       configApiUrl.value = AppState.VITE_API_BASE_URL || '';
+      console.log("🔍 [SETTINGS] VITE_API_BASE_URL設定:", configApiUrl.value);
+    } else {
+      console.warn("⚠️ [SETTINGS] config-api-url要素が見つかりません");
     }
     
     const configStaffId = this.modal.querySelector('#config-staff-id');
     if (configStaffId) {
       configStaffId.value = AppState.STAFF_ID || '';
+      console.log("🔍 [SETTINGS] STAFF_ID設定:", configStaffId.value);
+    } else {
+      console.warn("⚠️ [SETTINGS] config-staff-id要素が見つかりません");
     }
     
     const configFacilityId = this.modal.querySelector('#config-facility-id');
     if (configFacilityId) {
       configFacilityId.value = AppState.FACILITY_ID || '';
+      console.log("🔍 [SETTINGS] FACILITY_ID設定:", configFacilityId.value);
+    } else {
+      console.warn("⚠️ [SETTINGS] config-facility-id要素が見つかりません");
     }
   }
 
   updateCustomButtonsList() {
     if (!this.modal) return;
 
+    console.log("🔍 [SETTINGS] カスタムボタンリストを更新中...");
+    console.log("🔍 [SETTINGS] CustomButtonsState.customButtons:", CustomButtonsState.customButtons);
+
     const container = this.modal.querySelector('#custom-buttons-list');
+    if (!container) {
+      console.error("❌ [SETTINGS] custom-buttons-listコンテナが見つかりません");
+      return;
+    }
     container.innerHTML = '';
 
-    IniState.appSettings.customButtons.forEach((button, index) => {
-      const buttonDiv = document.createElement('div');
-      buttonDiv.className = 'custom-button-item';
-      buttonDiv.innerHTML = `
-        <div class="setting-item">
-          <label>
-            <input type="checkbox" class="custom-button-enabled" data-index="${index}" ${button.enabled ? 'checked' : ''}>
-            <span>有効</span>
-          </label>
-        </div>
-        <div class="setting-item">
-          <label>テキスト:</label>
-          <input type="text" class="custom-button-text" data-index="${index}" value="${button.text || ''}">
-        </div>
-        <div class="setting-item">
-          <label>カラー:</label>
-          <input type="color" class="custom-button-color" data-index="${index}" value="${button.color || '#007bff'}">
-        </div>
-        <div class="setting-item">
-          <label>アクション:</label>
-          <input type="text" class="custom-button-action" data-index="${index}" value="${button.action || ''}">
-        </div>
-        <div class="setting-item">
-          <label>位置:</label>
-          <select class="custom-button-position" data-index="${index}">
-            <option value="top" ${button.position === 'top' ? 'selected' : ''}>上部</option>
-            <option value="bottom" ${button.position === 'bottom' ? 'selected' : ''}>下部</option>
-          </select>
-        </div>
-        <button class="btn-danger remove-custom-button" data-index="${index}">削除</button>
-      `;
+    // カスタムボタンを順番でソート
+    const sortedButtons = [...CustomButtonsState.customButtons].sort((a, b) => (a.order || 0) - (b.order || 0));
+
+    // 各ボタンの詳細を確認
+    sortedButtons.forEach((button, index) => {
+      console.log(`🔍 [SETTINGS] ボタン${index}詳細:`, {
+        id: button.id,
+        enabled: button.enabled,
+        text: button.text,
+        action: button.action,
+        color: button.color,
+        order: button.order
+      });
+
+      // アクション情報を取得
+      const action = CustomButtonsState.availableActions.find(a => a.id === button.action);
+      const actionName = action ? action.name : button.action;
+      const actionDescription = action ? action.description : '';
+      const actionIcon = action ? action.icon : '🔧';
+
+       const buttonDiv = document.createElement('div');
+       buttonDiv.className = 'custom-button-item';
+       buttonDiv.style.marginBottom = '15px';
+       buttonDiv.style.padding = '15px';
+       buttonDiv.style.border = '1px solid #ddd';
+       buttonDiv.style.borderRadius = '8px';
+       buttonDiv.style.backgroundColor = '#f9f9f9';
+       buttonDiv.innerHTML = `
+         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+           <h4 style="margin: 0; color: #333;">${actionIcon} ${button.text || 'カスタムボタン'}</h4>
+           <button class="btn-danger remove-custom-button" data-index="${index}" style="padding: 5px 10px; font-size: 12px;">削除</button>
+         </div>
+         <div class="setting-item" style="margin-bottom: 10px;">
+           <label style="display: flex; align-items: center; gap: 8px;">
+             <input type="checkbox" class="custom-button-enabled" data-index="${index}" ${button.enabled ? 'checked' : ''}>
+             <span>有効</span>
+           </label>
+         </div>
+         <div class="setting-item" style="margin-bottom: 10px;">
+           <label style="display: block; margin-bottom: 5px; font-weight: bold;">テキスト:</label>
+           <input type="text" class="custom-button-text" data-index="${index}" value="${button.text || ''}" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+         </div>
+         <div class="setting-item" style="margin-bottom: 10px;">
+           <label style="display: block; margin-bottom: 5px; font-weight: bold;">カラー:</label>
+           <input type="color" class="custom-button-color" data-index="${index}" value="${button.color || '#007bff'}" style="width: 60px; height: 40px; border: 1px solid #ccc; border-radius: 4px;">
+         </div>
+         <div class="setting-item" style="margin-bottom: 10px;">
+           <label style="display: block; margin-bottom: 5px; font-weight: bold;">順番:</label>
+           <input type="number" class="custom-button-order" data-index="${index}" value="${button.order || index + 1}" min="1" style="width: 80px; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+         </div>
+         <div class="setting-item" style="margin-bottom: 10px;">
+           <label style="display: block; margin-bottom: 5px; font-weight: bold;">アクション:</label>
+           <div style="display: flex; align-items: center; gap: 10px; padding: 8px; border: 1px solid #ccc; border-radius: 4px; background-color: #f5f5f5;">
+             <span style="font-size: 18px;">${actionIcon}</span>
+             <div>
+               <div style="font-weight: bold; color: #333;">${actionName}</div>
+               <div style="font-size: 12px; color: #666;">${actionDescription}</div>
+             </div>
+           </div>
+         </div>
+       `;
       container.appendChild(buttonDiv);
     });
 
-    // イベントリスナーを追加
-    container.addEventListener('change', (e) => {
-      if (e.target.classList.contains('custom-button-enabled')) {
-        const index = parseInt(e.target.getAttribute('data-index'));
-        IniState.appSettings.customButtons[index].enabled = e.target.checked;
-      } else if (e.target.classList.contains('custom-button-text')) {
-        const index = parseInt(e.target.getAttribute('data-index'));
-        IniState.appSettings.customButtons[index].text = e.target.value;
-      } else if (e.target.classList.contains('custom-button-color')) {
-        const index = parseInt(e.target.getAttribute('data-index'));
-        IniState.appSettings.customButtons[index].color = e.target.value;
-      } else if (e.target.classList.contains('custom-button-action')) {
-        const index = parseInt(e.target.getAttribute('data-index'));
-        IniState.appSettings.customButtons[index].action = e.target.value;
-      } else if (e.target.classList.contains('custom-button-position')) {
-        const index = parseInt(e.target.getAttribute('data-index'));
-        IniState.appSettings.customButtons[index].position = e.target.value;
-      }
-    });
+     // イベントリスナーを追加
+     const handleInputChange = (e) => {
+       console.log("🔍 [SETTINGS] 入力変更検出:", e.target.className, e.target.value);
+       
+       if (e.target.classList.contains('custom-button-enabled')) {
+         const index = parseInt(e.target.getAttribute('data-index'));
+         updateCustomButton(index, { enabled: e.target.checked });
+         console.log(`✅ [SETTINGS] ボタン${index}の有効状態を更新:`, e.target.checked);
+       } else if (e.target.classList.contains('custom-button-text')) {
+         const index = parseInt(e.target.getAttribute('data-index'));
+         updateCustomButton(index, { text: e.target.value });
+         console.log(`✅ [SETTINGS] ボタン${index}のテキストを更新:`, e.target.value);
+       } else if (e.target.classList.contains('custom-button-color')) {
+         const index = parseInt(e.target.getAttribute('data-index'));
+         updateCustomButton(index, { color: e.target.value });
+         console.log(`✅ [SETTINGS] ボタン${index}のカラーを更新:`, e.target.value);
+       } else if (e.target.classList.contains('custom-button-order')) {
+         const index = parseInt(e.target.getAttribute('data-index'));
+         updateCustomButton(index, { order: parseInt(e.target.value) });
+         console.log(`✅ [SETTINGS] ボタン${index}の順番を更新:`, e.target.value);
+       }
+     };
+
+     // inputとchangeイベントの両方にリスナーを追加
+     container.addEventListener('input', handleInputChange);
+     container.addEventListener('change', handleInputChange);
 
     container.addEventListener('click', (e) => {
       if (e.target.classList.contains('remove-custom-button')) {
         const index = parseInt(e.target.getAttribute('data-index'));
-        IniState.appSettings.customButtons.splice(index, 1);
+        removeCustomButton(index);
         this.updateCustomButtonsList();
       }
     });
   }
 
-  addCustomButton() {
-    const newButton = {
-      id: `custom${Date.now()}`,
-      enabled: true,
-      text: '新しいボタン',
-      color: '#007bff',
-      action: 'customAction',
-      position: 'top'
-    };
+  // 新しいカスタムボタン作成UIを初期化
+  initializeNewButtonUI() {
+    console.log('🔄 [SETTINGS] 新しいカスタムボタン作成UIを初期化中...');
     
-    IniState.appSettings.customButtons.push(newButton);
+    // アクション選択ドロップダウンを初期化
+    this.populateActionDropdown();
+    
+    // イベントリスナーを設定
+    this.setupNewButtonEventListeners();
+  }
+
+  // アクション選択ドロップダウンを初期化
+  populateActionDropdown() {
+    const actionSelect = this.modal.querySelector('#new-button-action');
+    if (!actionSelect) {
+      console.error('❌ [SETTINGS] new-button-action要素が見つかりません');
+      return;
+    }
+
+    // 既存のオプションをクリア（最初のオプション以外）
+    actionSelect.innerHTML = '<option value="">アクションを選択してください</option>';
+
+    // カテゴリ別にアクションをグループ化
+    const actionsByCategory = getActionsByCategory();
+    
+    Object.keys(actionsByCategory).forEach(category => {
+      const optgroup = document.createElement('optgroup');
+      optgroup.label = category;
+      
+      actionsByCategory[category].forEach(action => {
+        const option = document.createElement('option');
+        option.value = action.id;
+        option.textContent = `${action.icon} ${action.name}`;
+        option.title = action.description;
+        optgroup.appendChild(option);
+      });
+      
+      actionSelect.appendChild(optgroup);
+    });
+
+    console.log('✅ [SETTINGS] アクション選択ドロップダウンを初期化しました');
+  }
+
+  // 新しいボタン作成のイベントリスナーを設定
+  setupNewButtonEventListeners() {
+    const createButton = this.modal.querySelector('#create-custom-button');
+    const actionSelect = this.modal.querySelector('#new-button-action');
+    const textInput = this.modal.querySelector('#new-button-text');
+    const colorInput = this.modal.querySelector('#new-button-color');
+
+    if (!createButton || !actionSelect || !textInput || !colorInput) {
+      console.error('❌ [SETTINGS] 新しいボタン作成UIの要素が見つかりません');
+      return;
+    }
+
+    // アクション選択時にテキストを自動入力
+    actionSelect.addEventListener('change', (e) => {
+      const selectedAction = CustomButtonsState.availableActions.find(a => a.id === e.target.value);
+      if (selectedAction && !textInput.value) {
+        textInput.value = selectedAction.name;
+      }
+    });
+
+    // 作成ボタンのクリックイベント
+    createButton.addEventListener('click', () => {
+      const actionId = actionSelect.value;
+      const text = textInput.value.trim();
+      const color = colorInput.value;
+
+      if (!actionId) {
+        showErrorToast('アクションを選択してください');
+        return;
+      }
+
+      if (!text) {
+        showErrorToast('ボタンのテキストを入力してください');
+        return;
+      }
+
+      // カスタムボタンを追加
+      const success = addCustomButton(actionId, text, color);
+      if (success) {
+        this.updateCustomButtonsList();
+        showSuccessToast('カスタムボタンを作成しました');
+        
+        // フォームをリセット
+        actionSelect.value = '';
+        textInput.value = '';
+        colorInput.value = '#007bff';
+      } else {
+        showErrorToast('カスタムボタンの作成に失敗しました');
+      }
+    });
+  }
+
+  addCustomButton() {
+    // デフォルトのアクションを選択（最初の利用可能なアクション）
+    const defaultAction = CustomButtonsState.availableActions[0];
+    if (!defaultAction) {
+      console.error('❌ [SETTINGS] 利用可能なアクションがありません');
+      showErrorToast('利用可能なアクションがありません');
+      return;
+    }
+
+    addCustomButton(defaultAction.id, '新しいボタン', '#007bff');
     this.updateCustomButtonsList();
   }
 
@@ -430,20 +641,23 @@ export class SettingsEditor {
       this.updateIniStateFromForm();
       
       // ini.jsonに保存
-      const success = await saveIni();
+      const iniSuccess = await saveIni();
       
-      if (success) {
-        alert('✅ 設定を保存しました');
+      // カスタムボタンを保存
+      const customButtonsSuccess = await saveCustomButtons();
+      
+      if (iniSuccess && customButtonsSuccess) {
+        showSuccessToast('✅ 設定を保存しました');
         this.closeModal();
         
         // UIに反映
         this.applyAllSettings();
       } else {
-        alert('❌ 設定の保存に失敗しました');
+        showErrorToast('❌ 設定の保存に失敗しました');
       }
     } catch (error) {
       console.error('設定保存エラー:', error);
-      alert('❌ 設定の保存中にエラーが発生しました');
+      showErrorToast('❌ 設定の保存中にエラーが発生しました');
     }
   }
 
@@ -570,18 +784,37 @@ export class SettingsEditor {
 
   // カスタムボタンの適用
   applyCustomButtons() {
-    const customButtons = IniState.appSettings.customButtons.filter(btn => btn.enabled);
+    console.log("🔍 [SETTINGS] カスタムボタン適用開始");
+    console.log("🔍 [SETTINGS] CustomButtonsState.customButtons:", CustomButtonsState.customButtons);
     
-    // カスタムボタンのコンテナを取得
-    const topContainer = document.getElementById('custom-buttons-top');
-    const bottomContainer = document.getElementById('custom-buttons-bottom');
+    // 新しいシステムからカスタムボタンを取得
+    const customButtons = getCustomButtons();
+    console.log("🔍 [SETTINGS] 有効なカスタムボタン:", customButtons);
+    console.log("🔍 [SETTINGS] 有効なボタン数:", customButtons.length);
+    
+    // カスタムボタンのコンテナを取得（設定モーダル用）
+    const customButtonsList = document.getElementById('custom-buttons-list');
+    
+    if (!customButtonsList) {
+      console.error("❌ [SETTINGS] custom-buttons-listコンテナが見つかりません");
+      return;
+    }
     
     // 既存のカスタムボタンをクリア
-    if (topContainer) topContainer.innerHTML = '';
-    if (bottomContainer) bottomContainer.innerHTML = '';
+    customButtonsList.innerHTML = '';
     
     // カスタムボタンを生成
-    customButtons.forEach(button => {
+    customButtons.forEach((button, index) => {
+      console.log(`🔍 [SETTINGS] ボタン${index}を生成:`, button);
+      
+      const buttonContainer = document.createElement('div');
+      buttonContainer.className = 'custom-button-item';
+      buttonContainer.style.marginBottom = '10px';
+      buttonContainer.style.padding = '10px';
+      buttonContainer.style.border = '1px solid #ddd';
+      buttonContainer.style.borderRadius = '4px';
+      buttonContainer.style.backgroundColor = '#f9f9f9';
+      
       const buttonElement = document.createElement('button');
       buttonElement.className = 'custom-button';
       buttonElement.textContent = button.text || 'カスタムボタン';
@@ -593,20 +826,28 @@ export class SettingsEditor {
       buttonElement.style.borderRadius = '4px';
       buttonElement.style.cursor = 'pointer';
       
+      // ボタン情報を表示
+      const buttonInfo = document.createElement('div');
+      buttonInfo.style.fontSize = '12px';
+      buttonInfo.style.color = '#666';
+      buttonInfo.style.marginTop = '5px';
+      buttonInfo.innerHTML = `
+        <strong>ID:</strong> ${button.id}<br>
+        <strong>アクション:</strong> ${button.action}<br>
+        <strong>位置:</strong> ${button.position}
+      `;
+      
       // アクション設定
       if (button.action) {
         buttonElement.addEventListener('click', () => {
           console.log(`🔘 [SETTINGS] カスタムボタンクリック: ${button.action}`);
-          // ここでカスタムアクションを実行
           this.executeCustomAction(button.action);
         });
       }
       
-      // 位置に応じてコンテナに追加
-      const targetContainer = button.position === 'bottom' ? bottomContainer : topContainer;
-      if (targetContainer) {
-        targetContainer.appendChild(buttonElement);
-      }
+      buttonContainer.appendChild(buttonElement);
+      buttonContainer.appendChild(buttonInfo);
+      customButtonsList.appendChild(buttonContainer);
     });
     
     console.log(`✅ [SETTINGS] カスタムボタン${customButtons.length}個を適用しました`);
@@ -618,10 +859,17 @@ export class SettingsEditor {
       // カスタムアクションの実行ロジック
       console.log(`🚀 [SETTINGS] カスタムアクション実行: ${action}`);
       
-      // 例: 特定のアクションに応じた処理
+      // 特定のアクションに応じた処理
       switch (action) {
-        case 'customAction':
-          showInfoToast('カスタムアクションが実行されました');
+        case 'additionCompare':
+          console.log("🔘 [SETTINGS] 加算比較ボタンがクリックされました");
+          this.handleAdditionCompare();
+          break;
+        case 'customAction1':
+          showInfoToast('カスタムアクション1が実行されました');
+          break;
+        case 'customAction2':
+          showInfoToast('カスタムアクション2が実行されました');
           break;
         default:
           showInfoToast(`カスタムアクション: ${action}`);
@@ -631,6 +879,38 @@ export class SettingsEditor {
       console.error('❌ [SETTINGS] カスタムアクション実行エラー:', error);
       showErrorToast('カスタムアクションの実行に失敗しました');
     }
+  }
+
+  // 加算比較ボタンの処理
+  handleAdditionCompare() {
+    console.log("🔘 [SETTINGS] 加算比較ボタンがクリックされました");
+    
+    // AppStateをインポート
+    import('../config/config.js').then(({ AppState }) => {
+      console.log("🔍 [SETTINGS] AppState:", { 
+        FACILITY_ID: AppState.FACILITY_ID, 
+        DATE_STR: AppState.DATE_STR 
+      });
+      
+      try {
+        if (window.electronAPI && window.electronAPI.open_addition_compare_btn) {
+          console.log("📤 [SETTINGS] electronAPI.open_addition_compare_btn を呼び出します");
+          console.log("📤 [SETTINGS] 引数:", AppState.FACILITY_ID, AppState.DATE_STR);
+          window.electronAPI.open_addition_compare_btn(AppState.FACILITY_ID, AppState.DATE_STR);
+          showInfoToast('加算比較ウィンドウを開いています...');
+        } else {
+          console.error("❌ [SETTINGS] window.electronAPI.open_addition_compare_btn が見つかりません");
+          console.log("🔍 [SETTINGS] window.electronAPI:", window.electronAPI);
+          showErrorToast('加算比較機能が利用できません');
+        }
+      } catch (error) {
+        console.error("❌ [SETTINGS] 加算比較ボタンクリック処理でエラー:", error);
+        showErrorToast('加算比較の実行に失敗しました');
+      }
+    }).catch(error => {
+      console.error("❌ [SETTINGS] AppStateの読み込みエラー:", error);
+      showErrorToast('設定の読み込みに失敗しました');
+    });
   }
 
   resetSettings() {

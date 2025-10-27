@@ -1,5 +1,5 @@
 // main/parts/apiHandler.js
-const apiClient = require("../../src/apiClient");
+const apiClient = require("../../../src/apiClient");
 
 function handleApiCalls(ipcMain) {
   ipcMain.handle("GetChildrenByStaffAndDay", async (event, args) => {

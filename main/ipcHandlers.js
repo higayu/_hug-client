@@ -1,11 +1,12 @@
 // main/ipcHandlers.js
 const { ipcMain } = require("electron");
-const { handleLogin } = require("./parts/loginHandler");
-const { handleApiCalls } = require("./parts/apiHandler");
-const { handleConfigAccess } = require("./parts/configHandler");
-const { handleIniAccess } = require("./parts/iniHandler");
-const { registerPlanWindows } = require("./parts/planWindows");
-const { open_addition_compare_btn } = require("./parts/computeWindows");
+const { handleLogin } = require("./parts/handlers/loginHandler");
+const { handleApiCalls } = require("./parts/handlers/apiHandler");
+const { handleConfigAccess } = require("./parts/handlers/configHandler");
+const { handleIniAccess } = require("./parts/handlers/iniHandler");
+const { handleCustomButtonsAccess } = require("./parts/handlers/customButtonsHandler");
+const { registerPlanWindows } = require("./parts/window/planWindows");
+const { open_addition_compare_btn } = require("./parts/window/computeWindows");
 
 function registerIpcHandlers(mainWindow, tempNoteHandler) {
   console.log("🔧 [MAIN] IPCハンドラーを登録中...");
@@ -25,6 +26,9 @@ function registerIpcHandlers(mainWindow, tempNoteHandler) {
     
     handleIniAccess(ipcMain);
     console.log("✅ [MAIN] handleIniAccess 登録完了");
+    
+    handleCustomButtonsAccess(ipcMain);
+    console.log("✅ [MAIN] handleCustomButtonsAccess 登録完了");
     
     registerPlanWindows(ipcMain);
     console.log("✅ [MAIN] registerPlanWindows 登録完了");

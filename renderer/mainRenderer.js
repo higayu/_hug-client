@@ -34,8 +34,17 @@ window.addEventListener("DOMContentLoaded", async () => {
 
   // ===== 5️⃣ 設定エディター初期化 =====
   // 少し遅延させて確実に初期化
-  setTimeout(() => {
+  setTimeout(async () => {
     console.log("🔄 設定エディターを初期化中...");
+    
+    // 設定が正しく読み込まれているか確認
+    const { IniState } = await import('./modules/config/ini.js');
+    const { AppState } = await import('./modules/config/config.js');
+    
+    console.log("🔍 [MAIN] IniState確認:", IniState);
+    console.log("🔍 [MAIN] AppState確認:", AppState);
+    console.log("🔍 [MAIN] customButtons:", IniState.appSettings.customButtons);
+    
     window.settingsEditor = initSettingsEditor();
   }, 200);
 
