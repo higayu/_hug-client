@@ -411,6 +411,47 @@
            }
         }
 
+        // 右側webviewで施設IDに基づいてチェックボックスを選択
+        const facilityId = document.getElementById("facilityIdInput").value;
+        console.log("🔍 施設ID:", facilityId);
+        
+        // 右側webviewで施設IDに一致するチェックボックスのみを選択
+        await right.executeJavaScript(`
+          console.log("🔍 右ページで施設IDチェックボックス選択開始...");
+          
+          // 全てのチェックボックスを一旦チェック解除
+          const allCheckboxes = document.querySelectorAll('input[type="checkbox"][name^="f_ary"]');
+          allCheckboxes.forEach(checkbox => {
+            checkbox.checked = false;
+          });
+          
+          // 指定された施設IDに一致するチェックボックスを選択
+          const targetCheckbox = document.querySelector('input[type="checkbox"][data-fid="${facilityId}"]');
+          if (targetCheckbox) {
+            targetCheckbox.checked = true;
+            console.log("✅ 施設ID ${facilityId} のチェックボックスを選択しました");
+          } else {
+            console.log("⚠️ 施設ID ${facilityId} のチェックボックスが見つかりません");
+          }
+        `);
+
+        // 検索ボタンをクリックしてページを更新
+        console.log("🔍 検索ボタンをクリック中...");
+        await right.executeJavaScript(`
+          const searchButton = document.querySelector('button.btn.search[type="submit"]');
+          if (searchButton) {
+            console.log("✅ 検索ボタンをクリックしました");
+            searchButton.click();
+          } else {
+            console.log("❌ 検索ボタンが見つかりません");
+          }
+        `);
+
+        // 検索後のページ更新完了を待機
+        console.log("🔍 検索後のページ更新を待機中...");
+        await waitForPageReady(right);
+        console.log("✅ 右ページの更新が完了しました");
+
         const htmlRight = await right.executeJavaScript(`
           console.log("🔍 右ページ:", document.title);
           const el = document.querySelector("table");
