@@ -435,6 +435,19 @@
           }
         `);
 
+        // 加算名セレクトボックスで「専門的支援実施加算」を選択
+        console.log("🔍 加算名セレクトボックスで専門的支援実施加算を選択中...");
+        await right.executeJavaScript(`
+          const selectElement = document.querySelector('select[name="adding_children_id"]');
+          if (selectElement) {
+            // value="55"のオプションを選択
+            selectElement.value = "55";
+            console.log("✅ 専門的支援実施加算（value=55）を選択しました");
+          } else {
+            console.log("❌ 加算名セレクトボックスが見つかりません");
+          }
+        `);
+
         // 検索ボタンをクリックしてページを更新
         console.log("🔍 検索ボタンをクリック中...");
         await right.executeJavaScript(`
