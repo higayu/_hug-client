@@ -448,6 +448,21 @@
           }
         `);
 
+        // 日付入力フィールド（dp1とdp2）にdateStrInputの値をセット
+        const dateValue = document.getElementById("dateStrInput").value;
+        console.log("🔍 日付フィールドに値をセット中...", dateValue);
+        await right.executeJavaScript(`
+          const dp1 = document.getElementById("dp1");
+          const dp2 = document.getElementById("dp2");
+          if (dp1 && dp2) {
+            dp1.value = "${dateValue}";
+            dp2.value = "${dateValue}";
+            console.log("✅ 日付フィールド（dp1とdp2）に値をセットしました:", "${dateValue}");
+          } else {
+            console.log("❌ 日付フィールド（dp1またはdp2）が見つかりません");
+          }
+        `);
+
         // 検索ボタンをクリックしてページを更新
         console.log("🔍 検索ボタンをクリック中...");
         await right.executeJavaScript(`
