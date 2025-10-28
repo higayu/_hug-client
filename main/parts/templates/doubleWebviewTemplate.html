@@ -360,6 +360,7 @@
                  // インデックス0と5のテキストを抽出
                  let text1 = "";
                  let text5 = "";
+                 let idtext = "";
                  
                   // インデックス0のテキストを適切に抽出
                   if (cells[0]) {
@@ -371,6 +372,16 @@
                       // <p>タグがない場合は全体のテキストから改行を除去
                       text1 = cells[0].textContent.trim().replace(/\s+/g, ' ').replace(/^\s+|\s+$/g, '');
                     }
+                    
+                    // <a>タグからidを抽出
+                    const linkElement = cells[0].querySelector('a[href*="id="]');
+                    if (linkElement) {
+                      const href = linkElement.getAttribute('href');
+                      const idMatch = href.match(/id=(\d+)/);
+                      if (idMatch) {
+                        idtext = idMatch[1];
+                      }
+                    }
                   }
                   
                   // インデックス5のテキストを抽出（空白を整理）
@@ -381,10 +392,11 @@
                  extractedData.push({
                    type: "data",
                    text1: text1,
-                   text5: text5
+                   text5: text5,
+                   idtext: idtext
                  });
                  
-                 console.log("📝 抽出したテキスト:", text1, "|", text5);
+                 console.log("📝 抽出したテキスト:", text1, "|", text5, "| ID:", idtext);
                  foundCount++;
                }
              }
@@ -400,8 +412,9 @@
              const headerData = extractedData.find(item => item.type === "header");
              if (headerData) {
                tableHtml += '<tr style="background-color: #e0e0e0;">';
-               tableHtml += '<th style="border: 1px solid #ccc; padding: 6px; width: 25%; font-size: 11px; text-align: left;">' + headerData.text1 + '</th>';
-               tableHtml += '<th style="border: 1px solid #ccc; padding: 6px; width: 75%; font-size: 11px; text-align: left;">' + headerData.text5 + '</th>';
+               tableHtml += '<th style="border: 1px solid #ccc; padding: 6px; width: 10%; font-size: 11px; text-align: left;">ID</th>';
+               tableHtml += '<th style="border: 1px solid #ccc; padding: 6px; width: 30%; font-size: 11px; text-align: left;">' + headerData.text1 + '</th>';
+               tableHtml += '<th style="border: 1px solid #ccc; padding: 6px; width: 60%; font-size: 11px; text-align: left;">' + headerData.text5 + '</th>';
                tableHtml += '</tr>';
              }
              
@@ -410,6 +423,7 @@
              dataItems.forEach((item, index) => {
                const bgColor = index % 2 === 0 ? '#fafafa' : '#ffffff';
                tableHtml += '<tr style="background-color: ' + bgColor + ';">';
+               tableHtml += '<td style="border: 1px solid #ccc; padding: 6px; vertical-align: top; word-wrap: break-word; white-space: normal; line-height: 1.4; text-align: center;">' + (item.idtext || '') + '</td>';
                tableHtml += '<td style="border: 1px solid #ccc; padding: 6px; vertical-align: top; word-wrap: break-word; white-space: normal; line-height: 1.4;">' + item.text1 + '</td>';
                tableHtml += '<td style="border: 1px solid #ccc; padding: 6px; vertical-align: top; word-wrap: break-word; white-space: normal; line-height: 1.4;">' + item.text5 + '</td>';
                tableHtml += '</tr>';
