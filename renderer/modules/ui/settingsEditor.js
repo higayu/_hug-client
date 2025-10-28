@@ -11,7 +11,8 @@ import {
   getActionsByCategory,
   addCustomButton,
   updateCustomButton,
-  removeCustomButton
+  removeCustomButton,
+  initializeButtonOrders
 } from "../config/customButtons.js";
 import { showSuccessToast, showErrorToast, showInfoToast } from "./toast/toast.js";
 import { UpdateTabHandler } from "../update/updateTabHandler.js";
@@ -45,6 +46,8 @@ export class SettingsEditor {
       console.log('🔍 [SETTINGS] IniState確認:', IniState);
       console.log('🔍 [SETTINGS] AppState確認:', AppState);
       console.log('🔍 [SETTINGS] CustomButtonsState確認:', CustomButtonsState);
+      console.log('🔍 [SETTINGS] IniState.appSettings.customButtons:', IniState.appSettings.customButtons);
+      console.log('🔍 [SETTINGS] CustomButtonsState.customButtons:', CustomButtonsState.customButtons);
       
       // まずイベントリスナーを設定（モーダルは後で読み込む）
       this.setupEventListeners();
@@ -220,6 +223,12 @@ export class SettingsEditor {
         if (targetContent) {
           targetContent.classList.add('active');
           console.log(`✅ [SETTINGS] タブ切り替え完了: ${targetTab}`);
+          
+          // カスタムボタンタブの場合はリストを更新
+          if (targetTab === 'custom') {
+            console.log('🔄 [SETTINGS] カスタムボタンタブが選択されたため、リストを更新します');
+            this.updateCustomButtonsList();
+          }
         } else {
           console.error(`❌ [SETTINGS] タブコンテンツが見つかりません: #${targetTab}-tab`);
         }
@@ -230,10 +239,27 @@ export class SettingsEditor {
   async openModal() {
     console.log('🔄 [SETTINGS] 設定モーダルを開こうとしています...');
     
+    // 設定を再読み込みして確実に最新の状態にする
+    console.log('🔄 [SETTINGS] 設定を再読み込み中...');
+    const { loadIni } = await import('../config/ini.js');
+    const { loadConfig } = await import('../config/config.js');
+    
+    await loadIni();
+    await loadConfig();
+    
+    // カスタムボタンと利用可能なアクションを読み込み
+    console.log('🔄 [SETTINGS] カスタムボタンを読み込み中...');
+    const customButtonsLoaded = await loadCustomButtons();
+    const actionsLoaded = await loadAvailableActions();
+    
+    console.log('🔍 [SETTINGS] カスタムボタン読み込み結果:', customButtonsLoaded);
+    console.log('🔍 [SETTINGS] アクション読み込み結果:', actionsLoaded);
+    
     // 設定の状態を確認
     console.log('🔍 [SETTINGS] 現在のIniState:', IniState);
     console.log('🔍 [SETTINGS] 現在のAppState:', AppState);
     console.log('🔍 [SETTINGS] customButtons:', IniState.appSettings.customButtons);
+    console.log('🔍 [SETTINGS] CustomButtonsState.customButtons:', CustomButtonsState.customButtons);
     
     // モーダルが読み込まれていない場合は読み込み
     if (!this.modalLoaded) {
@@ -254,6 +280,13 @@ export class SettingsEditor {
     // カスタムボタンリストを更新
     console.log('🔄 [SETTINGS] カスタムボタンリストを更新中...');
     this.updateCustomButtonsList();
+    
+    // カスタムボタンタブがアクティブな場合は再度更新
+    const activeTab = this.modal.querySelector('.tab-button.active');
+    if (activeTab && activeTab.getAttribute('data-tab') === 'custom') {
+      console.log('🔄 [SETTINGS] カスタムボタンタブがアクティブなため、再度リストを更新します');
+      this.updateCustomButtonsList();
+    }
     
     // カスタムボタンを表示
     console.log('🔄 [SETTINGS] カスタムボタンを表示中...');
@@ -419,6 +452,80 @@ export class SettingsEditor {
 
     console.log("🔍 [SETTINGS] カスタムボタンリストを更新中...");
     console.log("🔍 [SETTINGS] CustomButtonsState.customButtons:", CustomButtonsState.customButtons);
+    console.log("🔍 [SETTINGS] IniState.appSettings.customButtons:", IniState.appSettings.customButtons);
+    
+    // 各ボタンのorderプロパティを詳細に確認
+    if (CustomButtonsState.customButtons) {
+      CustomButtonsState.customButtons.forEach((button, index) => {
+        console.log(`🔍 [SETTINGS] CustomButtonsState[${index}]:`, {
+          id: button.id,
+          order: button.order,
+          orderType: typeof button.order,
+          hasOrder: 'order' in button
+        });
+      });
+    }
+    
+    if (IniState.appSettings.customButtons) {
+      IniState.appSettings.customButtons.forEach((button, index) => {
+        console.log(`🔍 [SETTINGS] IniState[${index}]:`, {
+          id: button.id,
+          order: button.order,
+          orderType: typeof button.order,
+          hasOrder: 'order' in button
+        });
+      });
+    }
+    
+    // カスタムボタンのデータを取得（IniStateを優先）
+    let customButtons = [];
+    
+    // IniStateから取得を試行
+    if (IniState.appSettings && IniState.appSettings.customButtons && IniState.appSettings.customButtons.length > 0) {
+      customButtons = [...IniState.appSettings.customButtons]; // ディープコピー
+      console.log("🔍 [SETTINGS] IniStateからカスタムボタンを取得:", customButtons);
+    } else if (CustomButtonsState.customButtons && CustomButtonsState.customButtons.length > 0) {
+      customButtons = [...CustomButtonsState.customButtons]; // ディープコピー
+      console.log("🔍 [SETTINGS] CustomButtonsStateからカスタムボタンを取得:", customButtons);
+    } else {
+      console.log("⚠️ [SETTINGS] カスタムボタンデータが見つかりません");
+    }
+    
+    // 最終的に使用するデータをログ出力
+    console.log("🔍 [SETTINGS] 最終的に使用するカスタムボタンデータ:", customButtons);
+    customButtons.forEach((button, index) => {
+      console.log(`🔍 [SETTINGS] 最終データ[${index}]:`, {
+        id: button.id,
+        order: button.order,
+        orderType: typeof button.order,
+        hasOrder: 'order' in button
+      });
+    });
+    
+    // orderプロパティを初期化（デバッグ情報付き）
+    customButtons.forEach((button, index) => {
+      console.log(`🔍 [SETTINGS] ボタン${index}のorder初期化前:`, {
+        id: button.id,
+        order: button.order,
+        orderType: typeof button.order,
+        hasOrder: 'order' in button
+      });
+      
+      // orderプロパティが存在しない、または無効な値の場合は初期化
+      if (button.order === undefined || button.order === null || isNaN(button.order) || button.order <= 0) {
+        button.order = index + 1;
+        console.log(`🔍 [SETTINGS] ボタン${index}のorderを初期化: ${button.order}`);
+      } else {
+        console.log(`🔍 [SETTINGS] ボタン${index}のorderは既に設定済み: ${button.order}`);
+      }
+      
+      // 初期化後の状態を確認
+      console.log(`🔍 [SETTINGS] ボタン${index}のorder初期化後:`, {
+        id: button.id,
+        order: button.order,
+        orderType: typeof button.order
+      });
+    });
 
     const container = this.modal.querySelector('#custom-buttons-list');
     if (!container) {
@@ -427,8 +534,19 @@ export class SettingsEditor {
     }
     container.innerHTML = '';
 
-    // カスタムボタンを順番でソート
-    const sortedButtons = [...CustomButtonsState.customButtons].sort((a, b) => (a.order || 0) - (b.order || 0));
+    // カスタムボタンを順番でソート（orderプロパティがundefinedの場合は配列のインデックス+1を使用）
+    const sortedButtons = [...customButtons].map((button, index) => {
+      const newButton = {
+        ...button,
+        order: button.order !== undefined ? button.order : index + 1
+      };
+      console.log(`🔍 [SETTINGS] ソート前ボタン${index}:`, {
+        id: newButton.id,
+        order: newButton.order,
+        orderType: typeof newButton.order
+      });
+      return newButton;
+    }).sort((a, b) => a.order - b.order);
 
     // 各ボタンの詳細を確認
     sortedButtons.forEach((button, index) => {
@@ -438,7 +556,18 @@ export class SettingsEditor {
         text: button.text,
         action: button.action,
         color: button.color,
-        order: button.order
+        order: button.order,
+        orderType: typeof button.order,
+        hasOrder: 'order' in button
+      });
+      
+      // HTMLテンプレート生成前のorderプロパティを確認
+      console.log(`🔍 [SETTINGS] HTML生成前のボタン${index}:`, {
+        id: button.id,
+        order: button.order,
+        orderValue: button.order !== undefined ? button.order : index + 1,
+        orderCondition: button.order !== undefined,
+        orderType: typeof button.order
       });
 
       // アクション情報を取得
@@ -474,8 +603,9 @@ export class SettingsEditor {
            <input type="color" class="custom-button-color" data-index="${index}" value="${button.color || '#007bff'}" style="width: 60px; height: 40px; border: 1px solid #ccc; border-radius: 4px;">
          </div>
          <div class="setting-item" style="margin-bottom: 10px;">
-           <label style="display: block; margin-bottom: 5px; font-weight: bold;">順番:</label>
+           <label style="display: block; margin-bottom: 5px; font-weight: bold;">位置 (順番):</label>
            <input type="number" class="custom-button-order" data-index="${index}" value="${button.order || index + 1}" min="1" style="width: 80px; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+           <span style="margin-left: 10px; color: #666; font-size: 12px;">現在の値: ${button.order || 'undefined'}</span>
          </div>
          <div class="setting-item" style="margin-bottom: 10px;">
            <label style="display: block; margin-bottom: 5px; font-weight: bold;">アクション:</label>
@@ -497,20 +627,26 @@ export class SettingsEditor {
        
        if (e.target.classList.contains('custom-button-enabled')) {
          const index = parseInt(e.target.getAttribute('data-index'));
-         updateCustomButton(index, { enabled: e.target.checked });
+         this.updateCustomButtonInData(index, { enabled: e.target.checked });
          console.log(`✅ [SETTINGS] ボタン${index}の有効状態を更新:`, e.target.checked);
        } else if (e.target.classList.contains('custom-button-text')) {
          const index = parseInt(e.target.getAttribute('data-index'));
-         updateCustomButton(index, { text: e.target.value });
+         this.updateCustomButtonInData(index, { text: e.target.value });
          console.log(`✅ [SETTINGS] ボタン${index}のテキストを更新:`, e.target.value);
        } else if (e.target.classList.contains('custom-button-color')) {
          const index = parseInt(e.target.getAttribute('data-index'));
-         updateCustomButton(index, { color: e.target.value });
+         this.updateCustomButtonInData(index, { color: e.target.value });
          console.log(`✅ [SETTINGS] ボタン${index}のカラーを更新:`, e.target.value);
        } else if (e.target.classList.contains('custom-button-order')) {
          const index = parseInt(e.target.getAttribute('data-index'));
-         updateCustomButton(index, { order: parseInt(e.target.value) });
-         console.log(`✅ [SETTINGS] ボタン${index}の順番を更新:`, e.target.value);
+         const orderValue = parseInt(e.target.value);
+         if (!isNaN(orderValue) && orderValue > 0) {
+           this.updateCustomButtonInData(index, { order: orderValue });
+           console.log(`✅ [SETTINGS] ボタン${index}の順番を更新:`, orderValue);
+         } else {
+           console.warn(`⚠️ [SETTINGS] 無効な順番値:`, e.target.value);
+           e.target.value = customButtons[index].order || index + 1;
+         }
        }
      };
 
@@ -521,10 +657,48 @@ export class SettingsEditor {
     container.addEventListener('click', (e) => {
       if (e.target.classList.contains('remove-custom-button')) {
         const index = parseInt(e.target.getAttribute('data-index'));
-        removeCustomButton(index);
+        this.removeCustomButtonFromData(index);
         this.updateCustomButtonsList();
       }
     });
+  }
+
+  // カスタムボタンのデータを更新（IniStateを優先）
+  updateCustomButtonInData(index, updates) {
+    // IniStateを優先して更新
+    if (IniState.appSettings.customButtons && IniState.appSettings.customButtons.length > 0) {
+      if (index >= 0 && index < IniState.appSettings.customButtons.length) {
+        Object.assign(IniState.appSettings.customButtons[index], updates);
+        console.log(`✅ [SETTINGS] IniStateのボタン${index}を更新:`, updates);
+      }
+    }
+    
+    // CustomButtonsStateも更新（バックアップとして）
+    if (CustomButtonsState.customButtons && CustomButtonsState.customButtons.length > 0) {
+      if (index >= 0 && index < CustomButtonsState.customButtons.length) {
+        Object.assign(CustomButtonsState.customButtons[index], updates);
+        console.log(`✅ [SETTINGS] CustomButtonsStateのボタン${index}を更新:`, updates);
+      }
+    }
+  }
+
+  // カスタムボタンをデータから削除（IniStateを優先）
+  removeCustomButtonFromData(index) {
+    // IniStateを優先して削除
+    if (IniState.appSettings.customButtons && IniState.appSettings.customButtons.length > 0) {
+      if (index >= 0 && index < IniState.appSettings.customButtons.length) {
+        const removed = IniState.appSettings.customButtons.splice(index, 1)[0];
+        console.log(`✅ [SETTINGS] IniStateからボタン${index}を削除:`, removed);
+      }
+    }
+    
+    // CustomButtonsStateからも削除（バックアップとして）
+    if (CustomButtonsState.customButtons && CustomButtonsState.customButtons.length > 0) {
+      if (index >= 0 && index < CustomButtonsState.customButtons.length) {
+        const removed = CustomButtonsState.customButtons.splice(index, 1)[0];
+        console.log(`✅ [SETTINGS] CustomButtonsStateからボタン${index}を削除:`, removed);
+      }
+    }
   }
 
   // 新しいカスタムボタン作成UIを初期化

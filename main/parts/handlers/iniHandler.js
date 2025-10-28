@@ -83,7 +83,7 @@ function handleIniAccess(ipcMain) {
               {
                 id: "custom1",
                 enabled: true,
-                text: "カスタムボタン1",
+                text: "キャンセル待ちの登録",
                 color: "#dc3545",
                 action: "customAction1",
                 order: 2

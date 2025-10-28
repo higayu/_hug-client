@@ -113,7 +113,7 @@ export function addCustomButton(actionId, text, color) {
     text: text || action.name,
     color: color || "#007bff",
     action: actionId,
-    order: CustomButtonsState.customButtons.length + 1
+    order: Math.max(...CustomButtonsState.customButtons.map(b => b.order || 0), 0) + 1
   };
 
   CustomButtonsState.customButtons.push(newButton);
@@ -124,8 +124,23 @@ export function addCustomButton(actionId, text, color) {
 // カスタムボタンの更新
 export function updateCustomButton(index, updates) {
   if (index >= 0 && index < CustomButtonsState.customButtons.length) {
-    Object.assign(CustomButtonsState.customButtons[index], updates);
-    console.log("✅ [CUSTOM_BUTTONS] カスタムボタンを更新:", CustomButtonsState.customButtons[index]);
+    const button = CustomButtonsState.customButtons[index];
+    Object.assign(button, updates);
+    
+    // orderプロパティが更新された場合、重複を避けるために調整
+    if (updates.hasOwnProperty('order')) {
+      const newOrder = updates.order;
+      if (newOrder && newOrder > 0) {
+        // 同じorder値を持つ他のボタンがある場合は、それらを調整
+        CustomButtonsState.customButtons.forEach((otherButton, otherIndex) => {
+          if (otherIndex !== index && otherButton.order === newOrder) {
+            otherButton.order = otherIndex + 1;
+          }
+        });
+      }
+    }
+    
+    console.log("✅ [CUSTOM_BUTTONS] カスタムボタンを更新:", button);
     return true;
   }
   return false;
@@ -135,6 +150,14 @@ export function updateCustomButton(index, updates) {
 export function removeCustomButton(index) {
   if (index >= 0 && index < CustomButtonsState.customButtons.length) {
     const removed = CustomButtonsState.customButtons.splice(index, 1)[0];
+    
+    // 残りのボタンのorderプロパティを再調整
+    CustomButtonsState.customButtons.forEach((button, newIndex) => {
+      if (button.order === undefined || button.order > removed.order) {
+        button.order = newIndex + 1;
+      }
+    });
+    
     console.log("✅ [CUSTOM_BUTTONS] カスタムボタンを削除:", removed);
     return true;
   }
@@ -148,7 +171,15 @@ export function reorderCustomButtons(fromIndex, toIndex) {
     const [moved] = CustomButtonsState.customButtons.splice(fromIndex, 1);
     CustomButtonsState.customButtons.splice(toIndex, 0, moved);
     
-    // orderプロパティを更新
+    // orderプロパティを更新（既存のorderプロパティを保持しつつ、新しい順序に合わせて調整）
+    CustomButtonsState.customButtons.forEach((button, index) => {
+      if (button.order === undefined) {
+        button.order = index + 1;
+      }
+    });
+    
+    // orderプロパティでソートしてから、連続した数値に再設定
+    CustomButtonsState.customButtons.sort((a, b) => (a.order || 0) - (b.order || 0));
     CustomButtonsState.customButtons.forEach((button, index) => {
       button.order = index + 1;
     });
@@ -157,4 +188,14 @@ export function reorderCustomButtons(fromIndex, toIndex) {
     return true;
   }
   return false;
+}
+
+// カスタムボタンのorderプロパティを初期化
+export function initializeButtonOrders() {
+  CustomButtonsState.customButtons.forEach((button, index) => {
+    if (button.order === undefined) {
+      button.order = index + 1;
+    }
+  });
+  console.log("✅ [CUSTOM_BUTTONS] ボタンのorderプロパティを初期化");
 }
