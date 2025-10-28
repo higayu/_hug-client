@@ -54,7 +54,7 @@
       {
         "id": "custom1",
         "enabled": true,
-        "text": "カスタムボタン1",
+        "text": "キャンセル待ち登録",
         "color": "#dc3545",
         "action": "customAction1",
         "order": 2
