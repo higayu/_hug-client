@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>児童指定ページ</title>
+  <style>
+    /* sidebar/sidebar.css */
+    /* サイドバーのスタイル */
+
+    /* 日付選択 */
+    #dateSelect {
+      width: 100%;
+      padding: 8px;
+      margin: 5px 0;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+
+    /* 曜日選択 */
+    #weekdaySelect {
+      width: 100%;
+      padding: 8px;
+      margin: 5px 0;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+      background-color: #fff;
+    }
+
+    /* ラベル */
+    label {
+      display: block;
+      margin: 10px 0 5px 0;
+      font-weight: bold;
+      color: #333;
+      font-size: 14px;
+    }
+
+    /* 区切り線 */
+    hr {
+      margin: 15px 0;
+      border: none;
+      border-top: 1px solid #eee;
+    }
+
+    /* 子どもリスト */
+    #childrenList {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    #childrenList li {
+      padding: 10px;
+      margin: 5px 0;
+      background-color: #f8f9fa;
+      border: 1px solid #e9ecef;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    #childrenList li:hover {
+      background-color: #e9ecef;
+    }
+
+    #childrenList li.selected {
+      background-color: #007bff;
+      color: white;
+      border-color: #0056b3;
+    }
+
+    /* notes表示のスタイル */
+    .notes-display {
+      margin-top: 5px;
+      padding: 8px;
+      background-color: #f8f9fa;
+      border: 1px solid #dee2e6;
+      border-radius: 4px;
+      font-size: 12px;
+      color: #6c757d;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      max-height: 100px;
+      overflow-y: auto;
+    }
+
+    /* アクティブなliのnotes表示 */
+    #childrenList li.active .notes-display {
+      background-color: #e3f2fd;
+      border-color: #90caf9;
+      color: #1976d2;
+    }
+
+    /* 時間入力コンテナ */
+    .time-input-container {
+      margin-bottom: 8px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #dee2e6;
+    }
+
+    /* 時間入力グループ（横並び） */
+    .time-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .time-label {
+      font-size: 11px;
+      font-weight: bold;
+      color: #495057;
+      margin-right: 4px;
+    }
+
+    .time-input {
+      width: 80px;
+      padding: 4px 6px;
+      border: 1px solid #ced4da;
+      border-radius: 3px;
+      font-size: 11px;
+      background-color: white;
+    }
+
+    .time-input:focus {
+      outline: none;
+      border-color: #007bff;
+      box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+    }
+
+    .memo-label {
+      font-size: 11px;
+      font-weight: bold;
+      color: #495057;
+      margin-right: 4px;
+      width: 100%;
+      margin-top: 8px;
+    }
+
+    .memo-textarea {
+      width: 100%;
+      padding: 6px;
+      border: 1px solid #ced4da;
+      border-radius: 3px;
+      font-size: 11px;
+      background-color: white;
+      resize: vertical;
+      min-height: 60px;
+      font-family: inherit;
+    }
+
+    .memo-textarea:focus {
+      outline: none;
+      border-color: #007bff;
+      box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+    }
+
+    .save-button {
+      padding: 4px 8px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 3px;
+      font-size: 10px;
+      cursor: pointer;
+      margin-left: auto;
+    }
+
+    .save-button:hover {
+      background-color: #0056b3;
+    }
+
+    .notes-content {
+      margin-top: 8px;
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    /* 折りたたみセクション */
+    .collapsible-section {
+      margin: 10px 0;
+    }
+
+    .collapsible-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      padding: 8px 0;
+      margin: 0;
+      user-select: none;
+      transition: background-color 0.2s;
+    }
+
+    .collapsible-header:hover {
+      background-color: #f8f9fa;
+      border-radius: 4px;
+    }
+
+    .toggle-icon {
+      font-size: 12px;
+      transition: transform 0.2s;
+    }
+
+    .collapsible-content {
+      max-height: 200px;
+      overflow-y: auto;
+      transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
+      opacity: 1;
+    }
+
+    .collapsible-content.collapsed {
+      max-height: 0;
+      opacity: 0;
+      overflow: hidden;
+    }
+
+    .collapsible-header.collapsed .toggle-icon {
+      transform: rotate(-90deg);
+    }
+
+    /* レスポンシブデザイン */
+    @media (max-width: 768px) {
+      #dateSelect,
+      #weekdaySelect {
+        font-size: 16px; /* モバイルでのズーム防止 */
+      }
+      
+      label {
+        font-size: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+    <!-- 🌟 日付選択 -->
+    <label for="dateSelect">日付:（個人記録）</label>
+    <input type="date" id="dateSelect" />
+
+    <hr>
+
+    <!-- 🌟 曜日選択セレクトボックス -->
+    <label for="weekdaySelect" style="margin-left:10px;">曜日別（対応児童）:</label>
+    <select id="weekdaySelect" name="weekdaySelect" class="js_weekday">
+      <option value="日">日</option>
+      <option value="月">月</option>
+      <option value="火">火</option>
+      <option value="水">水</option>
+      <option value="木">木</option>
+      <option value="金">金</option>
+      <option value="土">土</option>
+    </select>
+
+
+  <ul id="childrenList"></ul>
+
+  <hr>
+  <div class="collapsible-section">
+    <label for="waitingChildrenList" class="collapsible-header" id="waitingHeader">
+      <span>キャンセル待ち子ども:</span>
+      <span class="toggle-icon">▼</span>
+    </label>
+    <ul id="waitingChildrenList" class="collapsible-content collapsed"></ul>
+  </div>
+
+  <hr>
+  <label for="ExperienceChildrenList">体験子ども:</label>
+  <ul id="ExperienceChildrenList"></ul>
+
+</body>
+</html>

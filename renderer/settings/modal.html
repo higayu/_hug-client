@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>設定編集</title>
+  <link rel="stylesheet" href="modal.css">
+</head>
+<body>
+  <!-- ======== 設定編集モーダル ======== -->
+  <div id="settingsModal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>⚙️ 設定編集</h2>
+        <span class="close">&times;</span>
+      </div>
+      <div class="modal-body">
+        <div class="settings-tabs">
+          <button class="tab-button active" data-tab="features">機能設定</button>
+          <button class="tab-button" data-tab="ui">UI設定</button>
+          <button class="tab-button" data-tab="window">ウィンドウ設定</button>
+          <button class="tab-button" data-tab="config">Config.json設定</button>
+          <button class="tab-button" data-tab="custom">カスタムボタン</button>
+          <button class="tab-button" data-tab="update">アップデート</button>
+        </div>
+
+        <!-- 機能設定タブ -->
+        <div id="features-tab" class="tab-content active">
+          <h3>機能の有効/無効</h3>
+          <div class="setting-group">
+            <label class="setting-item">
+              <input type="checkbox" id="feature-individualSupportPlan" data-path="appSettings.features.individualSupportPlan.enabled">
+              <span>個別支援計画</span>
+            </label>
+            <label class="setting-item">
+              <input type="checkbox" id="feature-specializedSupportPlan" data-path="appSettings.features.specializedSupportPlan.enabled">
+              <span>専門的支援計画</span>
+            </label>
+            <label class="setting-item">
+              <input type="checkbox" id="feature-importSetting" data-path="appSettings.features.importSetting.enabled">
+              <span>設定ファイル取得</span>
+            </label>
+            <label class="setting-item">
+              <input type="checkbox" id="feature-getUrl" data-path="appSettings.features.getUrl.enabled">
+              <span>URL取得</span>
+            </label>
+            <label class="setting-item">
+              <input type="checkbox" id="feature-loadIni" data-path="appSettings.features.loadIni.enabled">
+              <span>設定の再読み込み</span>
+            </label>
+          </div>
+
+          <h3>ボタンテキスト設定</h3>
+          <div class="setting-group">
+            <div class="setting-item">
+              <label for="text-individualSupportPlan">個別支援計画:</label>
+              <input type="text" id="text-individualSupportPlan" data-path="appSettings.features.individualSupportPlan.buttonText">
+            </div>
+            <div class="setting-item">
+              <label for="text-specializedSupportPlan">専門的支援計画:</label>
+              <input type="text" id="text-specializedSupportPlan" data-path="appSettings.features.specializedSupportPlan.buttonText">
+            </div>
+            <div class="setting-item">
+              <label for="text-loadIni">設定の再読み込み:</label>
+              <input type="text" id="text-loadIni" data-path="appSettings.features.loadIni.buttonText">
+            </div>
+          </div>
+
+          <h3>ボタンカラー設定</h3>
+          <div class="setting-group">
+            <div class="setting-item">
+              <label for="color-individualSupportPlan">個別支援計画:</label>
+              <input type="color" id="color-individualSupportPlan" data-path="appSettings.features.individualSupportPlan.buttonColor">
+            </div>
+            <div class="setting-item">
+              <label for="color-specializedSupportPlan">専門的支援計画:</label>
+              <input type="color" id="color-specializedSupportPlan" data-path="appSettings.features.specializedSupportPlan.buttonColor">
+            </div>
+            <div class="setting-item">
+              <label for="color-loadIni">設定の再読み込み:</label>
+              <input type="color" id="color-loadIni" data-path="appSettings.features.loadIni.buttonColor">
+            </div>
+          </div>
+        </div>
+
+        <!-- Config.json設定タブ -->
+        <div id="config-tab" class="tab-content">
+          <h3>Config.json設定</h3>
+          <div class="setting-group">
+            <div class="setting-item">
+              <label for="config-username">HUGユーザー名:</label>
+              <input type="text" id="config-username" data-path="HUG_USERNAME">
+            </div>
+            <div class="setting-item">
+              <label for="config-password">HUGパスワード:</label>
+              <div class="password-container">
+                <input type="password" id="config-password" data-path="HUG_PASSWORD">
+                <button type="button" id="toggle-password" class="password-toggle">👁️</button>
+              </div>
+            </div>
+            <div class="setting-item">
+              <label for="config-api-url">APIベースURL:</label>
+              <input type="text" id="config-api-url" data-path="VITE_API_BASE_URL">
+            </div>
+            <div class="setting-item">
+              <label for="config-staff-id">スタッフ:</label>
+              <select id="config-staff-id" data-path="STAFF_ID">
+                <option value="">選択してください</option>
+              </select>
+            </div>
+            <div class="setting-item">
+              <label for="config-facility-id">施設:</label>
+              <select id="config-facility-id" data-path="FACILITY_ID">
+                <option value="">選択してください</option>
+              </select>
+            </div>
+          </div>
+          <div class="setting-group">
+            <button id="reload-config" class="btn-secondary">Config.jsonを再読み込み</button>
+            <button id="save-config" class="btn-primary">Config.jsonを保存</button>
+          </div>
+        </div>
+
+        <!-- UI設定タブ -->
+        <div id="ui-tab" class="tab-content">
+          <h3>UI設定</h3>
+          <div class="setting-group">
+            <div class="setting-item">
+              <label for="theme-select">テーマ:</label>
+              <select id="theme-select" data-path="appSettings.ui.theme">
+                <option value="light">ライト</option>
+                <option value="dark">ダーク</option>
+              </select>
+            </div>
+            <div class="setting-item">
+              <label for="language-select">言語:</label>
+              <select id="language-select" data-path="appSettings.ui.language">
+                <option value="ja">日本語</option>
+                <option value="en">English</option>
+              </select>
+            </div>
+            <label class="setting-item">
+              <input type="checkbox" id="show-close-buttons" data-path="appSettings.ui.showCloseButtons">
+              <span>閉じるボタンを表示</span>
+            </label>
+            <label class="setting-item">
+              <input type="checkbox" id="auto-refresh" data-path="appSettings.ui.autoRefresh.enabled">
+              <span>自動リフレッシュ</span>
+            </label>
+            <div class="setting-item">
+              <label for="refresh-interval">リフレッシュ間隔 (秒):</label>
+              <input type="number" id="refresh-interval" data-path="appSettings.ui.autoRefresh.interval" min="10" max="300">
+            </div>
+          </div>
+        </div>
+
+        <!-- ウィンドウ設定タブ -->
+        <div id="window-tab" class="tab-content">
+          <h3>ウィンドウ設定</h3>
+          <div class="setting-group">
+            <div class="setting-item">
+              <label for="window-width">幅:</label>
+              <input type="number" id="window-width" data-path="appSettings.window.width" min="800">
+            </div>
+            <div class="setting-item">
+              <label for="window-height">高さ:</label>
+              <input type="number" id="window-height" data-path="appSettings.window.height" min="600">
+            </div>
+            <label class="setting-item">
+              <input type="checkbox" id="window-maximized" data-path="appSettings.window.maximized">
+              <span>最大化で起動</span>
+            </label>
+            <label class="setting-item">
+              <input type="checkbox" id="window-always-on-top" data-path="appSettings.window.alwaysOnTop">
+              <span>常に最前面</span>
+            </label>
+          </div>
+        </div>
+
+
+        <!-- カスタムボタン設定タブ -->
+        <div id="custom-tab" class="tab-content">
+          <h3>カスタムボタン</h3>
+          <p class="setting-description">
+            カスタムボタンは自由に追加・編集・削除できます。<br>
+            加算比較ボタンもここで管理されます。
+          </p>
+          
+          <!-- 新しいカスタムボタン作成セクション -->
+          <div class="setting-group">
+            <h4>新しいカスタムボタンを作成</h4>
+            <div style="display: flex; gap: 10px; align-items: end; margin-bottom: 15px;">
+              <div style="flex: 1;">
+                <label style="display: block; margin-bottom: 5px; font-weight: bold;">アクション:</label>
+                <select id="new-button-action" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                  <option value="">アクションを選択してください</option>
+                </select>
+              </div>
+              <div style="flex: 1;">
+                <label style="display: block; margin-bottom: 5px; font-weight: bold;">テキスト:</label>
+                <input type="text" id="new-button-text" placeholder="ボタンのテキスト" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+              </div>
+              <div style="flex: 0 0 80px;">
+                <label style="display: block; margin-bottom: 5px; font-weight: bold;">カラー:</label>
+                <input type="color" id="new-button-color" value="#007bff" style="width: 100%; height: 40px; border: 1px solid #ccc; border-radius: 4px;">
+              </div>
+              <div>
+                <button id="create-custom-button" class="btn-primary" style="height: 40px;">作成</button>
+              </div>
+            </div>
+          </div>
+          
+          <div id="custom-buttons-list" class="setting-group">
+            <!-- カスタムボタンが動的に追加される -->
+          </div>
+          <button id="add-custom-button" class="btn-primary">+ カスタムボタンを追加</button>
+        </div>
+
+        <!-- アップデートタブ -->
+        <div id="update-tab" class="tab-content">
+          <h3>🔧 アップデートデバッグ</h3>
+          <div class="setting-group">
+            <div id="update-debug-info" class="update-debug-container">
+              <div class="update-info-item">
+                <strong>📊 現在のバージョン:</strong> <span id="current-version">読み込み中...</span>
+              </div>
+              <div class="update-info-item">
+                <strong>🔍 チェック中:</strong> <span id="is-checking">読み込み中...</span>
+              </div>
+              <div class="update-info-item">
+                <strong>📅 最終チェック時刻:</strong> <span id="last-check-time">読み込み中...</span>
+              </div>
+              <div class="update-info-item">
+                <strong>🔢 チェック回数:</strong> <span id="check-count">読み込み中...</span>
+              </div>
+              <div class="update-info-item">
+                <strong>✅ アップデート利用可能:</strong> <span id="update-available">読み込み中...</span>
+              </div>
+              <div class="update-info-item">
+                <strong>🆕 新しいバージョン:</strong> <span id="new-version">読み込み中...</span>
+              </div>
+              <div class="update-info-item">
+                <strong>📥 ダウンロード進捗:</strong> <span id="download-progress">読み込み中...</span>
+              </div>
+              <div class="update-info-item" id="error-info" style="display: none;">
+                <strong>❌ 最後のエラー:</strong> <span id="last-error"></span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="setting-group">
+            <h4>操作</h4>
+            <div class="update-controls">
+              <button id="manual-check-update" class="btn-primary">🔄 手動チェック</button>
+              <button id="show-debug-console" class="btn-secondary">📊 コンソール表示</button>
+              <button id="toggle-auto-monitor" class="btn-secondary">⏰ 自動監視</button>
+              <button id="refresh-update-info" class="btn-secondary">🔄 情報更新</button>
+            </div>
+          </div>
+
+          <div class="setting-group">
+            <h4>ログ</h4>
+            <div id="update-log-container" class="update-log-container">
+              <div class="log-item">アプリ起動中...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="save-settings" class="btn-primary">保存</button>
+        <button id="cancel-settings" class="btn-secondary">キャンセル</button>
+        <button id="reset-settings" class="btn-danger">リセット</button>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

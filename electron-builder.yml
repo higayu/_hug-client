@@ -1,0 +1,31 @@
+appId: com.higayu.hugclient
+productName: Hug Client
+directories:
+  output: dist
+
+files:
+  - build/**/*
+  - assets/**
+  - data/**
+  - main/**
+  - renderer/**
+  - package.json
+  - preload.js
+
+win:
+  target: nsis
+  icon: assets/favicon.ico
+
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: "Hug Client"
+
+publish:
+  provider: github
+  owner: higayu
+  repo: hug-client
+  private: true

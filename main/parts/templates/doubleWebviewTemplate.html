@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy"
+    content="default-src 'self' https: data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline';">
+  <style>
+    html, body { height:100%; width:100%; margin:0; padding:0; display:flex; flex-direction:column; font-family:sans-serif; }
+    #tabs { display:flex; background:#eee; border-bottom:2px solid #ccc; }
+    .tab { flex:1; text-align:center; padding:10px; cursor:pointer; }
+    .tab.active { background:#fff; border-top:2px solid #555; border-left:1px solid #ccc; border-right:1px solid #ccc; }
+    #content { flex:1; position:relative; }
+    #webviews { position:absolute; top:0; left:0; width:100%; height:100%; display:flex; }
+    webview { flex:1; height:100%; border:none; }
+    #left { border-right:2px solid #ccc; }
+    #resultView { position:absolute; top:0; left:0; width:100%; height:100%; background:#fafafa; overflow:auto;
+      white-space:pre; font-family:monospace; padding:20px; display:none; }
+
+    #resultView h2 {
+      background:#f3f3f3; padding:6px 10px; border-left:5px solid #888;
+    }
+    .table-wrapper {
+      overflow-x:auto; margin-bottom:40px;
+    }
+    table.table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-top: 10px;
+    }
+    table.table th, table.table td {
+      border: 1px solid #ccc;
+      padding: 4px 8px;
+      font-size: 13px;
+    }
+    table.table th { background: #e0e0e0; }
+    tr:nth-child(even) { background: #fafafa; }
+    #resultContainer {
+       display: flex;
+       flex-direction: row;
+       gap: 20px;
+    }
+    
+    .result-half {
+       flex: 1;
+       min-width: 0;
+       display: flex;
+       flex-direction: column;
+    }
+    
+    .result-half h2 {
+       background:#f3f3f3;
+       padding:6px 10px;
+       border-left:5px solid #888;
+       margin-top:0;
+    }
+    
+    .table-wrapper {
+       flex: 1;
+       overflow-x: auto;
+       overflow-y: auto;
+       background: white;
+       border: 1px solid #ccc;
+       border-radius: 6px;
+       padding: 6px;
+    }
+    
+    button {
+      padding: 8px 12px;
+      background: #007acc;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    
+    button:hover {
+      background: #005a9e;
+    }
+
+  </style>
+</head>
+<body>
+  <!-- ======== ツールバー ======== -->
+  <div id="toolbar" style="background: #f5f5f5; padding: 10px; border-bottom: 1px solid #ddd; display: flex; gap: 20px; align-items: center;">
+    <div style="display: flex; gap: 10px; align-items: center;">
+      <label style="font-weight: bold;">施設ID:</label>
+      <input type="text" id="facilityIdInput" readonly style="padding: 4px 8px; border: 1px solid #ccc; border-radius: 3px; background: #fff;" />
+    </div>
+    <div style="display: flex; gap: 10px; align-items: center;">
+      <label style="font-weight: bold;">日付:</label>
+      <input type="date" id="dateStrInput" style="padding: 4px 8px; border: 1px solid #ccc; border-radius: 3px; background: #fff;" />
+    </div>
+    <button id="getDataBtn">📥 データ取得</button>
+  </div>
+  <div id="tabs">
+    <div id="tabView" class="tab active">📄 ページ表示</div>
+    <div id="tabResult" class="tab">📊 取得結果</div>
+  </div>
+  <div id="content">
+    <div id="webviews">
+      <webview id="left"
+        src="{{URL1}}"
+        preload="file://{{PRELOAD_PATH}}"
+        allowpopups
+        disablewebsecurity></webview>
+      <webview id="right"
+        src="{{URL2}}"
+        preload="file://{{PRELOAD_PATH}}"
+        allowpopups
+        disablewebsecurity></webview>
+    </div>
+    <div id="resultView"></div>
+  </div>
+
+  <script>
+    const tabView = document.getElementById("tabView");
+    const tabResult = document.getElementById("tabResult");
+    const webviews = document.getElementById("webviews");
+    const resultView = document.getElementById("resultView");
+    const left = document.getElementById("left");
+    const right = document.getElementById("right");
+
+    // ツールバーのテキストボックスに値を設定
+    document.addEventListener("DOMContentLoaded", () => {
+      const facilityIdInput = document.getElementById("facilityIdInput");
+      const dateStrInput = document.getElementById("dateStrInput");
+      
+      if (facilityIdInput) {
+        facilityIdInput.value = "{{FACILITY_ID}}";
+      }
+      if (dateStrInput) {
+        dateStrInput.value = "{{DATE_STR}}";
+      }
+    });
+
+    // タブ切り替え
+    tabView.addEventListener("click", () => {
+      tabView.classList.add("active");
+      tabResult.classList.remove("active");
+      webviews.style.display = "flex";
+      resultView.style.display = "none";
+    });
+    tabResult.addEventListener("click", () => {
+      tabResult.classList.add("active");
+      tabView.classList.remove("active");
+      webviews.style.display = "none";
+      resultView.style.display = "block";
+    });
+
+    // 加算登録ラジオボタンクリック処理
+    async function clickAdditionRadio() {
+      try {
+        //console.log("🟢 加算登録ラジオボタンをクリック中...");
+        
+        const success = await left.executeJavaScript(`
+          const radio = document.querySelector('input[type="radio"][name="tableChange"][value="2"]');
+          if (radio) {
+            radio.click();
+            console.log("✅ 加算登録ラジオボタンをクリックしました");
+            true;
+          } else {
+            console.log("❌ 加算登録ラジオボタンが見つかりません");
+            false;
+          }
+        `);
+        
+        if (success) {
+          console.log("✅ 加算登録ラジオボタンのクリックが完了しました");
+        } else {
+          console.log("⚠️ 加算登録ラジオボタンのクリックに失敗しました");
+        }
+      } catch (error) {
+        console.error("❌ 加算登録ラジオボタンクリック中にエラー:", error);
+      }
+    }
+
+    // データ取得
+    document.getElementById("getDataBtn").addEventListener("click", async () => {
+      try {
+        //console.log("🟢 ページ全体の構造を取得開始...");
+
+        async function waitForPageReady(view) {
+          for (let i = 0; i < 30; i++) {
+            const state = await view.executeJavaScript('document.readyState');
+            if (state === "complete") return true;
+            await new Promise(r => setTimeout(r, 500));
+          }
+          throw new Error("ページロードが完了しませんでした");
+        }
+
+        await waitForPageReady(left);
+        await waitForPageReady(right);
+        
+        // 加算登録ラジオボタンをクリック
+        await clickAdditionRadio();
+        
+        // テーブルが完全に読み込まれるまで少し待機
+        await new Promise(r => setTimeout(r, 2000));
+        
+        // 左ページのwebviewが完全に読み込まれているか確認
+        console.log("🔍 左ページの読み込み状態を確認中...");
+        const leftReady = await left.executeJavaScript('document.readyState');
+        console.log("🔍 左ページの読み込み状態:", leftReady);
+        
+        // 左ページのタイトルを確認
+        const leftTitle = await left.executeJavaScript('document.title');
+        console.log("🔍 左ページのタイトル:", leftTitle);
+
+        // 1. webview内でテーブルを取得
+        let htmlLeft;
+        try {
+          htmlLeft = await left.executeJavaScript(`
+            console.log("🔍 左ページ:", document.title);
+            console.log("🔍 ページURL:", window.location.href);
+            
+            // テーブルを探す
+            let el = document.querySelector("table.js_adding_table");
+            if (!el) {
+              console.log("⚠️ js_adding_tableクラスのテーブルが見つかりません。通常のtableを探します...");
+              el = document.querySelector("table");
+              if (!el) {
+                console.log("❌ テーブルが見つかりません");
+                throw new Error("左ページにテーブルが見つかりません");
+              }
+            }
+            console.log("✅ テーブルを取得しました:", el.className);
+            
+            // テーブル全体を返す
+            el.outerHTML;
+          `);
+        } catch (error) {
+          console.error("❌ 左ページのテーブル取得でエラー:", error);
+          htmlLeft = '<table><tr><td>左ページのデータ取得に失敗しました</td></tr></table>';
+        }
+
+        // 2. 取得したテーブルから「専門的支援実施加算」の行を抽出
+       // console.log("🔍 取得したテーブルから抽出処理を開始...");
+        
+        // テーブルをDOM要素として解析
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = htmlLeft;
+        const table = tempDiv.querySelector('table');
+        
+        if (!table) {
+         // console.error("❌ テーブルが見つかりません");
+          htmlLeft = '<table><tr><td>テーブルの解析に失敗しました</td></tr></table>';
+        } else {
+          const rows = table.querySelectorAll('tr');
+         // console.log("📊 テーブル行数:", rows.length);
+          
+          // ヘッダー行の列数を確認
+          if (rows.length > 0) {
+            const headerCells = rows[0].querySelectorAll("th, td");
+           // console.log("📋 ヘッダー列数:", headerCells.length);
+            for (let i = 0; i < headerCells.length; i++) {
+             // console.log("列" + i + ":", headerCells[i].textContent.trim());
+            }
+          }
+          
+            // 「専門的支援実施加算」を含む行のインデックス0と5のテキストを抽出
+           const extractedData = [];
+           
+           // ヘッダー行の情報を追加
+           if (rows.length > 0) {
+             const headerCells = rows[0].querySelectorAll("th, td");
+             if (headerCells.length > 5) {
+               let headerText1 = "";
+               let headerText5 = "";
+               
+               // ヘッダー0のテキストを適切に抽出
+               if (headerCells[0]) {
+                 const nameElement = headerCells[0].querySelector('p');
+                 if (nameElement) {
+                   headerText1 = nameElement.textContent.trim().replace(/\s+/g, ' ');
+                 } else {
+                   headerText1 = headerCells[0].textContent.trim().replace(/\s+/g, ' ');
+                 }
+               }
+               
+               // ヘッダー5のテキストを抽出（空白を整理）
+               if (headerCells[5]) {
+                 headerText5 = headerCells[5].textContent.trim().replace(/\s+/g, ' ');
+               }
+               
+               extractedData.push({
+                 type: "header",
+                 text1: headerText1,
+                 text5: headerText5
+               });
+              // console.log("📋 ヘッダー情報:", headerText1, "|", headerText5);
+             }
+           }
+           
+           // データ行をフィルタリング
+           let foundCount = 0;
+           for (let i = 1; i < rows.length; i++) {
+             const row = rows[i];
+             const cells = row.querySelectorAll("td");
+             
+            // console.log("行" + i + "の列数:", cells.length);
+             
+             // 各列の内容をデバッグ出力
+             for (let j = 0; j < Math.min(cells.length, 10); j++) {
+               const cellText = cells[j].textContent.trim();
+               if (cellText.includes("専門的支援") || cellText.includes("加算")) {
+                // console.log("列" + j + "に専門的支援関連の文字を発見:", cellText);
+               }
+             }
+             
+             // 6番目の列（インデックス5）の内容をチェック
+             if (cells.length > 5) {
+               const cell = cells[5];
+               const cellText = cell.textContent.trim();
+              // console.log("列5の内容:", cellText);
+               
+               // より柔軟な検索方法
+               let isTargetRow = false;
+               
+               // 1. textContentで検索
+               if (cellText.includes("専門的支援実施加算")) {
+                 isTargetRow = true;
+                // console.log("✅ textContentで専門的支援実施加算を発見");
+               }
+               
+               // 2. innerHTMLで検索（より確実）
+               if (!isTargetRow && cell.innerHTML.includes("専門的支援実施加算")) {
+                 isTargetRow = true;
+                // console.log("✅ innerHTMLで専門的支援実施加算を発見");
+               }
+               
+               // 3. <b>タグ内を直接検索
+               if (!isTargetRow) {
+                 const boldElements = cell.querySelectorAll('b');
+                 for (let b of boldElements) {
+                   if (b.textContent.includes("専門的支援実施加算")) {
+                     isTargetRow = true;
+                  //   console.log("✅ <b>タグ内で専門的支援実施加算を発見:", b.textContent.trim());
+                     break;
+                   }
+                 }
+               }
+               
+               if (isTargetRow) {
+               //  console.log("✅ 専門的支援実施加算の行を発見");
+                 
+                 // インデックス0と5のテキストを抽出
+                 let text1 = "";
+                 let text5 = "";
+                 
+                 // インデックス0のテキストを適切に抽出
+                 if (cells[0]) {
+                   // 名前部分を取得（<p>タグ内のテキスト）
+                   const nameElement = cells[0].querySelector('p');
+                   if (nameElement) {
+                     text1 = nameElement.textContent.trim().replace(/\s+/g, ' ');
+                   } else {
+                     // <p>タグがない場合は全体のテキストから改行を除去
+                     text1 = cells[0].textContent.trim().replace(/\s+/g, ' ');
+                   }
+                 }
+                 
+                 // インデックス5のテキストを抽出（空白を整理）
+                 if (cells[5]) {
+                   text5 = cells[5].textContent.trim().replace(/\s+/g, ' ');
+                 }
+                 
+                 extractedData.push({
+                   type: "data",
+                   text1: text1,
+                   text5: text5
+                 });
+                 
+                 console.log("📝 抽出したテキスト:", text1, "|", text5);
+                 foundCount++;
+               }
+             }
+           }
+          
+          //console.log("🔍 専門的支援実施加算の行数:", foundCount);
+          
+           // 抽出したデータを縦表示用のテーブルに変換
+           if (extractedData.length > 0) {
+             let tableHtml = '<table style="border-collapse: collapse; width: 100%; font-size: 12px;">';
+             
+             // ヘッダー行を追加
+             const headerData = extractedData.find(item => item.type === "header");
+             if (headerData) {
+               tableHtml += '<tr style="background-color: #e0e0e0;">';
+               tableHtml += '<th style="border: 1px solid #ccc; padding: 6px; width: 25%; font-size: 11px; text-align: left;">' + headerData.text1 + '</th>';
+               tableHtml += '<th style="border: 1px solid #ccc; padding: 6px; width: 75%; font-size: 11px; text-align: left;">' + headerData.text5 + '</th>';
+               tableHtml += '</tr>';
+             }
+             
+             // データ行を追加
+             const dataItems = extractedData.filter(item => item.type === "data");
+             dataItems.forEach((item, index) => {
+               const bgColor = index % 2 === 0 ? '#fafafa' : '#ffffff';
+               tableHtml += '<tr style="background-color: ' + bgColor + ';">';
+               tableHtml += '<td style="border: 1px solid #ccc; padding: 6px; vertical-align: top; word-wrap: break-word; white-space: normal; line-height: 1.4;">' + item.text1 + '</td>';
+               tableHtml += '<td style="border: 1px solid #ccc; padding: 6px; vertical-align: top; word-wrap: break-word; white-space: normal; line-height: 1.4;">' + item.text5 + '</td>';
+               tableHtml += '</tr>';
+             });
+             
+             tableHtml += '</table>';
+             htmlLeft = tableHtml;
+             console.log("✅ 抽出完了:", dataItems.length, "行のデータを縦表示用テーブルに変換");
+           } else {
+             console.log("⚠️ 専門的支援実施加算の行が見つかりませんでした。全テーブルを表示します");
+             // htmlLeftは既に全テーブルが設定されているのでそのまま使用
+           }
+        }
+
+        const htmlRight = await right.executeJavaScript(`
+          console.log("🔍 右ページ:", document.title);
+          const el = document.querySelector("table");
+          if (!el) throw new Error("右ページに<table>が見つかりません");
+          el.outerHTML;
+        `);
+
+        resultView.innerHTML =
+          '<div id="resultContainer">' +
+            '<div class="result-half">' +
+              '<h2>📘 左ページ（記録一覧）</h2>' +
+              '<div class="table-wrapper">' + htmlLeft + '</div>' +
+            '</div>' +
+            '<div class="result-half">' +
+              '<h2>📙 右ページ（計画状況）</h2>' +
+              '<div class="table-wrapper">' + htmlRight + '</div>' +
+            '</div>' +
+          '</div>';
+
+        tabResult.click();
+
+      } catch (err) {
+        console.error("💥 構造取得中にエラー:", err);
+        alert("構造取得エラー: " + err.message);
+      }
+    });
+  </script>
+</body>
+</html>
