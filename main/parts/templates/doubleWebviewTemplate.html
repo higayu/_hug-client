@@ -281,20 +281,20 @@
                let headerText1 = "";
                let headerText5 = "";
                
-               // ヘッダー0のテキストを適切に抽出
-               if (headerCells[0]) {
-                 const nameElement = headerCells[0].querySelector('p');
-                 if (nameElement) {
-                   headerText1 = nameElement.textContent.trim().replace(/\s+/g, ' ');
-                 } else {
-                   headerText1 = headerCells[0].textContent.trim().replace(/\s+/g, ' ');
-                 }
-               }
-               
-               // ヘッダー5のテキストを抽出（空白を整理）
-               if (headerCells[5]) {
-                 headerText5 = headerCells[5].textContent.trim().replace(/\s+/g, ' ');
-               }
+                // ヘッダー0のテキストを適切に抽出
+                if (headerCells[0]) {
+                  const nameElement = headerCells[0].querySelector('p');
+                  if (nameElement) {
+                    headerText1 = nameElement.textContent.trim().replace(/\s+/g, ' ').replace(/^\s+|\s+$/g, '');
+                  } else {
+                    headerText1 = headerCells[0].textContent.trim().replace(/\s+/g, ' ').replace(/^\s+|\s+$/g, '');
+                  }
+                }
+                
+                // ヘッダー5のテキストを抽出（空白を整理）
+                if (headerCells[5]) {
+                  headerText5 = headerCells[5].textContent.trim().replace(/\s+/g, ' ').replace(/^\s+|\s+$/g, '');
+                }
                
                extractedData.push({
                  type: "header",
@@ -361,22 +361,22 @@
                  let text1 = "";
                  let text5 = "";
                  
-                 // インデックス0のテキストを適切に抽出
-                 if (cells[0]) {
-                   // 名前部分を取得（<p>タグ内のテキスト）
-                   const nameElement = cells[0].querySelector('p');
-                   if (nameElement) {
-                     text1 = nameElement.textContent.trim().replace(/\s+/g, ' ');
-                   } else {
-                     // <p>タグがない場合は全体のテキストから改行を除去
-                     text1 = cells[0].textContent.trim().replace(/\s+/g, ' ');
-                   }
-                 }
-                 
-                 // インデックス5のテキストを抽出（空白を整理）
-                 if (cells[5]) {
-                   text5 = cells[5].textContent.trim().replace(/\s+/g, ' ');
-                 }
+                  // インデックス0のテキストを適切に抽出
+                  if (cells[0]) {
+                    // 名前部分を取得（<p>タグ内のテキスト）
+                    const nameElement = cells[0].querySelector('p');
+                    if (nameElement) {
+                      text1 = nameElement.textContent.trim().replace(/\s+/g, ' ').replace(/^\s+|\s+$/g, '');
+                    } else {
+                      // <p>タグがない場合は全体のテキストから改行を除去
+                      text1 = cells[0].textContent.trim().replace(/\s+/g, ' ').replace(/^\s+|\s+$/g, '');
+                    }
+                  }
+                  
+                  // インデックス5のテキストを抽出（空白を整理）
+                  if (cells[5]) {
+                    text5 = cells[5].textContent.trim().replace(/\s+/g, ' ').replace(/^\s+|\s+$/g, '');
+                  }
                  
                  extractedData.push({
                    type: "data",
@@ -536,15 +536,15 @@
                if (headerCellsRight[1]) {
                  const nameElement = headerCellsRight[1].querySelector('p');
                  if (nameElement) {
-                   headerText1 = nameElement.textContent.trim().replace(/\s+/g, ' ');
+                   headerText1 = nameElement.textContent.trim().replace(/\s+/g, ' ').replace(/^\s+|\s+$/g, '');
                  } else {
-                   headerText1 = headerCellsRight[1].textContent.trim().replace(/\s+/g, ' ');
+                   headerText1 = headerCellsRight[1].textContent.trim().replace(/\s+/g, ' ').replace(/^\s+|\s+$/g, '');
                  }
                }
                
                // ヘッダー2のテキストを抽出（空白を整理）
                if (headerCellsRight[2]) {
-                 headerText2 = headerCellsRight[2].textContent.trim().replace(/\s+/g, ' ');
+                 headerText2 = headerCellsRight[2].textContent.trim().replace(/\s+/g, ' ').replace(/^\s+|\s+$/g, '');
                }
                
                extractedDataRight.push({
@@ -571,15 +571,15 @@
                if (cells[1]) {
                  const nameElement = cells[1].querySelector('p');
                  if (nameElement) {
-                   text1 = nameElement.textContent.trim().replace(/\s+/g, ' ');
+                   text1 = nameElement.textContent.trim().replace(/\s+/g, ' ').replace(/^\s+|\s+$/g, '');
                  } else {
-                   text1 = cells[1].textContent.trim().replace(/\s+/g, ' ');
+                   text1 = cells[1].textContent.trim().replace(/\s+/g, ' ').replace(/^\s+|\s+$/g, '');
                  }
                }
                
                // インデックス2のテキストを抽出（空白を整理）
                if (cells[2]) {
-                 text2 = cells[2].textContent.trim().replace(/\s+/g, ' ');
+                 text2 = cells[2].textContent.trim().replace(/\s+/g, ' ').replace(/^\s+|\s+$/g, '');
                }
                
                extractedDataRight.push({
