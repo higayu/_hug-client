@@ -2,8 +2,8 @@ node_modules
 .env
 .env.production
 dist/
-data/config.json
+config.json
 dist.zip
-data/ini.json
+ini.json
 GitHub-Token.txt
 temp_notes.db
