@@ -491,14 +491,143 @@
         await waitForPageReady(right);
         console.log("✅ 右ページの更新が完了しました");
 
-        const htmlRight = await right.executeJavaScript(`
-          console.log("🔍 右ページ:", document.title);
-          const el = document.querySelector("table");
-          if (!el) throw new Error("右ページに<table>が見つかりません");
-          el.outerHTML;
-        `);
+         let htmlRight = await right.executeJavaScript(`
+           console.log("🔍 右ページ:", document.title);
+           const el = document.querySelector("table");
+           if (!el) throw new Error("右ページに<table>が見つかりません");
+           el.outerHTML;
+         `);
 
-        resultView.innerHTML =
+         // 右のテーブルデータの抽出処理
+         console.log("🔍 右のテーブルデータの抽出処理を開始...");
+         
+         // テーブルをDOM要素として解析
+         const tempDivRight = document.createElement('div');
+         tempDivRight.innerHTML = htmlRight;
+         const tableRight = tempDivRight.querySelector('table');
+         
+         if (!tableRight) {
+           console.error("❌ 右のテーブルが見つかりません");
+           htmlRight = '<table><tr><td>右のテーブルの解析に失敗しました</td></tr></table>';
+         } else {
+           const rowsRight = tableRight.querySelectorAll('tr');
+           console.log("📊 右のテーブル行数:", rowsRight.length);
+           
+           // ヘッダー行の列数を確認
+           if (rowsRight.length > 0) {
+             const headerCellsRight = rowsRight[0].querySelectorAll("th, td");
+             console.log("📋 右のヘッダー列数:", headerCellsRight.length);
+             for (let i = 0; i < headerCellsRight.length; i++) {
+               console.log("右の列" + i + ":", headerCellsRight[i].textContent.trim());
+             }
+           }
+           
+           // インデックス1と2の列のデータを抽出
+           const extractedDataRight = [];
+           
+           // ヘッダー行の情報を追加
+           if (rowsRight.length > 0) {
+             const headerCellsRight = rowsRight[0].querySelectorAll("th, td");
+             if (headerCellsRight.length > 2) {
+               let headerText1 = "";
+               let headerText2 = "";
+               
+               // ヘッダー1のテキストを適切に抽出
+               if (headerCellsRight[1]) {
+                 const nameElement = headerCellsRight[1].querySelector('p');
+                 if (nameElement) {
+                   headerText1 = nameElement.textContent.trim().replace(/\s+/g, ' ');
+                 } else {
+                   headerText1 = headerCellsRight[1].textContent.trim().replace(/\s+/g, ' ');
+                 }
+               }
+               
+               // ヘッダー2のテキストを抽出（空白を整理）
+               if (headerCellsRight[2]) {
+                 headerText2 = headerCellsRight[2].textContent.trim().replace(/\s+/g, ' ');
+               }
+               
+               extractedDataRight.push({
+                 type: "header",
+                 text1: headerText1,
+                 text2: headerText2
+               });
+               console.log("📋 右のヘッダー情報:", headerText1, "|", headerText2);
+             }
+           }
+           
+           // データ行を抽出
+           let foundCountRight = 0;
+           for (let i = 1; i < rowsRight.length; i++) {
+             const row = rowsRight[i];
+             const cells = row.querySelectorAll("td");
+             
+             // インデックス1と2の列が存在する場合のみ処理
+             if (cells.length > 2) {
+               let text1 = "";
+               let text2 = "";
+               
+               // インデックス1のテキストを適切に抽出
+               if (cells[1]) {
+                 const nameElement = cells[1].querySelector('p');
+                 if (nameElement) {
+                   text1 = nameElement.textContent.trim().replace(/\s+/g, ' ');
+                 } else {
+                   text1 = cells[1].textContent.trim().replace(/\s+/g, ' ');
+                 }
+               }
+               
+               // インデックス2のテキストを抽出（空白を整理）
+               if (cells[2]) {
+                 text2 = cells[2].textContent.trim().replace(/\s+/g, ' ');
+               }
+               
+               extractedDataRight.push({
+                 type: "data",
+                 text1: text1,
+                 text2: text2
+               });
+               
+               console.log("📝 右の抽出したテキスト:", text1, "|", text2);
+               foundCountRight++;
+             }
+           }
+           
+           console.log("🔍 右のテーブル抽出完了:", foundCountRight, "行のデータ");
+           
+           // 抽出したデータを縦表示用のテーブルに変換
+           if (extractedDataRight.length > 0) {
+             let tableHtmlRight = '<table style="border-collapse: collapse; width: 100%; font-size: 12px;">';
+             
+             // ヘッダー行を追加
+             const headerDataRight = extractedDataRight.find(item => item.type === "header");
+             if (headerDataRight) {
+               tableHtmlRight += '<tr style="background-color: #e0e0e0;">';
+               tableHtmlRight += '<th style="border: 1px solid #ccc; padding: 6px; width: 25%; font-size: 11px; text-align: left;">' + headerDataRight.text1 + '</th>';
+               tableHtmlRight += '<th style="border: 1px solid #ccc; padding: 6px; width: 75%; font-size: 11px; text-align: left;">' + headerDataRight.text2 + '</th>';
+               tableHtmlRight += '</tr>';
+             }
+             
+             // データ行を追加
+             const dataItemsRight = extractedDataRight.filter(item => item.type === "data");
+             dataItemsRight.forEach((item, index) => {
+               const bgColor = index % 2 === 0 ? '#fafafa' : '#ffffff';
+               tableHtmlRight += '<tr style="background-color: ' + bgColor + ';">';
+               tableHtmlRight += '<td style="border: 1px solid #ccc; padding: 6px; vertical-align: top; word-wrap: break-word; white-space: normal; line-height: 1.4;">' + item.text1 + '</td>';
+               tableHtmlRight += '<td style="border: 1px solid #ccc; padding: 6px; vertical-align: top; word-wrap: break-word; white-space: normal; line-height: 1.4;">' + item.text2 + '</td>';
+               tableHtmlRight += '</tr>';
+             });
+             
+             tableHtmlRight += '</table>';
+             htmlRight = tableHtmlRight;
+             console.log("✅ 右の抽出完了:", dataItemsRight.length, "行のデータを縦表示用テーブルに変換");
+           } else {
+             console.log("⚠️ 右のテーブルにデータが見つかりませんでした。全テーブルを表示します");
+             // htmlRightは既に全テーブルが設定されているのでそのまま使用
+           }
+         }
+
+         resultView.innerHTML =
           '<div id="resultContainer">' +
             '<div class="result-half">' +
               '<h2>📘 左ページ（記録一覧）</h2>' +
