@@ -143,7 +143,7 @@ export class CustomButtonManager {
     const newId = `hugview-${Date.now()}-${document.querySelectorAll("webview").length}`;
     const newWebview = document.createElement("webview");
     newWebview.id = newId;
-    
+    console.log("🔍 日付指定", AppState.DATE_STR);
     // 指定されたURLを設定
     const targetUrl = `https://www.hug-ayumu.link/hug/wm/attendance.php?mode=add&date=${AppState.DATE_STR}&f_id=${AppState.FACILITY_ID}`;
     newWebview.src = targetUrl;
