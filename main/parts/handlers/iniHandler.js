@@ -34,6 +34,7 @@ function handleIniAccess(ipcMain) {
               theme: "light",
               language: "ja",
               showCloseButtons: true,
+              confirmOnClose: true,
               autoRefresh: {
                 enabled: false,
                 interval: 30000

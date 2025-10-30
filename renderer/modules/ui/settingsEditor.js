@@ -374,6 +374,11 @@ export class SettingsEditor {
     if (refreshInterval) {
       refreshInterval.value = ui.autoRefresh?.interval || 30000;
     }
+    // confirm-on-close チェックボックス
+    const confirmOnClose = this.modal.querySelector('#confirm-on-close');
+    if (confirmOnClose) {
+      confirmOnClose.checked = ui.confirmOnClose !== undefined ? ui.confirmOnClose : true;
+    }
 
     // ウィンドウ設定
     const window = IniState.appSettings.window;
@@ -869,6 +874,11 @@ export class SettingsEditor {
     IniState.appSettings.ui.showCloseButtons = this.modal.querySelector('#show-close-buttons').checked;
     IniState.appSettings.ui.autoRefresh.enabled = this.modal.querySelector('#auto-refresh').checked;
     IniState.appSettings.ui.autoRefresh.interval = parseInt(this.modal.querySelector('#refresh-interval').value);
+    // confirm-on-closeの保存
+    const confirmOnClose = this.modal.querySelector('#confirm-on-close');
+    if (confirmOnClose) {
+      IniState.appSettings.ui.confirmOnClose = confirmOnClose.checked;
+    }
 
     // ウィンドウ設定
     IniState.appSettings.window.width = parseInt(this.modal.querySelector('#window-width').value);

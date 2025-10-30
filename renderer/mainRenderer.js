@@ -88,6 +88,23 @@ window.addEventListener("DOMContentLoaded", async () => {
     }
   });
 
+  // ===== 退出確認（メインからの要求に応答） =====
+  window.electronAPI.onConfirmCloseRequest(async () => {
+    try {
+      const { IniState } = await import('./modules/config/ini.js');
+      const enabled = IniState?.appSettings?.ui?.confirmOnClose !== false; // 未設定時は確認ON
+      let shouldClose = true;
+      if (enabled) {
+        shouldClose = window.confirm('アプリを終了しますか？');
+      }
+      window.electronAPI.sendConfirmCloseResponse(shouldClose);
+    } catch (err) {
+      console.error('❌ 終了確認処理エラー:', err);
+      // 失敗時は安全側（閉じない）
+      window.electronAPI.sendConfirmCloseResponse(false);
+    }
+  });
+
   console.log("🎉 初期化完了:", AppState);
 
   // 🔄 アップデートUI機能を初期化

@@ -185,6 +185,7 @@ export const DEFAULTS = {
     THEME: "light",
     LANGUAGE: "ja",
     SHOW_CLOSE_BUTTONS: true,
+    CONFIRM_ON_CLOSE: true, // 追加: ウィンドウ閉じる時の確認
     AUTO_REFRESH: {
       ENABLED: false,
       INTERVAL: 30000

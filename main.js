@@ -66,6 +66,29 @@ app.whenReady().then(async () => {
   const mainWindow = createMainWindow();
   //console.log("🪟 [MAIN] メインウィンドウを作成しました");
 
+  // 退出確認: rendererに問い合わせてから閉じる
+  const { ipcMain } = require("electron");
+  let isHandlingClose = false;
+  mainWindow.on("close", (e) => {
+    if (isHandlingClose) return; // 多重実行防止
+    e.preventDefault();
+    isHandlingClose = true;
+
+    // rendererに確認要求
+    mainWindow.webContents.send("confirm-close-request");
+
+    // 1回限りの応答待ち
+    ipcMain.once("confirm-close-response", (event, shouldClose) => {
+      if (shouldClose) {
+        isHandlingClose = false;
+        // destroyでbeforeunload/closeを再発火させない
+        mainWindow.destroy();
+      } else {
+        isHandlingClose = false;
+      }
+    });
+  });
+
   // データベース初期化
   globalTempNoteHandler = new TempNoteHandler();
   const dbResult = await globalTempNoteHandler.initDatabase();

@@ -104,5 +104,9 @@ contextBridge.exposeInMainWorld("electronAPI", {
   saveCustomButtons: (data) => ipcRenderer.invoke("save-custom-buttons", data),
   readAvailableActions: () => ipcRenderer.invoke("read-available-actions"),
 
+  // 🔒 アプリ終了確認ダイアログのIPC
+  onConfirmCloseRequest: (callback) => ipcRenderer.on("confirm-close-request", () => callback()),
+  sendConfirmCloseResponse: (shouldClose) => ipcRenderer.send("confirm-close-response", shouldClose),
+
 });
 
