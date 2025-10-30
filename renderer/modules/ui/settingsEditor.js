@@ -16,6 +16,7 @@ import {
 } from "../config/customButtons.js";
 import { showSuccessToast, showErrorToast, showInfoToast } from "./toast/toast.js";
 import { UpdateTabHandler } from "../update/updateTabHandler.js";
+import { getActiveWebview } from "../data/webviewState.js";
 
 export class SettingsEditor {
   constructor() {
@@ -193,6 +194,23 @@ export class SettingsEditor {
       // アップデートタブのイベントリスナー
       this.updateTabHandler = new UpdateTabHandler(this.modal);
       this.updateTabHandler.setupUpdateTabListeners();
+
+      // URL表示トグル（feature-getUrl）に応じた表示制御
+      const getUrlCheckbox = this.modal.querySelector('#feature-getUrl');
+      const urlContainer = this.modal.querySelector('#current-url-container');
+      if (getUrlCheckbox && urlContainer) {
+        const applyVisibility = () => {
+          urlContainer.style.display = getUrlCheckbox.checked ? 'block' : 'none';
+          if (getUrlCheckbox.checked) {
+            const vw = getActiveWebview();
+            const url = vw && typeof vw.getURL === 'function' ? vw.getURL() : '';
+            const input = this.modal.querySelector('#current-webview-url');
+            if (input) input.value = url || '';
+          }
+        };
+        getUrlCheckbox.addEventListener('change', applyVisibility);
+        applyVisibility();
+      }
     }
   }
 
@@ -400,6 +418,17 @@ export class SettingsEditor {
     const windowAlwaysOnTop = this.modal.querySelector('#window-always-on-top');
     if (windowAlwaysOnTop) {
       windowAlwaysOnTop.checked = window.alwaysOnTop || false;
+    }
+
+    // 現在のURL表示（機能が有効な場合のみ）
+    const getUrlEnabled = !!IniState?.appSettings?.features?.getUrl?.enabled;
+    const urlContainer = this.modal.querySelector('#current-url-container');
+    if (urlContainer) urlContainer.style.display = getUrlEnabled ? 'block' : 'none';
+    if (getUrlEnabled) {
+      const vw = getActiveWebview();
+      const url = vw && typeof vw.getURL === 'function' ? vw.getURL() : '';
+      const input = this.modal.querySelector('#current-webview-url');
+      if (input) input.value = url || '';
     }
 
     // Config.json設定
@@ -829,8 +858,33 @@ export class SettingsEditor {
         showSuccessToast('✅ 設定を保存しました');
         this.closeModal();
         
-        // UIに反映
+        // 🔄 全設定をリロードし、UIを最新化
+        try {
+          const { loadAllReload } = await import('../actions/reloadSettings.js');
+          const reloadOk = await loadAllReload();
+          if (reloadOk) {
+            const { updateButtonVisibility } = await import('../actions/hugActions.js');
+            updateButtonVisibility();
+
+            const { customButtonManager } = await import('../actions/customButtons.js');
+            await customButtonManager.reloadCustomButtons();
+
+            const { buttonVisibilityManager } = await import('../ui/buttonVisibility.js');
+            await buttonVisibilityManager.reloadButtonVisibility();
+          }
+        } catch (e) {
+          console.error('❌ 全設定リロード中にエラー:', e);
+        }
+
+        // 既存の即時反映も維持
         this.applyAllSettings();
+
+        // 他UIへ設定更新を通知
+        try {
+          document.dispatchEvent(new CustomEvent('app-settings-updated', { detail: { IniState } }));
+        } catch (e) {
+          // 通知失敗は無視
+        }
       } else {
         showErrorToast('❌ 設定の保存に失敗しました');
       }

@@ -17,6 +17,13 @@ export function getActiveWebview() {
  */
 export function setActiveWebview(vw) {
   activeWebview = vw;
+  try {
+    const url = typeof vw?.getURL === 'function' ? vw.getURL() : '';
+    const detail = { webview: vw, url };
+    document.dispatchEvent(new CustomEvent('active-webview-changed', { detail }));
+  } catch (e) {
+    // 例外は無視（イベント送出失敗しても致命的ではない）
+  }
 }
 
 /**

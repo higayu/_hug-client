@@ -9,6 +9,8 @@ import { loadAllReload } from "./modules/actions/reloadSettings.js";
 import { updateUI } from "./modules/update/updateUI.js";
 import { customButtonManager } from "./modules/actions/customButtons.js";
 import { buttonVisibilityManager } from "./modules/ui/buttonVisibility.js";
+import { IniState } from "./modules/config/ini.js";
+import { getActiveWebview } from "./modules/data/webviewState.js";
 
 console.log("✅ mainRenderer.js 読み込み完了");
 
@@ -125,6 +127,77 @@ window.addEventListener("DOMContentLoaded", async () => {
   // ===== 🔟 ボタン表示制御マネージャー初期化 =====
   console.log("🔧 ボタン表示制御マネージャーを初期化中...");
   await buttonVisibilityManager.init();
+
+  // ===== ⓫ アクティブURLのUI反映（カスタムツールバー/設定モーダル） =====
+  function setToolbarVisible(visible) {
+    const bar = document.getElementById("custom-toolbar");
+    if (bar) bar.style.display = visible ? "block" : "none";
+  }
+
+  function setToolbarUrlText(urlText) {
+    const el = document.getElementById("custom-toolbar-url");
+    if (el) el.textContent = urlText || "";
+  }
+
+  function setModalUrlText(urlText) {
+    const input = document.getElementById("current-webview-url");
+    if (input) input.value = urlText || "";
+  }
+
+  function refreshUrlUI() {
+    const enabled = !!IniState?.appSettings?.features?.getUrl?.enabled;
+    setToolbarVisible(enabled);
+    const vw = getActiveWebview();
+    const url = vw && typeof vw.getURL === 'function' ? vw.getURL() : '';
+    setToolbarUrlText(url);
+    setModalUrlText(url);
+  }
+
+  // 初期反映
+  refreshUrlUI();
+
+  // アクティブwebview変更時に更新
+  document.addEventListener('active-webview-changed', (e) => {
+    const url = e?.detail?.url || '';
+    setToolbarUrlText(url);
+    setModalUrlText(url);
+  });
+
+  // webviewのナビゲーションイベントで更新
+  function attachWebviewUrlListeners(vw) {
+    if (!vw) return;
+    const handler = () => {
+      const url = typeof vw.getURL === 'function' ? vw.getURL() : '';
+      setToolbarUrlText(url);
+      setModalUrlText(url);
+    };
+    vw.addEventListener('did-navigate', handler);
+    vw.addEventListener('did-navigate-in-page', handler);
+    vw.addEventListener('did-redirect-navigation', handler);
+  }
+
+  // 既存のhugviewにリスナー
+  attachWebviewUrlListeners(document.getElementById('hugview'));
+
+  // 追加されるwebviewにも自動でリスナーを付与
+  const contentEl = document.getElementById('content');
+  if (contentEl) {
+    const mo = new MutationObserver((mutations) => {
+      for (const m of mutations) {
+        m.addedNodes.forEach((node) => {
+          if (node && node.tagName === 'WEBVIEW') {
+            attachWebviewUrlListeners(node);
+          }
+        });
+      }
+    });
+    mo.observe(contentEl, { childList: true });
+  }
+
+  // 設定保存などによりIniStateが更新された場合の反映
+  document.addEventListener('app-settings-updated', () => {
+    refreshUrlUI();
+  });
 
   // ドロップダウンメニューの位置を動的に計算する関数
   function positionDropdown(button, dropdown) {
