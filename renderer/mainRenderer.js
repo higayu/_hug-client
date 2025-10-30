@@ -128,28 +128,15 @@ window.addEventListener("DOMContentLoaded", async () => {
   console.log("🔧 ボタン表示制御マネージャーを初期化中...");
   await buttonVisibilityManager.init();
 
-  // ===== ⓫ アクティブURLのUI反映（カスタムツールバー/設定モーダル） =====
-  function setToolbarVisible(visible) {
-    const bar = document.getElementById("custom-toolbar");
-    if (bar) bar.style.display = visible ? "block" : "none";
-  }
-
-  function setToolbarUrlText(urlText) {
-    const el = document.getElementById("custom-toolbar-url");
-    if (el) el.textContent = urlText || "";
-  }
-
+  // ===== ⓫ アクティブURLのUI反映（設定モーダルのみ） =====
   function setModalUrlText(urlText) {
     const input = document.getElementById("current-webview-url");
     if (input) input.value = urlText || "";
   }
 
   function refreshUrlUI() {
-    const enabled = !!IniState?.appSettings?.features?.getUrl?.enabled;
-    setToolbarVisible(enabled);
     const vw = getActiveWebview();
     const url = vw && typeof vw.getURL === 'function' ? vw.getURL() : '';
-    setToolbarUrlText(url);
     setModalUrlText(url);
   }
 
@@ -159,7 +146,6 @@ window.addEventListener("DOMContentLoaded", async () => {
   // アクティブwebview変更時に更新
   document.addEventListener('active-webview-changed', (e) => {
     const url = e?.detail?.url || '';
-    setToolbarUrlText(url);
     setModalUrlText(url);
   });
 
@@ -168,7 +154,6 @@ window.addEventListener("DOMContentLoaded", async () => {
     if (!vw) return;
     const handler = () => {
       const url = typeof vw.getURL === 'function' ? vw.getURL() : '';
-      setToolbarUrlText(url);
       setModalUrlText(url);
     };
     vw.addEventListener('did-navigate', handler);
