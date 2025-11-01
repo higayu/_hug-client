@@ -114,7 +114,6 @@ export function setupSidebar() {
 
   menuToggle.addEventListener("click", () => {
     const isOpen = settingsEl.classList.toggle("open");
-    hugview.classList.toggle("shifted", isOpen);
     console.log(isOpen ? "📂 サイドバーを開いた" : "📁 サイドバーを閉じた");
   });
 
@@ -125,7 +124,6 @@ export function setupSidebar() {
       !menuToggle.contains(e.target)
     ) {
       settingsEl.classList.remove("open");
-      hugview.classList.remove("shifted");
       console.log("📁 サイドバーを閉じました（外側クリック）");
     }
   });
