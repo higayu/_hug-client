@@ -257,6 +257,72 @@
       overflow: hidden;
     }
 
+    /* 出勤データ取得セクション */
+    .attendance-section {
+      margin: 15px 0;
+      padding: 10px;
+      background-color: #f8f9fa;
+      border-radius: 4px;
+      border: 1px solid #dee2e6;
+    }
+
+    .attendance-button {
+      width: 100%;
+      padding: 10px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.2s;
+      margin-bottom: 10px;
+    }
+
+    .attendance-button:hover {
+      background-color: #0056b3;
+    }
+
+    .attendance-button:active {
+      transform: scale(0.98);
+    }
+
+    .attendance-button:disabled {
+      background-color: #6c757d;
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+
+    .attendance-result {
+      padding: 10px;
+      background-color: #fff;
+      border: 1px solid #dee2e6;
+      border-radius: 4px;
+      font-size: 12px;
+      max-height: 200px;
+      overflow-y: auto;
+      word-wrap: break-word;
+    }
+
+    .attendance-result.success {
+      background-color: #d4edda;
+      border-color: #c3e6cb;
+      color: #155724;
+    }
+
+    .attendance-result.error {
+      background-color: #f8d7da;
+      border-color: #f5c6cb;
+      color: #721c24;
+    }
+
+    .attendance-result.info {
+      background-color: #d1ecf1;
+      border-color: #bee5eb;
+      color: #0c5460;
+    }
+
     /* レスポンシブデザイン */
     @media (max-width: 768px) {
       #dateSelect,
@@ -316,6 +382,15 @@
     <hr>
     <label for="ExperienceChildrenList">体験子ども:</label>
     <ul id="ExperienceChildrenList"></ul>
+
+    <hr>
+    <!-- 出勤データ取得ボタン -->
+    <div class="attendance-section">
+      <button id="fetchAttendanceBtn" class="attendance-button">
+        📊 出勤データ取得
+      </button>
+      <div id="attendanceResult" class="attendance-result" style="display: none;"></div>
+    </div>
   </div>
 
 </body>

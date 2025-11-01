@@ -11,6 +11,19 @@ import { customButtonManager } from "./modules/actions/customButtons.js";
 import { buttonVisibilityManager } from "./modules/ui/buttonVisibility.js";
 import { IniState } from "./modules/config/ini.js";
 import { getActiveWebview } from "./modules/data/webviewState.js";
+import { 
+  fetchAttendanceTableData, 
+  fetchAttendanceData, 
+  parseAttendanceTable 
+} from "./modules/data/attendanceTable.js";
+import { showErrorToast } from "./modules/ui/toast/toast.js";
+
+// グローバルにエクスポート（デバッグ・開発用）
+window.attendanceTableAPI = {
+  fetchAttendanceTableData,
+  fetchAttendanceData,
+  parseAttendanceTable
+};
 
 console.log("✅ mainRenderer.js 読み込み完了");
 

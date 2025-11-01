@@ -181,9 +181,138 @@ export function initHugActions() {
     }
   });
 
+  // ✅ 出勤データ取得ボタン（サイドバー内）
+  // サイドバーが読み込まれるまで待機してからイベントリスナーを設定
+  setupAttendanceButton();
+
   console.log("✅ Hug操作 初期化完了");
 }
 
+/**
+ * 出勤データ取得ボタンのイベントリスナーを設定
+ */
+function setupAttendanceButton() {
+  // サイドバーが読み込まれるまで待機
+  const checkAndSetup = () => {
+    const settingsEl = document.getElementById("settings");
+    const button = settingsEl?.querySelector("#fetchAttendanceBtn");
+    
+    if (button && !button.dataset.listenerAdded) {
+      button.dataset.listenerAdded = "true";
+      
+      button.addEventListener("click", async () => {
+        await handleFetchAttendanceData(button);
+      });
+      
+      console.log("✅ 出勤データ取得ボタンのイベントリスナーを設定しました");
+    } else if (!button) {
+      // まだ読み込まれていない場合、少し待って再試行
+      setTimeout(checkAndSetup, 500);
+    }
+  };
+  
+  // 初期チェック
+  checkAndSetup();
+  
+  // DOM変更を監視してサイドバーが読み込まれたら設定
+  const observer = new MutationObserver(() => {
+    checkAndSetup();
+  });
+  
+  const settingsEl = document.getElementById("settings");
+  if (settingsEl) {
+    observer.observe(settingsEl, { childList: true, subtree: true });
+  }
+}
+
+/**
+ * 出勤データ取得処理
+ * @param {HTMLElement} button - ボタン要素
+ */
+async function handleFetchAttendanceData(button) {
+  const resultEl = document.getElementById("settings")?.querySelector("#attendanceResult");
+  
+  if (!resultEl) {
+    console.error("❌ 結果表示要素が見つかりません");
+    return;
+  }
+
+  try {
+    // ボタンを無効化
+    button.disabled = true;
+    button.textContent = "⏳ 取得中...";
+    resultEl.style.display = "block";
+    resultEl.className = "attendance-result info";
+    resultEl.textContent = "📥 データを取得しています...";
+
+    // 施設IDと日付を取得
+    const facilitySelect = document.getElementById("facilitySelect");
+    const dateInput = document.getElementById("settings")?.querySelector("#dateSelect");
+    
+    const facility_id = facilitySelect?.value || AppState.FACILITY_ID;
+    const date_str = dateInput?.value || AppState.DATE_STR;
+
+    if (!facility_id || !date_str) {
+      throw new Error("施設IDまたは日付が設定されていません");
+    }
+
+    console.log("📊 [ATTENDANCE] 出勤データ取得開始:", { facility_id, date_str });
+
+    // 出勤データを取得
+    const { fetchAttendanceTableData } = await import("../data/attendanceTable.js");
+    const result = await fetchAttendanceTableData(facility_id, date_str, {
+      showToast: true
+    });
+
+    if (result.success) {
+      // 成功時
+      resultEl.className = "attendance-result success";
+      resultEl.innerHTML = `
+        <div style="font-weight: bold; margin-bottom: 8px;">✅ データ取得完了</div>
+        <div style="margin-bottom: 4px;">施設ID: ${facility_id}</div>
+        <div style="margin-bottom: 4px;">日付: ${date_str}</div>
+        <div style="margin-bottom: 4px;">テーブル行数: ${result.rowCount}</div>
+        <div style="margin-bottom: 4px;">ページタイトル: ${result.pageTitle || "N/A"}</div>
+        <details style="margin-top: 8px;">
+          <summary style="cursor: pointer; font-weight: bold;">テーブルHTML（クリックで展開）</summary>
+          <pre style="margin-top: 8px; padding: 8px; background: #f8f9fa; border-radius: 4px; overflow-x: auto; font-size: 10px; max-height: 300px; overflow-y: auto;">${escapeHtml(result.html)}</pre>
+        </details>
+      `;
+      console.log("✅ [ATTENDANCE] 出勤データ取得成功:", result);
+    } else {
+      // 失敗時
+      resultEl.className = "attendance-result error";
+      resultEl.innerHTML = `
+        <div style="font-weight: bold; margin-bottom: 8px;">❌ データ取得失敗</div>
+        <div>エラー: ${escapeHtml(result.error || "不明なエラー")}</div>
+      `;
+      console.error("❌ [ATTENDANCE] 出勤データ取得失敗:", result.error);
+    }
+
+  } catch (error) {
+    console.error("❌ [ATTENDANCE] 出勤データ取得エラー:", error);
+    resultEl.className = "attendance-result error";
+    resultEl.innerHTML = `
+      <div style="font-weight: bold; margin-bottom: 8px;">❌ エラーが発生しました</div>
+      <div>${escapeHtml(error.message || "不明なエラー")}</div>
+    `;
+  } finally {
+    // ボタンを再有効化
+    button.disabled = false;
+    button.textContent = "📊 出勤データ取得";
+  }
+}
+
+/**
+ * HTMLエスケープ関数
+ * @param {string} text - エスケープするテキスト
+ * @returns {string} エスケープされたテキスト
+ */
+function escapeHtml(text) {
+  const div = document.createElement("div");
+  div.textContent = text;
+  return div.innerHTML;
+}
 
 // ボタンの表示/非表示を制御する関数（統合版）
 export function updateButtonVisibility() {
