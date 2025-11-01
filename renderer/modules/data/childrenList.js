@@ -11,6 +11,67 @@ import {
   PATHS 
 } from "../config/const.js";
 
+/**
+ * 児童の出勤データを取得（コンソール出力のみ）
+ * @param {string} childId - 児童ID
+ * @param {string} childName - 児童名
+ */
+async function handleFetchAttendanceForChild(childId, childName) {
+  try {
+    console.log(`📊 [ATTENDANCE] 出勤データ取得開始 - 児童: ${childName} (ID: ${childId})`);
+    
+    // 施設IDと日付を取得
+    const facilitySelect = document.getElementById(ELEMENT_IDS.FACILITY_SELECT);
+    const dateInput = document.getElementById(ELEMENT_IDS.SETTINGS)?.querySelector(`#${ELEMENT_IDS.DATE_SELECT}`);
+    
+    const facility_id = facilitySelect?.value || AppState.FACILITY_ID;
+    const date_str = dateInput?.value || AppState.DATE_STR;
+
+    if (!facility_id || !date_str) {
+      console.error("❌ [ATTENDANCE] 施設IDまたは日付が設定されていません");
+      return;
+    }
+
+    // 出勤データを取得
+    const { fetchAttendanceTableData } = await import("./attendanceTable.js");
+    const result = await fetchAttendanceTableData(facility_id, date_str, {
+      showToast: false // トースト通知は表示しない
+    });
+
+    if (result.success) {
+      console.log("✅ [ATTENDANCE] 出勤データ取得成功");
+      console.log("📊 [ATTENDANCE] 取得結果:", {
+        児童ID: childId,
+        児童名: childName,
+        施設ID: facility_id,
+        日付: date_str,
+        テーブル行数: result.rowCount,
+        ページタイトル: result.pageTitle,
+        ページURL: result.pageUrl,
+        テーブルHTMLサイズ: result.htmlSize,
+        テーブルクラス: result.className
+      });
+      
+      // テーブルHTMLもコンソールに出力（必要な場合）
+      if (result.html) {
+        console.log("📋 [ATTENDANCE] テーブルHTML:", result.html);
+      }
+    } else {
+      console.error("❌ [ATTENDANCE] 出勤データ取得失敗");
+      console.error("❌ [ATTENDANCE] エラー:", result.error);
+      if (result.debugInfo) {
+        console.error("❌ [ATTENDANCE] デバッグ情報:", result.debugInfo);
+      }
+    }
+  } catch (error) {
+    console.error("❌ [ATTENDANCE] 出勤データ取得エラー:", error);
+    console.error("❌ [ATTENDANCE] エラー詳細:", {
+      message: error.message,
+      stack: error.stack
+    });
+  }
+}
+
 export async function initChildrenList() {
   const settingsEl = document.getElementById(ELEMENT_IDS.SETTINGS);
 
@@ -62,18 +123,49 @@ export async function initChildrenList() {
     } else {
       data.week_children.forEach((c, i) => {
         const li = document.createElement("li");
-        li.textContent = `${c.children_id}: ${c.children_name}　:${c.pc_name?c.pc_name:""}`;
         li.dataset.childId = c.children_id;
         li.style.cursor = "pointer";
+        li.style.display = "flex";
+        li.style.alignItems = "center";
+        li.style.justifyContent = "space-between";
+        li.style.gap = "10px";
 
-        // 左クリックで選択
-        li.addEventListener(EVENTS.CLICK, () => {
+        // 児童名を表示するspan要素
+        const nameSpan = document.createElement("span");
+        nameSpan.textContent = `${c.children_id}: ${c.children_name}　:${c.pc_name?c.pc_name:""}`;
+        nameSpan.style.flex = "1";
+        nameSpan.style.cursor = "pointer";
+
+        // 出勤データ取得ボタン
+        const attendanceBtn = document.createElement("button");
+        attendanceBtn.textContent = "📊";
+        attendanceBtn.title = "出勤データ取得";
+        attendanceBtn.style.cssText = `
+          padding: 4px 8px;
+          font-size: 12px;
+          background-color: #007bff;
+          color: white;
+          border: none;
+          border-radius: 3px;
+          cursor: pointer;
+          flex-shrink: 0;
+        `;
+        attendanceBtn.addEventListener(EVENTS.CLICK, async (e) => {
+          e.stopPropagation(); // リスト項目のクリックイベントを防ぐ
+          await handleFetchAttendanceForChild(c.children_id, c.children_name);
+        });
+
+        // 左クリックで選択（nameSpanのみ）
+        nameSpan.addEventListener(EVENTS.CLICK, () => {
           AppState.SELECT_CHILD = c.children_id;
           AppState.SELECT_CHILD_NAME = c.children_name;
           listEl.querySelectorAll("li").forEach(li => li.classList.remove(CSS_CLASSES.ACTIVE));
           li.classList.add(CSS_CLASSES.ACTIVE);
           console.log(`${MESSAGES.INFO.CHILD_SELECTED}: ${AppState.SELECT_CHILD_NAME} (${AppState.SELECT_CHILD})`);
         });
+
+        li.appendChild(nameSpan);
+        li.appendChild(attendanceBtn);
 
         // 右クリックでnotes表示/非表示
         li.addEventListener(EVENTS.CONTEXTMENU, (e) => {
