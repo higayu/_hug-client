@@ -227,6 +227,16 @@
       padding-bottom: 10px;
       border-bottom: 1px solid #eee;
       margin-bottom: 10px;
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+    }
+
+    /* 日付・曜日セクションのコンテナ */
+    .date-weekday-section {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
     }
 
     /* サイドバーのコンテンツ部分（スクロール可能） */
@@ -264,22 +274,24 @@
   <!-- 固定ヘッダー部分（スクロールしない） -->
   <div class="sidebar-header">
     <!-- 🌟 日付選択 -->
-    <label for="dateSelect">日付:（個人記録）</label>
-    <input type="date" id="dateSelect" style="max-width: 200px;" />
-
-    <hr>
+    <div class="date-weekday-section">
+      <label for="dateSelect">日付:（個人記録）</label>
+      <input type="date" id="dateSelect" style="max-width: 200px;" />
+    </div>
 
     <!-- 🌟 曜日選択セレクトボックス -->
-    <label for="weekdaySelect" style="margin-left:10px;">曜日別（対応児童）:</label>
-    <select id="weekdaySelect" name="weekdaySelect" class="js_weekday">
-      <option value="日">日</option>
-      <option value="月">月</option>
-      <option value="火">火</option>
-      <option value="水">水</option>
-      <option value="木">木</option>
-      <option value="金">金</option>
-      <option value="土">土</option>
-    </select>
+    <div class="date-weekday-section">
+      <label for="weekdaySelect">曜日別（対応児童）:</label>
+      <select id="weekdaySelect" name="weekdaySelect" class="js_weekday">
+        <option value="日">日</option>
+        <option value="月">月</option>
+        <option value="火">火</option>
+        <option value="水">水</option>
+        <option value="木">木</option>
+        <option value="金">金</option>
+        <option value="土">土</option>
+      </select>
+    </div>
   </div>
 
   <!-- スクロール可能なコンテンツ部分 -->
