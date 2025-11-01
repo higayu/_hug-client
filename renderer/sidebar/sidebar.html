@@ -221,6 +221,32 @@
       transform: rotate(-90deg);
     }
 
+    /* サイドバーのヘッダー部分（固定） */
+    .sidebar-header {
+      flex-shrink: 0;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #eee;
+      margin-bottom: 10px;
+    }
+
+    /* サイドバーのコンテンツ部分（スクロール可能） */
+    .sidebar-content {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      min-height: 0;
+    }
+
+    /* サイドバー内のbodyをflexboxコンテナにして、ヘッダーとコンテンツを分離 */
+    #settings body {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+    }
+
     /* レスポンシブデザイン */
     @media (max-width: 768px) {
       #dateSelect,
@@ -235,7 +261,8 @@
   </style>
 </head>
 <body>
-
+  <!-- 固定ヘッダー部分（スクロールしない） -->
+  <div class="sidebar-header">
     <!-- 🌟 日付選択 -->
     <label for="dateSelect">日付:（個人記録）</label>
     <input type="date" id="dateSelect" />
@@ -253,22 +280,25 @@
       <option value="金">金</option>
       <option value="土">土</option>
     </select>
-
-
-  <ul id="childrenList"></ul>
-
-  <hr>
-  <div class="collapsible-section">
-    <label for="waitingChildrenList" class="collapsible-header" id="waitingHeader">
-      <span>キャンセル待ち子ども:</span>
-      <span class="toggle-icon">▼</span>
-    </label>
-    <ul id="waitingChildrenList" class="collapsible-content collapsed"></ul>
   </div>
 
-  <hr>
-  <label for="ExperienceChildrenList">体験子ども:</label>
-  <ul id="ExperienceChildrenList"></ul>
+  <!-- スクロール可能なコンテンツ部分 -->
+  <div class="sidebar-content">
+    <ul id="childrenList"></ul>
+
+    <hr>
+    <div class="collapsible-section">
+      <label for="waitingChildrenList" class="collapsible-header" id="waitingHeader">
+        <span>キャンセル待ち子ども:</span>
+        <span class="toggle-icon">▼</span>
+      </label>
+      <ul id="waitingChildrenList" class="collapsible-content collapsed"></ul>
+    </div>
+
+    <hr>
+    <label for="ExperienceChildrenList">体験子ども:</label>
+    <ul id="ExperienceChildrenList"></ul>
+  </div>
 
 </body>
 </html>
