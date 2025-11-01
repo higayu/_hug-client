@@ -69,6 +69,7 @@ export const ELEMENT_IDS = {
   STAFF_SELECT: "staffSelect",
   
   // 折りたたみヘッダー
+  CHILDREN_HEADER: "childrenHeader",
   WAITING_HEADER: "waitingHeader",
   
   // ボタン

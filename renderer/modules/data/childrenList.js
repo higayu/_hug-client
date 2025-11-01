@@ -277,6 +277,28 @@ export async function initChildrenList() {
 
 // 折りたたみセクションの初期化
 function initCollapsibleSections() {
+  // 対応児童リストの折りたたみ機能
+  const childrenHeader = document.getElementById(ELEMENT_IDS.CHILDREN_HEADER);
+  const childrenList = document.getElementById(ELEMENT_IDS.CHILDREN_LIST);
+  
+  if (childrenHeader && childrenList) {
+    // 初期状態は展開（子どもリストは重要なので展開状態で開始）
+    childrenHeader.addEventListener(EVENTS.CLICK, () => {
+      const isCollapsed = childrenList.classList.contains(CSS_CLASSES.COLLAPSED);
+      
+      if (isCollapsed) {
+        // 展開
+        childrenList.classList.remove(CSS_CLASSES.COLLAPSED);
+        childrenHeader.classList.remove(CSS_CLASSES.COLLAPSED);
+      } else {
+        // 折りたたみ
+        childrenList.classList.add(CSS_CLASSES.COLLAPSED);
+        childrenHeader.classList.add(CSS_CLASSES.COLLAPSED);
+      }
+    });
+  }
+
+  // キャンセル待ち子どもリストの折りたたみ機能
   const waitingHeader = document.getElementById(ELEMENT_IDS.WAITING_HEADER);
   const waitingList = document.getElementById(ELEMENT_IDS.WAITING_CHILDREN_LIST);
   

@@ -205,8 +205,8 @@
     }
 
     .collapsible-content {
-      max-height: 200px;
-      overflow-y: auto;
+      max-height: 5000px;
+      overflow-y: visible;
       transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
       opacity: 1;
     }
@@ -265,7 +265,7 @@
   <div class="sidebar-header">
     <!-- 🌟 日付選択 -->
     <label for="dateSelect">日付:（個人記録）</label>
-    <input type="date" id="dateSelect" />
+    <input type="date" id="dateSelect" style="max-width: 200px;" />
 
     <hr>
 
@@ -284,7 +284,13 @@
 
   <!-- スクロール可能なコンテンツ部分 -->
   <div class="sidebar-content">
-    <ul id="childrenList"></ul>
+    <div class="collapsible-section">
+      <label for="childrenList" class="collapsible-header" id="childrenHeader">
+        <span>対応児童:</span>
+        <span class="toggle-icon">▼</span>
+      </label>
+      <ul id="childrenList" class="collapsible-content"></ul>
+    </div>
 
     <hr>
     <div class="collapsible-section">
