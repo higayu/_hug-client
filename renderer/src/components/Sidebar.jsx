@@ -1,11 +1,15 @@
 import { useEffect, useRef, useState } from 'react'
-import { AppState, getWeekdayFromDate } from '../../modules/config/config.js'
+import { AppState, getWeekdayFromDate, getDateString } from '../../modules/config/config.js'
 import { showInfoToast } from '../../modules/ui/toast/toast.js'
 import { ELEMENT_IDS } from '../../modules/config/const.js'
 
 function Sidebar() {
-  const [dateValue, setDateValue] = useState(AppState.DATE_STR || '')
-  const [weekdayValue, setWeekdayValue] = useState(AppState.WEEK_DAY || '月')
+  // 初期値を設定（AppStateに値がない場合は今日の日付を使用）
+  const initialDate = AppState.DATE_STR || getDateString()
+  const initialWeekday = AppState.WEEK_DAY || getWeekdayFromDate(initialDate)
+  
+  const [dateValue, setDateValue] = useState(initialDate)
+  const [weekdayValue, setWeekdayValue] = useState(initialWeekday)
   const [childrenCollapsed, setChildrenCollapsed] = useState(false)
   const [waitingCollapsed, setWaitingCollapsed] = useState(true)
   const sidebarRef = useRef(null)
@@ -23,6 +27,14 @@ function Sidebar() {
       setWeekdayValue(weekday)
       showInfoToast(`📅 日付を ${selectedDate} (${weekday}) に設定しました`)
       console.log("✅ 日付と曜日を更新:", { date: selectedDate, weekday })
+      
+      // 日付変更イベントを発行（他のコンポーネントに通知）
+      window.dispatchEvent(new CustomEvent('date-changed', { 
+        detail: { date: selectedDate, weekday } 
+      }))
+      
+      // 曜日も変更されたので、曜日変更イベントも発行
+      window.dispatchEvent(new Event('weekday-changed'))
     }
   }
 
@@ -40,13 +52,19 @@ function Sidebar() {
     window.dispatchEvent(new Event('weekday-changed'))
   }
 
-  // 初期化時にAppStateから値を取得
+  // 初期化時にAppStateから値を取得し、初期値がない場合は設定
   useEffect(() => {
-    if (AppState.DATE_STR) {
-      setDateValue(AppState.DATE_STR)
-    }
-    if (AppState.WEEK_DAY) {
+    if (!AppState.DATE_STR) {
+      const today = getDateString()
+      AppState.DATE_STR = today
+      AppState.WEEK_DAY = getWeekdayFromDate(today)
+      setDateValue(today)
       setWeekdayValue(AppState.WEEK_DAY)
+    } else {
+      setDateValue(AppState.DATE_STR)
+      if (AppState.WEEK_DAY) {
+        setWeekdayValue(AppState.WEEK_DAY)
+      }
     }
   }, [])
 

@@ -223,7 +223,7 @@ function Toolbar() {
             <li className="m-0 p-0">
               <button 
                 id="professional-support-new"
-                className="block w-full text-left border-none bg-transparent px-4 py-2 text-sm cursor-pointer transition-all hover:bg-[#e3f2fd]"
+                className="block w-full text-left border-none bg-white text-black px-4 py-2 text-sm cursor-pointer transition-all hover:bg-[#e3f2fd]"
               >
                 ＋ 専門的支援-新規
               </button>
@@ -231,7 +231,7 @@ function Toolbar() {
             <li className="m-0 p-0">
               <button 
                 id="professional-support"
-                className="block w-full text-left border-none bg-transparent px-4 py-2 text-sm cursor-pointer transition-all hover:bg-[#e3f2fd]"
+                className="block w-full text-left border-none bg-white text-black px-4 py-2 text-sm cursor-pointer transition-all hover:bg-[#e3f2fd]"
               >
                 専門的支援-一覧
               </button>
