@@ -9,8 +9,8 @@ function resolveCustomButtonsPath() {
     // ✅ ビルド後: ユーザーディレクトリ/data/customButtons.json
     return path.join(app.getPath("userData"), "data", "customButtons.json");
   } else {
-    // ✅ 開発時: プロジェクト直下の main/data/customButtons.json
-    return path.join(__dirname, "..", "..", "data", "customButtons.json");
+    // ✅ 開発時: プロジェクトルート直下の data/customButtons.json
+    return path.join(__dirname, "../../../data/customButtons.json");
   }
 }
 
@@ -19,8 +19,8 @@ function resolveAvailableActionsPath() {
     // ✅ ビルド後: ユーザーディレクトリ/data/availableActions.json
     return path.join(app.getPath("userData"), "data", "availableActions.json");
   } else {
-    // ✅ 開発時: プロジェクト直下の main/data/availableActions.json
-    return path.join(__dirname, "..", "..", "data", "availableActions.json");
+    // ✅ 開発時: プロジェクトルート直下の data/availableActions.json
+    return path.join(__dirname, "../../../data/availableActions.json");
   }
 }
 
@@ -29,6 +29,8 @@ function handleCustomButtonsAccess(ipcMain) {
   ipcMain.handle("read-custom-buttons", async () => {
     try {
       const filePath = resolveCustomButtonsPath();
+      console.log("🔍 [CUSTOM_BUTTONS] customButtons.jsonのパス:", filePath);
+      console.log("🔍 [CUSTOM_BUTTONS] ファイルの存在確認:", fs.existsSync(filePath));
       
       // customButtons.jsonが存在しない場合は自動生成
       if (!fs.existsSync(filePath)) {
@@ -90,6 +92,8 @@ function handleCustomButtonsAccess(ipcMain) {
   ipcMain.handle("read-available-actions", async () => {
     try {
       const filePath = resolveAvailableActionsPath();
+      console.log("🔍 [CUSTOM_BUTTONS] availableActions.jsonのパス:", filePath);
+      console.log("🔍 [CUSTOM_BUTTONS] ファイルの存在確認:", fs.existsSync(filePath));
       
       // availableActions.jsonが存在しない場合は自動生成
       if (!fs.existsSync(filePath)) {
