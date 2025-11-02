@@ -189,37 +189,97 @@ function Toolbar() {
   }, [])
 
   return (
-    <div id="toolbar" className="text-white">
-      <button id="menuToggle" className="hamburger">
-        <i className="fa-solid fa-bars"></i>
+    <div 
+      id="toolbar" 
+      className="bg-[#616161] text-white p-2 flex-none flex flex-nowrap items-center gap-2.5 overflow-x-auto whitespace-nowrap relative z-[1000]"
+    >
+      <button 
+        id="menuToggle" 
+        className="bg-transparent border-none text-white text-xl cursor-pointer mr-2 whitespace-nowrap flex-shrink-0 hover:scale-110 transition-transform"
+      >
+        <i className="fa-solid fa-bars text-xl text-white min-w-[40px]"></i>
       </button>
 
-      <button id="kojin-kiroku">＋ 個人記録</button>
+      <button 
+        id="kojin-kiroku"
+        className="bg-[#4CAF50] text-white border-none px-3.5 py-1.5 rounded-lg font-bold cursor-pointer transition-all whitespace-nowrap flex-shrink-0 hover:bg-[#66BB6A] hover:scale-105 active:bg-[#43A047] active:scale-[0.97]"
+      >
+        ＋ 個人記録
+      </button>
 
       {/* ======== ナビゲーションメニュー ======== */}
-      <nav className="globalNav">
-        <button id="panel-special-btn" className="menu-button-special">💵専門的支援加算 ▾</button>
-        <div id="panel-special" className="navInner">
-          <ul>
-            <li><button id="professional-support-new">＋ 専門的支援-新規</button></li>
-            <li><button id="professional-support">専門的支援-一覧</button></li>
+      <nav className="relative inline-block ml-0 min-w-auto flex-shrink-0 z-[1001]">
+        <button 
+          id="panel-special-btn" 
+          className="bg-[#f8461f] text-white border-none rounded-md px-3 py-1.5 cursor-pointer transition-all whitespace-nowrap relative z-[1002] hover:bg-[#2196f3]"
+        >
+          💵専門的支援加算 ▾
+        </button>
+        <div 
+          id="panel-special" 
+          className="navInner fixed right-auto top-auto bg-white border border-gray-300 rounded-md shadow-lg z-[99999] min-w-[200px] max-h-[300px] overflow-y-auto"
+        >
+          <ul className="list-none m-0 p-0 py-1.25">
+            <li className="m-0 p-0">
+              <button 
+                id="professional-support-new"
+                className="block w-full text-left border-none bg-transparent px-4 py-2 text-sm cursor-pointer transition-all hover:bg-[#e3f2fd]"
+              >
+                ＋ 専門的支援-新規
+              </button>
+            </li>
+            <li className="m-0 p-0">
+              <button 
+                id="professional-support"
+                className="block w-full text-left border-none bg-transparent px-4 py-2 text-sm cursor-pointer transition-all hover:bg-[#e3f2fd]"
+              >
+                専門的支援-一覧
+              </button>
+            </li>
           </ul>
         </div>
       </nav>
 
       {/* ======== ナビゲーションメニュー ======== */}
-      <nav className="globalNav">
-        <button id="panel-support-btn" className="menu-button-support">📜支援計画 ▾</button>
-        <div id="panel-support" className="navInner">
-          <ul>
-            <li><button id="Individual_Support_Button">個別支援-計画</button></li>
-            <li><button id="Specialized-Support-Plan">専門的支援-計画</button></li>
+      <nav className="relative inline-block ml-0 min-w-auto flex-shrink-0 z-[1001]">
+        <button 
+          id="panel-support-btn" 
+          className="bg-[#1976d2] text-white border-none rounded-md px-3 py-1.5 cursor-pointer transition-all whitespace-nowrap relative z-[1002] hover:bg-[#2196f3]"
+        >
+          📜支援計画 ▾
+        </button>
+        <div 
+          id="panel-support" 
+          className="navInner fixed right-auto top-auto bg-white border border-gray-300 rounded-md shadow-lg z-[99999] min-w-[200px] max-h-[300px] overflow-y-auto"
+        >
+          <ul className="list-none m-0 p-0 py-1.25">
+            <li className="m-0 p-0">
+              <button 
+                id="Individual_Support_Button"
+                className="block w-full text-left border-none bg-transparent px-4 py-2 text-sm cursor-pointer transition-all hover:bg-[#e3f2fd]"
+              >
+                個別支援-計画
+              </button>
+            </li>
+            <li className="m-0 p-0">
+              <button 
+                id="Specialized-Support-Plan"
+                className="block w-full text-left border-none bg-transparent px-4 py-2 text-sm cursor-pointer transition-all hover:bg-[#e3f2fd]"
+              >
+                専門的支援-計画
+              </button>
+            </li>
           </ul>
         </div>
       </nav>
 
-      <label htmlFor="facilitySelect" style={{ marginLeft: '0px' }}>施設:</label>
-      <select id="facilitySelect" className="js_c_f_id">
+      <label htmlFor="facilitySelect" className="whitespace-nowrap flex-shrink-0 text-white text-sm ml-0">
+        施設:
+      </label>
+      <select 
+        id="facilitySelect" 
+        className="js_c_f_id bg-white text-black border border-[#ddd] px-2.5 py-1.5 rounded text-sm cursor-pointer whitespace-nowrap flex-shrink-0 hover:border-gray-400 focus:outline-none focus:border-[#2196f3] focus:ring-2 focus:ring-[rgba(33,150,243,0.2)]"
+      >
         <option value="3" defaultChecked>PD吉島</option>
         <option value="6">PD光</option>
         <option value="7">PD横川</option>
@@ -227,31 +287,94 @@ function Toolbar() {
       </select>
 
       {/* ======== ナビゲーションメニュー ======== */}
-      <nav className="globalNav">
-        <button id="panel-btn" className="menu-button-setting">⚙️設定 ▾</button>
-        <div id="panel" className="navInner">
-          <ul>
-            <li><button id="loginBtn">⚙️ 自動ログイン</button></li>
-            <li><button id="refreshBtn">🔄 更新</button></li>
-            <li><button id="Get-Url">URLの取得</button></li>
-            <li><button id="Edit-Settings">⚙️ 設定編集</button></li>
-            <li><button id="Load-Ini">🔄 設定の再読み込み</button></li>
-            <li><button id="Import-Setting">📁 設定ファイルのインポート</button></li>
+      <nav className="relative inline-block ml-0 min-w-auto flex-shrink-0 z-[1001]">
+        <button 
+          id="panel-btn" 
+          className="bg-[#515152] text-white border-none rounded-md px-3 py-1.5 cursor-pointer transition-all whitespace-nowrap relative z-[1002] hover:bg-[#2196f3]"
+        >
+          ⚙️設定 ▾
+        </button>
+        <div 
+          id="panel" 
+          className="navInner fixed right-auto top-auto bg-white border border-gray-300 rounded-md shadow-lg z-[99999] min-w-[200px] max-h-[300px] overflow-y-auto"
+        >
+          <ul className="list-none m-0 p-0 py-1.25">
+            <li className="m-0 p-0">
+              <button 
+                id="loginBtn"
+                className="block w-full text-left text-black border-none bg-transparent px-4 py-2 text-sm cursor-pointer transition-all hover:bg-[#e3f2fd]"
+              >
+                ⚙️ 自動ログイン
+              </button>
+            </li>
+            <li className="m-0 p-0">
+              <button 
+                id="refreshBtn"
+                className="block w-full text-left text-black border-none bg-transparent px-4 py-2 text-sm cursor-pointer transition-all hover:bg-[#e3f2fd]"
+              >
+                🔄 更新
+              </button>
+            </li>
+            <li className="m-0 p-0">
+              <button 
+                id="Get-Url"
+                className="block w-full text-left text-black border-none bg-transparent px-4 py-2 text-sm cursor-pointer transition-all hover:bg-[#e3f2fd]"
+              >
+                URLの取得
+              </button>
+            </li>
+            <li className="m-0 p-0">
+              <button 
+                id="Edit-Settings"
+                className="block w-full text-left text-black border-none bg-transparent px-4 py-2 text-sm cursor-pointer transition-all hover:bg-[#e3f2fd]"
+              >
+                ⚙️ 設定編集
+              </button>
+            </li>
+            <li className="m-0 p-0">
+              <button 
+                id="Load-Ini"
+                className="block w-full text-left text-black border-none bg-transparent px-4 py-2 text-sm cursor-pointer transition-all hover:bg-[#e3f2fd]"
+              >
+                🔄 設定の再読み込み
+              </button>
+            </li>
+            <li className="m-0 p-0">
+              <button 
+                id="Import-Setting"
+                className="block w-full text-left text-black border-none bg-transparent px-4 py-2 text-sm cursor-pointer transition-all hover:bg-[#e3f2fd]"
+              >
+                📁 設定ファイルのインポート
+              </button>
+            </li>
           </ul>
         </div>
       </nav>
 
       {/* ======== ナビゲーションメニュー ======== */}
-      <nav className="globalNav">
-        <button id="custom-btn" className="menu-button-setting">カスタムツール ▾</button>
-        <div id="custom-panel" className="navInner">
-          <ul></ul>
+      <nav className="relative inline-block ml-0 min-w-auto flex-shrink-0 z-[1001]">
+        <button 
+          id="custom-btn" 
+          className="bg-[#515152] text-white border-none rounded-md px-3 py-1.5 cursor-pointer transition-all whitespace-nowrap relative z-[1002] hover:bg-[#2196f3]"
+        >
+          カスタムツール ▾
+        </button>
+        <div 
+          id="custom-panel" 
+          className="navInner fixed right-auto top-auto bg-white border border-gray-300 rounded-md shadow-lg z-[99999] min-w-[200px] max-h-[300px] overflow-y-auto"
+        >
+          <ul className="list-none m-0 p-0 py-1.25"></ul>
         </div>
       </nav>
 
-      <label className="toggle-switch" title="閉じるボタン表示トグル">
-        <input type="checkbox" id="closeToggle" defaultChecked />
-        <span className="slider"></span>
+      <label className="toggle-switch relative inline-block w-10 h-[22px] ml-2 align-middle" title="閉じるボタン表示トグル">
+        <input 
+          type="checkbox" 
+          id="closeToggle" 
+          defaultChecked 
+          className="opacity-0 w-0 h-0"
+        />
+        <span className="slider absolute cursor-pointer top-0 left-0 right-0 bottom-0 bg-[#ccc] rounded-[22px] transition-all before:content-[''] before:absolute before:h-4 before:w-4 before:left-[3px] before:bottom-[3px] before:bg-white before:rounded-full before:transition-all"></span>
       </label>
 
       <SettingsModal

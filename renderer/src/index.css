@@ -9,7 +9,7 @@
 
   color-scheme: light dark;
   color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+  background-color: #757575;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -30,4 +30,48 @@ body {
   height: 100%;
   display: flex;
   flex-direction: column;
+}
+
+/* === グローバルユーティリティクラス === */
+.hidden {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* === ドロップダウンメニュー === */
+.navInner {
+  display: none;
+}
+
+.navInner.open,
+.navInner.open ul {
+  display: block;
+}
+
+/* === サイドバー === */
+.settings-sidebar {
+  transition: width 0.3s ease, padding 0.3s ease, border-width 0.3s ease;
+}
+
+.settings-sidebar.open {
+  width: 400px;
+  padding: 15px;
+  border-right: 1px solid #ccc;
+}
+
+/* === アクティブタブ === */
+.active-tab {
+  background: linear-gradient(180deg, #b3e5fc, #4f79f7);
+  color: #ffffff;
+  font-weight: bold;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+/* === Toggle Switch === */
+.toggle-switch input:checked + .slider {
+  background-color: #4fc3f7;
+}
+
+.toggle-switch input:checked + .slider::before {
+  transform: translateX(18px);
 }
