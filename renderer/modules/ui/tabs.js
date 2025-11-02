@@ -36,6 +36,7 @@ export function initTabs() {
     content.appendChild(newWebview);
 
     const tabButton = document.createElement("button");
+    tabButton.className = "mr-1 px-2.5 py-1 border-none cursor-pointer bg-[#777] text-black rounded font-bold shadow-sm";
     tabButton.innerHTML = `
       Hug-${tabsContainer.querySelectorAll("button[data-target^='hugview']").length + 1}
       <span class="close-btn"${AppState.closeButtonsVisible ? "" : " style='display:none'"}>❌</span>
@@ -113,6 +114,7 @@ addTabBtn.addEventListener("contextmenu", (e) => {
 
     // ✅ タブボタン作成
     const tabButton = document.createElement("button");
+    tabButton.className = "mr-1 px-2.5 py-1 border-none cursor-pointer bg-[#777] text-black rounded font-bold shadow-sm";
     tabButton.innerHTML = `
       個人記録 : ${AppState.SELECT_CHILD_NAME}
       <span class="close-btn"${AppState.closeButtonsVisible ? "" : " style='display:none'"}>❌</span>
@@ -282,6 +284,7 @@ addTabBtn.addEventListener("contextmenu", (e) => {
 
     // ✅ タブボタン作成
     const tabButton = document.createElement("button");
+    tabButton.className = "mr-1 px-2.5 py-1 border-none cursor-pointer bg-[#777] text-black rounded font-bold shadow-sm";
     tabButton.innerHTML = `
       専門的加算 : ${AppState.SELECT_CHILD_NAME}
       <span class="close-btn"${AppState.closeButtonsVisible ? "" : " style='display:none'"}>❌</span>
@@ -405,6 +408,7 @@ addTabBtn.addEventListener("contextmenu", (e) => {
 
     // ✅ タブボタン作成
     const tabButton = document.createElement("button");
+    tabButton.className = "mr-1 px-2.5 py-1 border-none cursor-pointer bg-[#777] text-black rounded font-bold shadow-sm";
     tabButton.innerHTML = `
       専門的加算 一覧 : ${AppState.SELECT_CHILD_NAME}
       <span class="close-btn"${AppState.closeButtonsVisible ? "" : " style='display:none'"}>❌</span>
