@@ -1,7 +1,7 @@
 // ===== モジュール読み込み =====
 import { initTabs } from "./modules/ui/tabs.js";
 import { AppState } from "./modules/config/config.js";
-// setupSidebar機能はApp.jsxに統合されました
+import { setupSidebar } from "./sidebar/sidebar.js";
 import { initHugActions, updateButtonVisibility } from "./modules/actions/hugActions.js";
 import { initChildrenList } from "./modules/data/childrenList.js";
 import { initSettingsEditor } from "./modules/ui/settingsEditor.js";
@@ -38,30 +38,7 @@ window.addEventListener("DOMContentLoaded", async () => {
   }
 
   // ===== 2️⃣ サイドバー & タブ初期化 =====
-  // サイドバーの開閉機能を設定（setupSidebar機能はApp.jsxに統合されました）
-  const settingsEl = document.getElementById("settings");
-  const menuToggle = document.getElementById("menuToggle");
-  
-  if (settingsEl && menuToggle) {
-    menuToggle.addEventListener("click", () => {
-      const isOpen = settingsEl.classList.toggle("open");
-      console.log(isOpen ? "📂 サイドバーを開いた" : "📁 サイドバーを閉じた");
-    });
-    
-    document.addEventListener("click", (e) => {
-      if (
-        settingsEl.classList.contains("open") &&
-        !settingsEl.contains(e.target) &&
-        !menuToggle.contains(e.target)
-      ) {
-        settingsEl.classList.remove("open");
-        console.log("📁 サイドバーを閉じました（外側クリック）");
-      }
-    });
-    
-    console.log("✅ サイドバーの開閉機能を設定しました");
-  }
-  
+  setupSidebar();
   initTabs();
 
   // ===== 3️⃣ 子ども一覧と曜日選択を初期化 =====

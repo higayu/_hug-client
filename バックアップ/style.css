@@ -9,7 +9,7 @@ body {
 /* === Toolbar & Tabs === */
 #toolbar {
   background: #333;
-  color: black;
+  color: white;
   padding: 8px;
   flex: 0 0 auto;
   display: flex;
@@ -34,7 +34,7 @@ body {
   border: none;
   cursor: pointer;
   background: #777;
-  color: black;
+  color: white;
   border-radius: 4px;
 }
 
@@ -98,7 +98,7 @@ body {
 .hamburger {
   background: none;
   border: none;
-  color: black;
+  color: white;
   font-size: 20px;
   cursor: pointer;
   margin-right: 8px;
@@ -243,7 +243,7 @@ body {
 /* ===== 一覧 ===== */
 .menu-button-support {
   background: #1976d2;
-  color: black;
+  color: white;
   border: none;
   border-radius: 6px;
   padding: 6px 12px;
@@ -257,7 +257,7 @@ body {
 /* ===== 設定 ===== */
 .menu-button-setting {
   background: #515152;
-  color: black;
+  color: white;
   border: none;
   border-radius: 6px;
   padding: 6px 12px;
@@ -271,7 +271,7 @@ body {
 /* ===== 専門的支援加算 ===== */
 .menu-button-special{
   background: #f8461f;
-  color: black;
+  color: white;
   border: none;
   border-radius: 6px;
   padding: 6px 12px;
@@ -336,7 +336,7 @@ body {
 /* 🌿 個人記録ボタン */
 #kojin-kiroku {
   background-color: #4CAF50;   /* 緑色 */
-  color: black;                /* 文字は白 */
+  color: white;                /* 文字は白 */
   border: none;                /* 枠線なし */
   padding: 6px 14px;           /* 少し余白 */
   border-radius: 8px;          /* 角を丸く */
@@ -362,7 +362,7 @@ body {
 /* テストボタン */
 #addition-compare-btn {
   background-color: #ff9800;
-  color: black;
+  color: white;
   border: none;
   padding: 6px 14px;
   border-radius: 8px;
@@ -410,13 +410,13 @@ body {
 label {
   white-space: nowrap;
   flex-shrink: 0;
-  color: black;
+  color: white;
   font-size: 14px;
 }
 
 .hamburger i {
   font-size: 20px;
-  color: black;
+  color: white;
   /* background-color: aliceblue; */
   min-width: 40px;
   /* min-height: 30px; */

@@ -1,5 +1,8 @@
 // main/ipcHandlers.js
-const { ipcMain } = require("electron");
+const { ipcMain, app } = require("electron");
+const path = require("path");
+const { pathToFileURL } = require("url");
+const fs = require("fs");
 const { handleLogin } = require("./parts/handlers/loginHandler");
 const { handleApiCalls } = require("./parts/handlers/apiHandler");
 const { handleConfigAccess } = require("./parts/handlers/configHandler");
@@ -109,6 +112,41 @@ function registerIpcHandlers(mainWindow, tempNoteHandler) {
     });
     
     console.log("✅ [MAIN] アップデートデバッグハンドラー 登録完了");
+    
+    // 🔧 webviewのpreload属性用のパス取得ハンドラー
+    ipcMain.handle('get-preload-path', async () => {
+      console.log("🔧 [IPC] getPreloadPath 呼び出し");
+      try {
+        // 開発環境と本番環境で正しいパスを取得
+        const appPath = app.isPackaged 
+          ? path.dirname(process.execPath)  // 本番環境: 実行ファイルのディレクトリ
+          : app.getAppPath();                // 開発環境: アプリのルートディレクトリ
+        
+        const preloadPath = path.resolve(appPath, 'preload.js');
+        
+        // ファイル存在確認
+        if (!fs.existsSync(preloadPath)) {
+          console.error('❌ preload.jsが見つかりません:', preloadPath);
+          console.error('🔍 [getPreloadPath] app.isPackaged:', app.isPackaged);
+          console.error('🔍 [getPreloadPath] appPath:', appPath);
+          return null;
+        }
+        
+        // pathToFileURLは絶対パスをfile:// URLに変換する
+        const fileUrl = pathToFileURL(preloadPath).href;
+        console.log("✅ [IPC] preloadパス:", fileUrl);
+        console.log("🔍 [IPC] app.isPackaged:", app.isPackaged);
+        console.log("🔍 [IPC] appPath:", appPath);
+        console.log("🔍 [IPC] ファイル存在確認:", fs.existsSync(preloadPath));
+        
+        return fileUrl;
+      } catch (err) {
+        console.error("❌ [IPC] preloadパス取得エラー:", err);
+        throw err;
+      }
+    });
+    
+    console.log("✅ [MAIN] getPreloadPathハンドラー 登録完了");
     console.log("✅ [MAIN] すべてのIPCハンドラーを登録しました");
   } catch (error) {
     console.error("❌ [MAIN] IPCハンドラー登録中にエラー:", error);

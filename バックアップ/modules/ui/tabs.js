@@ -25,12 +25,7 @@ export function initTabs() {
     const newWebview = document.createElement("webview");
     newWebview.id = newId;
     newWebview.src = `https://www.hug-ayumu.link/hug/wm/attendance.php?mode=detail&f_id=${AppState.FACILITY_ID}&date=${AppState.DATE_STR}`;
-    newWebview.setAttribute("allowpopups", "true");
-    newWebview.setAttribute("disablewebsecurity", "true");
-    // preloadパスがグローバルに保存されている場合は設定
-    if (window.preloadPath) {
-      newWebview.setAttribute("preload", window.preloadPath);
-    }
+    newWebview.allowpopups = true;
     newWebview.style.cssText = "position:absolute;top:0;left:0;width:100%;height:100%;";
     newWebview.classList.add("hidden");
     content.appendChild(newWebview);
@@ -96,12 +91,7 @@ addTabBtn.addEventListener("contextmenu", (e) => {
 
     // contact_book ページを開く
     newWebview.src = `https://www.hug-ayumu.link/hug/wm/contact_book.php?id=${AppState.SELECT_CHILD}`;
-    newWebview.setAttribute("allowpopups", "true");
-    newWebview.setAttribute("disablewebsecurity", "true");
-    // preloadパスがグローバルに保存されている場合は設定
-    if (window.preloadPath) {
-      newWebview.setAttribute("preload", window.preloadPath);
-    }
+    newWebview.allowpopups = true;
     newWebview.style.cssText = "position:absolute;top:0;left:0;width:100%;height:100%;";
     newWebview.classList.add("hidden");
     content.appendChild(newWebview);
@@ -265,12 +255,7 @@ addTabBtn.addEventListener("contextmenu", (e) => {
 
     // contact_book ページを開く
     newWebview.src = `https://www.hug-ayumu.link/hug/wm/record_proceedings.php?mode=edit`;
-    newWebview.setAttribute("allowpopups", "true");
-    newWebview.setAttribute("disablewebsecurity", "true");
-    // preloadパスがグローバルに保存されている場合は設定
-    if (window.preloadPath) {
-      newWebview.setAttribute("preload", window.preloadPath);
-    }
+    newWebview.allowpopups = true;
     newWebview.style.cssText = "position:absolute;top:0;left:0;width:100%;height:100%;";
     newWebview.classList.add("hidden");
     content.appendChild(newWebview);
@@ -388,12 +373,7 @@ addTabBtn.addEventListener("contextmenu", (e) => {
 
     // contact_book ページを開く
     newWebview.src = `https://www.hug-ayumu.link/hug/wm/record_proceedings.php`;
-    newWebview.setAttribute("allowpopups", "true");
-    newWebview.setAttribute("disablewebsecurity", "true");
-    // preloadパスがグローバルに保存されている場合は設定
-    if (window.preloadPath) {
-      newWebview.setAttribute("preload", window.preloadPath);
-    }
+    newWebview.allowpopups = true;
     newWebview.style.cssText = "position:absolute;top:0;left:0;width:100%;height:100%;";
     newWebview.classList.add("hidden");
     content.appendChild(newWebview);

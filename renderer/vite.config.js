@@ -1,0 +1,18 @@
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+import path from 'path'
+
+export default defineConfig({
+  plugins: [react()],
+  // file:// プロトコルで読み込むためビルド時のベースを相対にする
+  base: './',
+  root: path.resolve(__dirname, '.'),
+  build: {
+    outDir: 'dist',
+    emptyOutDir: true,
+  },
+  server: {
+    port: 5173,
+    strictPort: true,
+  },
+})

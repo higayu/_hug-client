@@ -147,12 +147,9 @@ export class CustomButtonManager {
     // 指定されたURLを設定
     const targetUrl = `https://www.hug-ayumu.link/hug/wm/attendance.php?mode=add&date=${AppState.DATE_STR}&f_id=${AppState.FACILITY_ID}`;
     newWebview.src = targetUrl;
-    newWebview.setAttribute("allowpopups", "true");
-    newWebview.setAttribute("disablewebsecurity", "true");
-    // preloadパスがグローバルに保存されている場合は設定
-    if (window.preloadPath) {
-      newWebview.setAttribute("preload", window.preloadPath);
-    }
+    newWebview.allowpopups = true;
+    newWebview.webSecurity = false; // セキュリティ制限を無効化
+    newWebview.nodeintegration = false;
     newWebview.style.cssText = "position:absolute;top:0;left:0;width:100%;height:100%;";
     newWebview.classList.add("hidden");
     content.appendChild(newWebview);

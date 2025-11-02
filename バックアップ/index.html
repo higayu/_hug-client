@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>Hug Client</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- ======== ツールバー ======== -->
+  <div id="toolbar">
+    <button id="menuToggle" class="hamburger">
+      <i class="fa-solid fa-bars"></i>
+    </button>
+
+    <button id="kojin-kiroku">＋ 個人記録</button>
+
+    <!-- ======== ナビゲーションメニュー ======== -->
+    <nav class="globalNav">
+      <button id="panel-special-btn" class="menu-button-special">💵専門的支援加算 ▾</button>
+      <div id="panel-special" class="navInner">
+        <ul>
+          <li><button id="professional-support-new">＋ 専門的支援-新規</button></li>
+          <li><button id="professional-support">専門的支援-一覧</button></li>
+        </ul>
+      </div>
+    </nav>
+
+
+    <!-- ======== ナビゲーションメニュー ======== -->
+    <nav class="globalNav">
+      <button id="panel-support-btn" class="menu-button-support">📜支援計画 ▾</button>
+      <div id="panel-support" class="navInner">
+        <ul>
+          <li><button id="Individual_Support_Button">個別支援-計画</button></li>
+          <li><button id="Specialized-Support-Plan">専門的支援-計画</button></li>
+        </ul>
+      </div>
+    </nav>
+
+    <label for="facilitySelect" style="margin-left:0px;">施設:</label>
+    <select id="facilitySelect" class="js_c_f_id">
+      <option value="3" selected>PD吉島</option>
+      <option value="6">PD光</option>
+      <option value="7">PD横川</option>
+      <option value="8">PD五日市駅前</option>
+    </select>
+
+
+    <!-- ======== ナビゲーションメニュー ======== -->
+    <nav class="globalNav">
+      <button id="panel-btn" class="menu-button-setting">⚙️設定 ▾</button>
+      <div id="panel" class="navInner">
+        <ul>
+          <li><button id="loginBtn">⚙️ 自動ログイン</button></li>
+          <li><button id="refreshBtn">🔄 更新</button></li>
+          <li><button id="Get-Url">URLの取得</button></li>
+          <li><button id="Edit-Settings">⚙️ 設定編集</button></li>
+          <li><button id="Load-Ini">🔄 設定の再読み込み</button></li>
+          <li><button id="Import-Setting">📁 設定ファイルのインポート</button></li>
+        </ul>
+      </div>
+    </nav>
+
+    <!-- ======== ナビゲーションメニュー ======== -->
+    <nav class="globalNav">
+      <button id="custom-btn" class="menu-button-setting">カスタムツール ▾</button>
+      <div id="custom-panel" class="navInner">
+        <ul> </ul>
+      </div>
+    </nav>
+
+    <label class="toggle-switch" title="閉じるボタン表示トグル">
+      <input type="checkbox" id="closeToggle" checked>
+      <span class="slider"></span>
+    </label>
+
+  </div>
+
+  <!-- ======== タブとコンテンツ ======== -->
+  <div id="tabs">
+    <button data-target="hugview" class="active-tab">Hug</button>
+  </div>
+
+  <div id="content">
+    <div id="settings" class="open"></div>
+    <webview id="hugview" src="https://www.hug-ayumu.link/hug/wm/" allowpopups></webview>
+  </div>
+
+  <pre id="configOutput" style="display: none;"></pre>
+
+  <!-- ======== スクリプト ======== -->
+  <script type="module" src="mainRenderer.js"></script>
+</body>
+</html>

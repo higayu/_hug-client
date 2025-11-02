@@ -5,8 +5,11 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "electron .",
-    "dev": "electron . --dev",
-    "dist": "electron-builder"
+    "electron": "electron .",
+    "dev": "concurrently \"npm run dev:renderer\" \"wait-on http://localhost:5173 && electron . --dev\"",
+    "dev:renderer": "cd renderer && npm run dev",
+    "build:renderer": "cd renderer && npm run build",
+    "dist": "npm run build:renderer && electron-builder"
   },
   "keywords": [],
   "author": "",
@@ -22,7 +25,9 @@
   },
   "devDependencies": {
     "electron": "^38.2.0",
-    "electron-builder": "^26.0.12"
+    "electron-builder": "^26.0.12",
+    "concurrently": "^8.2.2",
+    "wait-on": "^7.2.0"
   },
   "build": {
     "appId": "com.example.hugclient",
@@ -34,7 +39,7 @@
       "main.js",
       "main/**/*",
       "preload.js",
-      "renderer/**/*",
+      "renderer/dist/**/*",
       "puppeteer/**/*",
       "src/**/*",
       "package.json"

@@ -145,7 +145,7 @@ export const MESSAGES = {
     INI_LOAD: "❌ ini.json読み込みエラー",
     TEMP_NOTE_SAVE: "❌ 一時メモ保存エラー",
     TEMP_NOTE_LOAD: "❌ 一時メモ読み込みエラー",
-    ELEMENT_NOT_FOUND: "❌ 要素取得に失敗しました"
+    ELEMENT_NOT_FOUND: "❌ sidebar.html の要素取得に失敗しました"
   },
   
   // 情報メッセージ
@@ -307,5 +307,7 @@ export const EVENTS = {
 // 📁 ファイルパス
 // ==========================
 export const PATHS = {
-  // modal.htmlとmodal.cssはReactコンポーネント（SettingsModal.jsx）に統合されました
+  SIDEBAR_HTML: "sidebar/sidebar.html",
+  MODAL_HTML: "./settings/modal.html",
+  MODAL_CSS: "./settings/modal.css"
 };

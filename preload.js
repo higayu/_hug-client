@@ -108,5 +108,8 @@ contextBridge.exposeInMainWorld("electronAPI", {
   onConfirmCloseRequest: (callback) => ipcRenderer.on("confirm-close-request", () => callback()),
   sendConfirmCloseResponse: (shouldClose) => ipcRenderer.send("confirm-close-response", shouldClose),
 
+  // 🔧 webviewのpreload属性用のパス取得
+  getPreloadPath: () => ipcRenderer.invoke("get-preload-path"),
+
 });
 

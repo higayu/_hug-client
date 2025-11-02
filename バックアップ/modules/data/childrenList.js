@@ -1,12 +1,14 @@
 // modules/data/childrenList.js
 import { AppState,getWeekdayFromDate } from "../config/config.js";
+import { initSidebar, updateSidebarValues } from "../../sidebar/sidebar.js";
 import { 
   ELEMENT_IDS, 
   CSS_CLASSES, 
   MESSAGES, 
   COLORS, 
   STYLES, 
-  EVENTS
+  EVENTS,
+  PATHS 
 } from "../config/const.js";
 
 /**
@@ -71,27 +73,33 @@ async function handleFetchAttendanceForChild(childId, childName) {
 }
 
 export async function initChildrenList() {
-  // Reactコンポーネント内の要素を直接取得（HTMLを読み込む必要はない）
-  const weekdaySelect = document.getElementById(ELEMENT_IDS.WEEKDAY_SELECT);
-  const dateInput = document.getElementById(ELEMENT_IDS.DATE_SELECT);
-  const listEl = document.getElementById(ELEMENT_IDS.CHILDREN_LIST);
+  const settingsEl = document.getElementById(ELEMENT_IDS.SETTINGS);
 
-  // 要素が存在するまで待つ（Reactコンポーネントがマウントされるまで）
+  // ✅ まずHTMLを読み込む
+  const res = await fetch(PATHS.SIDEBAR_HTML);
+  settingsEl.innerHTML = await res.text();
+
+  // ✅ その後に要素を取得
+  const weekdaySelect = settingsEl.querySelector(`#${ELEMENT_IDS.WEEKDAY_SELECT}`);
+  const dateInput = settingsEl.querySelector(`#${ELEMENT_IDS.DATE_SELECT}`);
+  const listEl = settingsEl.querySelector(`#${ELEMENT_IDS.CHILDREN_LIST}`);
+
   if (!dateInput || !weekdaySelect || !listEl) {
-    console.warn("⚠️ [childrenList] サイドバー要素が見つかりません。再試行します...");
-    // 少し遅延させて再試行
-    setTimeout(() => {
-      initChildrenList();
-    }, 100);
+    console.error(MESSAGES.ERROR.ELEMENT_NOT_FOUND);
     return;
   }
 
   // 🌟 デフォルト日付を設定
   AppState.WEEK_DAY = AppState.WEEK_DAY || "月";
   
-  // Reactコンポーネントで処理されるため、initSidebar()とupdateSidebarValues()の呼び出しは不要
+  // サイドバーを初期化
+  initSidebar();
+  
+  // サイドバーの値を更新
+  updateSidebarValues(AppState.DATE_STR, AppState.WEEK_DAY);
 
-  // 折りたたみ機能はReactコンポーネント内で処理されるため、ここでの初期化は不要
+  // 折りたたみ機能を初期化
+  initCollapsibleSections();
 
   async function loadChildren() {
     // facilitySelectの値を取得
@@ -116,18 +124,32 @@ export async function initChildrenList() {
       data.week_children.forEach((c, i) => {
         const li = document.createElement("li");
         li.dataset.childId = c.children_id;
-        li.className = "p-2.5 my-1.5 bg-gray-50 border border-gray-200 rounded cursor-pointer transition-colors hover:bg-gray-200 flex items-center justify-between gap-2.5 text-black";
+        li.style.cursor = "pointer";
+        li.style.display = "flex";
+        li.style.alignItems = "center";
+        li.style.justifyContent = "space-between";
+        li.style.gap = "10px";
 
         // 児童名を表示するspan要素
         const nameSpan = document.createElement("span");
         nameSpan.textContent = `${c.children_id}: ${c.children_name}　:${c.pc_name?c.pc_name:""}`;
-        nameSpan.className = "flex-1 cursor-pointer text-black";
+        nameSpan.style.flex = "1";
+        nameSpan.style.cursor = "pointer";
 
         // 出勤データ取得ボタン
         const attendanceBtn = document.createElement("button");
         attendanceBtn.textContent = "📊";
         attendanceBtn.title = "出勤データ取得";
-        attendanceBtn.className = "px-2 py-1 text-xs bg-blue-600 text-white border-none rounded cursor-pointer flex-shrink-0 hover:bg-blue-700 text-black";
+        attendanceBtn.style.cssText = `
+          padding: 4px 8px;
+          font-size: 12px;
+          background-color: #007bff;
+          color: white;
+          border: none;
+          border-radius: 3px;
+          cursor: pointer;
+          flex-shrink: 0;
+        `;
         attendanceBtn.addEventListener(EVENTS.CLICK, async (e) => {
           e.stopPropagation(); // リスト項目のクリックイベントを防ぐ
           await handleFetchAttendanceForChild(c.children_id, c.children_name);
@@ -137,10 +159,8 @@ export async function initChildrenList() {
         nameSpan.addEventListener(EVENTS.CLICK, () => {
           AppState.SELECT_CHILD = c.children_id;
           AppState.SELECT_CHILD_NAME = c.children_name;
-          listEl.querySelectorAll("li").forEach(li => {
-            li.classList.remove("bg-gradient-to-b", "from-cyan-100", "to-cyan-400", "border-l-4", "border-l-cyan-700", "font-bold", "text-black");
-          });
-          li.classList.add("bg-gradient-to-b", "from-cyan-100", "to-cyan-400", "border-l-4", "border-l-cyan-700", "font-bold", "text-black");
+          listEl.querySelectorAll("li").forEach(li => li.classList.remove(CSS_CLASSES.ACTIVE));
+          li.classList.add(CSS_CLASSES.ACTIVE);
           console.log(`${MESSAGES.INFO.CHILD_SELECTED}: ${AppState.SELECT_CHILD_NAME} (${AppState.SELECT_CHILD})`);
         });
 
@@ -152,7 +172,7 @@ export async function initChildrenList() {
           e.preventDefault();
           
           // 既存のnotes表示をチェック
-          let notesDiv = li.querySelector(".notes-display");
+          let notesDiv = li.querySelector(`.${CSS_CLASSES.NOTES_DISPLAY}`);
           
           if (notesDiv) {
             // 既に表示されている場合は非表示
@@ -160,34 +180,34 @@ export async function initChildrenList() {
           } else {
             // notesを表示
             notesDiv = document.createElement("div");
-            notesDiv.className = "mt-1.5 p-2 bg-gray-50 border border-gray-300 rounded text-xs text-gray-700 whitespace-pre-wrap break-words max-h-[100px] overflow-y-auto";
+            notesDiv.className = CSS_CLASSES.NOTES_DISPLAY;
             
             // 時間入力コンテナを作成
             const timeInputContainer = document.createElement("div");
-            timeInputContainer.className = "mb-2 pb-2 border-b border-gray-300";
+            timeInputContainer.className = CSS_CLASSES.TIME_INPUT_CONTAINER;
             
             // 時間入力グループ（横並び）
             const timeGroup = document.createElement("div");
-            timeGroup.className = "flex items-center gap-2 mb-2";
+            timeGroup.className = CSS_CLASSES.TIME_GROUP;
             
             // 入室時間入力
             const enterTimeLabel = document.createElement("label");
             enterTimeLabel.textContent = "入室:";
-            enterTimeLabel.className = "text-[11px] font-bold text-gray-700 mr-1";
+            enterTimeLabel.className = CSS_CLASSES.TIME_LABEL;
             
             const enterTimeInput = document.createElement("input");
             enterTimeInput.type = "time";
-            enterTimeInput.className = "w-20 p-1.5 border border-gray-300 rounded text-[11px] bg-white text-black focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-200";
+            enterTimeInput.className = CSS_CLASSES.TIME_INPUT;
             enterTimeInput.id = `enter-${c.children_id}`;
             
             // 退出時間入力
             const exitTimeLabel = document.createElement("label");
             exitTimeLabel.textContent = "退出:";
-            exitTimeLabel.className = "text-[11px] font-bold text-gray-700 mr-1";
+            exitTimeLabel.className = CSS_CLASSES.TIME_LABEL;
             
             const exitTimeInput = document.createElement("input");
             exitTimeInput.type = "time";
-            exitTimeInput.className = "w-20 p-1.5 border border-gray-300 rounded text-[11px] bg-white text-black focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-200";
+            exitTimeInput.className = CSS_CLASSES.TIME_INPUT;
             exitTimeInput.id = `exit-${c.children_id}`;
             
             // 時間グループに追加
@@ -199,10 +219,10 @@ export async function initChildrenList() {
             // メモ入力テキストエリア
             const memoLabel = document.createElement("label");
             memoLabel.textContent = "メモ:";
-            memoLabel.className = "text-[11px] font-bold text-gray-700 mr-1 w-full mt-2 block";
+            memoLabel.className = CSS_CLASSES.MEMO_LABEL;
             
             const memoTextarea = document.createElement("textarea");
-            memoTextarea.className = "w-full p-1.5 border border-gray-300 rounded text-[11px] bg-white resize-y min-h-[60px] font-inherit text-black focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-200";
+            memoTextarea.className = CSS_CLASSES.MEMO_TEXTAREA;
             memoTextarea.id = `memo-${c.children_id}`;
             memoTextarea.placeholder = MESSAGES.PLACEHOLDERS.MEMO;
             memoTextarea.rows = 3;
@@ -210,7 +230,7 @@ export async function initChildrenList() {
             // 保存ボタン
             const saveButton = document.createElement("button");
             saveButton.textContent = "保存";
-            saveButton.className = "px-2 py-1 bg-blue-600 text-white border-none rounded text-[10px] cursor-pointer ml-auto hover:bg-blue-700 text-black";
+            saveButton.className = CSS_CLASSES.SAVE_BUTTON;
             
             // 既存の一時メモを読み込み
             loadTempNote(c.children_id, enterTimeInput, exitTimeInput, memoTextarea);
@@ -241,7 +261,7 @@ export async function initChildrenList() {
             
             // notes内容
             const notesContent = document.createElement("div");
-            notesContent.className = "mt-2 text-xs leading-snug text-black";
+            notesContent.className = CSS_CLASSES.NOTES_CONTENT;
             notesContent.textContent = c.notes || "メモがありません";
             
             notesDiv.appendChild(timeInputContainer);
@@ -254,7 +274,7 @@ export async function initChildrenList() {
           AppState.SELECT_CHILD = c.children_id;
           AppState.SELECT_CHILD_NAME = c.children_name;
           AppState.SELECT_PC_NAME = c.pc_name?c.pc_name:"";
-          li.classList.add("bg-gradient-to-b", "from-cyan-100", "to-cyan-400", "border-l-4", "border-l-cyan-700", "font-bold", "text-black");
+          li.classList.add(CSS_CLASSES.ACTIVE);
           console.log(`選択状態を変更する: ${AppState.SELECT_CHILD_NAME}:${AppState.SELECT_PC_NAME}`);
         }
 
@@ -274,7 +294,8 @@ export async function initChildrenList() {
           const li = document.createElement("li");
           li.textContent = `${c.children_id}: ${c.children_name}　:${c.pc_name?c.pc_name:""}`;
           li.dataset.childId = c.children_id;
-          li.className = "p-1.5 my-1.5 border-b border-gray-300 cursor-pointer transition-colors hover:bg-yellow-100 text-black";
+          li.style.cursor = "pointer";
+          li.classList.add(CSS_CLASSES.WAITING_ITEM);
           
           // 左クリックで選択
           li.addEventListener(EVENTS.CLICK, () => {
@@ -282,10 +303,8 @@ export async function initChildrenList() {
             AppState.SELECT_CHILD_NAME = c.children_name;
             AppState.SELECT_PC_NAME = c.pc_name?c.pc_name:"";
             // 他のリストのアクティブ状態をクリア
-            document.querySelectorAll(`#${ELEMENT_IDS.CHILDREN_LIST} li, #${ELEMENT_IDS.WAITING_CHILDREN_LIST} li, #${ELEMENT_IDS.EXPERIENCE_CHILDREN_LIST} li`).forEach(li => {
-              li.classList.remove("bg-gradient-to-b", "from-cyan-100", "to-cyan-400", "border-l-4", "border-l-cyan-700", "font-bold", "text-black");
-            });
-            li.classList.add("bg-gradient-to-b", "from-cyan-100", "to-cyan-400", "border-l-4", "border-l-cyan-700", "font-bold", "text-black");
+            document.querySelectorAll(`#${ELEMENT_IDS.CHILDREN_LIST} li, #${ELEMENT_IDS.WAITING_CHILDREN_LIST} li, #${ELEMENT_IDS.EXPERIENCE_CHILDREN_LIST} li`).forEach(li => li.classList.remove(CSS_CLASSES.ACTIVE));
+            li.classList.add(CSS_CLASSES.ACTIVE);
             console.log(`${MESSAGES.INFO.CHILD_SELECTED}: ${AppState.SELECT_CHILD_NAME} (${AppState.SELECT_CHILD})`);
           });
           
@@ -306,7 +325,8 @@ export async function initChildrenList() {
           const li = document.createElement("li");
           li.textContent = `${c.children_id}: ${c.children_name}　:${c.pc_name?c.pc_name:""}`;
           li.dataset.childId = c.children_id;
-          li.className = "p-1.5 my-1.5 border-b border-gray-300 cursor-pointer transition-colors hover:bg-blue-100 text-black";
+          li.style.cursor = "pointer";
+          li.classList.add(CSS_CLASSES.EXPERIENCE_ITEM);
           
           // 左クリックで選択
           li.addEventListener(EVENTS.CLICK, () => {
@@ -314,10 +334,8 @@ export async function initChildrenList() {
             AppState.SELECT_CHILD_NAME = c.children_name;
             AppState.SELECT_PC_NAME = "";
             // 他のリストのアクティブ状態をクリア
-            document.querySelectorAll(`#${ELEMENT_IDS.CHILDREN_LIST} li, #${ELEMENT_IDS.WAITING_CHILDREN_LIST} li, #${ELEMENT_IDS.EXPERIENCE_CHILDREN_LIST} li`).forEach(li => {
-              li.classList.remove("bg-gradient-to-b", "from-cyan-100", "to-cyan-400", "border-l-4", "border-l-cyan-700", "font-bold", "text-black");
-            });
-            li.classList.add("bg-gradient-to-b", "from-cyan-100", "to-cyan-400", "border-l-4", "border-l-cyan-700", "font-bold", "text-black");
+            document.querySelectorAll(`#${ELEMENT_IDS.CHILDREN_LIST} li, #${ELEMENT_IDS.WAITING_CHILDREN_LIST} li, #${ELEMENT_IDS.EXPERIENCE_CHILDREN_LIST} li`).forEach(li => li.classList.remove(CSS_CLASSES.ACTIVE));
+            li.classList.add(CSS_CLASSES.ACTIVE);
             console.log(`${MESSAGES.INFO.CHILD_SELECTED}: ${AppState.SELECT_CHILD_NAME} (${AppState.SELECT_CHILD})`);
           });
           
@@ -327,19 +345,74 @@ export async function initChildrenList() {
     }
   }
 
-  // 🌟 曜日選択のイベントリスナー（Reactコンポーネントからディスパッチされるイベントをリッスン）
-  window.addEventListener('weekday-changed', async () => {
-    // Reactコンポーネントで既にAppState.WEEK_DAYが更新されている
+  // 🌟 曜日選択
+  weekdaySelect.value = AppState.WEEK_DAY;
+  weekdaySelect.addEventListener(EVENTS.CHANGE, async () => {
+    AppState.WEEK_DAY = weekdaySelect.value;
     AppState.SELECT_CHILD = "";
     AppState.SELECT_CHILD_NAME = "";
     await loadChildren();
   });
 
-  // 🌟 日付選択はReactコンポーネント内で処理されるため、イベントリスナーは不要
+  // 🌟 日付選択
+  dateInput.addEventListener(EVENTS.CHANGE, async () => {
+    AppState.DATE_STR = dateInput.value;
+    console.log(MESSAGES.INFO.DATE_CHANGED, AppState.DATE_STR);
+    // AppState.WEEK_DAY = getWeekdayFromDate()
+    // weekdaySelect.value = AppState.WEEK_DAY; // 表示も更新
+    // await loadChildren();
+  });
 
-  // 初期読み込み
   await loadChildren();
   console.log(MESSAGES.SUCCESS.CHILDREN_INIT);
+}
+
+// 折りたたみセクションの初期化
+function initCollapsibleSections() {
+  // 対応児童リストの折りたたみ機能
+  const childrenHeader = document.getElementById(ELEMENT_IDS.CHILDREN_HEADER);
+  const childrenList = document.getElementById(ELEMENT_IDS.CHILDREN_LIST);
+  
+  if (childrenHeader && childrenList) {
+    // 初期状態は展開（子どもリストは重要なので展開状態で開始）
+    childrenHeader.addEventListener(EVENTS.CLICK, () => {
+      const isCollapsed = childrenList.classList.contains(CSS_CLASSES.COLLAPSED);
+      
+      if (isCollapsed) {
+        // 展開
+        childrenList.classList.remove(CSS_CLASSES.COLLAPSED);
+        childrenHeader.classList.remove(CSS_CLASSES.COLLAPSED);
+      } else {
+        // 折りたたみ
+        childrenList.classList.add(CSS_CLASSES.COLLAPSED);
+        childrenHeader.classList.add(CSS_CLASSES.COLLAPSED);
+      }
+    });
+  }
+
+  // キャンセル待ち子どもリストの折りたたみ機能
+  const waitingHeader = document.getElementById(ELEMENT_IDS.WAITING_HEADER);
+  const waitingList = document.getElementById(ELEMENT_IDS.WAITING_CHILDREN_LIST);
+  
+  if (waitingHeader && waitingList) {
+    // 初期状態は折りたたみ
+    waitingList.classList.add(CSS_CLASSES.COLLAPSED);
+    waitingHeader.classList.add(CSS_CLASSES.COLLAPSED);
+    
+    waitingHeader.addEventListener(EVENTS.CLICK, () => {
+      const isCollapsed = waitingList.classList.contains(CSS_CLASSES.COLLAPSED);
+      
+      if (isCollapsed) {
+        // 展開
+        waitingList.classList.remove(CSS_CLASSES.COLLAPSED);
+        waitingHeader.classList.remove(CSS_CLASSES.COLLAPSED);
+      } else {
+        // 折りたたみ
+        waitingList.classList.add(CSS_CLASSES.COLLAPSED);
+        waitingHeader.classList.add(CSS_CLASSES.COLLAPSED);
+      }
+    });
+  }
 }
 
 // 一時メモの保存関数
