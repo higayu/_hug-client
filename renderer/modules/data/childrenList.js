@@ -137,11 +137,29 @@ export async function initChildrenList() {
         nameSpan.addEventListener(EVENTS.CLICK, () => {
           AppState.SELECT_CHILD = c.children_id;
           AppState.SELECT_CHILD_NAME = c.children_name;
-          listEl.querySelectorAll("li").forEach(li => {
-            li.classList.remove("bg-gradient-to-b", "from-cyan-100", "to-cyan-400", "border-l-4", "border-l-cyan-700", "font-bold", "text-black");
+          
+          // すべてのリストアイテムから選択状態を削除し、デフォルトのスタイルを復元
+          listEl.querySelectorAll("li").forEach(otherLi => {
+            // デフォルトのクラスを復元
+            otherLi.className = "p-2.5 my-1.5 bg-gray-50 border border-gray-200 rounded cursor-pointer transition-colors hover:bg-gray-200 flex items-center justify-between gap-2.5 text-black";
+            // インラインスタイルをクリア
+            otherLi.style.background = "";
+            otherLi.style.borderLeft = "";
+            otherLi.style.fontWeight = "";
           });
-          li.classList.add("bg-gradient-to-b", "from-cyan-100", "to-cyan-400", "border-l-4", "border-l-cyan-700", "font-bold", "text-black");
+          
+          // 選択された要素に水色の背景を適用（インラインスタイルを直接設定）
+          li.className = "p-2.5 my-1.5 border border-gray-200 rounded cursor-pointer transition-colors flex items-center justify-between gap-2.5 text-black";
+          li.style.background = "linear-gradient(to bottom, #cffafe, #22d3ee)"; // from-cyan-100 to-cyan-400
+          li.style.borderLeft = "4px solid #0e7490"; // border-l-cyan-700
+          li.style.fontWeight = "bold";
+          
           console.log(`${MESSAGES.INFO.CHILD_SELECTED}: ${AppState.SELECT_CHILD_NAME} (${AppState.SELECT_CHILD})`);
+          console.log("🔍 [childrenList] 選択された要素のスタイル:", {
+            background: li.style.background,
+            borderLeft: li.style.borderLeft,
+            fontWeight: li.style.fontWeight
+          });
         });
 
         li.appendChild(nameSpan);
@@ -254,12 +272,29 @@ export async function initChildrenList() {
           AppState.SELECT_CHILD = c.children_id;
           AppState.SELECT_CHILD_NAME = c.children_name;
           AppState.SELECT_PC_NAME = c.pc_name?c.pc_name:"";
-          li.classList.add("bg-gradient-to-b", "from-cyan-100", "to-cyan-400", "border-l-4", "border-l-cyan-700", "font-bold", "text-black");
+          // インラインスタイルで選択状態を適用
+          li.className = "p-2.5 my-1.5 border border-gray-200 rounded cursor-pointer transition-colors flex items-center justify-between gap-2.5 text-black";
+          li.style.background = "linear-gradient(to bottom, #cffafe, #22d3ee)";
+          li.style.borderLeft = "4px solid #0e7490";
+          li.style.fontWeight = "bold";
           console.log(`選択状態を変更する: ${AppState.SELECT_CHILD_NAME}:${AppState.SELECT_PC_NAME}`);
         }
 
         listEl.appendChild(li);
       });
+      
+      // リスト作成後、選択された児童があればスタイルを適用
+      if (AppState.SELECT_CHILD) {
+        const selectedLi = listEl.querySelector(`li[data-child-id="${AppState.SELECT_CHILD}"]`);
+        if (selectedLi) {
+          // 選択された要素に水色の背景を適用（インラインスタイルを直接設定）
+          selectedLi.className = "p-2.5 my-1.5 border border-gray-200 rounded cursor-pointer transition-colors flex items-center justify-between gap-2.5 text-black";
+          selectedLi.style.background = "linear-gradient(to bottom, #cffafe, #22d3ee)"; // from-cyan-100 to-cyan-400
+          selectedLi.style.borderLeft = "4px solid #0e7490"; // border-l-cyan-700
+          selectedLi.style.fontWeight = "bold";
+          console.log("🔍 [childrenList] 初期設定で選択された要素のスタイルを適用:", AppState.SELECT_CHILD);
+        }
+      }
     }
 
     // キャンセル待ち子どもリスト
@@ -281,16 +316,55 @@ export async function initChildrenList() {
             AppState.SELECT_CHILD = c.children_id;
             AppState.SELECT_CHILD_NAME = c.children_name;
             AppState.SELECT_PC_NAME = c.pc_name?c.pc_name:"";
-            // 他のリストのアクティブ状態をクリア
-            document.querySelectorAll(`#${ELEMENT_IDS.CHILDREN_LIST} li, #${ELEMENT_IDS.WAITING_CHILDREN_LIST} li, #${ELEMENT_IDS.EXPERIENCE_CHILDREN_LIST} li`).forEach(li => {
-              li.classList.remove("bg-gradient-to-b", "from-cyan-100", "to-cyan-400", "border-l-4", "border-l-cyan-700", "font-bold", "text-black");
+            
+            // すべてのリストアイテムから選択状態を削除し、デフォルトのスタイルを復元
+            document.querySelectorAll(`#${ELEMENT_IDS.CHILDREN_LIST} li`).forEach(otherLi => {
+              otherLi.className = "p-2.5 my-1.5 bg-gray-50 border border-gray-200 rounded cursor-pointer transition-colors hover:bg-gray-200 flex items-center justify-between gap-2.5 text-black";
+              otherLi.style.background = "";
+              otherLi.style.borderLeft = "";
+              otherLi.style.fontWeight = "";
             });
-            li.classList.add("bg-gradient-to-b", "from-cyan-100", "to-cyan-400", "border-l-4", "border-l-cyan-700", "font-bold", "text-black");
+            document.querySelectorAll(`#${ELEMENT_IDS.WAITING_CHILDREN_LIST} li`).forEach(otherLi => {
+              otherLi.className = "p-1.5 my-1.5 border-b border-gray-300 cursor-pointer transition-colors hover:bg-yellow-100 text-black";
+              otherLi.style.background = "";
+              otherLi.style.borderLeft = "";
+              otherLi.style.fontWeight = "";
+            });
+            document.querySelectorAll(`#${ELEMENT_IDS.EXPERIENCE_CHILDREN_LIST} li`).forEach(otherLi => {
+              otherLi.className = "p-1.5 my-1.5 border-b border-gray-300 cursor-pointer transition-colors hover:bg-blue-100 text-black";
+              otherLi.style.background = "";
+              otherLi.style.borderLeft = "";
+              otherLi.style.fontWeight = "";
+            });
+            
+            // 選択された要素に水色の背景を適用（インラインスタイルを直接設定）
+            li.className = "p-1.5 my-1.5 border-b border-gray-300 cursor-pointer transition-colors hover:bg-yellow-100 text-black";
+            li.style.background = "linear-gradient(to bottom, #cffafe, #22d3ee)"; // from-cyan-100 to-cyan-400
+            li.style.borderLeft = "4px solid #0e7490"; // border-l-cyan-700
+            li.style.fontWeight = "bold";
+            
             console.log(`${MESSAGES.INFO.CHILD_SELECTED}: ${AppState.SELECT_CHILD_NAME} (${AppState.SELECT_CHILD})`);
+            console.log("🔍 [childrenList] 選択された要素のスタイル:", {
+              background: li.style.background,
+              borderLeft: li.style.borderLeft,
+              fontWeight: li.style.fontWeight
+            });
           });
           
           waitingListEl.appendChild(li);
         });
+        
+        // リスト作成後、選択された児童があればスタイルを適用（キャンセル待ちリスト）
+        if (AppState.SELECT_CHILD) {
+          const selectedLi = waitingListEl.querySelector(`li[data-child-id="${AppState.SELECT_CHILD}"]`);
+          if (selectedLi) {
+            selectedLi.className = "p-1.5 my-1.5 border-b border-gray-300 cursor-pointer transition-colors hover:bg-yellow-100 text-black";
+            selectedLi.style.background = "linear-gradient(to bottom, #cffafe, #22d3ee)";
+            selectedLi.style.borderLeft = "4px solid #0e7490";
+            selectedLi.style.fontWeight = "bold";
+            console.log("🔍 [childrenList] 初期設定で選択された要素のスタイルを適用（キャンセル待ち）:", AppState.SELECT_CHILD);
+          }
+        }
       }
     }
 
@@ -313,16 +387,55 @@ export async function initChildrenList() {
             AppState.SELECT_CHILD = c.children_id;
             AppState.SELECT_CHILD_NAME = c.children_name;
             AppState.SELECT_PC_NAME = "";
-            // 他のリストのアクティブ状態をクリア
-            document.querySelectorAll(`#${ELEMENT_IDS.CHILDREN_LIST} li, #${ELEMENT_IDS.WAITING_CHILDREN_LIST} li, #${ELEMENT_IDS.EXPERIENCE_CHILDREN_LIST} li`).forEach(li => {
-              li.classList.remove("bg-gradient-to-b", "from-cyan-100", "to-cyan-400", "border-l-4", "border-l-cyan-700", "font-bold", "text-black");
+            
+            // すべてのリストアイテムから選択状態を削除し、デフォルトのスタイルを復元
+            document.querySelectorAll(`#${ELEMENT_IDS.CHILDREN_LIST} li`).forEach(otherLi => {
+              otherLi.className = "p-2.5 my-1.5 bg-gray-50 border border-gray-200 rounded cursor-pointer transition-colors hover:bg-gray-200 flex items-center justify-between gap-2.5 text-black";
+              otherLi.style.background = "";
+              otherLi.style.borderLeft = "";
+              otherLi.style.fontWeight = "";
             });
-            li.classList.add("bg-gradient-to-b", "from-cyan-100", "to-cyan-400", "border-l-4", "border-l-cyan-700", "font-bold", "text-black");
+            document.querySelectorAll(`#${ELEMENT_IDS.WAITING_CHILDREN_LIST} li`).forEach(otherLi => {
+              otherLi.className = "p-1.5 my-1.5 border-b border-gray-300 cursor-pointer transition-colors hover:bg-yellow-100 text-black";
+              otherLi.style.background = "";
+              otherLi.style.borderLeft = "";
+              otherLi.style.fontWeight = "";
+            });
+            document.querySelectorAll(`#${ELEMENT_IDS.EXPERIENCE_CHILDREN_LIST} li`).forEach(otherLi => {
+              otherLi.className = "p-1.5 my-1.5 border-b border-gray-300 cursor-pointer transition-colors hover:bg-blue-100 text-black";
+              otherLi.style.background = "";
+              otherLi.style.borderLeft = "";
+              otherLi.style.fontWeight = "";
+            });
+            
+            // 選択された要素に水色の背景を適用（インラインスタイルを直接設定）
+            li.className = "p-1.5 my-1.5 border-b border-gray-300 cursor-pointer transition-colors hover:bg-blue-100 text-black";
+            li.style.background = "linear-gradient(to bottom, #cffafe, #22d3ee)"; // from-cyan-100 to-cyan-400
+            li.style.borderLeft = "4px solid #0e7490"; // border-l-cyan-700
+            li.style.fontWeight = "bold";
+            
             console.log(`${MESSAGES.INFO.CHILD_SELECTED}: ${AppState.SELECT_CHILD_NAME} (${AppState.SELECT_CHILD})`);
+            console.log("🔍 [childrenList] 選択された要素のスタイル:", {
+              background: li.style.background,
+              borderLeft: li.style.borderLeft,
+              fontWeight: li.style.fontWeight
+            });
           });
           
           experienceListEl.appendChild(li);
         });
+        
+        // リスト作成後、選択された児童があればスタイルを適用（体験子どもリスト）
+        if (AppState.SELECT_CHILD) {
+          const selectedLi = experienceListEl.querySelector(`li[data-child-id="${AppState.SELECT_CHILD}"]`);
+          if (selectedLi) {
+            selectedLi.className = "p-1.5 my-1.5 border-b border-gray-300 cursor-pointer transition-colors hover:bg-blue-100 text-black";
+            selectedLi.style.background = "linear-gradient(to bottom, #cffafe, #22d3ee)";
+            selectedLi.style.borderLeft = "4px solid #0e7490";
+            selectedLi.style.fontWeight = "bold";
+            console.log("🔍 [childrenList] 初期設定で選択された要素のスタイルを適用（体験子ども）:", AppState.SELECT_CHILD);
+          }
+        }
       }
     }
   }
