@@ -1,20 +1,25 @@
 import { useState, useEffect, useCallback } from 'react'
-import {
-  CustomButtonsState,
-  getAvailableActions,
-  getActionsByCategory,
-  addCustomButton,
-  updateCustomButtonById,
-  removeCustomButtonById,
-  saveCustomButtons,
-  loadCustomButtons,
-  loadAvailableActions
-} from '../../../../modules/config/customButtons.js'
-import { showSuccessToast, showErrorToast } from '../../../../modules/ui/toast/toast.js'
+import { useCustomButtons } from '../../../contexts/CustomButtonsContext.jsx'
+import { useToast } from '../../../contexts/ToastContext.jsx'
 
 function CustomTab() {
+  const { showSuccessToast, showErrorToast } = useToast()
+  const {
+    customButtons,
+    availableActions: availableActionsFromContext,
+    setCustomButtons,
+    setAvailableActions,
+    getAvailableActions,
+    getActionsByCategory,
+    addCustomButton,
+    updateCustomButtonById,
+    removeCustomButtonById,
+    saveCustomButtons,
+    loadCustomButtons,
+    loadAvailableActions
+  } = useCustomButtons()
   const [buttons, setButtons] = useState([])
-  const [availableActions, setAvailableActions] = useState([])
+  const [availableActions, setAvailableActionsState] = useState([])
   const [newButton, setNewButton] = useState({
     action: '',
     text: '',
@@ -27,18 +32,27 @@ function CustomTab() {
     await loadCustomButtons()
     await loadAvailableActions()
     
-    // 状態を更新
-    setButtons([...CustomButtonsState.customButtons])
-    setAvailableActions(getAvailableActions())
+    // 状態を更新（Contextから取得）
+    setButtons([...customButtons])
+    setAvailableActionsState(getAvailableActions())
     console.log('✅ [CustomTab] データを読み込みました:', {
-      buttons: CustomButtonsState.customButtons.length,
+      buttons: customButtons.length,
       actions: getAvailableActions().length
     })
-  }, [])
+  }, [customButtons, loadCustomButtons, loadAvailableActions, getAvailableActions])
 
   useEffect(() => {
     loadData()
   }, [loadData])
+
+  // Contextの変更をローカルステートに反映
+  useEffect(() => {
+    setButtons([...customButtons])
+  }, [customButtons])
+
+  useEffect(() => {
+    setAvailableActionsState(getAvailableActions())
+  }, [availableActionsFromContext, getAvailableActions])
 
   // アクションセレクトボックスのオプションを更新
   useEffect(() => {
@@ -65,20 +79,20 @@ function CustomTab() {
       
       select.appendChild(optgroup)
     })
-  }, [availableActions])
+  }, [availableActions, getActionsByCategory])
 
   // ボタンの更新ハンドラー（IDベース）
   const handleButtonUpdate = useCallback((buttonId, field, value) => {
     const updates = { [field]: value }
     const updated = updateCustomButtonById(buttonId, updates)
     if (updated) {
-      // CustomButtonsStateを更新した後、ローカルステートも更新
-      setButtons([...CustomButtonsState.customButtons])
+      // Contextを更新した後、ローカルステートも更新
+      setButtons([...customButtons])
       console.log(`✅ [CustomTab] ボタン ${buttonId} の ${field} を ${value} に更新しました`)
     } else {
       console.error(`❌ [CustomTab] ボタン ${buttonId} の更新に失敗しました`)
     }
-  }, [])
+  }, [customButtons, updateCustomButtonById])
 
   // ボタンの削除ハンドラー（IDベース）
   const handleButtonDelete = useCallback((buttonId) => {
@@ -86,13 +100,13 @@ function CustomTab() {
       const removed = removeCustomButtonById(buttonId)
       if (removed) {
         showSuccessToast('カスタムボタンを削除しました')
-        // CustomButtonsStateから削除した後、ローカルステートも更新
-        setButtons([...CustomButtonsState.customButtons])
+        // Contextから削除した後、ローカルステートも更新
+        setButtons([...customButtons])
       } else {
         showErrorToast('カスタムボタンの削除に失敗しました')
       }
     }
-  }, [])
+  }, [customButtons, removeCustomButtonById, showSuccessToast, showErrorToast])
 
   // 新しいカスタムボタンを作成
   const handleCreateButton = useCallback(async () => {
@@ -115,12 +129,12 @@ function CustomTab() {
       if (textInput) textInput.value = ''
       if (colorInput) colorInput.value = '#007bff'
       
-      // CustomButtonsStateを更新した後、ローカルステートも更新
-      setButtons([...CustomButtonsState.customButtons])
+      // Contextを更新した後、ローカルステートも更新
+      setButtons([...customButtons])
     } else {
       showErrorToast('カスタムボタンの作成に失敗しました')
     }
-  }, [newButton])
+  }, [newButton, addCustomButton, customButtons, showSuccessToast, showErrorToast])
 
   // 作成ボタンのイベントリスナー
   useEffect(() => {

@@ -1,18 +1,32 @@
 import { useEffect, useRef } from 'react'
-import { initTabs } from '../../modules/ui/tabs.js'
-import { initHugActions, updateButtonVisibility } from '../../modules/actions/hugActions.js'
-import { initChildrenList } from '../../modules/data/childrenList.js'
+// initTabs は React側の useTabs() フックに移行済み
+import { updateButtonVisibility } from '../utils/buttonVisibility.js'
+// initChildrenList は React側の useChildrenList() フックに移行済み
+import { useHugActions } from './useHugActions.js'
 // initSettingsEditorはReactコンポーネントに統合されたため、ここでは初期化しない
 // import { initSettingsEditor } from '../../modules/ui/settingsEditor.js'
-import { loadAllReload } from '../../modules/actions/reloadSettings.js'
-import { updateUI } from '../../modules/update/updateUI.js'
-import { customButtonManager } from '../../modules/actions/customButtons.js'
-import { buttonVisibilityManager } from '../../modules/ui/buttonVisibility.js'
-import { getActiveWebview } from '../../modules/data/webviewState.js'
-import { showErrorToast } from '../../modules/ui/toast/toast.js'
+import { loadAllReload } from '../utils/reloadSettings.js'
+// updateUI は React側の useUpdateUI() フックに移行済み
+import { useUpdateUI } from './useUpdateUI.js'
+import { useCustomButtonManager } from './useCustomButtonManager.js'
+// buttonVisibilityManager は削除されました（機能が空のため）
+import { getActiveWebview } from '../utils/webviewState.js'
+import { useToast } from '../contexts/ToastContext.jsx'
 
 export function useAppInitialization() {
+  const { showErrorToast } = useToast()
+  const { addUpdateButtons } = useUpdateUI()
+  const { init: initCustomButtons, reloadCustomButtons } = useCustomButtonManager()
+  const showErrorToastRef = useRef(showErrorToast)
   const initializedRef = useRef(false)
+  
+  // hugActionsの機能をReact hooksに移行
+  useHugActions()
+
+  // showErrorToastの参照を更新
+  useEffect(() => {
+    showErrorToastRef.current = showErrorToast
+  }, [showErrorToast])
 
   useEffect(() => {
     if (initializedRef.current) return
@@ -24,7 +38,7 @@ export function useAppInitialization() {
       // ===== 1️⃣ 設定読み込み =====
       const ok = await loadAllReload()
       if (!ok) {
-        showErrorToast("❌ config.json の読み込みに失敗しました")
+        showErrorToastRef.current("❌ config.json の読み込みに失敗しました")
         return
       }
 
@@ -68,13 +82,13 @@ export function useAppInitialization() {
         console.log("✅ サイドバーの開閉機能を設定しました")
       }
 
-      initTabs()
+      // initTabs は React側の useTabs() フックに移行済み（Tabsコンポーネント内で自動実行）
 
       // ===== 3️⃣ 子ども一覧と曜日選択を初期化 =====
-      await initChildrenList()
+      // initChildrenList は React側の useChildrenList() フックに移行済み（SidebarContent内で自動実行）
 
       // ===== 4️⃣ 各種ボタン（ログイン・計画）を設定 =====
-      initHugActions()
+      // initHugActions() は useHugActions() フックに移行済み
 
       // ===== 5️⃣ 設定エディター初期化 =====
       // 少し遅延させて確実に初期化
@@ -82,11 +96,8 @@ export function useAppInitialization() {
         console.log("🔄 設定エディターを初期化中...")
 
         // 設定が正しく読み込まれているか確認
-        const { IniState } = await import('../../modules/config/ini.js')
-        const { AppState } = await import('../../modules/config/config.js')
-
-        console.log("🔍 [MAIN] IniState確認:", IniState)
-        console.log("🔍 [MAIN] AppState確認:", AppState)
+        console.log("🔍 [MAIN] IniState確認:", window.IniState)
+        console.log("🔍 [MAIN] AppState確認:", window.AppState)
         // customButtonsはcustomButtons.jsonに統一されたため、IniStateからの参照は削除
 
         // settingsEditorはReactコンポーネント（SettingsModal）に統合されました
@@ -128,9 +139,7 @@ export function useAppInitialization() {
             if (reloadOk) {
               updateButtonVisibility() // ボタン表示を更新
               // カスタムボタンも再読み込み
-              await customButtonManager.reloadCustomButtons()
-              // ボタン表示制御も再読み込み
-              await buttonVisibilityManager.reloadButtonVisibility()
+              await reloadCustomButtons()
               console.log("✅ ini.jsonの手動読み込み完了")
             }
           } catch (err) {
@@ -142,8 +151,7 @@ export function useAppInitialization() {
       // ===== 退出確認（メインからの要求に応答） =====
       window.electronAPI.onConfirmCloseRequest(async () => {
         try {
-          const { IniState } = await import('../../modules/config/ini.js')
-          const enabled = IniState?.appSettings?.ui?.confirmOnClose !== false // 未設定時は確認ON
+          const enabled = window.IniState?.appSettings?.ui?.confirmOnClose !== false // 未設定時は確認ON
           let shouldClose = true
           if (enabled) {
             shouldClose = window.confirm('アプリを終了しますか？')
@@ -156,27 +164,24 @@ export function useAppInitialization() {
         }
       })
 
-      const { AppState } = await import('../../modules/config/config.js')
-      console.log("🎉 初期化完了:", AppState)
+      console.log("🎉 初期化完了:", window.AppState)
 
       // 🔄 アップデートUI機能を初期化
+      // updateUI は React側の useUpdateUI() フックに移行済み（自動初期化）
       const isDebugMode = window.electronAPI.isDebugMode()
-      console.log("🔄 アップデートUI機能を初期化中...")
-      await updateUI.init()
 
       // デバッグモードの場合、追加のUIボタンを表示
       if (isDebugMode) {
         console.log("🔧 デバッグモード: 追加UIボタンを表示します")
-        updateUI.addUpdateButtons()
+        addUpdateButtons()
       }
 
       // ===== 9️⃣ カスタムボタンマネージャー初期化 =====
       console.log("🔧 カスタムボタンマネージャーを初期化中...")
-      await customButtonManager.init()
+      await initCustomButtons()
 
       // ===== 🔟 ボタン表示制御マネージャー初期化 =====
-      console.log("🔧 ボタン表示制御マネージャーを初期化中...")
-      await buttonVisibilityManager.init()
+      // buttonVisibilityManager は削除されました（機能が空のため）
 
       // ===== ⓫ アクティブURLのUI反映（設定モーダルのみ） =====
       function setModalUrlText(urlText) {

@@ -1,10 +1,12 @@
-import { useEffect, useState, useCallback } from 'react'
-import { loadIni } from '../../modules/config/ini.js'
-import { loadConfig } from '../../modules/config/config.js'
-import { loadCustomButtons, loadAvailableActions } from '../../modules/config/customButtons.js'
+import { useEffect, useState } from 'react'
+import { useIniState } from '../contexts/IniStateContext.jsx'
+import { useCustomButtons } from '../contexts/CustomButtonsContext.jsx'
+import { loadConfig } from '../utils/configUtils.js'
 
 export function useSettingsModal(isOpen) {
   const [isLoading, setIsLoading] = useState(false)
+  const { loadIni } = useIniState()
+  const { loadCustomButtons, loadAvailableActions } = useCustomButtons()
 
   // モーダルが開かれた時に設定を再読み込み
   useEffect(() => {
@@ -27,7 +29,7 @@ export function useSettingsModal(isOpen) {
     }
 
     loadSettings()
-  }, [isOpen])
+  }, [isOpen, loadIni, loadCustomButtons, loadAvailableActions])
 
   return { isLoading }
 }

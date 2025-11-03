@@ -1,8 +1,14 @@
 import { useEffect, useState } from 'react'
 import SettingsModal from './settings/SettingsModal.jsx'
-import { showInfoToast } from '../../modules/ui/toast/toast.js'
+import CustomButtonsPanel from './CustomButtonsPanel.jsx'
+import { useToast } from '../contexts/ToastContext.jsx'
+import { useAppState } from '../contexts/AppStateContext.jsx'
+import { useTabs } from '../hooks/useTabs.js'
 
 function Toolbar() {
+  const { showInfoToast } = useToast()
+  const { appState } = useAppState()
+  const { addPersonalRecordTab, addProfessionalSupportNewTab } = useTabs()
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false)
 
   // 設定フォルダーを開く（右クリック）
@@ -221,6 +227,7 @@ function Toolbar() {
 
       <button 
         id="kojin-kiroku"
+        onClick={addPersonalRecordTab}
         className="bg-[#4CAF50] text-white border-none px-3.5 py-1.5 rounded-lg font-bold cursor-pointer transition-all whitespace-nowrap flex-shrink-0 hover:bg-[#66BB6A] hover:scale-105 active:bg-[#43A047] active:scale-[0.97]"
       >
         ＋ 個人記録
@@ -242,6 +249,7 @@ function Toolbar() {
             <li className="m-0 p-0">
               <button 
                 id="professional-support-new"
+                onClick={addProfessionalSupportNewTab}
                 className="block w-full text-left border-none bg-white text-black px-4 py-2 text-sm cursor-pointer transition-all hover:bg-[#e3f2fd]"
               >
                 ＋ 専門的支援-新規
@@ -388,7 +396,7 @@ function Toolbar() {
           id="custom-panel" 
           className="navInner fixed right-auto top-auto bg-white border border-gray-300 rounded-md shadow-lg z-[99999] min-w-[200px] max-h-[300px] overflow-y-auto"
         >
-          <ul className="list-none m-0 p-0 py-1.25"></ul>
+          <CustomButtonsPanel />
         </div>
       </nav>
 

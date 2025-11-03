@@ -1,31 +1,38 @@
 import { useEffect, useRef, useCallback } from 'react'
-import { IniState, saveIni } from '../../modules/config/ini.js'
-import { AppState, saveConfig } from '../../modules/config/config.js'
-import { saveCustomButtons } from '../../modules/config/customButtons.js'
-import { showSuccessToast, showErrorToast } from '../../modules/ui/toast/toast.js'
-import { loadAllReload } from '../../modules/actions/reloadSettings.js'
-import { updateButtonVisibility } from '../../modules/actions/hugActions.js'
-import { customButtonManager } from '../../modules/actions/customButtons.js'
-import { buttonVisibilityManager } from '../../modules/ui/buttonVisibility.js'
-import { getActiveWebview } from '../../modules/data/webviewState.js'
+import { useIniState } from '../contexts/IniStateContext.jsx'
+import { useCustomButtons } from '../contexts/CustomButtonsContext.jsx'
+// AppState は window.AppState または useAppState() フック経由でアクセス可能
+import { saveConfig } from '../utils/configUtils.js'
+import { useToast } from '../contexts/ToastContext.jsx'
+import { useAppState } from '../contexts/AppStateContext.jsx'
+import { loadAllReload } from '../utils/reloadSettings.js'
+import { updateButtonVisibility } from '../utils/buttonVisibility.js'
+import { useCustomButtonManager } from './useCustomButtonManager.js'
+// buttonVisibilityManager は削除されました（機能が空のため）
+import { getActiveWebview } from '../utils/webviewState.js'
 
 export function useSettingsModalLogic(isOpen) {
+  const { showSuccessToast, showErrorToast } = useToast()
+  const { appState, updateAppState } = useAppState()
+  const { iniState, saveIni, setIniState } = useIniState()
+  const { saveCustomButtons: saveCustomButtonsContext } = useCustomButtons()
+  const { reloadCustomButtons } = useCustomButtonManager()
   const originalSettingsRef = useRef(null)
 
   // モーダルが開かれた時に元の設定をバックアップ
   useEffect(() => {
     if (isOpen && !originalSettingsRef.current) {
-      originalSettingsRef.current = JSON.parse(JSON.stringify(IniState))
+      originalSettingsRef.current = JSON.parse(JSON.stringify(iniState))
       console.log('✅ [SettingsModal] 元の設定をバックアップしました')
     }
-  }, [isOpen])
+  }, [isOpen, iniState])
 
   // フォームに値を設定
   const populateForm = useCallback(() => {
     console.log('🔍 [SettingsModal] フォームに値を設定中...')
 
     // 機能の有効/無効
-    const features = IniState.appSettings.features
+    const features = iniState.appSettings.features
     Object.keys(features).forEach(featureName => {
       const checkbox = document.getElementById(`feature-${featureName}`)
       if (checkbox) {
@@ -50,7 +57,7 @@ export function useSettingsModalLogic(isOpen) {
     })
 
     // UI設定
-    const ui = IniState.appSettings.ui
+    const ui = iniState.appSettings.ui
     const themeSelect = document.getElementById('theme-select')
     if (themeSelect) themeSelect.value = ui.theme || 'light'
 
@@ -72,7 +79,7 @@ export function useSettingsModalLogic(isOpen) {
     }
 
     // ウィンドウ設定
-    const window = IniState.appSettings.window
+    const window = iniState.appSettings.window
     const windowWidth = document.getElementById('window-width')
     if (windowWidth) windowWidth.value = window.width || 1200
 
@@ -86,7 +93,7 @@ export function useSettingsModalLogic(isOpen) {
     if (windowAlwaysOnTop) windowAlwaysOnTop.checked = window.alwaysOnTop || false
 
     // 現在のURL表示（機能が有効な場合のみ）
-    const getUrlEnabled = !!IniState?.appSettings?.features?.getUrl?.enabled
+    const getUrlEnabled = !!iniState?.appSettings?.features?.getUrl?.enabled
     const urlContainer = document.getElementById('current-url-container')
     if (urlContainer) urlContainer.style.display = getUrlEnabled ? 'block' : 'none'
     if (getUrlEnabled) {
@@ -98,27 +105,30 @@ export function useSettingsModalLogic(isOpen) {
 
     // Config.json設定
     const configUsername = document.getElementById('config-username')
-    if (configUsername) configUsername.value = AppState.HUG_USERNAME || ''
+    if (configUsername) configUsername.value = appState.HUG_USERNAME || ''
 
     const configPassword = document.getElementById('config-password')
-    if (configPassword) configPassword.value = AppState.HUG_PASSWORD || ''
+    if (configPassword) configPassword.value = appState.HUG_PASSWORD || ''
 
     const configApiUrl = document.getElementById('config-api-url')
-    if (configApiUrl) configApiUrl.value = AppState.VITE_API_BASE_URL || ''
+    if (configApiUrl) configApiUrl.value = appState.VITE_API_BASE_URL || ''
 
     const configStaffId = document.getElementById('config-staff-id')
-    if (configStaffId) configStaffId.value = AppState.STAFF_ID || ''
+    if (configStaffId) configStaffId.value = appState.STAFF_ID || ''
 
     const configFacilityId = document.getElementById('config-facility-id')
-    if (configFacilityId) configFacilityId.value = AppState.FACILITY_ID || ''
+    if (configFacilityId) configFacilityId.value = appState.FACILITY_ID || ''
 
     console.log('✅ [SettingsModal] フォームに値を設定しました')
-  }, [])
+  }, [appState, iniState])
 
   // フォームの値をIniStateに反映
   const updateIniStateFromForm = useCallback(() => {
+    // 新しい状態オブジェクトを作成
+    const newIniState = JSON.parse(JSON.stringify(iniState)) // ディープコピー
+    
     // 機能の有効/無効
-    const features = IniState.appSettings.features
+    const features = newIniState.appSettings.features
     Object.keys(features).forEach(featureName => {
       const checkbox = document.getElementById(`feature-${featureName}`)
       if (checkbox) {
@@ -144,38 +154,41 @@ export function useSettingsModalLogic(isOpen) {
 
     // UI設定
     const themeSelect = document.getElementById('theme-select')
-    if (themeSelect) IniState.appSettings.ui.theme = themeSelect.value
+    if (themeSelect) newIniState.appSettings.ui.theme = themeSelect.value
 
     const languageSelect = document.getElementById('language-select')
-    if (languageSelect) IniState.appSettings.ui.language = languageSelect.value
+    if (languageSelect) newIniState.appSettings.ui.language = languageSelect.value
 
     const showCloseButtons = document.getElementById('show-close-buttons')
-    if (showCloseButtons) IniState.appSettings.ui.showCloseButtons = showCloseButtons.checked
+    if (showCloseButtons) newIniState.appSettings.ui.showCloseButtons = showCloseButtons.checked
 
     const autoRefresh = document.getElementById('auto-refresh')
-    if (autoRefresh) IniState.appSettings.ui.autoRefresh.enabled = autoRefresh.checked
+    if (autoRefresh) newIniState.appSettings.ui.autoRefresh.enabled = autoRefresh.checked
 
     const refreshInterval = document.getElementById('refresh-interval')
     if (refreshInterval) {
-      IniState.appSettings.ui.autoRefresh.interval = parseInt(refreshInterval.value)
+      newIniState.appSettings.ui.autoRefresh.interval = parseInt(refreshInterval.value)
     }
 
     const confirmOnClose = document.getElementById('confirm-on-close')
-    if (confirmOnClose) IniState.appSettings.ui.confirmOnClose = confirmOnClose.checked
+    if (confirmOnClose) newIniState.appSettings.ui.confirmOnClose = confirmOnClose.checked
 
     // ウィンドウ設定
     const windowWidth = document.getElementById('window-width')
-    if (windowWidth) IniState.appSettings.window.width = parseInt(windowWidth.value)
+    if (windowWidth) newIniState.appSettings.window.width = parseInt(windowWidth.value)
 
     const windowHeight = document.getElementById('window-height')
-    if (windowHeight) IniState.appSettings.window.height = parseInt(windowHeight.value)
+    if (windowHeight) newIniState.appSettings.window.height = parseInt(windowHeight.value)
 
     const windowMaximized = document.getElementById('window-maximized')
-    if (windowMaximized) IniState.appSettings.window.maximized = windowMaximized.checked
+    if (windowMaximized) newIniState.appSettings.window.maximized = windowMaximized.checked
 
     const windowAlwaysOnTop = document.getElementById('window-always-on-top')
-    if (windowAlwaysOnTop) IniState.appSettings.window.alwaysOnTop = windowAlwaysOnTop.checked
-  }, [])
+    if (windowAlwaysOnTop) newIniState.appSettings.window.alwaysOnTop = windowAlwaysOnTop.checked
+    
+    // 状態を更新
+    setIniState(newIniState)
+  }, [iniState, setIniState])
 
   // 設定を保存
   const saveSettings = useCallback(async () => {
@@ -187,7 +200,7 @@ export function useSettingsModalLogic(isOpen) {
       const iniSuccess = await saveIni()
 
       // カスタムボタンを保存
-      const customButtonsSuccess = await saveCustomButtons()
+      const customButtonsSuccess = await saveCustomButtonsContext()
 
       if (iniSuccess && customButtonsSuccess) {
         showSuccessToast('✅ 設定を保存しました')
@@ -197,8 +210,7 @@ export function useSettingsModalLogic(isOpen) {
           const reloadOk = await loadAllReload()
           if (reloadOk) {
             updateButtonVisibility()
-            await customButtonManager.reloadCustomButtons()
-            await buttonVisibilityManager.reloadButtonVisibility()
+            await reloadCustomButtons()
           }
         } catch (e) {
           console.error('❌ 全設定リロード中にエラー:', e)
@@ -206,7 +218,7 @@ export function useSettingsModalLogic(isOpen) {
 
         // 他UIへ設定更新を通知
         try {
-          document.dispatchEvent(new CustomEvent('app-settings-updated', { detail: { IniState } }))
+          document.dispatchEvent(new CustomEvent('app-settings-updated', { detail: { IniState: iniState } }))
         } catch (e) {
           // 通知失敗は無視
         }
@@ -221,19 +233,19 @@ export function useSettingsModalLogic(isOpen) {
       showErrorToast('❌ 設定の保存中にエラーが発生しました')
       return false
     }
-  }, [updateIniStateFromForm])
+  }, [updateIniStateFromForm, saveIni, saveCustomButtonsContext, iniState, showSuccessToast, showErrorToast])
 
   // 設定をリセット
   const resetSettings = useCallback(() => {
     if (confirm('設定をデフォルトにリセットしますか？')) {
       // バックアップから復元
       if (originalSettingsRef.current) {
-        Object.assign(IniState, JSON.parse(JSON.stringify(originalSettingsRef.current)))
+        setIniState(JSON.parse(JSON.stringify(originalSettingsRef.current)))
         populateForm()
         console.log('✅ [SettingsModal] 設定をリセットしました')
       }
     }
-  }, [populateForm])
+  }, [populateForm, setIniState])
 
   // パスワード表示切替え
   const togglePasswordVisibility = useCallback(() => {
@@ -264,8 +276,11 @@ export function useSettingsModalLogic(isOpen) {
         FACILITY_ID: document.getElementById('config-facility-id')?.value || ''
       }
 
-      // AppStateを更新
-      Object.assign(AppState, configData)
+      // AppStateを更新（Context APIとwindow.AppStateの両方を更新）
+      updateAppState(configData)
+      if (window.AppState) {
+        Object.assign(window.AppState, configData)
+      }
 
       // ファイルに保存
       const success = await saveConfig()
@@ -328,12 +343,12 @@ export function useSettingsModalLogic(isOpen) {
       }
 
       // 現在の値を設定
-      if (staffSelect) staffSelect.value = AppState.STAFF_ID || ''
-      if (facilitySelect) facilitySelect.value = AppState.FACILITY_ID || ''
+      if (staffSelect) staffSelect.value = appState.STAFF_ID || ''
+      if (facilitySelect) facilitySelect.value = appState.FACILITY_ID || ''
     } catch (error) {
       console.error('❌ [SettingsModal] セレクトボックス初期化エラー:', error)
     }
-  }, [])
+  }, [appState])
 
   return {
     populateForm,

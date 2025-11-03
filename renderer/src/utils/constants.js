@@ -1,4 +1,4 @@
-// modules/config/const.js
+// src/utils/constants.js
 // アプリケーション全体で使用する定数定義
 
 // ==========================
@@ -309,3 +309,4 @@ export const EVENTS = {
 export const PATHS = {
   // modal.htmlとmodal.cssはReactコンポーネント（SettingsModal.jsx）に統合されました
 };
+

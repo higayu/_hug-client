@@ -1,4 +1,24 @@
+// src/components/Tabs.jsx
+// タブコンポーネント
+
+import { useEffect } from 'react'
+import { useTabs } from '../hooks/useTabs.js'
+
 function Tabs() {
+  useTabs() // タブ機能の初期化
+
+  // 初期アクティブタブの設定
+  useEffect(() => {
+    const tabsContainer = document.getElementById('tabs')
+    if (!tabsContainer) return
+
+    // デフォルトのHugタブをアクティブにする
+    const defaultTab = tabsContainer.querySelector('button[data-target="hugview"]')
+    if (defaultTab && !defaultTab.classList.contains('active-tab')) {
+      defaultTab.classList.add('active-tab')
+    }
+  }, [])
+
   return (
     <div id="tabs" className="bg-[#555] p-1 flex-none">
       <button 
@@ -7,9 +27,9 @@ function Tabs() {
       >
         Hug
       </button>
+      {/* 追加ボタンはuseTabsフック内で動的に追加される */}
     </div>
   )
 }
 
 export default Tabs
-

@@ -2,9 +2,13 @@ import {
   fetchAttendanceTableData, 
   fetchAttendanceData, 
   parseAttendanceTable 
-} from '../modules/data/attendanceTable.js'
+} from './utils/attendanceTable.js'
 import { usePreloadPath } from './hooks/usePreloadPath.js'
 import { useAppInitialization } from './hooks/useAppInitialization.js'
+import { ToastProvider } from './contexts/ToastContext.jsx'
+import { AppStateProvider } from './contexts/AppStateContext.jsx'
+import { IniStateProvider } from './contexts/IniStateContext.jsx'
+import { CustomButtonsProvider } from './contexts/CustomButtonsContext.jsx'
 import Toolbar from './components/Toolbar.jsx'
 import Tabs from './components/Tabs.jsx'
 import ContentArea from './components/ContentArea.jsx'
@@ -16,8 +20,8 @@ window.attendanceTableAPI = {
   parseAttendanceTable
 }
 
-function App() {
-  const preloadPath = usePreloadPath()
+// Provider内で初期化を実行する内部コンポーネント
+function AppContent({ preloadPath }) {
   useAppInitialization()
 
   return (
@@ -27,6 +31,22 @@ function App() {
       <ContentArea preloadPath={preloadPath} />
       <pre id="configOutput" style={{ display: 'none' }}></pre>
     </div>
+  )
+}
+
+function App() {
+  const preloadPath = usePreloadPath()
+
+  return (
+    <AppStateProvider>
+      <IniStateProvider>
+        <CustomButtonsProvider>
+          <ToastProvider>
+            <AppContent preloadPath={preloadPath} />
+          </ToastProvider>
+        </CustomButtonsProvider>
+      </IniStateProvider>
+    </AppStateProvider>
   )
 }
 

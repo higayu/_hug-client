@@ -1,13 +1,17 @@
 import { useEffect, useRef, useState } from 'react'
-import { AppState, getWeekdayFromDate, getDateString } from '../../modules/config/config.js'
-import { showInfoToast } from '../../modules/ui/toast/toast.js'
-import { ELEMENT_IDS } from '../../modules/config/const.js'
+import { useAppState } from '../contexts/AppStateContext.jsx'
+import { getWeekdayFromDate, getDateString } from '../utils/dateUtils.js'
+import { useToast } from '../contexts/ToastContext.jsx'
+import { ELEMENT_IDS } from '../utils/constants.js'
 import SidebarContent from './SidebarContent.jsx'
 
 function Sidebar() {
-  // 初期値を設定（AppStateに値がない場合は今日の日付を使用）
-  const initialDate = AppState.DATE_STR || getDateString()
-  const initialWeekday = AppState.WEEK_DAY || getWeekdayFromDate(initialDate)
+  const { showInfoToast } = useToast()
+  const { appState, setDate, setWeekday, DATE_STR, WEEK_DAY } = useAppState()
+  
+  // 初期値を設定（appStateに値がない場合は今日の日付を使用）
+  const initialDate = DATE_STR || getDateString()
+  const initialWeekday = WEEK_DAY || getWeekdayFromDate(initialDate)
   
   const [dateValue, setDateValue] = useState(initialDate)
   const [weekdayValue, setWeekdayValue] = useState(initialWeekday)
@@ -20,10 +24,10 @@ function Sidebar() {
     console.log("📅 日付が変更されました:", selectedDate)
     
     if (selectedDate) {
-      AppState.DATE_STR = selectedDate
       const weekday = getWeekdayFromDate(selectedDate)
-      AppState.WEEK_DAY = weekday
-      setDateValue(selectedDate)
+      setDateValue(selectedDate) // まずローカル状態を更新
+      setDate(selectedDate)
+      setWeekday(weekday)
       setWeekdayValue(weekday)
       showInfoToast(`📅 日付を ${selectedDate} (${weekday}) に設定しました`)
       console.log("✅ 日付と曜日を更新:", { date: selectedDate, weekday })
@@ -43,7 +47,7 @@ function Sidebar() {
     const selectedWeekday = e.target.value
     console.log("📅 曜日が変更されました:", selectedWeekday)
     
-    AppState.WEEK_DAY = selectedWeekday
+    setWeekday(selectedWeekday)
     setWeekdayValue(selectedWeekday)
     showInfoToast(`📅 曜日を ${selectedWeekday} に設定しました`)
     console.log("✅ 曜日を更新:", selectedWeekday)
@@ -65,21 +69,32 @@ function Sidebar() {
     console.log(newPinnedState ? "📌 サイドバーを固定しました" : "📌 サイドバーの固定を解除しました")
   }
 
-  // 初期化時にAppStateから値を取得し、初期値がない場合は設定
+  // 初期化時にappStateから値を取得し、初期値がない場合は設定（初回マウント時のみ）
   useEffect(() => {
-    if (!AppState.DATE_STR) {
+    if (!DATE_STR) {
       const today = getDateString()
-      AppState.DATE_STR = today
-      AppState.WEEK_DAY = getWeekdayFromDate(today)
+      setDate(today)
+      setWeekday(getWeekdayFromDate(today))
       setDateValue(today)
-      setWeekdayValue(AppState.WEEK_DAY)
+      setWeekdayValue(getWeekdayFromDate(today))
     } else {
-      setDateValue(AppState.DATE_STR)
-      if (AppState.WEEK_DAY) {
-        setWeekdayValue(AppState.WEEK_DAY)
+      setDateValue(DATE_STR)
+      if (WEEK_DAY) {
+        setWeekdayValue(WEEK_DAY)
       }
     }
-  }, [])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []) // 初回マウント時のみ実行
+
+  // appStateのDATE_STRとWEEK_DAYが外部から変更された場合に同期（ただしローカル状態が空の場合のみ）
+  useEffect(() => {
+    if (!dateValue && DATE_STR) {
+      setDateValue(DATE_STR)
+    }
+    if (!weekdayValue && WEEK_DAY) {
+      setWeekdayValue(WEEK_DAY)
+    }
+  }, [DATE_STR, WEEK_DAY, dateValue, weekdayValue])
 
   return (
     <div ref={sidebarRef} className="text-black bg-gray-50 flex flex-col h-full">
@@ -94,9 +109,9 @@ function Sidebar() {
           <input
             type="date"
             id="dateSelect"
-            value={dateValue}
+            value={dateValue || ''}
             onChange={handleDateChange}
-            className="w-full p-2 my-1.5 border border-gray-300 rounded text-sm text-black bg-white max-w-[200px]"
+            className="w-full p-2 my-1.5 border border-gray-300 rounded text-sm text-black bg-white max-w-[200px] cursor-pointer"
           />
         </div>
 
