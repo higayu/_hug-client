@@ -47,7 +47,6 @@ export class SettingsEditor {
       console.log('🔍 [SETTINGS] IniState確認:', IniState);
       console.log('🔍 [SETTINGS] AppState確認:', AppState);
       console.log('🔍 [SETTINGS] CustomButtonsState確認:', CustomButtonsState);
-      console.log('🔍 [SETTINGS] IniState.appSettings.customButtons:', IniState.appSettings.customButtons);
       console.log('🔍 [SETTINGS] CustomButtonsState.customButtons:', CustomButtonsState.customButtons);
       
       // まずイベントリスナーを設定（モーダルは後で読み込む）
@@ -276,7 +275,6 @@ export class SettingsEditor {
     // 設定の状態を確認
     console.log('🔍 [SETTINGS] 現在のIniState:', IniState);
     console.log('🔍 [SETTINGS] 現在のAppState:', AppState);
-    console.log('🔍 [SETTINGS] customButtons:', IniState.appSettings.customButtons);
     console.log('🔍 [SETTINGS] CustomButtonsState.customButtons:', CustomButtonsState.customButtons);
     
     // モーダルが読み込まれていない場合は読み込み
@@ -486,43 +484,16 @@ export class SettingsEditor {
 
     console.log("🔍 [SETTINGS] カスタムボタンリストを更新中...");
     console.log("🔍 [SETTINGS] CustomButtonsState.customButtons:", CustomButtonsState.customButtons);
-    console.log("🔍 [SETTINGS] IniState.appSettings.customButtons:", IniState.appSettings.customButtons);
     
-    // 各ボタンのorderプロパティを詳細に確認
-    if (CustomButtonsState.customButtons) {
-      CustomButtonsState.customButtons.forEach((button, index) => {
-        console.log(`🔍 [SETTINGS] CustomButtonsState[${index}]:`, {
-          id: button.id,
-          order: button.order,
-          orderType: typeof button.order,
-          hasOrder: 'order' in button
-        });
-      });
-    }
+    // カスタムボタンのデータを取得（CustomButtonsStateから取得: customButtons.jsonから読み込まれたデータ）
+    const customButtons = CustomButtonsState.customButtons && CustomButtonsState.customButtons.length > 0
+      ? [...CustomButtonsState.customButtons] // ディープコピー
+      : [];
     
-    if (IniState.appSettings.customButtons) {
-      IniState.appSettings.customButtons.forEach((button, index) => {
-        console.log(`🔍 [SETTINGS] IniState[${index}]:`, {
-          id: button.id,
-          order: button.order,
-          orderType: typeof button.order,
-          hasOrder: 'order' in button
-        });
-      });
-    }
-    
-    // カスタムボタンのデータを取得（IniStateを優先）
-    let customButtons = [];
-    
-    // IniStateから取得を試行
-    if (IniState.appSettings && IniState.appSettings.customButtons && IniState.appSettings.customButtons.length > 0) {
-      customButtons = [...IniState.appSettings.customButtons]; // ディープコピー
-      console.log("🔍 [SETTINGS] IniStateからカスタムボタンを取得:", customButtons);
-    } else if (CustomButtonsState.customButtons && CustomButtonsState.customButtons.length > 0) {
-      customButtons = [...CustomButtonsState.customButtons]; // ディープコピー
-      console.log("🔍 [SETTINGS] CustomButtonsStateからカスタムボタンを取得:", customButtons);
-    } else {
+    if (customButtons.length === 0) {
       console.log("⚠️ [SETTINGS] カスタムボタンデータが見つかりません");
+    } else {
+      console.log("✅ [SETTINGS] CustomButtonsStateからカスタムボタンを取得:", customButtons);
     }
     
     // 最終的に使用するデータをログ出力
@@ -697,17 +668,9 @@ export class SettingsEditor {
     });
   }
 
-  // カスタムボタンのデータを更新（IniStateを優先）
+  // カスタムボタンのデータを更新（CustomButtonsStateのみ使用）
   updateCustomButtonInData(index, updates) {
-    // IniStateを優先して更新
-    if (IniState.appSettings.customButtons && IniState.appSettings.customButtons.length > 0) {
-      if (index >= 0 && index < IniState.appSettings.customButtons.length) {
-        Object.assign(IniState.appSettings.customButtons[index], updates);
-        console.log(`✅ [SETTINGS] IniStateのボタン${index}を更新:`, updates);
-      }
-    }
-    
-    // CustomButtonsStateも更新（バックアップとして）
+    // CustomButtonsStateを更新（customButtons.jsonのデータソース）
     if (CustomButtonsState.customButtons && CustomButtonsState.customButtons.length > 0) {
       if (index >= 0 && index < CustomButtonsState.customButtons.length) {
         Object.assign(CustomButtonsState.customButtons[index], updates);
@@ -716,17 +679,9 @@ export class SettingsEditor {
     }
   }
 
-  // カスタムボタンをデータから削除（IniStateを優先）
+  // カスタムボタンをデータから削除（CustomButtonsStateのみ使用）
   removeCustomButtonFromData(index) {
-    // IniStateを優先して削除
-    if (IniState.appSettings.customButtons && IniState.appSettings.customButtons.length > 0) {
-      if (index >= 0 && index < IniState.appSettings.customButtons.length) {
-        const removed = IniState.appSettings.customButtons.splice(index, 1)[0];
-        console.log(`✅ [SETTINGS] IniStateからボタン${index}を削除:`, removed);
-      }
-    }
-    
-    // CustomButtonsStateからも削除（バックアップとして）
+    // CustomButtonsStateから削除（customButtons.jsonのデータソース）
     if (CustomButtonsState.customButtons && CustomButtonsState.customButtons.length > 0) {
       if (index >= 0 && index < CustomButtonsState.customButtons.length) {
         const removed = CustomButtonsState.customButtons.splice(index, 1)[0];

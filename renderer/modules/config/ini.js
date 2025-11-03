@@ -11,7 +11,7 @@ export const IniState = {
     },
     ui: DEFAULTS.UI,
     features: FEATURES,
-    customButtons: [],
+    // customButtonsは廃止: customButtons.jsonに統一
     window: DEFAULTS.WINDOW,
     notifications: DEFAULTS.NOTIFICATIONS
   },
@@ -35,14 +35,15 @@ export async function loadIni() {
 
     const data = result.data;
     console.log("🔍 [INI] 読み込んだデータ:", data);
-    console.log("🔍 [INI] customButtons:", data.appSettings?.customButtons);
+    
+    // customButtonsは除外（customButtons.jsonに統一）
+    const { customButtons, ...appSettingsWithoutCustomButtons } = data.appSettings || {};
     
     // 設定をマージ（デフォルト値と組み合わせ）
-    IniState.appSettings = { ...IniState.appSettings, ...data.appSettings };
+    IniState.appSettings = { ...IniState.appSettings, ...appSettingsWithoutCustomButtons };
     IniState.userPreferences = { ...IniState.userPreferences, ...data.userPreferences };
 
     console.log("✅ [INI] マージ後のIniState:", IniState);
-    console.log("✅ [INI] マージ後のcustomButtons:", IniState.appSettings.customButtons);
     console.log(MESSAGES.SUCCESS.INI_LOADED, IniState);
     return true;
   } catch (err) {
@@ -54,9 +55,12 @@ export async function loadIni() {
 // ini.json保存
 export async function saveIni() {
   try {
+    // customButtonsは除外（customButtons.jsonに統一）
+    const { customButtons, ...appSettingsWithoutCustomButtons } = IniState.appSettings;
+    
     const data = {
       version: "1.0.0",
-      appSettings: IniState.appSettings,
+      appSettings: appSettingsWithoutCustomButtons,
       userPreferences: IniState.userPreferences
     };
 
@@ -114,16 +118,8 @@ export function getButtonConfig(buttonName) {
   return IniState.appSettings.features[buttonName] || {};
 }
 
-// カスタムボタンの設定を取得
-export function getCustomButtons() {
-  console.log("🔍 [INI] getCustomButtons呼び出し");
-  console.log("🔍 [INI] IniState.appSettings.customButtons:", IniState.appSettings.customButtons);
-  
-  const enabledButtons = IniState.appSettings.customButtons.filter(btn => btn.enabled);
-  console.log("🔍 [INI] 有効なカスタムボタン:", enabledButtons);
-  
-  return enabledButtons;
-}
+// カスタムボタンの設定を取得（廃止: customButtons.jsのgetCustomButtons()を使用）
+// この関数は廃止されました。代わりに renderer/modules/config/customButtons.js の getCustomButtons() を使用してください。
 
 // UI設定を取得
 export function getUISettings() {

@@ -42,24 +42,6 @@
         "buttonColor": "#e5d7fe"
       }
     },
-    "customButtons": [
-      {
-        "id": "addition-compare-btn",
-        "enabled": true,
-        "text": "加算の比較",
-        "color": "#f9d4fc",
-        "action": "additionCompare",
-        "order": 1
-      },
-      {
-        "id": "custom1",
-        "enabled": true,
-        "text": "キャンセル待ち登録",
-        "color": "#dc3545",
-        "action": "customAction1",
-        "order": 2
-      }
-    ],
     "window": {
       "width": 1200,
       "height": 800,

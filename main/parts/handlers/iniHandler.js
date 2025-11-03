@@ -72,32 +72,6 @@ function handleIniAccess(ipcMain) {
                 buttonColor: "#6f42c1"
               }
             },
-            customButtons: [
-              {
-                id: "addition-compare-btn",
-                enabled: true,
-                text: "加算の比較",
-                color: "#f9d4fc",
-                action: "additionCompare",
-                order: 1
-              },
-              {
-                id: "custom1",
-                enabled: true,
-                text: "キャンセル待ちの登録",
-                color: "#dc3545",
-                action: "customAction1",
-                order: 2
-              },
-              {
-                id: "custom2",
-                enabled: false,
-                text: "カスタムボタン2",
-                color: "#6f42c1",
-                action: "customAction2",
-                order: 3
-              }
-            ],
             window: {
               width: 1200,
               height: 800,

@@ -87,7 +87,7 @@ export function useAppInitialization() {
 
         console.log("🔍 [MAIN] IniState確認:", IniState)
         console.log("🔍 [MAIN] AppState確認:", AppState)
-        console.log("🔍 [MAIN] customButtons:", IniState.appSettings.customButtons)
+        // customButtonsはcustomButtons.jsonに統一されたため、IniStateからの参照は削除
 
         // settingsEditorはReactコンポーネント（SettingsModal）に統合されました
         // window.settingsEditor = initSettingsEditor()
