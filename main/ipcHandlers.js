@@ -10,6 +10,7 @@ const { handleIniAccess } = require("./parts/handlers/iniHandler");
 const { handleCustomButtonsAccess } = require("./parts/handlers/customButtonsHandler");
 const { registerPlanWindows } = require("./parts/window/planWindows");
 const { open_addition_compare_btn } = require("./parts/window/computeWindows");
+const { resolvePreloadPath } = require("./parts/window/windowManager");
 
 function registerIpcHandlers(mainWindow, tempNoteHandler) {
   console.log("🔧 [MAIN] IPCハンドラーを登録中...");
@@ -117,18 +118,13 @@ function registerIpcHandlers(mainWindow, tempNoteHandler) {
     ipcMain.handle('get-preload-path', async () => {
       console.log("🔧 [IPC] getPreloadPath 呼び出し");
       try {
-        // 開発環境と本番環境で正しいパスを取得
-        const appPath = app.isPackaged 
-          ? path.dirname(process.execPath)  // 本番環境: 実行ファイルのディレクトリ
-          : app.getAppPath();                // 開発環境: アプリのルートディレクトリ
-        
-        const preloadPath = path.resolve(appPath, 'preload.js');
+        // windowManager.jsと同じロジックを使用
+        const preloadPath = resolvePreloadPath();
         
         // ファイル存在確認
         if (!fs.existsSync(preloadPath)) {
           console.error('❌ preload.jsが見つかりません:', preloadPath);
           console.error('🔍 [getPreloadPath] app.isPackaged:', app.isPackaged);
-          console.error('🔍 [getPreloadPath] appPath:', appPath);
           return null;
         }
         
@@ -136,7 +132,7 @@ function registerIpcHandlers(mainWindow, tempNoteHandler) {
         const fileUrl = pathToFileURL(preloadPath).href;
         console.log("✅ [IPC] preloadパス:", fileUrl);
         console.log("🔍 [IPC] app.isPackaged:", app.isPackaged);
-        console.log("🔍 [IPC] appPath:", appPath);
+        console.log("🔍 [IPC] preloadPath:", preloadPath);
         console.log("🔍 [IPC] ファイル存在確認:", fs.existsSync(preloadPath));
         
         return fileUrl;

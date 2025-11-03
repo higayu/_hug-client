@@ -51,10 +51,15 @@ export async function loadAvailableActions() {
 export async function saveCustomButtons() {
   try {
     console.log("🔄 [CUSTOM_BUTTONS] カスタムボタンを保存中...");
+    console.log("🔍 [CUSTOM_BUTTONS] 保存するカスタムボタン:", CustomButtonsState.customButtons);
+    console.log("🔍 [CUSTOM_BUTTONS] カスタムボタン数:", CustomButtonsState.customButtons.length);
+    
     const data = {
       version: "1.0.0",
       customButtons: CustomButtonsState.customButtons
     };
+    
+    console.log("🔍 [CUSTOM_BUTTONS] 保存データ:", JSON.stringify(data, null, 2));
     
     const result = await window.electronAPI.saveCustomButtons(data);
     
@@ -65,7 +70,7 @@ export async function saveCustomButtons() {
     }
 
     console.log("✅ [CUSTOM_BUTTONS] カスタムボタン保存成功");
-    showSuccessToast("カスタムボタンを保存しました");
+    console.log("🔍 [CUSTOM_BUTTONS] 保存後のCustomButtonsState:", CustomButtonsState.customButtons);
     return true;
   } catch (err) {
     console.error("❌ [CUSTOM_BUTTONS] カスタムボタン保存エラー:", err);
@@ -121,7 +126,7 @@ export function addCustomButton(actionId, text, color) {
   return true;
 }
 
-// カスタムボタンの更新
+// カスタムボタンの更新（インデックスベース）
 export function updateCustomButton(index, updates) {
   if (index >= 0 && index < CustomButtonsState.customButtons.length) {
     const button = CustomButtonsState.customButtons[index];
@@ -146,7 +151,17 @@ export function updateCustomButton(index, updates) {
   return false;
 }
 
-// カスタムボタンの削除
+// カスタムボタンの更新（IDベース）
+export function updateCustomButtonById(id, updates) {
+  const index = CustomButtonsState.customButtons.findIndex(btn => btn.id === id);
+  if (index >= 0) {
+    return updateCustomButton(index, updates);
+  }
+  console.error("❌ [CUSTOM_BUTTONS] カスタムボタンが見つかりません:", id);
+  return false;
+}
+
+// カスタムボタンの削除（インデックスベース）
 export function removeCustomButton(index) {
   if (index >= 0 && index < CustomButtonsState.customButtons.length) {
     const removed = CustomButtonsState.customButtons.splice(index, 1)[0];
@@ -161,6 +176,16 @@ export function removeCustomButton(index) {
     console.log("✅ [CUSTOM_BUTTONS] カスタムボタンを削除:", removed);
     return true;
   }
+  return false;
+}
+
+// カスタムボタンの削除（IDベース）
+export function removeCustomButtonById(id) {
+  const index = CustomButtonsState.customButtons.findIndex(btn => btn.id === id);
+  if (index >= 0) {
+    return removeCustomButton(index);
+  }
+  console.error("❌ [CUSTOM_BUTTONS] カスタムボタンが見つかりません:", id);
   return false;
 }
 

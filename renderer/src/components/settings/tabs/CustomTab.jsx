@@ -4,8 +4,8 @@ import {
   getAvailableActions,
   getActionsByCategory,
   addCustomButton,
-  updateCustomButton,
-  removeCustomButton,
+  updateCustomButtonById,
+  removeCustomButtonById,
   saveCustomButtons,
   loadCustomButtons,
   loadAvailableActions
@@ -67,25 +67,32 @@ function CustomTab() {
     })
   }, [availableActions])
 
-  // ボタンの更新ハンドラー
-  const handleButtonUpdate = useCallback((index, field, value) => {
+  // ボタンの更新ハンドラー（IDベース）
+  const handleButtonUpdate = useCallback((buttonId, field, value) => {
     const updates = { [field]: value }
-    const updated = updateCustomButton(index, updates)
+    const updated = updateCustomButtonById(buttonId, updates)
     if (updated) {
-      loadData()
+      // CustomButtonsStateを更新した後、ローカルステートも更新
+      setButtons([...CustomButtonsState.customButtons])
+      console.log(`✅ [CustomTab] ボタン ${buttonId} の ${field} を ${value} に更新しました`)
+    } else {
+      console.error(`❌ [CustomTab] ボタン ${buttonId} の更新に失敗しました`)
     }
-  }, [loadData])
+  }, [])
 
-  // ボタンの削除ハンドラー
-  const handleButtonDelete = useCallback((index) => {
+  // ボタンの削除ハンドラー（IDベース）
+  const handleButtonDelete = useCallback((buttonId) => {
     if (confirm('このカスタムボタンを削除しますか？')) {
-      const removed = removeCustomButton(index)
+      const removed = removeCustomButtonById(buttonId)
       if (removed) {
         showSuccessToast('カスタムボタンを削除しました')
-        loadData()
+        // CustomButtonsStateから削除した後、ローカルステートも更新
+        setButtons([...CustomButtonsState.customButtons])
+      } else {
+        showErrorToast('カスタムボタンの削除に失敗しました')
       }
     }
-  }, [loadData])
+  }, [])
 
   // 新しいカスタムボタンを作成
   const handleCreateButton = useCallback(async () => {
@@ -108,11 +115,12 @@ function CustomTab() {
       if (textInput) textInput.value = ''
       if (colorInput) colorInput.value = '#007bff'
       
-      loadData()
+      // CustomButtonsStateを更新した後、ローカルステートも更新
+      setButtons([...CustomButtonsState.customButtons])
     } else {
       showErrorToast('カスタムボタンの作成に失敗しました')
     }
-  }, [newButton, loadData])
+  }, [newButton])
 
   // 作成ボタンのイベントリスナー
   useEffect(() => {
@@ -215,7 +223,6 @@ function CustomTab() {
             }
             
             return sortedButtons.map((button) => {
-              const actualIndex = buttons.findIndex(b => b.id === button.id)
               return (
                 <div key={button.id} className="mb-4 p-4 border border-gray-200 rounded-lg bg-gray-50">
                   <div className="flex items-center gap-3 mb-3">
@@ -223,7 +230,7 @@ function CustomTab() {
                       type="checkbox"
                       className="w-5 h-5 accent-blue-600"
                       checked={button.enabled || false}
-                      onChange={(e) => handleButtonUpdate(actualIndex, 'enabled', e.target.checked)}
+                      onChange={(e) => handleButtonUpdate(button.id, 'enabled', e.target.checked)}
                     />
                     <span className="font-medium text-gray-700">有効</span>
                   </div>
@@ -233,7 +240,7 @@ function CustomTab() {
                       <select
                         className="w-full px-2 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-200"
                         value={button.action || ''}
-                        onChange={(e) => handleButtonUpdate(actualIndex, 'action', e.target.value)}
+                        onChange={(e) => handleButtonUpdate(button.id, 'action', e.target.value)}
                       >
                         {availableActions.map(a => (
                           <option key={a.id} value={a.id}>
@@ -248,7 +255,7 @@ function CustomTab() {
                         type="text"
                         className="w-full px-2 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-200"
                         value={button.text || ''}
-                        onChange={(e) => handleButtonUpdate(actualIndex, 'text', e.target.value)}
+                        onChange={(e) => handleButtonUpdate(button.id, 'text', e.target.value)}
                       />
                     </div>
                     <div>
@@ -257,14 +264,14 @@ function CustomTab() {
                         type="color"
                         className="w-full h-10 border border-gray-300 rounded cursor-pointer"
                         value={button.color || '#007bff'}
-                        onChange={(e) => handleButtonUpdate(actualIndex, 'color', e.target.value)}
+                        onChange={(e) => handleButtonUpdate(button.id, 'color', e.target.value)}
                       />
                     </div>
                   </div>
                   <div className="flex gap-2">
                     <button
                       className="bg-gradient-to-r from-red-600 to-red-700 text-white border-none px-4 py-2 rounded-md cursor-pointer font-medium text-sm transition-all duration-200 hover:from-red-700 hover:to-red-800 hover:-translate-y-0.5"
-                      onClick={() => handleButtonDelete(actualIndex)}
+                      onClick={() => handleButtonDelete(button.id)}
                     >
                       削除
                     </button>
