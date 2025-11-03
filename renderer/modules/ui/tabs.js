@@ -12,7 +12,7 @@ export function initTabs() {
   // 🌟 追加ボタン
   const addTabBtn = document.createElement("button");
   addTabBtn.textContent = "＋";
-  addTabBtn.className = "px-2 py-1 cursor-pointer rounded transition-colors duration-200 hover:bg-[#777] hover:text-white border-none bg-transparent text-black font-bold";
+  addTabBtn.className = "px-2 py-1 text-white cursor-pointer rounded transition-colors duration-200 hover:bg-[#777] hover:text-white border-none bg-transparent text-black font-bold";
   tabsContainer.appendChild(addTabBtn);
 
   // 🌟 個人記録ボタン

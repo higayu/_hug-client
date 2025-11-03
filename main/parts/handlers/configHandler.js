@@ -1,7 +1,7 @@
 // main/parts/configHandler.js
 const fs = require("fs");
 const path = require("path");
-const { app, dialog } = require("electron");
+const { app, dialog, shell } = require("electron");
 const { getDataPath } = require("../utils/util");
 
 function resolveConfigPath() {
@@ -96,6 +96,28 @@ function handleConfigAccess(ipcMain) {
     } catch (err) {
       console.error("❌ 設定コピー失敗:", err);
       return { success: false, message: err.message };
+    }
+  });
+
+  // 設定フォルダーを開く
+  ipcMain.handle("open-config-folder", async () => {
+    try {
+      const configDir = app.isPackaged
+        ? path.join(app.getPath("userData"), "data")
+        : path.join(__dirname, "../../data");
+      
+      // ディレクトリが存在しない場合は作成
+      if (!fs.existsSync(configDir)) {
+        fs.mkdirSync(configDir, { recursive: true });
+      }
+      
+      // フォルダーを開く
+      await shell.openPath(configDir);
+      console.log("✅ 設定フォルダーを開きました:", configDir);
+      return { success: true, path: configDir };
+    } catch (err) {
+      console.error("❌ 設定フォルダーを開く失敗:", err);
+      return { success: false, error: err.message };
     }
   });
 }

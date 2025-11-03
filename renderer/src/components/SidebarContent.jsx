@@ -67,20 +67,6 @@ function SidebarContent() {
       </label>
       <ul id="ExperienceChildrenList" className="list-none p-0 m-0"></ul>
 
-      <hr className="my-4 border-none border-t border-gray-200" />
-      {/* 出勤データ取得ボタン */}
-      <div className="attendance-section my-4 p-2.5 bg-gray-100 rounded border border-gray-200">
-        <button
-          id="fetchAttendanceBtn"
-          className="attendance-button w-full p-2.5 bg-blue-600 text-white border-none rounded text-sm font-bold cursor-pointer transition-colors mb-2.5 hover:bg-blue-700 active:scale-[0.98] disabled:bg-gray-500 disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          📊 出勤データ取得
-        </button>
-        <div
-          id="attendanceResult"
-          className="attendance-result p-2.5 bg-white border border-gray-200 rounded text-xs max-h-[200px] overflow-y-auto break-words hidden"
-        ></div>
-      </div>
     </div>
   )
 }

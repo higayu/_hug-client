@@ -1,8 +1,27 @@
 import { useEffect, useState } from 'react'
 import SettingsModal from './settings/SettingsModal.jsx'
+import { showInfoToast } from '../../modules/ui/toast/toast.js'
 
 function Toolbar() {
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false)
+
+  // 設定フォルダーを開く（右クリック）
+  const handleOpenConfigFolder = async (e) => {
+    e.preventDefault() // デフォルトのコンテキストメニューを防ぐ
+    try {
+      const result = await window.electronAPI.openConfigFolder()
+      if (result.success) {
+        showInfoToast(`📁 設定フォルダーを開きました`)
+        console.log("✅ 設定フォルダーを開きました:", result.path)
+      } else {
+        showInfoToast(`❌ 設定フォルダーを開けませんでした: ${result.error}`)
+        console.error("❌ 設定フォルダーを開く失敗:", result.error)
+      }
+    } catch (err) {
+      showInfoToast(`❌ 設定フォルダーを開く際にエラーが発生しました`)
+      console.error("❌ 設定フォルダーを開くエラー:", err)
+    }
+  }
 
   useEffect(() => {
     // Edit-Settingsボタンのイベントリスナーを設定
@@ -273,9 +292,15 @@ function Toolbar() {
         </div>
       </nav>
 
-      <label htmlFor="facilitySelect" className="whitespace-nowrap flex-shrink-0 text-white text-sm ml-0">
-        施設:
-      </label>
+        {/* 🌟 設定フォルダーを開くボタン（救済措置・右クリック） */}
+        <button
+          onContextMenu={handleOpenConfigFolder}
+          className="flex-shrink-0 p-1.5 rounded transition-colors duration-200  text-white hover:bg-yellow-600"
+          title="右クリック: 設定フォルダーを開く（Database設定がずれた時の救済措置）"
+        >
+          施設:
+        </button>
+
       <select 
         id="facilitySelect" 
         className="js_c_f_id bg-white text-black border border-[#ddd] px-2.5 py-1.5 rounded text-sm cursor-pointer whitespace-nowrap flex-shrink-0 hover:border-gray-400 focus:outline-none focus:border-[#2196f3] focus:ring-2 focus:ring-[rgba(33,150,243,0.2)]"

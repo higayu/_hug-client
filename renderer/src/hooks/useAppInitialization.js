@@ -33,13 +33,28 @@ export function useAppInitialization() {
       const settingsEl = document.getElementById("settings")
       const menuToggle = document.getElementById("menuToggle")
 
+      // サイドバーの固定状態を管理
+      let isSidebarPinned = false
+
       if (settingsEl && menuToggle) {
         menuToggle.addEventListener("click", () => {
           const isOpen = settingsEl.classList.toggle("open")
           console.log(isOpen ? "📂 サイドバーを開いた" : "📁 サイドバーを閉じた")
         })
 
+        // サイドバーの固定状態変更イベントをリスニング
+        window.addEventListener("sidebar-pin-changed", (e) => {
+          isSidebarPinned = e.detail?.pinned || false
+          console.log(isSidebarPinned ? "📌 サイドバー固定状態: ON" : "📍 サイドバー固定状態: OFF")
+        })
+
+        // 外側クリックでサイドバーを閉じる処理（固定時は無効化）
         document.addEventListener("click", (e) => {
+          if (isSidebarPinned) {
+            // 固定時は外側クリックで閉じない
+            return
+          }
+          
           if (
             settingsEl.classList.contains("open") &&
             !settingsEl.contains(e.target) &&

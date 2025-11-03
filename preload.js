@@ -89,6 +89,9 @@ contextBridge.exposeInMainWorld("electronAPI", {
 
   importConfigFile: () => ipcRenderer.invoke("import-config-file"),
 
+  // 設定フォルダーを開く
+  openConfigFolder: () => ipcRenderer.invoke("open-config-folder"),
+
   // 一時メモのAPI
   saveTempNote: (data) => ipcRenderer.invoke("saveTempNote", data),
   

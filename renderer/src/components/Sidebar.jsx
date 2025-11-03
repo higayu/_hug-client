@@ -11,6 +11,7 @@ function Sidebar() {
   
   const [dateValue, setDateValue] = useState(initialDate)
   const [weekdayValue, setWeekdayValue] = useState(initialWeekday)
+  const [isPinned, setIsPinned] = useState(false)
   const sidebarRef = useRef(null)
 
   // 日付変更時の処理
@@ -51,6 +52,19 @@ function Sidebar() {
     window.dispatchEvent(new Event('weekday-changed'))
   }
 
+  // 固定状態の切り替え
+  const handlePinToggle = () => {
+    const newPinnedState = !isPinned
+    setIsPinned(newPinnedState)
+    
+    // 固定状態変更イベントを発行
+    window.dispatchEvent(new CustomEvent('sidebar-pin-changed', { 
+      detail: { pinned: newPinnedState } 
+    }))
+    
+    console.log(newPinnedState ? "📌 サイドバーを固定しました" : "📌 サイドバーの固定を解除しました")
+  }
+
   // 初期化時にAppStateから値を取得し、初期値がない場合は設定
   useEffect(() => {
     if (!AppState.DATE_STR) {
@@ -71,6 +85,7 @@ function Sidebar() {
     <div ref={sidebarRef} className="text-black bg-gray-50 flex flex-col h-full">
       {/* 固定ヘッダー部分（スクロールしない） */}
       <div className="sidebar-header flex-shrink-0 pb-2.5 border-b border-gray-200 mb-2.5 flex gap-5 items-start">
+        
         {/* 🌟 日付選択 */}
         <div className="date-weekday-section flex-1 flex flex-col">
           <label htmlFor="dateSelect" className="block my-2.5 mt-2.5 mb-1.5 font-bold text-black text-sm">
@@ -106,6 +121,22 @@ function Sidebar() {
             <option value="土">土</option>
           </select>
         </div>
+
+        {/* 🌟 安全ピンボタン */}
+        <button
+          onClick={handlePinToggle}
+          className={`flex-shrink-0 p-1.5 rounded transition-colors duration-200 ${
+            isPinned 
+              ? 'bg-blue-500 text-white hover:bg-blue-600' 
+              : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+          }`}
+          title={isPinned ? "サイドバーの固定を解除" : "サイドバーを固定（外側クリックで閉じない）"}
+        >
+          <span className="text-lg" style={{ fontSize: '18px' }}>
+            {isPinned ? '📌' : '📍'}
+          </span>
+        </button>
+
       </div>
 
       {/* スクロール可能なコンテンツ部分 */}
