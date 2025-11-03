@@ -66,16 +66,17 @@ export function IniStateProvider({ children }) {
     }
   }, []) // setIniStateは安定しているので依存配列に含めない
 
-  // ini.json保存
-  const saveIni = useCallback(async () => {
+  // ini.json保存（オプションで任意の状態を保存できる）
+  const saveIni = useCallback(async (overrideState) => {
     try {
+      const sourceState = overrideState || iniState
       // customButtonsは除外（customButtons.jsonに統一）
-      const { customButtons, ...appSettingsWithoutCustomButtons } = iniState.appSettings
+      const { customButtons, ...appSettingsWithoutCustomButtons } = sourceState.appSettings
       
       const data = {
         version: "1.0.0",
         appSettings: appSettingsWithoutCustomButtons,
-        userPreferences: iniState.userPreferences
+        userPreferences: sourceState.userPreferences
       }
 
       const result = await window.electronAPI.saveIni(data)

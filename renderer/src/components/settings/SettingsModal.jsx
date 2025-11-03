@@ -44,21 +44,6 @@ function SettingsModal({ isOpen, onClose }) {
     initializeModal()
   }, [isOpen, populateForm, initializeSelectBoxes])
 
-  // パスワード表示切替えボタンのイベントリスナー
-  useEffect(() => {
-    if (!isOpen) return
-
-    const toggleBtn = document.getElementById('toggle-password')
-    if (toggleBtn) {
-      toggleBtn.addEventListener('click', togglePasswordVisibility)
-    }
-
-    return () => {
-      if (toggleBtn) {
-        toggleBtn.removeEventListener('click', togglePasswordVisibility)
-      }
-    }
-  }, [isOpen, togglePasswordVisibility])
 
   // ESCキーでモーダルを閉じる
   useEffect(() => {
@@ -145,6 +130,7 @@ function SettingsModal({ isOpen, onClose }) {
                 await initializeSelectBoxes()
                 populateForm()
               }}
+              onTogglePassword={togglePasswordVisibility}
             />
           </div>
           <div className={activeTab === 'custom' ? 'block' : 'hidden'}>

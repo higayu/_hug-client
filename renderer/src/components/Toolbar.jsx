@@ -4,12 +4,16 @@ import CustomButtonsPanel from './CustomButtonsPanel.jsx'
 import { useToast } from '../contexts/ToastContext.jsx'
 import { useAppState } from '../contexts/AppStateContext.jsx'
 import { useTabs } from '../hooks/useTabs'
+import { useHugActions } from '../hooks/useHugActions'
 
 function Toolbar() {
   const { showInfoToast } = useToast()
   const { appState } = useAppState()
-  const { addPersonalRecordTab, addProfessionalSupportNewTab } = useTabs()
+  const { addPersonalRecordTab, addProfessionalSupportNewTab, addProfessionalSupportListTab } = useTabs()
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false)
+  
+  // 各種ボタンのイベントリスナーとハンドラー
+  const { handleRefresh, handleLogin, handleGetUrl, handleLoadIni, handleImportSetting, handleIndividualSupport, handleSpecializedSupport } = useHugActions()
 
   // 設定フォルダーを開く（右クリック）
   const handleOpenConfigFolder = async (e) => {
@@ -29,23 +33,10 @@ function Toolbar() {
     }
   }
 
-  useEffect(() => {
-    // Edit-Settingsボタンのイベントリスナーを設定
-    const editSettingsBtn = document.getElementById('Edit-Settings')
-    const handleClick = () => {
-      setIsSettingsModalOpen(true)
-    }
-    
-    if (editSettingsBtn) {
-      editSettingsBtn.addEventListener('click', handleClick)
-    }
-
-    return () => {
-      if (editSettingsBtn) {
-        editSettingsBtn.removeEventListener('click', handleClick)
-      }
-    }
-  }, [])
+  // 設定編集ボタンのハンドラー
+  const handleEditSettings = () => {
+    setIsSettingsModalOpen(true)
+  }
 
   useEffect(() => {
     // ドロップダウンの位置を動的に計算する関数
@@ -258,6 +249,7 @@ function Toolbar() {
             <li className="m-0 p-0">
               <button 
                 id="professional-support"
+                onClick={addProfessionalSupportListTab}
                 className="block w-full text-left border-none bg-white text-black px-4 py-2 text-sm cursor-pointer transition-all hover:bg-[#e3f2fd]"
               >
                 専門的支援-一覧
@@ -283,6 +275,7 @@ function Toolbar() {
             <li className="m-0 p-0">
               <button 
                 id="Individual_Support_Button"
+                onClick={handleIndividualSupport}
                 className="block w-full text-left border-none bg-transparent px-4 py-2 text-sm cursor-pointer transition-all hover:bg-[#e3f2fd]"
               >
                 個別支援-計画
@@ -291,6 +284,7 @@ function Toolbar() {
             <li className="m-0 p-0">
               <button 
                 id="Specialized-Support-Plan"
+                onClick={handleSpecializedSupport}
                 className="block w-full text-left border-none bg-transparent px-4 py-2 text-sm cursor-pointer transition-all hover:bg-[#e3f2fd]"
               >
                 専門的支援-計画
@@ -335,6 +329,7 @@ function Toolbar() {
             <li className="m-0 p-0">
               <button 
                 id="loginBtn"
+                onClick={handleLogin}
                 className="block w-full text-left text-black border-none bg-transparent px-4 py-2 text-sm cursor-pointer transition-all hover:bg-[#e3f2fd]"
               >
                 ⚙️ 自動ログイン
@@ -343,6 +338,7 @@ function Toolbar() {
             <li className="m-0 p-0">
               <button 
                 id="refreshBtn"
+                onClick={handleRefresh}
                 className="block w-full text-left text-black border-none bg-transparent px-4 py-2 text-sm cursor-pointer transition-all hover:bg-[#e3f2fd]"
               >
                 🔄 更新
@@ -351,6 +347,7 @@ function Toolbar() {
             <li className="m-0 p-0">
               <button 
                 id="Get-Url"
+                onClick={handleGetUrl}
                 className="block w-full text-left text-black border-none bg-transparent px-4 py-2 text-sm cursor-pointer transition-all hover:bg-[#e3f2fd]"
               >
                 URLの取得
@@ -359,6 +356,7 @@ function Toolbar() {
             <li className="m-0 p-0">
               <button 
                 id="Edit-Settings"
+                onClick={handleEditSettings}
                 className="block w-full text-left text-black border-none bg-transparent px-4 py-2 text-sm cursor-pointer transition-all hover:bg-[#e3f2fd]"
               >
                 ⚙️ 設定編集
@@ -367,6 +365,7 @@ function Toolbar() {
             <li className="m-0 p-0">
               <button 
                 id="Load-Ini"
+                onClick={handleLoadIni}
                 className="block w-full text-left text-black border-none bg-transparent px-4 py-2 text-sm cursor-pointer transition-all hover:bg-[#e3f2fd]"
               >
                 🔄 設定の再読み込み
@@ -375,6 +374,7 @@ function Toolbar() {
             <li className="m-0 p-0">
               <button 
                 id="Import-Setting"
+                onClick={handleImportSetting}
                 className="block w-full text-left text-black border-none bg-transparent px-4 py-2 text-sm cursor-pointer transition-all hover:bg-[#e3f2fd]"
               >
                 📁 設定ファイルのインポート

@@ -18,6 +18,7 @@ export function useHugActions() {
 
   // 更新ボタン
   const handleRefresh = useCallback(async () => {
+    console.log("🖱️ [HugActions] refreshBtn clicked")
     const vw = getActiveWebview()
     if (!vw) {
       alert("WebView が見つかりません")
@@ -53,6 +54,7 @@ export function useHugActions() {
 
   // 自動ログイン
   const handleLogin = useCallback(async () => {
+    console.log("🖱️ [HugActions] loginBtn clicked")
     const vw = getActiveWebview()
     if (!vw) return alert("Webview が見つかりません")
 
@@ -116,6 +118,7 @@ export function useHugActions() {
 
   // URLの取得
   const handleGetUrl = useCallback(async () => {
+    console.log("🖱️ [HugActions] Get-Url clicked")
     try {
       console.log("🔄 URLの取得処理を開始...")
       const vw = getActiveWebview()
@@ -329,12 +332,14 @@ export function useHugActions() {
     // refreshBtn
     const refreshBtn = document.getElementById("refreshBtn")
     if (refreshBtn) {
+      console.log("🔗 [HugActions] Attaching click listener: refreshBtn")
       refreshBtn.addEventListener("click", handleRefresh)
     }
 
     // loginBtn
     const loginBtn = document.getElementById("loginBtn")
     if (loginBtn) {
+      console.log("🔗 [HugActions] Attaching click listener: loginBtn")
       loginBtn.addEventListener("click", handleLogin)
     }
 
@@ -359,12 +364,14 @@ export function useHugActions() {
     // Get-Url
     const getUrlBtn = document.getElementById("Get-Url")
     if (getUrlBtn) {
+      console.log("🔗 [HugActions] Attaching click listener: Get-Url")
       getUrlBtn.addEventListener("click", handleGetUrl)
     }
 
     // Load-Ini
     const loadIniBtn = document.getElementById("Load-Ini")
     if (loadIniBtn) {
+      console.log("🔗 [HugActions] Attaching click listener: Load-Ini")
       loadIniBtn.addEventListener("click", handleLoadIni)
     }
 
@@ -394,5 +401,16 @@ export function useHugActions() {
     handleLoadIni,
     handleCloseToggle
   ])
+
+  // ハンドラーを返して、JSXの onClick からも呼べるようにする
+  return {
+    handleRefresh,
+    handleLogin,
+    handleGetUrl,
+    handleLoadIni,
+    handleImportSetting,
+    handleIndividualSupport,
+    handleSpecializedSupport,
+  }
 }
 

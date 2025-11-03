@@ -1,45 +1,17 @@
-import { useEffect } from 'react'
-
-function ConfigTab({ onSaveConfig, onReloadConfig }) {
-  // 再読み込みボタンのイベントリスナー
-  useEffect(() => {
-    const reloadBtn = document.getElementById('reload-config')
-    const handleReload = async () => {
-      if (onReloadConfig) {
-        await onReloadConfig()
-      }
+function ConfigTab({ onSaveConfig, onReloadConfig, onTogglePassword }) {
+  // 再読み込みボタンのハンドラー
+  const handleReload = async () => {
+    if (onReloadConfig) {
+      await onReloadConfig()
     }
+  }
 
-    if (reloadBtn) {
-      reloadBtn.addEventListener('click', handleReload)
+  // 保存ボタンのハンドラー
+  const handleSave = async () => {
+    if (onSaveConfig) {
+      await onSaveConfig()
     }
-
-    return () => {
-      if (reloadBtn) {
-        reloadBtn.removeEventListener('click', handleReload)
-      }
-    }
-  }, [onReloadConfig])
-
-  // 保存ボタンのイベントリスナー
-  useEffect(() => {
-    const saveBtn = document.getElementById('save-config')
-    const handleSave = async () => {
-      if (onSaveConfig) {
-        await onSaveConfig()
-      }
-    }
-
-    if (saveBtn) {
-      saveBtn.addEventListener('click', handleSave)
-    }
-
-    return () => {
-      if (saveBtn) {
-        saveBtn.removeEventListener('click', handleSave)
-      }
-    }
-  }, [onSaveConfig])
+  }
 
   return (
     <div>
@@ -53,7 +25,7 @@ function ConfigTab({ onSaveConfig, onReloadConfig }) {
           <label htmlFor="config-password" className="font-medium text-gray-700 min-w-[120px]">HUGパスワード:</label>
           <div className="relative flex items-center w-full flex-1 max-w-[200px]">
             <input type="password" id="config-password" data-path="HUG_PASSWORD" className="w-full flex-1 pr-10 px-3 py-2 border border-gray-300 rounded-md text-sm transition-all focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-200" />
-            <button type="button" id="toggle-password" className="absolute right-2 bg-transparent border-none cursor-pointer text-base p-1 rounded transition-colors hover:bg-gray-100">👁️</button>
+            <button type="button" id="toggle-password" onClick={onTogglePassword} className="absolute right-2 bg-transparent border-none cursor-pointer text-base p-1 rounded transition-colors hover:bg-gray-100">👁️</button>
           </div>
         </div>
         <div className="flex items-center mb-3 py-2">
@@ -74,8 +46,8 @@ function ConfigTab({ onSaveConfig, onReloadConfig }) {
         </div>
       </div>
       <div className="mb-6 flex gap-2.5">
-        <button id="reload-config" className="bg-gray-600 text-white border-none px-5 py-2.5 rounded-md cursor-pointer font-medium transition-all duration-200 hover:bg-gray-700 hover:-translate-y-0.5">Config.jsonを再読み込み</button>
-        <button id="save-config" className="bg-gradient-to-r from-blue-600 to-blue-700 text-white border-none px-5 py-2.5 rounded-md cursor-pointer font-medium transition-all duration-200 hover:from-blue-700 hover:to-blue-800 hover:-translate-y-0.5 hover:shadow-lg">Config.jsonを保存</button>
+        <button id="reload-config" onClick={handleReload} className="bg-gray-600 text-white border-none px-5 py-2.5 rounded-md cursor-pointer font-medium transition-all duration-200 hover:bg-gray-700 hover:-translate-y-0.5">Config.jsonを再読み込み</button>
+        <button id="save-config" onClick={handleSave} className="bg-gradient-to-r from-blue-600 to-blue-700 text-white border-none px-5 py-2.5 rounded-md cursor-pointer font-medium transition-all duration-200 hover:from-blue-700 hover:to-blue-800 hover:-translate-y-0.5 hover:shadow-lg">Config.jsonを保存</button>
       </div>
     </div>
   )

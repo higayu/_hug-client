@@ -26,24 +26,7 @@ function CustomTab() {
     color: '#007bff'
   })
 
-  // カスタムボタンとアクションを読み込み
-  const loadData = useCallback(async () => {
-    // データを再読み込み
-    await loadCustomButtons()
-    await loadAvailableActions()
-    
-    // 状態を更新（Contextから取得）
-    setButtons([...customButtons])
-    setAvailableActionsState(getAvailableActions())
-    console.log('✅ [CustomTab] データを読み込みました:', {
-      buttons: customButtons.length,
-      actions: getAvailableActions().length
-    })
-  }, [customButtons, loadCustomButtons, loadAvailableActions, getAvailableActions])
-
-  useEffect(() => {
-    loadData()
-  }, [loadData])
+  // コンテキスト側で既に初期読み込み済みのため、ここでは読み込み不要
 
   // Contextの変更をローカルステートに反映
   useEffect(() => {
@@ -51,8 +34,8 @@ function CustomTab() {
   }, [customButtons])
 
   useEffect(() => {
-    setAvailableActionsState(getAvailableActions())
-  }, [availableActionsFromContext, getAvailableActions])
+    setAvailableActionsState(availableActionsFromContext || [])
+  }, [availableActionsFromContext])
 
   // アクションセレクトボックスのオプションを更新
   useEffect(() => {
@@ -65,6 +48,8 @@ function CustomTab() {
     }
 
     // 利用可能なアクションを追加
+    if (availableActions.length === 0) return
+    
     const actionsByCategory = getActionsByCategory()
     Object.keys(actionsByCategory).forEach(category => {
       const optgroup = document.createElement('optgroup')
@@ -79,7 +64,7 @@ function CustomTab() {
       
       select.appendChild(optgroup)
     })
-  }, [availableActions, getActionsByCategory])
+  }, [availableActions])
 
   // ボタンの更新ハンドラー（IDベース）
   const handleButtonUpdate = useCallback((buttonId, field, value) => {

@@ -92,16 +92,7 @@ export function useSettingsModalLogic(isOpen) {
     const windowAlwaysOnTop = document.getElementById('window-always-on-top')
     if (windowAlwaysOnTop) windowAlwaysOnTop.checked = window.alwaysOnTop || false
 
-    // 現在のURL表示（機能が有効な場合のみ）
-    const getUrlEnabled = !!iniState?.appSettings?.features?.getUrl?.enabled
-    const urlContainer = document.getElementById('current-url-container')
-    if (urlContainer) urlContainer.style.display = getUrlEnabled ? 'block' : 'none'
-    if (getUrlEnabled) {
-      const vw = getActiveWebview()
-      const url = vw && typeof vw.getURL === 'function' ? vw.getURL() : ''
-      const input = document.getElementById('current-webview-url')
-      if (input) input.value = url || ''
-    }
+    // 現在のURL表示: 表示/値の制御はReact側(FeaturesTab)に委譲
 
     // Config.json設定
     const configUsername = document.getElementById('config-username')
@@ -188,16 +179,17 @@ export function useSettingsModalLogic(isOpen) {
     
     // 状態を更新
     setIniState(newIniState)
+    return newIniState
   }, [iniState, setIniState])
 
   // 設定を保存
   const saveSettings = useCallback(async () => {
     try {
-      // フォームの値をIniStateに反映
-      updateIniStateFromForm()
+      // フォームの値をIniStateに反映（保存用に新状態を受け取る）
+      const newState = updateIniStateFromForm()
 
-      // ini.jsonに保存
-      const iniSuccess = await saveIni()
+      // ini.jsonに保存（非同期setStateの反映待ち不要のため新状態を直接保存）
+      const iniSuccess = await saveIni(newState)
 
       // カスタムボタンを保存
       const customButtonsSuccess = await saveCustomButtonsContext()
