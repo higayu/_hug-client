@@ -16,6 +16,7 @@ export function useTabs() {
 
   // 通常タブを追加
   const addNormalTab = useCallback(() => {
+    console.log('🔍 [useTabs] ＋ボタンがクリックされました')
     const tabsContainer = document.getElementById('tabs')
     const content = document.getElementById('content')
     
@@ -40,7 +41,7 @@ export function useTabs() {
 
     if (!tabButton) return
 
-    const addTabBtn = tabsContainer.querySelector('button:last-child')
+    const addTabBtn = document.getElementById('add-tab-btn')
     if (addTabBtn) {
       tabsContainer.insertBefore(tabButton, addTabBtn)
     } else {
@@ -490,7 +491,26 @@ export function useTabs() {
 
   // 初期化（一度だけ実行）
   useEffect(() => {
-    if (tabsInitializedRef.current) return
+    if (tabsInitializedRef.current) {
+      // 初期化済みの場合、追加ボタンのイベントリスナーのみ更新
+      const addTabBtn = document.getElementById('add-tab-btn')
+      if (addTabBtn) {
+        // 既存のイベントリスナーを削除
+        const newAddTabBtn = addTabBtn.cloneNode(true)
+        addTabBtn.parentNode?.replaceChild(newAddTabBtn, addTabBtn)
+        
+        // 新しいイベントリスナーを追加
+        newAddTabBtn.addEventListener('click', addNormalTab)
+        newAddTabBtn.addEventListener('contextmenu', (e) => {
+          e.preventDefault()
+          window.electronAPI.Open_NowDayPage({
+            facilityId: appState.FACILITY_ID,
+            dateStr: appState.DATE_STR,
+          })
+        })
+      }
+      return
+    }
     tabsInitializedRef.current = true
 
     // 初期アクティブwebview設定
@@ -503,11 +523,12 @@ export function useTabs() {
     const tabsContainer = document.getElementById('tabs')
     if (!tabsContainer) return
 
-    // 追加ボタンを探す（まだ存在しない場合は後で作成）
-    let addTabBtn = tabsContainer.querySelector('button:last-child')
-    if (!addTabBtn || addTabBtn.dataset.target) {
+    // 追加ボタンを探す（IDで確実に取得）
+    let addTabBtn = document.getElementById('add-tab-btn')
+    if (!addTabBtn) {
       // 追加ボタンが存在しない場合は作成
       addTabBtn = document.createElement('button')
+      addTabBtn.id = 'add-tab-btn'
       addTabBtn.textContent = '＋'
       addTabBtn.className = 'px-2 py-1 text-white cursor-pointer rounded transition-colors duration-200 hover:bg-[#777] hover:text-white border-none bg-transparent text-black font-bold'
       tabsContainer.appendChild(addTabBtn)
@@ -517,13 +538,14 @@ export function useTabs() {
     addTabBtn.addEventListener('click', addNormalTab)
 
     // 通常タブの右クリックイベント
-    addTabBtn.addEventListener('contextmenu', (e) => {
+    const handleContextMenu = (e) => {
       e.preventDefault()
       window.electronAPI.Open_NowDayPage({
         facilityId: appState.FACILITY_ID,
         dateStr: appState.DATE_STR,
       })
-    })
+    }
+    addTabBtn.addEventListener('contextmenu', handleContextMenu)
 
     // 個人記録ボタンのイベントリスナー設定
     const kojinButton = document.getElementById('kojin-kiroku')
@@ -545,7 +567,7 @@ export function useTabs() {
       // クリーンアップ（必要に応じて）
       if (addTabBtn) {
         addTabBtn.removeEventListener('click', addNormalTab)
-        addTabBtn.removeEventListener('contextmenu', () => {})
+        addTabBtn.removeEventListener('contextmenu', handleContextMenu)
       }
       if (kojinButton) {
         kojinButton.removeEventListener('click', addPersonalRecordTab)
