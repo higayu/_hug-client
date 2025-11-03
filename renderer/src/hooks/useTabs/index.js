@@ -1,10 +1,11 @@
-// src/hooks/useTabs.js
+// src/hooks/useTabs/index.js
 // タブ管理のフック
 
 import { useEffect, useCallback, useRef } from 'react'
-import { useAppState } from '../contexts/AppStateContext.jsx'
-import { setActiveWebview, getActiveWebview } from '../utils/webviewState.js'
-import { getDateString } from '../utils/dateUtils.js'
+import { useAppState } from '../../contexts/AppStateContext.jsx'
+import { setActiveWebview } from '../../utils/webviewState.js'
+import { getDateString } from '../../utils/dateUtils.js'
+import { createWebview, createTabButton, activateTab, closeTab } from './common/index.js'
 
 /**
  * タブ管理のフック
@@ -12,109 +13,6 @@ import { getDateString } from '../utils/dateUtils.js'
 export function useTabs() {
   const { appState } = useAppState()
   const tabsInitializedRef = useRef(false)
-
-  // webviewを作成する共通関数
-  const createWebview = useCallback((id, src, attributes = {}) => {
-    const webview = document.createElement('webview')
-    webview.id = id
-    webview.src = src
-    webview.setAttribute('allowpopups', 'true')
-    webview.setAttribute('disablewebsecurity', 'true')
-    
-    if (window.preloadPath) {
-      webview.setAttribute('preload', window.preloadPath)
-    }
-    
-    Object.entries(attributes).forEach(([key, value]) => {
-      webview.setAttribute(key, value)
-    })
-    
-    webview.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;'
-    webview.classList.add('hidden')
-    
-    // consoleメッセージを転送
-    webview.addEventListener('console-message', (e) => {
-      console.log(`🪶 [${webview.id}] ${e.message}`)
-    })
-    
-    return webview
-  }, [])
-
-  // タブボタンを作成する共通関数
-  const createTabButton = useCallback((targetId, label, closeButtonsVisible) => {
-    const tabsContainer = document.getElementById('tabs')
-    if (!tabsContainer) return null
-
-    const tabButton = document.createElement('button')
-    tabButton.className = 'mr-1 px-2.5 py-1 border-none cursor-pointer bg-[#777] text-black rounded font-bold shadow-sm'
-    tabButton.innerHTML = `
-      ${label}
-      <span class="close-btn"${closeButtonsVisible ? '' : " style='display:none'"}>❌</span>
-    `
-    tabButton.dataset.target = targetId
-    
-    return tabButton
-  }, [])
-
-  // タブをアクティブにする共通関数
-  const activateTab = useCallback((targetId) => {
-    const tabsContainer = document.getElementById('tabs')
-    const content = document.getElementById('content')
-    
-    if (!tabsContainer || !content) return
-
-    // すべてのタブからactive-tabクラスを削除
-    tabsContainer.querySelectorAll('button').forEach(btn => {
-      btn.classList.remove('active-tab')
-    })
-
-    // すべてのwebviewを非表示
-    document.querySelectorAll('webview').forEach(v => {
-      v.classList.add('hidden')
-    })
-
-    // 対象のwebviewを表示
-    const targetView = document.getElementById(targetId)
-    if (targetView) {
-      targetView.classList.remove('hidden')
-      setActiveWebview(targetView)
-      
-      // タブボタンにactive-tabクラスを追加
-      const tabBtn = tabsContainer.querySelector(`button[data-target="${targetId}"]`)
-      if (tabBtn) {
-        tabBtn.classList.add('active-tab')
-      }
-    }
-  }, [])
-
-  // タブを閉じる共通関数
-  const closeTab = useCallback((targetId) => {
-    const tabsContainer = document.getElementById('tabs')
-    const content = document.getElementById('content')
-    
-    if (!tabsContainer || !content) return
-
-    const webview = document.getElementById(targetId)
-    const tabButton = tabsContainer.querySelector(`button[data-target="${targetId}"]`)
-
-    if (!webview || !tabButton) return
-
-    // デフォルトのwebviewに戻す
-    if (getActiveWebview() === webview) {
-      const defaultView = document.getElementById('hugview')
-      if (defaultView) {
-        defaultView.classList.remove('hidden')
-        setActiveWebview(defaultView)
-        const defaultTabBtn = tabsContainer.querySelector('button[data-target="hugview"]')
-        if (defaultTabBtn) {
-          defaultTabBtn.classList.add('active-tab')
-        }
-      }
-    }
-
-    webview.remove()
-    tabButton.remove()
-  }, [])
 
   // 通常タブを追加
   const addNormalTab = useCallback(() => {
@@ -166,7 +64,7 @@ export function useTabs() {
 
     // すぐにアクティブにする
     activateTab(newId)
-  }, [appState.FACILITY_ID, appState.DATE_STR, appState.closeButtonsVisible, createWebview, createTabButton, activateTab, closeTab])
+  }, [appState.FACILITY_ID, appState.DATE_STR, appState.closeButtonsVisible])
 
   // 個人記録タブを追加
   const addPersonalRecordTab = useCallback(() => {
@@ -312,7 +210,7 @@ export function useTabs() {
 
     // すぐにアクティブにする
     activateTab(newId)
-  }, [appState.SELECT_CHILD, appState.SELECT_CHILD_NAME, appState.DATE_STR, appState.STAFF_ID, appState.closeButtonsVisible, createWebview, createTabButton, activateTab, closeTab])
+  }, [appState.SELECT_CHILD, appState.SELECT_CHILD_NAME, appState.DATE_STR, appState.STAFF_ID, appState.closeButtonsVisible])
 
   // 専門的支援一覧タブを追加
   const addProfessionalSupportListTab = useCallback(() => {
@@ -423,7 +321,7 @@ export function useTabs() {
 
     // すぐにアクティブにする
     activateTab(newId)
-  }, [appState.FACILITY_ID, appState.DATE_STR, appState.SELECT_CHILD_NAME, appState.closeButtonsVisible, createWebview, createTabButton, activateTab, closeTab])
+  }, [appState.FACILITY_ID, appState.DATE_STR, appState.SELECT_CHILD_NAME, appState.closeButtonsVisible])
 
   // 専門的支援-新規タブを追加
   const addProfessionalSupportNewTab = useCallback(() => {
@@ -568,7 +466,7 @@ export function useTabs() {
 
     // すぐにアクティブにする
     activateTab(newId)
-  }, [appState.SELECT_CHILD, appState.SELECT_CHILD_NAME, appState.DATE_STR, appState.STAFF_ID, appState.closeButtonsVisible, createWebview, createTabButton, activateTab, closeTab])
+  }, [appState.SELECT_CHILD, appState.SELECT_CHILD_NAME, appState.DATE_STR, appState.STAFF_ID, appState.closeButtonsVisible])
 
   // タブ切り替えイベントの設定
   useEffect(() => {
@@ -588,7 +486,7 @@ export function useTabs() {
     return () => {
       tabsContainer.removeEventListener('click', handleTabClick)
     }
-  }, [activateTab])
+  }, [])
 
   // 初期化（一度だけ実行）
   useEffect(() => {
@@ -667,4 +565,3 @@ export function useTabs() {
     closeTab
   }
 }
-

@@ -3,7 +3,7 @@ import SettingsModal from './settings/SettingsModal.jsx'
 import CustomButtonsPanel from './CustomButtonsPanel.jsx'
 import { useToast } from '../contexts/ToastContext.jsx'
 import { useAppState } from '../contexts/AppStateContext.jsx'
-import { useTabs } from '../hooks/useTabs.js'
+import { useTabs } from '../hooks/useTabs'
 
 function Toolbar() {
   const { showInfoToast } = useToast()
