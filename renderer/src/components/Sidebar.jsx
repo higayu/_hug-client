@@ -3,11 +3,13 @@ import { useAppState } from '../contexts/AppStateContext.jsx'
 import { getWeekdayFromDate, getDateString } from '../utils/dateUtils.js'
 import { useToast } from '../contexts/ToastContext.jsx'
 import { ELEMENT_IDS } from '../utils/constants.js'
+import { useChildrenList } from '../hooks/useChildrenList.js'
 import SidebarContent from './SidebarContent.jsx'
 
 function Sidebar() {
   const { showInfoToast } = useToast()
-  const { appState, setDate, setWeekday, DATE_STR, WEEK_DAY } = useAppState()
+  const { appState, setDate, setWeekday, DATE_STR, WEEK_DAY, SELECT_CHILD, SELECT_CHILD_NAME } = useAppState()
+  const { handleFetchAttendanceForChild } = useChildrenList()
   
   // 初期値を設定（appStateに値がない場合は今日の日付を使用）
   const initialDate = DATE_STR || getDateString()
@@ -152,6 +154,27 @@ function Sidebar() {
           </span>
         </button>
 
+      </div>
+
+      {/* 🌟 児童対応一覧データ取得ボタン */}
+      <div className="flex-shrink-0 pb-2.5 border-b border-gray-200 mb-2.5">
+        <button
+          onClick={async () => {
+            try {
+                console.log('📊 [Sidebar] 児童対応一覧データ取得ボタンクリック:', { SELECT_CHILD, SELECT_CHILD_NAME })
+                showInfoToast('📊 データ取得中...')
+                await handleFetchAttendanceForChild(SELECT_CHILD, SELECT_CHILD_NAME)
+                showInfoToast('✅ データ取得完了')
+            } catch (error) {
+              console.error('❌ [Sidebar] データ取得エラー:', error)
+              showInfoToast(`❌ エラー: ${error.message || 'データ取得に失敗しました'}`)
+            }
+          }}
+          className="w-full px-2 py-1 text-xs bg-blue-600 text-white border-none rounded cursor-pointer hover:bg-blue-700"
+          title="児童対応一覧"
+        >
+          📊 児童対応一覧データ取得
+        </button>
       </div>
 
       {/* スクロール可能なコンテンツ部分 */}

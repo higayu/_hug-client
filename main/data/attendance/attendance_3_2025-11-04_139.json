@@ -1,0 +1,86 @@
+{
+  "facilityId": "3",
+  "dateStr": "2025-11-04",
+  "childId": 139,
+  "childName": "佛圓　結音",
+  "extractedAt": "2025-11-04T03:43:55.966Z",
+  "extractedData": [
+    {
+      "rowIndex": 1,
+      "column1": "おおたに　るい\n                                                大谷　瑠壱\n                                                    さん",
+      "column5": "入室\n                                            欠席",
+      "column1Html": "<a href=\"profile_children.php?mode=profile&amp;id=84\" class=\"tdn\">\n                                            <div class=\"nameBox\">\n                                                <span class=\"furigana\">おおたに　るい</span>\n                                                <p>大谷　瑠壱\n                                                    さん</p>\n                                            </div>\n                                        </a>\n                                                                                                                                                                                                                                                    <span class=\"icon male\"><i class=\"fa fa-male\"></i></span>",
+      "column5Html": "<button class=\"btn btn-sm \" onclick=\"sendEnterMail('fix-84-2025-11-04',0,84,3,1,0,'2025-11-04',0,0,0);\">入室</button>\n                                            <button class=\"btn btn-sm jqeryui-absence \" id=\"absence_fix-84-2025-11-04_84_3_2025-11-04_0_0\" name=\"absence_fix-84-2025-11-04\">欠席</button>"
+    },
+    {
+      "rowIndex": 2,
+      "column1": "しんたく　りくと\n                                                新宅　陸人\n                                                    さん",
+      "column5": "入室\n                                            欠席",
+      "column1Html": "<a href=\"profile_children.php?mode=profile&amp;id=111\" class=\"tdn\">\n                                            <div class=\"nameBox\">\n                                                <span class=\"furigana\">しんたく　りくと</span>\n                                                <p>新宅　陸人\n                                                    さん</p>\n                                            </div>\n                                        </a>\n                                                                                                                                                                                                                                                    <span class=\"icon male\"><i class=\"fa fa-male\"></i></span>",
+      "column5Html": "<button class=\"btn btn-sm \" onclick=\"sendEnterMail('fix-111-2025-11-04',0,111,3,1,0,'2025-11-04',0,0,0);\">入室</button>\n                                            <button class=\"btn btn-sm jqeryui-absence \" id=\"absence_fix-111-2025-11-04_111_3_2025-11-04_0_0\" name=\"absence_fix-111-2025-11-04\">欠席</button>"
+    },
+    {
+      "rowIndex": 3,
+      "column1": "すぎばやし　みゆき\n                                                杉林　美幸\n                                                    さん",
+      "column5": "欠席(欠席時対応加算を取らない)",
+      "column1Html": "<a href=\"profile_children.php?mode=profile&amp;id=166\" class=\"tdn\">\n                                            <div class=\"nameBox\">\n                                                <span class=\"furigana\">すぎばやし　みゆき</span>\n                                                <p>杉林　美幸\n                                                    さん</p>\n                                            </div>\n                                        </a>\n                                                                                                                                                                                                                                                    <span class=\"icon female\"><i class=\"fa fa-female \"></i></span>",
+      "column5Html": "<b><span class=\"red js_attend_absenceflg3\">欠席(欠席時対応加算を取らない)</span></b>"
+    },
+    {
+      "rowIndex": 4,
+      "column1": "なかの　りく\n                                                中野　利玖\n                                                    さん",
+      "column5": "入室\n                                            欠席",
+      "column1Html": "<a href=\"profile_children.php?mode=profile&amp;id=125\" class=\"tdn\">\n                                            <div class=\"nameBox\">\n                                                <span class=\"furigana\">なかの　りく</span>\n                                                <p>中野　利玖\n                                                    さん</p>\n                                            </div>\n                                        </a>\n                                                                                                                                                                                                                                                    <span class=\"icon male\"><i class=\"fa fa-male\"></i></span>",
+      "column5Html": "<button class=\"btn btn-sm \" onclick=\"sendEnterMail('fix-125-2025-11-04',0,125,3,1,0,'2025-11-04',0,0,0);\">入室</button>\n                                            <button class=\"btn btn-sm jqeryui-absence \" id=\"absence_fix-125-2025-11-04_125_3_2025-11-04_0_0\" name=\"absence_fix-125-2025-11-04\">欠席</button>"
+    },
+    {
+      "rowIndex": 5,
+      "column1": "はた　けんた\n                                                畑　建汰\n                                                    さん",
+      "column5": "入室\n                                            欠席",
+      "column1Html": "<a href=\"profile_children.php?mode=profile&amp;id=128\" class=\"tdn\">\n                                            <div class=\"nameBox\">\n                                                <span class=\"furigana\">はた　けんた</span>\n                                                <p>畑　建汰\n                                                    さん</p>\n                                            </div>\n                                        </a>\n                                                                                                                                                                                                                                                    <span class=\"icon male\"><i class=\"fa fa-male\"></i></span>",
+      "column5Html": "<button class=\"btn btn-sm \" onclick=\"sendEnterMail('25905',0,128,3,1,0,'2025-11-04',0,0,0);\">入室</button>\n                                            <button class=\"btn btn-sm jqeryui-absence \" id=\"absence_25905_128_3_2025-11-04_0_0\" name=\"absence_25905\">欠席</button>"
+    },
+    {
+      "rowIndex": 6,
+      "column1": "はまなか　あれん\n                                                濱中　蒼蓮\n                                                    さん",
+      "column5": "入室\n                                            欠席",
+      "column1Html": "<a href=\"profile_children.php?mode=profile&amp;id=129\" class=\"tdn\">\n                                            <div class=\"nameBox\">\n                                                <span class=\"furigana\">はまなか　あれん</span>\n                                                <p>濱中　蒼蓮\n                                                    さん</p>\n                                            </div>\n                                        </a>\n                                                                                                                                                                                                                                                    <span class=\"icon male\"><i class=\"fa fa-male\"></i></span>",
+      "column5Html": "<button class=\"btn btn-sm \" onclick=\"sendEnterMail('24179',0,129,3,1,0,'2025-11-04',0,0,0);\">入室</button>\n                                            <button class=\"btn btn-sm jqeryui-absence \" id=\"absence_24179_129_3_2025-11-04_0_0\" name=\"absence_24179\">欠席</button>"
+    },
+    {
+      "rowIndex": 7,
+      "column1": "はまなか　りな\n                                                濱中　里菜\n                                                    さん",
+      "column5": "入室\n                                            欠席",
+      "column1Html": "<a href=\"profile_children.php?mode=profile&amp;id=623\" class=\"tdn\">\n                                            <div class=\"nameBox\">\n                                                <span class=\"furigana\">はまなか　りな</span>\n                                                <p>濱中　里菜\n                                                    さん</p>\n                                            </div>\n                                        </a>\n                                                                                                                                                                                                                                                    <span class=\"icon female\"><i class=\"fa fa-female \"></i></span>",
+      "column5Html": "<button class=\"btn btn-sm \" onclick=\"sendEnterMail('fix-623-2025-11-04',0,623,3,1,0,'2025-11-04',0,0,0);\">入室</button>\n                                            <button class=\"btn btn-sm jqeryui-absence \" id=\"absence_fix-623-2025-11-04_623_3_2025-11-04_0_0\" name=\"absence_fix-623-2025-11-04\">欠席</button>"
+    },
+    {
+      "rowIndex": 8,
+      "column1": "はやし　あきふみ\n                                                林　章史\n                                                    さん",
+      "column5": "入室\n                                            欠席",
+      "column1Html": "<a href=\"profile_children.php?mode=profile&amp;id=130\" class=\"tdn\">\n                                            <div class=\"nameBox\">\n                                                <span class=\"furigana\">はやし　あきふみ</span>\n                                                <p>林　章史\n                                                    さん</p>\n                                            </div>\n                                        </a>\n                                                                                                                                                                                                                                                    <span class=\"icon male\"><i class=\"fa fa-male\"></i></span>",
+      "column5Html": "<button class=\"btn btn-sm \" onclick=\"sendEnterMail('fix-130-2025-11-04',0,130,3,1,0,'2025-11-04',0,0,0);\">入室</button>\n                                            <button class=\"btn btn-sm jqeryui-absence \" id=\"absence_fix-130-2025-11-04_130_3_2025-11-04_0_0\" name=\"absence_fix-130-2025-11-04\">欠席</button>"
+    },
+    {
+      "rowIndex": 9,
+      "column1": "ひろかわ　ふうご\n                                                廣川　楓悟\n                                                    さん",
+      "column5": "入室\n                                            欠席",
+      "column1Html": "<a href=\"profile_children.php?mode=profile&amp;id=134\" class=\"tdn\">\n                                            <div class=\"nameBox\">\n                                                <span class=\"furigana\">ひろかわ　ふうご</span>\n                                                <p>廣川　楓悟\n                                                    さん</p>\n                                            </div>\n                                        </a>\n                                                                                                                                                                                                                                                    <span class=\"icon male\"><i class=\"fa fa-male\"></i></span>",
+      "column5Html": "<button class=\"btn btn-sm \" onclick=\"sendEnterMail('fix-134-2025-11-04',0,134,3,1,0,'2025-11-04',0,0,0);\">入室</button>\n                                            <button class=\"btn btn-sm jqeryui-absence \" id=\"absence_fix-134-2025-11-04_134_3_2025-11-04_0_0\" name=\"absence_fix-134-2025-11-04\">欠席</button>"
+    },
+    {
+      "rowIndex": 10,
+      "column1": "ほり　みらい\n                                                堀　未來\n                                                    さん",
+      "column5": "入室\n                                            欠席",
+      "column1Html": "<a href=\"profile_children.php?mode=profile&amp;id=141\" class=\"tdn\">\n                                            <div class=\"nameBox\">\n                                                <span class=\"furigana\">ほり　みらい</span>\n                                                <p>堀　未來\n                                                    さん</p>\n                                            </div>\n                                        </a>\n                                                                                                                                                                                                                                                    <span class=\"icon male\"><i class=\"fa fa-male\"></i></span>",
+      "column5Html": "<button class=\"btn btn-sm \" onclick=\"sendEnterMail('fix-141-2025-11-04',0,141,3,1,0,'2025-11-04',0,0,0);\">入室</button>\n                                            <button class=\"btn btn-sm jqeryui-absence \" id=\"absence_fix-141-2025-11-04_141_3_2025-11-04_0_0\" name=\"absence_fix-141-2025-11-04\">欠席</button>"
+    },
+    {
+      "rowIndex": 11,
+      "column1": "まるおか　ゆうき\n                                                丸岡　佑希\n                                                    さん",
+      "column5": "入室\n                                            欠席",
+      "column1Html": "<a href=\"profile_children.php?mode=profile&amp;id=150\" class=\"tdn\">\n                                            <div class=\"nameBox\">\n                                                <span class=\"furigana\">まるおか　ゆうき</span>\n                                                <p>丸岡　佑希\n                                                    さん</p>\n                                            </div>\n                                        </a>\n                                                                                                                                                                                                                                                    <span class=\"icon male\"><i class=\"fa fa-male\"></i></span>",
+      "column5Html": "<button class=\"btn btn-sm \" onclick=\"sendEnterMail('26300',0,150,3,1,0,'2025-11-04',0,0,0);\">入室</button>\n                                            <button class=\"btn btn-sm jqeryui-absence \" id=\"absence_26300_150_3_2025-11-04_0_0\" name=\"absence_26300\">欠席</button>"
+    }
+  ]
+}

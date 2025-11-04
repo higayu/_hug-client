@@ -143,6 +143,59 @@ function registerIpcHandlers(mainWindow, tempNoteHandler) {
     });
     
     console.log("✅ [MAIN] getPreloadPathハンドラー 登録完了");
+    
+    // 出勤データ列データ保存ハンドラー
+    ipcMain.handle('saveAttendanceColumnData', async (event, data) => {
+      try {
+        console.log("📊 [IPC] saveAttendanceColumnData 呼び出し:", {
+          facilityId: data.facilityId,
+          dateStr: data.dateStr,
+          childId: data.childId,
+          childName: data.childName,
+          extractedDataCount: data.extractedData?.length || 0
+        });
+        
+        // データディレクトリのパスを取得
+        const { getDataPath } = require("./parts/utils/util");
+        const dataDir = getDataPath("attendance");
+        const fileName = `attendance_${data.facilityId}_${data.dateStr}_${data.childId}.json`;
+        const filePath = path.join(dataDir, fileName);
+        
+        // ディレクトリが存在しない場合は作成
+        if (!fs.existsSync(dataDir)) {
+          fs.mkdirSync(dataDir, { recursive: true });
+          console.log("📁 [IPC] データディレクトリを作成:", dataDir);
+        }
+        
+        // 保存データを構築
+        const saveData = {
+          facilityId: data.facilityId,
+          dateStr: data.dateStr,
+          childId: data.childId,
+          childName: data.childName,
+          extractedAt: new Date().toISOString(),
+          extractedData: data.extractedData
+        };
+        
+        // JSONファイルとして保存
+        const jsonString = JSON.stringify(saveData, null, 2);
+        fs.writeFileSync(filePath, jsonString, "utf8");
+        
+        console.log("✅ [IPC] 出勤データ列データ保存成功:", filePath);
+        console.log("📊 [IPC] 保存データ概要:", {
+          ファイル名: fileName,
+          抽出行数: data.extractedData?.length || 0,
+          ファイルサイズ: `${(jsonString.length / 1024).toFixed(2)} KB`
+        });
+        
+        return { success: true, filePath: filePath };
+      } catch (err) {
+        console.error("❌ [IPC] 出勤データ列データ保存失敗:", err);
+        return { success: false, error: err.message };
+      }
+    });
+    
+    console.log("✅ [MAIN] saveAttendanceColumnDataハンドラー 登録完了");
     console.log("✅ [MAIN] すべてのIPCハンドラーを登録しました");
   } catch (error) {
     console.error("❌ [MAIN] IPCハンドラー登録中にエラー:", error);

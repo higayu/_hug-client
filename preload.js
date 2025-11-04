@@ -114,5 +114,8 @@ contextBridge.exposeInMainWorld("electronAPI", {
   // 🔧 webviewのpreload属性用のパス取得
   getPreloadPath: () => ipcRenderer.invoke("get-preload-path"),
 
+  // 📊 出勤データ列データ保存
+  saveAttendanceColumnData: (data) => ipcRenderer.invoke("saveAttendanceColumnData", data),
+
 });
 

@@ -301,6 +301,128 @@ export async function parseAttendanceTable(tableHTML) {
 }
 
 /**
+ * テーブルから1列目（行番号）と5列目（入室時間）を抽出
+ * @param {string} tableHTML - テーブルのHTML
+ * @returns {Promise<Object>} 抽出されたデータ {success: boolean, data: Array, error: string}
+ */
+export async function extractColumnData(tableHTML) {
+  if (!tableHTML) {
+    return {
+      success: false,
+      error: 'テーブルHTMLが提供されていません',
+      data: []
+    }
+  }
+
+  try {
+    const parser = new DOMParser()
+    const doc = parser.parseFromString(tableHTML, 'text/html')
+    const table = doc.querySelector('table')
+
+    if (!table) {
+      return {
+        success: false,
+        error: 'テーブル要素が見つかりません',
+        data: []
+      }
+    }
+
+    // tbodyの行を取得（theadはスキップ）
+    const tbody = table.querySelector('tbody')
+    if (!tbody) {
+      return {
+        success: false,
+        error: 'tbody要素が見つかりません',
+        data: []
+      }
+    }
+
+    const rows = tbody.querySelectorAll('tr')
+    const extractedData = []
+
+    rows.forEach((row, rowIndex) => {
+      const cells = row.querySelectorAll('td, th')
+      
+      // 1列目（インデックス0）と5列目（インデックス4）を取得
+      if (cells.length >= 5) {
+        const cell1Html = cells[1]?.innerHTML.trim() || '' // 2列目のHTML（児童情報）
+        
+        // aタグから児童IDを抽出
+        let children_id = ''
+        let children_name = ''
+        
+        if (cell1Html) {
+          // aタグのhref属性からidパラメータを抽出
+          // HTMLエンティティ(&amp;)をデコードしてから抽出
+          // 例: profile_children.php?mode=profile&amp;id=84 から 84 を抽出
+          
+          // まずHTMLエンティティを通常の文字に変換（&amp; -> &）
+          const decodedHtml = cell1Html.replace(/&amp;/g, '&')
+          
+          // id=パラメータを抽出（?id=, &id=, または単独のid=）
+          const idMatch = decodedHtml.match(/(?:[?&]|^)id=(\d+)/)
+          if (idMatch && idMatch[1]) {
+            children_id = idMatch[1]
+          } else {
+            // フォールバック: より柔軟なパターンで検索
+            const idMatchFallback = decodedHtml.match(/id=["']?(\d+)/)
+            if (idMatchFallback && idMatchFallback[1]) {
+              children_id = idMatchFallback[1]
+            }
+          }
+          
+          // デバッグ用: 抽出できなかった場合にログ出力
+          if (!children_id) {
+            console.warn('⚠️ [ATTENDANCE] 児童ID抽出失敗:', {
+              cell1Html: cell1Html.substring(0, 200), // 最初の200文字のみ表示
+              decodedHtml: decodedHtml.substring(0, 200)
+            })
+          }
+          
+          // 児童名を抽出（nameBox内のpタグから）
+          // 例: <p>大谷　瑠壱\n                                                    さん</p> から "大谷　瑠壱\n                                                    さん" を抽出
+          const nameBoxMatch = cell1Html.match(/<p>([\s\S]*?)<\/p>/)
+          if (nameBoxMatch && nameBoxMatch[1]) {
+            // 改行や余分な空白を削除
+            children_name = nameBoxMatch[1].replace(/\s+/g, ' ').trim()
+          }
+        }
+        
+        const column5 = cells[5]?.textContent.trim() || '' // 入室時間（6列目）
+        const column5Html = cells[5]?.innerHTML.trim() || '' // 入室時間のHTML（ボタン情報など）
+        
+        extractedData.push({
+          rowIndex: rowIndex + 1, // 1から始まる行番号
+          children_id: children_id, // 児童ID
+          children_name: children_name, // 児童名
+          column1Html: cell1Html, // 2列目のHTML（児童情報）
+          column5: column5, // 入室時間のテキスト
+          column5Html: column5Html // 入室時間のHTML（ボタン情報など）
+        })
+      }
+    })
+
+    console.log('✅ [ATTENDANCE] 列データ抽出完了:', {
+      extractedCount: extractedData.length,
+      sample: extractedData.slice(0, 3)
+    })
+
+    return {
+      success: true,
+      data: extractedData,
+      rowCount: extractedData.length
+    }
+  } catch (error) {
+    console.error('❌ [ATTENDANCE] 列データ抽出エラー:', error)
+    return {
+      success: false,
+      error: error.message,
+      data: []
+    }
+  }
+}
+
+/**
  * 施設IDと日付から出勤データを取得する（簡易版）
  * @param {string} facility_id - 施設ID（省略時は引数から取得）
  * @param {string} date_str - 日付文字列（省略時は引数から取得）

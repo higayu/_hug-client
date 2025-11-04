@@ -111,10 +111,10 @@ function SidebarContent() {
         <button
           onClick={(e) => {
             e.stopPropagation()
-            handleFetchAttendanceForChild(c.children_id, c.children_name)
+            // 空のボタン処理（一時的に無効化）
           }}
-          className="px-2 py-1 text-xs bg-blue-600 text-white border-none rounded cursor-pointer flex-shrink-0 hover:bg-blue-700"
-          title="出勤データ取得"
+          className="px-2 py-1 text-xs bg-gray-400 text-white border-none rounded cursor-pointer flex-shrink-0 hover:bg-gray-500"
+          title="入室ボタン"
         >
           📊
         </button>
