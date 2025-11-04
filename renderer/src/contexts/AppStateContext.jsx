@@ -69,6 +69,10 @@ export function AppStateProvider({ children }) {
     updateAppState({ SELECT_PC_NAME: pcName })
   }, [updateAppState])
 
+  const setAttendanceData = useCallback((data) => {
+    updateAppState({ attendanceData: data })
+  }, [updateAppState])
+
   // グローバルAPIとして登録（modules側からの使用のため）
   useEffect(() => {
     // window.AppStateとして状態を公開
@@ -78,6 +82,7 @@ export function AppStateProvider({ children }) {
     window.setSelectedChild = setSelectedChild
     window.setChildrenData = setChildrenData
     window.setSelectedPcName = setSelectedPcName
+    window.setAttendanceData = setAttendanceData
     
     return () => {
       delete window.AppState
@@ -85,8 +90,9 @@ export function AppStateProvider({ children }) {
       delete window.setSelectedChild
       delete window.setChildrenData
       delete window.setSelectedPcName
+      delete window.setAttendanceData
     }
-  }, [appState, updateAppState, setSelectedChild, setChildrenData, setSelectedPcName])
+  }, [appState, updateAppState, setSelectedChild, setChildrenData, setSelectedPcName, setAttendanceData])
 
   return (
     <AppStateContext.Provider
@@ -98,6 +104,7 @@ export function AppStateProvider({ children }) {
         setSelectedChild,
         setChildrenData,
         setSelectedPcName,
+        setAttendanceData,
         // 便利なアクセサー
         DATE_STR: appState.DATE_STR,
         WEEK_DAY: appState.WEEK_DAY,
@@ -107,6 +114,7 @@ export function AppStateProvider({ children }) {
         childrenData: appState.childrenData,
         waiting_childrenData: appState.waiting_childrenData,
         Experience_childrenData: appState.Experience_childrenData,
+        attendanceData: appState.attendanceData,
         STAFF_ID: appState.STAFF_ID,
         FACILITY_ID: appState.FACILITY_ID
       }}

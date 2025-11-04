@@ -262,7 +262,9 @@ export const DEFAULT_APP_STATE = {
   closeButtonsVisible: true,
   STAFF_DATA: [],
   FACILITY_DATA: [],
-  STAFF_AND_FACILITY_DATA: []
+  STAFF_AND_FACILITY_DATA: [],
+  // 出勤データ一覧（児童対応一覧データ）
+  attendanceData: []
 };
 
 // ==========================

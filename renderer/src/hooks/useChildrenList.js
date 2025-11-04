@@ -9,7 +9,7 @@ import { fetchAttendanceTableData, extractColumnData } from '../utils/attendance
 /**
  * 児童の出勤データを取得
  */
-async function handleFetchAttendanceForChild(appState) {
+async function handleFetchAttendanceForChild(appState, updateAppState) {
   try {
     console.log(`📊 [ATTENDANCE] 出勤データ取得開始`)
     
@@ -51,7 +51,30 @@ async function handleFetchAttendanceForChild(appState) {
             サンプルデータ: extractedResult.data.slice(0, 3)
           })
           
-          // 抽出したデータを保存
+          // グローバル変数として保存（window.AppStateとAppStateContext）
+          const attendanceData = {
+            facilityId: facility_id,
+            dateStr: date_str,
+            extractedAt: new Date().toISOString(),
+            rowCount: extractedResult.rowCount,
+            data: extractedResult.data
+          }
+          
+          // AppStateContextに保存
+          updateAppState({ attendanceData: attendanceData })
+          
+          // window.AppStateにも保存（後方互換性のため）
+          if (window.AppState) {
+            window.AppState.attendanceData = attendanceData
+          }
+          
+          console.log("✅ [ATTENDANCE] グローバル変数に保存完了:", {
+            facilityId: facility_id,
+            dateStr: date_str,
+            rowCount: extractedResult.rowCount
+          })
+          
+          // ファイルにも保存
           try {
             const saveResult = await window.electronAPI.saveAttendanceColumnData({
               facilityId: facility_id,
@@ -60,12 +83,12 @@ async function handleFetchAttendanceForChild(appState) {
             })
             
             if (saveResult && saveResult.success) {
-              console.log("✅ [ATTENDANCE] 列データ保存成功")
+              console.log("✅ [ATTENDANCE] 列データファイル保存成功", saveResult.filePath)
             } else {
-              console.error("❌ [ATTENDANCE] 列データ保存失敗:", saveResult?.error)
+              console.error("❌ [ATTENDANCE] 列データファイル保存失敗:", saveResult?.error)
             }
           } catch (saveError) {
-            console.error("❌ [ATTENDANCE] 列データ保存エラー:", saveError)
+            console.error("❌ [ATTENDANCE] 列データファイル保存エラー:", saveError)
           }
         } else {
           console.error("❌ [ATTENDANCE] 列データ抽出失敗:", extractedResult.error)
@@ -245,9 +268,9 @@ export function useChildrenList() {
     waitingChildrenData: waitingChildrenData,
     experienceChildrenData: experienceChildrenData,
     loadChildren,
-    handleFetchAttendanceForChild: useCallback((childId, childName) => {
-      handleFetchAttendanceForChild(childId, childName, appState)
-    }, [appState]),
+    handleFetchAttendanceForChild: useCallback(() => {
+      handleFetchAttendanceForChild(appState, updateAppState)
+    }, [appState, updateAppState]),
     saveTempNote: useCallback(async (childId, enterTime, exitTime, memo) => {
       await saveTempNote(childId, enterTime, exitTime, memo, appState)
     }, [appState]),

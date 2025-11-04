@@ -8,7 +8,7 @@ import { ELEMENT_IDS, MESSAGES, EVENTS } from '../utils/constants.js'
 
 function SidebarContent() {
   const { childrenData, waitingChildrenData, experienceChildrenData, handleFetchAttendanceForChild, saveTempNote, loadTempNote, SELECT_CHILD } = useChildrenList()
-  const { setSelectedChild, setSelectedPcName } = useAppState()
+  const { setSelectedChild, setSelectedPcName, attendanceData } = useAppState()
   const [childrenCollapsed, setChildrenCollapsed] = useState(false)
   const [waitingCollapsed, setWaitingCollapsed] = useState(true)
   const [expandedNotes, setExpandedNotes] = useState({})
@@ -81,6 +81,17 @@ function SidebarContent() {
   const renderChildItem = (c, isFirst = false) => {
     const isSelected = SELECT_CHILD === c.children_id
     const notesExpanded = expandedNotes[c.children_id]
+    
+    // attendanceDataから該当するchildren_idのデータを取得
+    let column5Html = null
+    if (attendanceData && attendanceData.data && Array.isArray(attendanceData.data)) {
+      const attendanceItem = attendanceData.data.find(item => 
+        item.children_id && item.children_id === String(c.children_id)
+      )
+      if (attendanceItem && attendanceItem.column5Html) {
+        column5Html = attendanceItem.column5Html
+      }
+    }
 
     return (
       <li
@@ -113,10 +124,18 @@ function SidebarContent() {
             e.stopPropagation()
             // 空のボタン処理（一時的に無効化）
           }}
-          className="px-2 py-1 text-xs bg-gray-400 text-white border-none rounded cursor-pointer flex-shrink-0 hover:bg-gray-500"
-          title="入室ボタン"
+          className={`px-2 py-1 text-xs border-none rounded cursor-pointer flex-shrink-0 ${
+            column5Html 
+              ? 'bg-blue-600 text-white hover:bg-blue-700' 
+              : 'bg-gray-400 text-white hover:bg-gray-500'
+          }`}
+          title={column5Html ? "入室情報あり" : "入室ボタン"}
         >
-          📊
+          {column5Html ? (
+            <span dangerouslySetInnerHTML={{ __html: column5Html }} />
+          ) : (
+            '📊'
+          )}
         </button>
         {notesExpanded && (
           <div className="notes-display mt-1.5 p-2 bg-gray-50 border border-gray-300 rounded text-xs text-gray-700 whitespace-pre-wrap break-words max-h-[100px] overflow-y-auto w-full">
