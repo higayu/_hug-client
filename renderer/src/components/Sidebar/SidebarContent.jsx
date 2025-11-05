@@ -78,24 +78,6 @@ function SidebarContent() {
         >
           {c.children_id}: {c.children_name}　:{c.pc_name || ''}
         </span>
-        <button
-          onClick={(e) => {
-            e.stopPropagation()
-            // 空のボタン処理（一時的に無効化）
-          }}
-          className={`px-2 py-1 text-xs border-none rounded cursor-pointer flex-shrink-0 ${
-            column5Html 
-              ? 'bg-blue-600 text-white hover:bg-blue-700' 
-              : 'bg-gray-400 text-white hover:bg-gray-500'
-          }`}
-          title={column5Html ? "入室情報あり" : "入室ボタン"}
-        >
-          {column5Html ? (
-            <span dangerouslySetInnerHTML={{ __html: column5Html }} />
-          ) : (
-            ''
-          )}
-        </button>
       </li>
     )
   }

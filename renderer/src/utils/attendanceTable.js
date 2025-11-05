@@ -391,14 +391,32 @@ export async function extractColumnData(tableHTML) {
         const column5 = cells[5]?.textContent.trim() || '' // 入室時間（6列目）
         const column5Html = cells[5]?.innerHTML.trim() || '' // 入室時間のHTML（ボタン情報など）
         
-        extractedData.push({
+        // column5が時間形式（HH:MM）の場合、6列目（インデックス6）も取得
+        let column6 = ''
+        let column6Html = ''
+        // 時間形式（HH:MM）のパターンをチェック（例: "00:00", "16:54"）
+        const timePattern = /^\d{2}:\d{2}$/
+        if (timePattern.test(column5) && cells.length >= 7) {
+          column6 = cells[6]?.textContent.trim() || ''
+          column6Html = cells[6]?.innerHTML.trim() || ''
+        }
+        
+        const rowData = {
           rowIndex: rowIndex + 1, // 1から始まる行番号
           children_id: children_id, // 児童ID
           children_name: children_name, // 児童名
           column1Html: cell1Html, // 2列目のHTML（児童情報）
           column5: column5, // 入室時間のテキスト
           column5Html: column5Html // 入室時間のHTML（ボタン情報など）
-        })
+        }
+        
+        // column6が取得された場合のみ追加
+        if (column6 || column6Html) {
+          rowData.column6 = column6
+          rowData.column6Html = column6Html
+        }
+        
+        extractedData.push(rowData)
       }
     })
 
