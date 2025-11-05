@@ -17,7 +17,27 @@ function createMainWindow() {
   });
 
   // 開発環境と本番環境で読み込み方法を切り替え
-  const isDev = process.argv.includes('--dev') || process.argv.includes('--debug') || !require('electron').app.isPackaged;
+  const fs = require('fs');
+  const rendererDistPath = path.join(__dirname, "../renderer/dist/index.html");
+  const hasProdFlag = process.argv.includes('--prod') || process.argv.includes('--production');
+  const hasDevFlag = process.argv.includes('--dev') || process.argv.includes('--debug');
+  const isPackaged = require('electron').app.isPackaged;
+  
+  // 優先順位: --prod > --dev > (パッケージ済み) > (開発モード)
+  let isDev;
+  if (hasProdFlag) {
+    // --prodフラグが指定されている場合は本番モード
+    isDev = false;
+  } else if (hasDevFlag) {
+    // --devフラグが指定されている場合は開発モード
+    isDev = true;
+  } else if (isPackaged) {
+    // パッケージ済みの場合は本番モード
+    isDev = false;
+  } else {
+    // その他の場合は開発モード
+    isDev = true;
+  }
   
   if (isDev) {
     // 開発環境: Vite開発サーバー
@@ -25,9 +45,16 @@ function createMainWindow() {
     console.log("🔧 [MAIN] 開発環境: Vite開発サーバーに接続 (http://localhost:5173)");
   } else {
     // 本番環境: ビルド済みファイル
-    const rendererPath = path.join(__dirname, "../renderer/dist/index.html");
-    mainWindow.loadFile(rendererPath);
-    console.log("🔧 [MAIN] 本番環境: ビルド済みファイルを読み込み:", rendererPath);
+    const hasDistFile = fs.existsSync(rendererDistPath);
+    if (!hasDistFile) {
+      console.error("❌ [MAIN] エラー: renderer/dist/index.html が見つかりません。先に 'npm run build:renderer' を実行してください。");
+      // フォールバック: 開発サーバーに接続を試みる
+      mainWindow.loadURL('http://localhost:5173');
+      console.log("⚠️ [MAIN] フォールバック: Vite開発サーバーに接続を試みます");
+    } else {
+      mainWindow.loadFile(rendererDistPath);
+      console.log("🔧 [MAIN] 本番環境: ビルド済みファイルを読み込み:", rendererDistPath);
+    }
   }
   
   // デバッグモード時のみDeveloperToolを開く
