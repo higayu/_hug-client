@@ -9,6 +9,7 @@ const initialState = {
   // 認証情報
   HUG_USERNAME: "",
   HUG_PASSWORD: "",
+  VITE_API_BASE_URL: "",
   
   // ID・日付・選択状態
   STAFF_ID: "",
@@ -119,6 +120,7 @@ const appStateSlice = createSlice({
       // 認証情報
       if (updates.HUG_USERNAME !== undefined) state.HUG_USERNAME = updates.HUG_USERNAME
       if (updates.HUG_PASSWORD !== undefined) state.HUG_PASSWORD = updates.HUG_PASSWORD
+      if (updates.VITE_API_BASE_URL !== undefined) state.VITE_API_BASE_URL = updates.VITE_API_BASE_URL
       // ID・日付・選択状態
       if (updates.STAFF_ID !== undefined) state.STAFF_ID = updates.STAFF_ID
       if (updates.FACILITY_ID !== undefined) state.FACILITY_ID = updates.FACILITY_ID
