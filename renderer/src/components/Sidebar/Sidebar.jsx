@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
-import { useAppState } from '../contexts/AppStateContext.jsx'
-import { getWeekdayFromDate, getDateString } from '../utils/dateUtils.js'
-import { useToast } from '../contexts/ToastContext.jsx'
-import { ELEMENT_IDS } from '../utils/constants.js'
-import { useChildrenList } from '../hooks/useChildrenList.js'
+import { useAppState } from '../../contexts/AppStateContext.jsx'
+import { getWeekdayFromDate, getDateString } from '../../utils/dateUtils.js'
+import { useToast } from '../../contexts/ToastContext.jsx'
+import { ELEMENT_IDS } from '../../utils/constants.js'
+import { useChildrenList } from '../../hooks/useChildrenList.js'
 import SidebarContent from './SidebarContent.jsx'
+import ChildMemoPanel from './ChildMemoPanel.jsx'
 
 function Sidebar() {
   const { showInfoToast } = useToast()
@@ -177,8 +178,11 @@ function Sidebar() {
         </button>
       </div>
 
-      {/* スクロール可能なコンテンツ部分 */}
-      <SidebarContent />
+      {/* スクロール可能なコンテンツ部分 - 横並びレイアウト */}
+      <div className="flex flex-1 min-h-0 overflow-hidden">
+        <SidebarContent />
+        <ChildMemoPanel />
+      </div>
     </div>
   )
 }

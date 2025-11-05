@@ -1,0 +1,187 @@
+// src/components/Sidebar/ChildMemoPanel.jsx
+// 選択された要素のメモを表示するパネルコンポーネント
+
+import { useEffect, useRef, useState } from 'react'
+import { useAppState } from '../../contexts/AppStateContext.jsx'
+import { useChildrenList } from '../../hooks/useChildrenList.js'
+import { MESSAGES } from '../../utils/constants.js'
+
+function ChildMemoPanel() {
+  const { SELECT_CHILD, SELECT_CHILD_NAME, attendanceData } = useAppState()
+  const { childrenData, waitingChildrenData, experienceChildrenData, saveTempNote, loadTempNote } = useChildrenList()
+  const [selectedChildData, setSelectedChildData] = useState(null)
+  const notesInputsRef = useRef({})
+  
+  // attendanceDataから該当するchildren_idのcolumn5Htmlを取得
+  const getColumn5Html = () => {
+    if (!SELECT_CHILD || !attendanceData || !attendanceData.data || !Array.isArray(attendanceData.data)) {
+      return null
+    }
+    const attendanceItem = attendanceData.data.find(item => 
+      item.children_id && item.children_id === String(SELECT_CHILD)
+    )
+    return attendanceItem?.column5Html || null
+  }
+  
+  const column5Html = getColumn5Html()
+
+
+  // 選択された要素のデータを取得
+  useEffect(() => {
+    if (!SELECT_CHILD) {
+      setSelectedChildData(null)
+      return
+    }
+
+    // 通常の子どもリストから検索
+    let child = childrenData.find(c => c.children_id === SELECT_CHILD)
+    
+    // 見つからない場合はキャンセル待ちリストから検索
+    if (!child) {
+      child = waitingChildrenData.find(c => c.children_id === SELECT_CHILD)
+    }
+    
+    // 見つからない場合は体験子どもリストから検索
+    if (!child) {
+      child = experienceChildrenData.find(c => c.children_id === SELECT_CHILD)
+    }
+
+    setSelectedChildData(child || null)
+
+    // データが変更されたときに一時メモを読み込む
+    if (child) {
+      setTimeout(() => {
+        const enterInput = document.getElementById(`enter-${SELECT_CHILD}`)
+        const exitInput = document.getElementById(`exit-${SELECT_CHILD}`)
+        const memoTextarea = document.getElementById(`memo-${SELECT_CHILD}`)
+        if (enterInput && exitInput && memoTextarea) {
+          notesInputsRef.current[SELECT_CHILD] = { enterInput, exitInput, memoTextarea }
+          loadTempNote(SELECT_CHILD, enterInput, exitInput, memoTextarea)
+        }
+      }, 100)
+    }
+  }, [SELECT_CHILD, childrenData, waitingChildrenData, experienceChildrenData, loadTempNote])
+
+  // 一時メモの保存ハンドラー
+  const handleSaveTempNote = async () => {
+    if (!SELECT_CHILD) return
+    const inputs = notesInputsRef.current[SELECT_CHILD]
+    if (inputs) {
+      await saveTempNote(SELECT_CHILD, inputs.enterInput.value, inputs.exitInput.value, inputs.memoTextarea.value)
+    }
+  }
+
+  // 選択されていない場合は何も表示しない
+  if (!SELECT_CHILD || !selectedChildData) {
+    return (
+      <div className="child-memo-panel flex-1 border-l border-gray-300 bg-gray-50 p-4 overflow-y-auto">
+        <div className="text-sm text-gray-500 text-center mt-8">
+          要素を選択してください
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="child-memo-panel flex-1 border-l border-gray-300 bg-gray-50 p-4 overflow-y-auto flex flex-col h-full">
+      <div className="mb-4">
+        <h3 className="text-sm font-bold text-gray-700 mb-2">
+          {selectedChildData.children_id}: {selectedChildData.children_name}
+        </h3>
+        {selectedChildData.pc_name && (
+          <p className="text-xs text-gray-600 mb-2">
+            PC名: {selectedChildData.pc_name}
+          </p>
+        )}
+      </div>
+
+      <div className="flex-1 flex flex-col">
+        <div className="mb-4 pb-4 border-b border-gray-300">
+          {/* 入室ボタン - column5Htmlの値によって機能が変わる */}
+          <div className="flex items-center gap-2 mb-3">
+            <label className="text-xs font-bold text-gray-700 w-12">入室:</label>
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                // TODO: column5Htmlの値に応じた機能を実装
+                // column5Htmlがある場合とない場合で異なる処理を行う
+                if (column5Html) {
+                  console.log('入室情報あり:', column5Html)
+                  // 入室情報がある場合の処理（未実装）
+                } else {
+                  console.log('入室ボタンクリック')
+                  // 入室ボタンクリック時の処理（未実装）
+                }
+              }}
+              className={`flex-1 px-3 py-1.5 text-xs border-none rounded cursor-pointer transition-colors ${
+                column5Html 
+                  ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                  : 'bg-gray-400 text-white hover:bg-gray-500'
+              }`}
+              title={column5Html ? "入室情報あり" : "入室ボタン"}
+            >
+              {column5Html ? (
+                <span dangerouslySetInnerHTML={{ __html: column5Html }} />
+              ) : (
+                '入室'
+              )}
+            </button>
+          </div>
+          
+          {/* 退出ボタン - column5Htmlの値によって機能が変わる */}
+          <div className="flex items-center gap-2 mb-3">
+            <label className="text-xs font-bold text-gray-700 w-12">退出:</label>
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                // TODO: column5Htmlの値に応じた機能を実装
+                // column5Htmlがある場合とない場合で異なる処理を行う
+                if (column5Html) {
+                  console.log('退出処理（入室情報あり）:', column5Html)
+                  // 入室情報がある場合の退出処理（未実装）
+                } else {
+                  console.log('退出ボタンクリック')
+                  // 退出ボタンクリック時の処理（未実装）
+                }
+              }}
+              className={`flex-1 px-3 py-1.5 text-xs border-none rounded cursor-pointer transition-colors ${
+                column5Html 
+                  ? 'bg-green-600 text-white hover:bg-green-700' 
+                  : 'bg-gray-400 text-white hover:bg-gray-500'
+              }`}
+              title={column5Html ? "退出処理（入室情報あり）" : "退出ボタン"}
+            >
+              退出
+            </button>
+          </div>
+          <div className="mb-3">
+            <label className="text-xs font-bold text-gray-700 block mb-1">メモ:</label>
+            <textarea
+              id={`memo-${SELECT_CHILD}`}
+              className="w-full p-1.5 border border-gray-300 rounded text-xs bg-white resize-y min-h-[100px] font-inherit text-black focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-200"
+              placeholder={MESSAGES.PLACEHOLDERS?.MEMO || 'メモを入力...'}
+              rows={5}
+              onInput={handleSaveTempNote}
+            />
+          </div>
+          <button
+            onClick={handleSaveTempNote}
+            className="w-full px-3 py-1.5 bg-blue-600 text-white border-none rounded text-xs cursor-pointer hover:bg-blue-700 transition-colors"
+          >
+            保存
+          </button>
+        </div>
+
+        <div className="flex-1">
+          <h4 className="text-xs font-bold text-gray-700 mb-2">保存済みメモ:</h4>
+          <div className="text-xs leading-relaxed text-black whitespace-pre-wrap break-words p-2 bg-white border border-gray-200 rounded min-h-[100px]">
+            {selectedChildData.notes || 'メモがありません'}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export default ChildMemoPanel
+

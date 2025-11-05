@@ -1,18 +1,16 @@
-// src/components/SidebarContent.jsx
+// src/components/Sidebar/SidebarContent.jsx
 // 子どもリストを表示するコンポーネント
 
-import { useState, useRef, useCallback } from 'react'
-import { useChildrenList } from '../hooks/useChildrenList.js'
-import { useAppState } from '../contexts/AppStateContext.jsx'
-import { ELEMENT_IDS, MESSAGES, EVENTS } from '../utils/constants.js'
+import { useState } from 'react'
+import { useChildrenList } from '../../hooks/useChildrenList.js'
+import { useAppState } from '../../contexts/AppStateContext.jsx'
+import { ELEMENT_IDS, MESSAGES, EVENTS } from '../../utils/constants.js'
 
 function SidebarContent() {
-  const { childrenData, waitingChildrenData, experienceChildrenData, handleFetchAttendanceForChild, saveTempNote, loadTempNote, SELECT_CHILD } = useChildrenList()
+  const { childrenData, waitingChildrenData, experienceChildrenData, handleFetchAttendanceForChild, SELECT_CHILD } = useChildrenList()
   const { setSelectedChild, setSelectedPcName, attendanceData } = useAppState()
   const [childrenCollapsed, setChildrenCollapsed] = useState(false)
   const [waitingCollapsed, setWaitingCollapsed] = useState(true)
-  const [expandedNotes, setExpandedNotes] = useState({})
-  const notesInputsRef = useRef({})
 
   // 対応児童リストの折りたたみ
   const toggleChildrenList = () => {
@@ -43,44 +41,10 @@ function SidebarContent() {
     console.log(`${MESSAGES.INFO.CHILD_SELECTED}: ${childName} (${childId})`)
   }
 
-  // ノート表示/非表示の切り替え
-  const toggleNotes = useCallback((childId) => {
-    setExpandedNotes(prev => {
-      const wasExpanded = prev[childId]
-      const newState = {
-        ...prev,
-        [childId]: !wasExpanded
-      }
-      
-      // ノートが展開されたときに一時メモを読み込む
-      if (!wasExpanded) {
-        setTimeout(() => {
-          const enterInput = document.getElementById(`enter-${childId}`)
-          const exitInput = document.getElementById(`exit-${childId}`)
-          const memoTextarea = document.getElementById(`memo-${childId}`)
-          if (enterInput && exitInput && memoTextarea) {
-            notesInputsRef.current[childId] = { enterInput, exitInput, memoTextarea }
-            loadTempNote(childId, enterInput, exitInput, memoTextarea)
-          }
-        }, 100)
-      }
-      
-      return newState
-    })
-  }, [loadTempNote])
-
-  // 一時メモの保存ハンドラー
-  const handleSaveTempNote = async (childId) => {
-    const inputs = notesInputsRef.current[childId]
-    if (inputs) {
-      await saveTempNote(childId, inputs.enterInput.value, inputs.exitInput.value, inputs.memoTextarea.value)
-    }
-  }
 
   // 通常の子どもリストアイテム
   const renderChildItem = (c, isFirst = false) => {
     const isSelected = SELECT_CHILD === c.children_id
-    const notesExpanded = expandedNotes[c.children_id]
     
     // attendanceDataから該当するchildren_idのデータを取得
     let column5Html = null
@@ -107,11 +71,6 @@ function SidebarContent() {
           borderLeft: '4px solid #0e7490',
           fontWeight: 'bold'
         } : {}}
-        onContextMenu={(e) => {
-          e.preventDefault()
-          e.stopPropagation()
-          toggleNotes(c.children_id)
-        }}
       >
         <span
           className="flex-1 cursor-pointer text-black"
@@ -134,48 +93,9 @@ function SidebarContent() {
           {column5Html ? (
             <span dangerouslySetInnerHTML={{ __html: column5Html }} />
           ) : (
-            '📊'
+            ''
           )}
         </button>
-        {notesExpanded && (
-          <div className="notes-display mt-1.5 p-2 bg-gray-50 border border-gray-300 rounded text-xs text-gray-700 whitespace-pre-wrap break-words max-h-[100px] overflow-y-auto w-full">
-            <div className="mb-2 pb-2 border-b border-gray-300">
-              <div className="flex items-center gap-2 mb-2">
-                <label className="text-[11px] font-bold text-gray-700 mr-1">入室:</label>
-                <input
-                  type="time"
-                  id={`enter-${c.children_id}`}
-                  className="w-20 p-1.5 border border-gray-300 rounded text-[11px] bg-white text-black focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-200"
-                  onChange={() => handleSaveTempNote(c.children_id)}
-                />
-                <label className="text-[11px] font-bold text-gray-700 mr-1">退出:</label>
-                <input
-                  type="time"
-                  id={`exit-${c.children_id}`}
-                  className="w-20 p-1.5 border border-gray-300 rounded text-[11px] bg-white text-black focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-200"
-                  onChange={() => handleSaveTempNote(c.children_id)}
-                />
-              </div>
-              <label className="text-[11px] font-bold text-gray-700 mr-1 w-full mt-2 block">メモ:</label>
-              <textarea
-                id={`memo-${c.children_id}`}
-                className="w-full p-1.5 border border-gray-300 rounded text-[11px] bg-white resize-y min-h-[60px] font-inherit text-black focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-200"
-                placeholder={MESSAGES.PLACEHOLDERS?.MEMO || 'メモを入力...'}
-                rows={3}
-                onInput={() => handleSaveTempNote(c.children_id)}
-              />
-              <button
-                onClick={() => handleSaveTempNote(c.children_id)}
-                className="px-2 py-1 bg-blue-600 text-white border-none rounded text-[10px] cursor-pointer ml-auto hover:bg-blue-700 mt-2"
-              >
-                保存
-              </button>
-            </div>
-            <div className="mt-2 text-xs leading-snug text-black">
-              {c.notes || 'メモがありません'}
-            </div>
-          </div>
-        )}
       </li>
     )
   }
@@ -284,3 +204,4 @@ function SidebarContent() {
 }
 
 export default SidebarContent
+
