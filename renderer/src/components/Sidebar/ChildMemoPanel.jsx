@@ -22,9 +22,26 @@ function ChildMemoPanel() {
     )
     return attendanceItem?.column5Html || null
   }
+
+  const getColumn5 = () => {
+    if (!SELECT_CHILD || !attendanceData || !attendanceData.data || !Array.isArray(attendanceData.data)) {
+      return null
+    }
+    const attendanceItem = attendanceData.data.find(item => 
+      item.children_id && item.children_id === String(SELECT_CHILD)
+    )
+    return attendanceItem?.column5 || null
+  }
   
   const column5Html = getColumn5Html()
+  const column5 = getColumn5()
 
+  // column5が時間形式（HH:MM）かどうかをチェック
+  const isTimeFormat = (value) => {
+    if (!value) return false
+    const timePattern = /^\d{2}:\d{2}$/
+    return timePattern.test(value)
+  }
 
   // 選択された要素のデータを取得
   useEffect(() => {
@@ -97,63 +114,106 @@ function ChildMemoPanel() {
 
       <div className="flex-1 flex flex-col">
         <div className="mb-4 pb-4 border-b border-gray-300">
-          {/* 入室ボタン - column5Htmlの値によって機能が変わる */}
-          <div className="flex items-center gap-2 mb-3">
-            <label className="text-xs font-bold text-gray-700 w-12">入室:</label>
-            <button
-              onClick={(e) => {
-                e.stopPropagation()
-                // TODO: column5Htmlの値に応じた機能を実装
-                // column5Htmlがある場合とない場合で異なる処理を行う
-                if (column5Html) {
-                  console.log('入室情報あり:', column5Html)
-                  // 入室情報がある場合の処理（未実装）
-                } else {
-                  console.log('入室ボタンクリック')
-                  // 入室ボタンクリック時の処理（未実装）
-                }
-              }}
-              className={`flex-1 px-3 py-1.5 text-xs border-none rounded cursor-pointer transition-colors ${
-                column5Html 
-                  ? 'bg-blue-600 text-white hover:bg-blue-700' 
-                  : 'bg-gray-400 text-white hover:bg-gray-500'
-              }`}
-              title={column5Html ? "入室情報あり" : "入室ボタン"}
-            >
-              {column5Html ? (
-                <span dangerouslySetInnerHTML={{ __html: column5Html }} />
-              ) : (
-                '入室'
-              )}
-            </button>
-          </div>
-          
-          {/* 退出ボタン - column5Htmlの値によって機能が変わる */}
-          <div className="flex items-center gap-2 mb-3">
-            <label className="text-xs font-bold text-gray-700 w-12">退出:</label>
-            <button
-              onClick={(e) => {
-                e.stopPropagation()
-                // TODO: column5Htmlの値に応じた機能を実装
-                // column5Htmlがある場合とない場合で異なる処理を行う
-                if (column5Html) {
-                  console.log('退出処理（入室情報あり）:', column5Html)
-                  // 入室情報がある場合の退出処理（未実装）
-                } else {
-                  console.log('退出ボタンクリック')
-                  // 退出ボタンクリック時の処理（未実装）
-                }
-              }}
-              className={`flex-1 px-3 py-1.5 text-xs border-none rounded cursor-pointer transition-colors ${
-                column5Html 
-                  ? 'bg-green-600 text-white hover:bg-green-700' 
-                  : 'bg-gray-400 text-white hover:bg-gray-500'
-              }`}
-              title={column5Html ? "退出処理（入室情報あり）" : "退出ボタン"}
-            >
-              退出
-            </button>
-          </div>
+          {column5 === "欠席" ? (
+            <div className="flex items-center gap-2 mb-3">
+              <label className="text-xs font-bold text-red-600">欠席</label>
+            </div>
+          ) : isTimeFormat(column5) ? (
+            <>
+              {/* 時間形式の場合 - 入室時間をラベルで表示 */}
+              <div className="flex items-center gap-2 mb-3">
+                <label className="text-xs font-bold text-gray-700 w-12">入室:</label>
+                <label className="text-xs font-bold text-gray-700">{column5}</label>
+              </div>
+              
+              {/* 退出ボタン - column5Htmlの値によって機能が変わる */}
+              <div className="flex items-center gap-2 mb-3">
+                <label className="text-xs font-bold text-gray-700 w-12">退出:</label>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    // TODO: column5Htmlの値に応じた機能を実装
+                    // column5Htmlがある場合とない場合で異なる処理を行う
+                    if (column5Html) {
+                      console.log('退出処理（入室情報あり）:', column5Html)
+                      // 入室情報がある場合の退出処理（未実装）
+                    } else {
+                      console.log('退出ボタンクリック')
+                      // 退出ボタンクリック時の処理（未実装）
+                    }
+                  }}
+                  className={`flex-1 px-3 py-1.5 text-xs border-none rounded cursor-pointer transition-colors ${
+                    column5Html 
+                      ? 'bg-green-600 text-white hover:bg-green-700' 
+                      : 'bg-gray-400 text-white hover:bg-gray-500'
+                  }`}
+                  title={column5Html ? "退出処理（入室情報あり）" : "退出ボタン"}
+                >
+                  退出
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              {/* 入室ボタン - column5Htmlの値によって機能が変わる */}
+              <div className="flex items-center gap-2 mb-3">
+                <label className="text-xs font-bold text-gray-700 w-12">入室:</label>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    // TODO: column5Htmlの値に応じた機能を実装
+                    // column5Htmlがある場合とない場合で異なる処理を行う
+                    if (column5Html) {
+                      console.log('入室情報あり:', column5Html)
+                      // 入室情報がある場合の処理（未実装）
+                    } else {
+                      console.log('入室ボタンクリック')
+                      // 入室ボタンクリック時の処理（未実装）
+                    }
+                  }}
+                  className={`flex-1 px-3 py-1.5 text-xs border-none rounded cursor-pointer transition-colors ${
+                    column5Html 
+                      ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                      : 'bg-gray-400 text-white hover:bg-gray-500'
+                  }`}
+                  title={column5Html ? "入室情報あり" : "入室ボタン"}
+                >
+                  {column5Html ? (
+                    <span dangerouslySetInnerHTML={{ __html: column5Html }} />
+                  ) : (
+                    '入室'
+                  )}
+                </button>
+              </div>
+              
+              {/* 退出ボタン - column5Htmlの値によって機能が変わる */}
+              <div className="flex items-center gap-2 mb-3">
+                <label className="text-xs font-bold text-gray-700 w-12">退出:</label>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    // TODO: column5Htmlの値に応じた機能を実装
+                    // column5Htmlがある場合とない場合で異なる処理を行う
+                    if (column5Html) {
+                      console.log('退出処理（入室情報あり）:', column5Html)
+                      // 入室情報がある場合の退出処理（未実装）
+                    } else {
+                      console.log('退出ボタンクリック')
+                      // 退出ボタンクリック時の処理（未実装）
+                    }
+                  }}
+                  className={`flex-1 px-3 py-1.5 text-xs border-none rounded cursor-pointer transition-colors ${
+                    column5Html 
+                      ? 'bg-green-600 text-white hover:bg-green-700' 
+                      : 'bg-gray-400 text-white hover:bg-gray-500'
+                  }`}
+                  title={column5Html ? "退出処理（入室情報あり）" : "退出ボタン"}
+                >
+                  退出
+                </button>
+              </div>
+            </>
+          )}
           <div className="mb-3">
             <label className="text-xs font-bold text-gray-700 block mb-1">メモ:</label>
             <textarea

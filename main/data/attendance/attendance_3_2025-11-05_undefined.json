@@ -1,7 +1,7 @@
 {
   "facilityId": "3",
   "dateStr": "2025-11-05",
-  "extractedAt": "2025-11-05T09:01:40.306Z",
+  "extractedAt": "2025-11-05T09:21:54.535Z",
   "extractedData": [
     {
       "rowIndex": 1,
@@ -10,8 +10,8 @@
       "column1Html": "<a href=\"profile_children.php?mode=profile&amp;id=617\" class=\"tdn\">\n                                            <div class=\"nameBox\">\n                                                <span class=\"furigana\">うねおか　そうたろう</span>\n                                                <p>采岡　奏多朗\n                                                    さん</p>\n                                            </div>\n                                        </a>\n                                                                                                                                                                                                                                                    <span class=\"icon male\"><i class=\"fa fa-male\"></i></span>",
       "column5": "16:05",
       "column5Html": "<b><span class=\"green\">\n                                                                                                                                    16:05</span></b>",
-      "column6": "退室",
-      "column6Html": "<button class=\"btn btn-sm \" onclick=\"sendLeaveMail(26650,0,617,3,4,0);\">退室</button>"
+      "column6": "18:02",
+      "column6Html": "<b><span class=\"green\">18:02</span></b>"
     },
     {
       "rowIndex": 2,
