@@ -2,6 +2,7 @@
 // hugActions.jsの機能をReact hooksに移行
 
 import { useEffect, useCallback, useRef } from 'react'
+import { useDispatch } from 'react-redux'
 import { useAppState } from '../contexts/AppStateContext.jsx'
 import { useToast } from '../contexts/ToastContext.jsx'
 import { getActiveWebview } from '../utils/webviewState.js'
@@ -9,11 +10,13 @@ import { getActiveWebview } from '../utils/webviewState.js'
 import { loadAllReload } from '../utils/reloadSettings.js'
 import { updateButtonVisibility } from '../utils/buttonVisibility.js'
 import { useCustomButtonManager } from './useCustomButtonManager.js'
+import { fetchAttendanceTable } from '../store/slices/attendanceSlice.js'
 
 export function useHugActions() {
   const { appState, updateAppState } = useAppState()
   const { showSuccessToast, showErrorToast } = useToast()
   const { reloadCustomButtons } = useCustomButtonManager()
+  const dispatch = useDispatch()
   const initializedRef = useRef(false)
 
   // 更新ボタン
@@ -227,35 +230,38 @@ export function useHugActions() {
 
       console.log("📊 [ATTENDANCE] 出勤データ取得開始:", { facility_id, date_str })
 
-      // 出勤データを取得
-      const { fetchAttendanceTableData } = await import("../utils/attendanceTable.js")
-      const result = await fetchAttendanceTableData(facility_id, date_str, {
-        showToast: true
-      })
+      // Reduxの非同期アクションを実行
+      const result = await dispatch(fetchAttendanceTable({
+        facility_id,
+        date_str,
+        options: { showToast: true }
+      }))
 
-      if (result.success) {
+      if (fetchAttendanceTable.fulfilled.match(result)) {
+        const tableData = result.payload
         // 成功時
         resultEl.className = "attendance-result success"
         resultEl.innerHTML = `
           <div style="font-weight: bold; margin-bottom: 8px;">✅ データ取得完了</div>
           <div style="margin-bottom: 4px;">施設ID: ${facility_id}</div>
           <div style="margin-bottom: 4px;">日付: ${date_str}</div>
-          <div style="margin-bottom: 4px;">テーブル行数: ${result.rowCount}</div>
-          <div style="margin-bottom: 4px;">ページタイトル: ${result.pageTitle || "N/A"}</div>
+          <div style="margin-bottom: 4px;">テーブル行数: ${tableData.rowCount}</div>
+          <div style="margin-bottom: 4px;">ページタイトル: ${tableData.pageTitle || "N/A"}</div>
           <details style="margin-top: 8px;">
             <summary style="cursor: pointer; font-weight: bold;">テーブルHTML（クリックで展開）</summary>
-            <pre style="margin-top: 8px; padding: 8px; background: #f8f9fa; border-radius: 4px; overflow-x: auto; font-size: 10px; max-height: 300px; overflow-y: auto;">${escapeHtml(result.html)}</pre>
+            <pre style="margin-top: 8px; padding: 8px; background: #f8f9fa; border-radius: 4px; overflow-x: auto; font-size: 10px; max-height: 300px; overflow-y: auto;">${escapeHtml(tableData.html)}</pre>
           </details>
         `
-        console.log("✅ [ATTENDANCE] 出勤データ取得成功:", result)
+        console.log("✅ [ATTENDANCE] 出勤データ取得成功:", tableData)
       } else {
         // 失敗時
+        const error = result.payload || result.error || '不明なエラー'
         resultEl.className = "attendance-result error"
         resultEl.innerHTML = `
           <div style="font-weight: bold; margin-bottom: 8px;">❌ データ取得失敗</div>
-          <div>エラー: ${escapeHtml(result.error || "不明なエラー")}</div>
+          <div>エラー: ${escapeHtml(error)}</div>
         `
-        console.error("❌ [ATTENDANCE] 出勤データ取得失敗:", result.error)
+        console.error("❌ [ATTENDANCE] 出勤データ取得失敗:", error)
       }
 
     } catch (error) {
@@ -275,7 +281,7 @@ export function useHugActions() {
         button.textContent = "📊 出勤データ取得"
       }
     }
-  }, [appState.FACILITY_ID, appState.DATE_STR])
+  }, [appState.FACILITY_ID, appState.DATE_STR, dispatch])
 
   /**
    * HTMLエスケープ関数

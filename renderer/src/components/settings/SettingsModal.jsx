@@ -84,7 +84,8 @@ function SettingsModal({ isOpen, onClose }) {
       onClick={handleBackdropClick}
     >
       <div 
-        className="bg-white m-[2%] mx-auto rounded-xl w-[90%] max-w-[800px] max-h-[90vh] overflow-hidden shadow-2xl animate-modal-slide-in" 
+        className="settings-modal-container bg-white m-[2%] mx-auto rounded-xl w-[90%] max-w-[800px] max-h-[90vh] overflow-hidden shadow-2xl animate-modal-slide-in" 
+        style={{ colorScheme: 'light' }}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="bg-gradient-to-r from-[#667eea] to-[#764ba2] text-white p-5 flex justify-between items-center">
@@ -97,7 +98,7 @@ function SettingsModal({ isOpen, onClose }) {
           </span>
         </div>
         
-        <div className="p-5 max-h-[60vh] overflow-y-auto">
+        <div className="p-5 max-h-[60vh] overflow-y-auto text-gray-900">
           <div className="flex border-b-2 border-gray-200 mb-5">
             {TABS.map(tab => (
               <button

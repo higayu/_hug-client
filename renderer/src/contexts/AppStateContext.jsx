@@ -1,20 +1,70 @@
 // src/contexts/AppStateContext.jsx
-import { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react'
-import { DEFAULT_APP_STATE } from '../utils/constants.js'
-import { getDateString, getTodayWeekday } from '../utils/dateUtils.js'
+import { createContext, useContext, useCallback, useEffect } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
 import { loadConfig as loadConfigFromUtils } from '../utils/configUtils.js'
+import {
+  setHugUsername,
+  setHugPassword,
+  setFacilityId,
+  setStaffId,
+  setDateStr,
+  setWeekDay,
+  setSelectedChild,
+  setSelectedPcName,
+  setChildrenData as setChildrenDataRedux,
+  setWaitingChildrenData,
+  setExperienceChildrenData,
+  setCloseButtonsVisible,
+  setStaffData,
+  setFacilityData,
+  setStaffAndFacilityData,
+  setAttendanceData as setAttendanceDataRedux,
+  updateAppState as updateAppStateRedux,
+  selectHugUsername,
+  selectHugPassword,
+  selectStaffId,
+  selectFacilityId,
+  selectDateStr,
+  selectWeekDay,
+  selectSelectedChild,
+  selectSelectedChildName,
+  selectSelectedPcName,
+  selectChildrenData,
+  selectWaitingChildrenData,
+  selectExperienceChildrenData,
+  selectCloseButtonsVisible,
+  selectStaffData,
+  selectFacilityData,
+  selectStaffAndFacilityData,
+  selectAttendanceData,
+  selectAppState
+} from '../store/slices/appStateSlice.js'
 
 const AppStateContext = createContext(null)
 
 export function AppStateProvider({ children }) {
-  const [appState, setAppState] = useState(() => {
-    // 初期状態を設定
-    const initialState = { ...DEFAULT_APP_STATE }
-    // 日付と曜日を自動設定
-    initialState.DATE_STR = getDateString()
-    initialState.WEEK_DAY = getTodayWeekday()
-    return initialState
-  })
+  // Redux hooks - すべての状態をReduxから取得
+  const dispatch = useDispatch()
+  const appStateRedux = useSelector(selectAppState)
+  
+  // 個別のセレクター（後方互換性のため）
+  const reduxHugUsername = useSelector(selectHugUsername)
+  const reduxHugPassword = useSelector(selectHugPassword)
+  const reduxStaffId = useSelector(selectStaffId)
+  const reduxFacilityId = useSelector(selectFacilityId)
+  const reduxDateStr = useSelector(selectDateStr)
+  const reduxWeekDay = useSelector(selectWeekDay)
+  const reduxSelectedChild = useSelector(selectSelectedChild)
+  const reduxSelectedChildName = useSelector(selectSelectedChildName)
+  const reduxSelectedPcName = useSelector(selectSelectedPcName)
+  const reduxChildrenData = useSelector(selectChildrenData)
+  const reduxWaitingChildrenData = useSelector(selectWaitingChildrenData)
+  const reduxExperienceChildrenData = useSelector(selectExperienceChildrenData)
+  const reduxCloseButtonsVisible = useSelector(selectCloseButtonsVisible)
+  const reduxStaffData = useSelector(selectStaffData)
+  const reduxFacilityData = useSelector(selectFacilityData)
+  const reduxStaffAndFacilityData = useSelector(selectStaffAndFacilityData)
+  const reduxAttendanceData = useSelector(selectAttendanceData)
 
   // config.jsonを読み込む
   useEffect(() => {
@@ -22,8 +72,9 @@ export function AppStateProvider({ children }) {
       try {
         const configData = await loadConfigFromUtils()
         if (configData) {
-          // React Contextの状態を更新
-          setAppState(prev => ({ ...prev, ...configData }))
+          // すべてのフィールドをReduxに更新
+          dispatch(updateAppStateRedux(configData))
+          
           // window.AppStateも更新（後方互換性のため）
           if (window.AppState) {
             Object.assign(window.AppState, configData)
@@ -34,54 +85,58 @@ export function AppStateProvider({ children }) {
       }
     }
     loadInitialConfig()
-  }, [])
+  }, [dispatch])
 
-  // 状態を更新する関数
+  // Reduxの状態をwindow.AppStateに同期
+  useEffect(() => {
+    if (window.AppState) {
+      Object.assign(window.AppState, appStateRedux)
+    }
+  }, [appStateRedux])
+
+  // 状態を更新する関数（すべてReduxで管理）
   const updateAppState = useCallback((updates) => {
-    setAppState(prev => {
-      const newState = { ...prev, ...updates }
-      // window.AppStateも更新（後方互換性のため）
-      if (window.AppState) {
-        Object.assign(window.AppState, newState)
-      }
-      return newState
-    })
-  }, [])
+    dispatch(updateAppStateRedux(updates))
+    // window.AppStateも更新（後方互換性のため）
+    if (window.AppState) {
+      Object.assign(window.AppState, updates)
+    }
+  }, [dispatch])
 
-  // 個別の更新関数（useEffectより前に定義する必要がある）
+  // 個別の更新関数（Reduxアクションを使用）
   const setDate = useCallback((date) => {
-    updateAppState({ DATE_STR: date })
-  }, [updateAppState])
+    dispatch(setDateStr(date))
+  }, [dispatch])
 
   const setWeekday = useCallback((weekday) => {
-    updateAppState({ WEEK_DAY: weekday })
-  }, [updateAppState])
+    dispatch(setWeekDay(weekday))
+  }, [dispatch])
 
-  const setSelectedChild = useCallback((childId, childName) => {
-    updateAppState({ SELECT_CHILD: childId, SELECT_CHILD_NAME: childName })
-  }, [updateAppState])
+  const setSelectedChildCallback = useCallback((childId, childName) => {
+    dispatch(setSelectedChild({ childId, childName }))
+  }, [dispatch])
 
   const setChildrenData = useCallback((data) => {
-    updateAppState({ childrenData: data })
-  }, [updateAppState])
+    dispatch(setChildrenDataRedux(data))
+  }, [dispatch])
 
-  const setSelectedPcName = useCallback((pcName) => {
-    updateAppState({ SELECT_PC_NAME: pcName })
-  }, [updateAppState])
+  const setSelectedPcNameCallback = useCallback((pcName) => {
+    dispatch(setSelectedPcName(pcName))
+  }, [dispatch])
 
   const setAttendanceData = useCallback((data) => {
-    updateAppState({ attendanceData: data })
-  }, [updateAppState])
+    dispatch(setAttendanceDataRedux(data))
+  }, [dispatch])
 
   // グローバルAPIとして登録（modules側からの使用のため）
   useEffect(() => {
-    // window.AppStateとして状態を公開
-    window.AppState = appState
+    // window.AppStateとして状態を公開（Reduxから取得）
+    window.AppState = { ...appStateRedux }
     
     window.updateAppState = updateAppState
-    window.setSelectedChild = setSelectedChild
+    window.setSelectedChild = setSelectedChildCallback
     window.setChildrenData = setChildrenData
-    window.setSelectedPcName = setSelectedPcName
+    window.setSelectedPcName = setSelectedPcNameCallback
     window.setAttendanceData = setAttendanceData
     
     return () => {
@@ -92,31 +147,44 @@ export function AppStateProvider({ children }) {
       delete window.setSelectedPcName
       delete window.setAttendanceData
     }
-  }, [appState, updateAppState, setSelectedChild, setChildrenData, setSelectedPcName, setAttendanceData])
+  }, [
+    appStateRedux,
+    updateAppState,
+    setSelectedChildCallback,
+    setChildrenData,
+    setSelectedPcNameCallback,
+    setAttendanceData
+  ])
 
   return (
     <AppStateContext.Provider
       value={{
-        appState,
+        appState: appStateRedux,
         updateAppState,
         setDate,
         setWeekday,
-        setSelectedChild,
+        setSelectedChild: setSelectedChildCallback,
         setChildrenData,
-        setSelectedPcName,
+        setSelectedPcName: setSelectedPcNameCallback,
         setAttendanceData,
-        // 便利なアクセサー
-        DATE_STR: appState.DATE_STR,
-        WEEK_DAY: appState.WEEK_DAY,
-        SELECT_CHILD: appState.SELECT_CHILD,
-        SELECT_CHILD_NAME: appState.SELECT_CHILD_NAME,
-        SELECT_PC_NAME: appState.SELECT_PC_NAME,
-        childrenData: appState.childrenData,
-        waiting_childrenData: appState.waiting_childrenData,
-        Experience_childrenData: appState.Experience_childrenData,
-        attendanceData: appState.attendanceData,
-        STAFF_ID: appState.STAFF_ID,
-        FACILITY_ID: appState.FACILITY_ID
+        // 便利なアクセサー（Reduxから取得）
+        HUG_USERNAME: reduxHugUsername,
+        HUG_PASSWORD: reduxHugPassword,
+        STAFF_ID: reduxStaffId,
+        FACILITY_ID: reduxFacilityId,
+        DATE_STR: reduxDateStr,
+        WEEK_DAY: reduxWeekDay,
+        SELECT_CHILD: reduxSelectedChild,
+        SELECT_CHILD_NAME: reduxSelectedChildName,
+        SELECT_PC_NAME: reduxSelectedPcName,
+        childrenData: reduxChildrenData,
+        waiting_childrenData: reduxWaitingChildrenData,
+        Experience_childrenData: reduxExperienceChildrenData,
+        closeButtonsVisible: reduxCloseButtonsVisible,
+        STAFF_DATA: reduxStaffData,
+        FACILITY_DATA: reduxFacilityData,
+        STAFF_AND_FACILITY_DATA: reduxStaffAndFacilityData,
+        attendanceData: reduxAttendanceData
       }}
     >
       {children}

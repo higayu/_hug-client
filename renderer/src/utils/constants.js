@@ -244,30 +244,6 @@ export const FEATURES = {
 };
 
 // ==========================
-// 📊 データ構造のデフォルト
-// ==========================
-export const DEFAULT_APP_STATE = {
-  HUG_USERNAME: "",
-  HUG_PASSWORD: "",
-  STAFF_ID: "",
-  FACILITY_ID: "",
-  DATE_STR: "",
-  WEEK_DAY: "",
-  SELECT_CHILD: "",
-  SELECT_CHILD_NAME: "",
-  SELECT_PC_NAME: "",
-  childrenData: [],
-  waiting_childrenData: [],
-  Experience_childrenData: [],
-  closeButtonsVisible: true,
-  STAFF_DATA: [],
-  FACILITY_DATA: [],
-  STAFF_AND_FACILITY_DATA: [],
-  // 出勤データ一覧（児童対応一覧データ）
-  attendanceData: []
-};
-
-// ==========================
 // 🎨 スタイル設定
 // ==========================
 export const STYLES = {

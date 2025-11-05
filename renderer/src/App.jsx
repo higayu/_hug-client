@@ -5,6 +5,8 @@ import {
 } from './utils/attendanceTable.js'
 import { usePreloadPath } from './hooks/usePreloadPath.js'
 import { useAppInitialization } from './hooks/useAppInitialization.js'
+import { Provider } from 'react-redux'
+import { store } from './store/store.js'
 import { ToastProvider } from './contexts/ToastContext.jsx'
 import { AppStateProvider } from './contexts/AppStateContext.jsx'
 import { IniStateProvider } from './contexts/IniStateContext.jsx'
@@ -38,15 +40,17 @@ function App() {
   const preloadPath = usePreloadPath()
 
   return (
-    <AppStateProvider>
-      <IniStateProvider>
-        <CustomButtonsProvider>
-          <ToastProvider>
-            <AppContent preloadPath={preloadPath} />
-          </ToastProvider>
-        </CustomButtonsProvider>
-      </IniStateProvider>
-    </AppStateProvider>
+    <Provider store={store}>
+      <AppStateProvider>
+        <IniStateProvider>
+          <CustomButtonsProvider>
+            <ToastProvider>
+              <AppContent preloadPath={preloadPath} />
+            </ToastProvider>
+          </CustomButtonsProvider>
+        </IniStateProvider>
+      </AppStateProvider>
+    </Provider>
   )
 }
 

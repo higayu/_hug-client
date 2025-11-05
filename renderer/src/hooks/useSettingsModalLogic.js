@@ -275,7 +275,7 @@ export function useSettingsModalLogic(isOpen) {
       }
 
       // ファイルに保存
-      const success = await saveConfig()
+      const success = await saveConfig(configData)
       if (success) {
         showSuccessToast('✅ Config.jsonの保存が完了しました')
         return true

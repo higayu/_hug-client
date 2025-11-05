@@ -50,6 +50,12 @@ function handleConfigAccess(ipcMain) {
 
   ipcMain.handle("save-config", async (event, data) => {
     try {
+      // データのバリデーション
+      if (!data || typeof data !== 'object') {
+        console.error("❌ config.json保存失敗: データが無効です", data);
+        return { success: false, error: "データが無効です。dataはオブジェクトである必要があります。" };
+      }
+      
       const filePath = resolveConfigPath();
       
       // ディレクトリが存在しない場合は作成

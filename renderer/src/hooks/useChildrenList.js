@@ -2,14 +2,16 @@
 // 子どもリスト管理のフック
 
 import { useEffect, useState, useCallback } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
 import { useAppState } from '../contexts/AppStateContext.jsx'
 import { ELEMENT_IDS, MESSAGES, EVENTS } from '../utils/constants.js'
-import { fetchAttendanceTableData, extractColumnData } from '../utils/attendanceTable.js'
+import { fetchAndExtractAttendanceData } from '../store/slices/attendanceSlice.js'
+import { selectExtractedData, selectAttendanceError } from '../store/slices/attendanceSlice.js'
 
 /**
- * 児童の出勤データを取得
+ * 児童の出勤データを取得（Redux版）
  */
-async function handleFetchAttendanceForChild(appState, updateAppState) {
+async function handleFetchAttendanceForChild(appState, updateAppState, dispatch) {
   try {
     console.log(`📊 [ATTENDANCE] 出勤データ取得開始`)
     
@@ -25,81 +27,78 @@ async function handleFetchAttendanceForChild(appState, updateAppState) {
       return
     }
 
-    const result = await fetchAttendanceTableData(facility_id, date_str, {
-      showToast: false
-    })
+    // Reduxの非同期アクションを実行
+    const result = await dispatch(fetchAndExtractAttendanceData({
+      facility_id,
+      date_str,
+      options: { showToast: false }
+    }))
 
-    if (result.success) {
+    if (fetchAndExtractAttendanceData.fulfilled.match(result)) {
+      const { tableData, extractedData } = result.payload
+      
       console.log("✅ [ATTENDANCE] 出勤データ取得成功")
       console.log("📊 [ATTENDANCE] 取得結果:", {
         施設ID: facility_id,
         日付: date_str,
-        テーブル行数: result.rowCount,
-        ページタイトル: result.pageTitle,
-        ページURL: result.pageUrl,
-        テーブルクラス: result.className
+        テーブル行数: tableData.rowCount,
+        ページタイトル: tableData.pageTitle,
+        ページURL: tableData.pageUrl,
+        テーブルクラス: tableData.className
       })
       
-      // テーブルから1列目と5列目を抽出
-      if (result.html) {
-        console.log("📋 [ATTENDANCE] 列データ抽出開始...")
-        const extractedResult = await extractColumnData(result.html)
+      if (extractedData) {
+        console.log("✅ [ATTENDANCE] 列データ抽出成功:", {
+          抽出行数: extractedData.rowCount,
+          サンプルデータ: extractedData.data.slice(0, 3)
+        })
         
-        if (extractedResult.success) {
-          console.log("✅ [ATTENDANCE] 列データ抽出成功:", {
-            抽出行数: extractedResult.rowCount,
-            サンプルデータ: extractedResult.data.slice(0, 3)
-          })
-          
-          // グローバル変数として保存（window.AppStateとAppStateContext）
-          const attendanceData = {
-            facilityId: facility_id,
-            dateStr: date_str,
-            extractedAt: new Date().toISOString(),
-            rowCount: extractedResult.rowCount,
-            data: extractedResult.data
-          }
-          
-          // AppStateContextに保存
-          updateAppState({ attendanceData: attendanceData })
-          
-          // window.AppStateにも保存（後方互換性のため）
-          if (window.AppState) {
-            window.AppState.attendanceData = attendanceData
-          }
-          
-          console.log("✅ [ATTENDANCE] グローバル変数に保存完了:", {
-            facilityId: facility_id,
-            dateStr: date_str,
-            rowCount: extractedResult.rowCount
-          })
-          
-          // ファイルにも保存
-          try {
-            const saveResult = await window.electronAPI.saveAttendanceColumnData({
-              facilityId: facility_id,
-              dateStr: date_str,
-              extractedData: extractedResult.data
-            })
-            
-            if (saveResult && saveResult.success) {
-              console.log("✅ [ATTENDANCE] 列データファイル保存成功", saveResult.filePath)
-            } else {
-              console.error("❌ [ATTENDANCE] 列データファイル保存失敗:", saveResult?.error)
-            }
-          } catch (saveError) {
-            console.error("❌ [ATTENDANCE] 列データファイル保存エラー:", saveError)
-          }
-        } else {
-          console.error("❌ [ATTENDANCE] 列データ抽出失敗:", extractedResult.error)
+        // グローバル変数として保存（window.AppStateとAppStateContext）- 後方互換性のため
+        const attendanceData = {
+          facilityId: facility_id,
+          dateStr: date_str,
+          extractedAt: new Date().toISOString(),
+          rowCount: extractedData.rowCount,
+          data: extractedData.data
         }
+        
+        // AppStateContextに保存（後方互換性のため）
+        updateAppState({ attendanceData: attendanceData })
+        
+        // window.AppStateにも保存（後方互換性のため）
+        if (window.AppState) {
+          window.AppState.attendanceData = attendanceData
+        }
+        
+        console.log("✅ [ATTENDANCE] グローバル変数に保存完了:", {
+          facilityId: facility_id,
+          dateStr: date_str,
+          rowCount: extractedData.rowCount
+        })
+        
+        // ファイルにも保存
+        try {
+          const saveResult = await window.electronAPI.saveAttendanceColumnData({
+            facilityId: facility_id,
+            dateStr: date_str,
+            extractedData: extractedData.data
+          })
+          
+          if (saveResult && saveResult.success) {
+            console.log("✅ [ATTENDANCE] 列データファイル保存成功", saveResult.filePath)
+          } else {
+            console.error("❌ [ATTENDANCE] 列データファイル保存失敗:", saveResult?.error)
+          }
+        } catch (saveError) {
+          console.error("❌ [ATTENDANCE] 列データファイル保存エラー:", saveError)
+        }
+      } else {
+        console.warn("⚠️ [ATTENDANCE] 列データ抽出がスキップされました")
       }
     } else {
+      const error = result.payload || result.error || '予期しないエラー'
       console.error("❌ [ATTENDANCE] 出勤データ取得失敗")
-      console.error("❌ [ATTENDANCE] エラー:", result.error)
-      if (result.debugInfo) {
-        console.error("❌ [ATTENDANCE] デバッグ情報:", result.debugInfo)
-      }
+      console.error("❌ [ATTENDANCE] エラー:", error)
     }
   } catch (error) {
     console.error("❌ [ATTENDANCE] 出勤データ取得エラー:", error)
@@ -176,6 +175,9 @@ async function loadTempNote(childId, enterTimeInput, exitTimeInput, memoTextarea
  */
 export function useChildrenList() {
   const { appState, setSelectedChild, setSelectedPcName, setChildrenData, updateAppState, SELECT_CHILD } = useAppState()
+  const dispatch = useDispatch()
+  const extractedData = useSelector(selectExtractedData)
+  const attendanceError = useSelector(selectAttendanceError)
   const [childrenData, setLocalChildrenData] = useState([])
   const [waitingChildrenData, setWaitingChildrenData] = useState([])
   const [experienceChildrenData, setExperienceChildrenData] = useState([])
@@ -269,15 +271,18 @@ export function useChildrenList() {
     experienceChildrenData: experienceChildrenData,
     loadChildren,
     handleFetchAttendanceForChild: useCallback(() => {
-      handleFetchAttendanceForChild(appState, updateAppState)
-    }, [appState, updateAppState]),
+      handleFetchAttendanceForChild(appState, updateAppState, dispatch)
+    }, [appState, updateAppState, dispatch]),
     saveTempNote: useCallback(async (childId, enterTime, exitTime, memo) => {
       await saveTempNote(childId, enterTime, exitTime, memo, appState)
     }, [appState]),
     loadTempNote: useCallback((childId, enterTimeInput, exitTimeInput, memoTextarea) => {
       loadTempNote(childId, enterTimeInput, exitTimeInput, memoTextarea, appState)
     }, [appState]),
-    SELECT_CHILD: appState.SELECT_CHILD
+    SELECT_CHILD: appState.SELECT_CHILD,
+    // Reduxから取得したデータも公開
+    extractedData,
+    attendanceError
   }
 }
 
