@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useAppState } from '../../contexts/AppStateContext.jsx'
 import { useChildrenList } from '../../hooks/useChildrenList.js'
 import { MESSAGES } from '../../utils/constants.js'
+import { clickEnterButton, clickAbsenceButton } from '../../utils/attendanceButtonClick.js'
 
 function ChildMemoPanel() {
   const { SELECT_CHILD, SELECT_CHILD_NAME, attendanceData } = useAppState()
@@ -41,6 +42,13 @@ function ChildMemoPanel() {
     if (!value) return false
     const timePattern = /^\d{2}:\d{2}$/
     return timePattern.test(value)
+  }
+
+  // column5が"入室"と"欠席"の両方を含む複合値かどうかをチェック
+  const hasBothEnterAndAbsent = (value) => {
+    if (!value) return false
+    const normalizedValue = value.replace(/\s+/g, ' ') // 改行や複数の空白を1つの空白に統一
+    return normalizedValue.includes('入室') && normalizedValue.includes('欠席')
   }
 
   // 選択された要素のデータを取得
@@ -118,28 +126,75 @@ function ChildMemoPanel() {
             <div className="flex items-center gap-2 mb-3">
               <label className="text-xs font-bold text-red-600">欠席</label>
             </div>
+          ) : hasBothEnterAndAbsent(column5) ? (
+            <>
+              {/* 入室と欠席の両方を含む場合 - 入室ボタンと欠席ボタンを表示 */}
+              <div className="flex items-center gap-2 mb-3">
+                <label className="text-xs font-bold text-gray-700 w-12">入室:</label>
+                <button
+                  onClick={async (e) => {
+                    e.stopPropagation()
+                    if (column5Html) {
+                      await clickEnterButton(column5Html)
+                    } else {
+                      console.log('入室ボタンクリック（column5Htmlなし）')
+                    }
+                  }}
+                  className={`flex-1 px-3 py-1.5 text-xs border-none rounded cursor-pointer transition-colors ${
+                    column5Html 
+                      ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                      : 'bg-gray-400 text-white hover:bg-gray-500'
+                  }`}
+                  title={column5Html ? "入室情報あり" : "入室ボタン"}
+                >
+                  {column5Html ? (
+                    <span dangerouslySetInnerHTML={{ __html: column5Html }} />
+                  ) : (
+                    '入室'
+                  )}
+                </button>
+              </div>
+              
+              <div className="flex items-center gap-2 mb-3">
+                <label className="text-xs font-bold text-gray-700 w-12">欠席:</label>
+                <button
+                  onClick={async (e) => {
+                    e.stopPropagation()
+                    if (column5Html) {
+                      await clickAbsenceButton(column5Html)
+                    } else {
+                      console.log('欠席ボタンクリック（column5Htmlなし）')
+                    }
+                  }}
+                  className="flex-1 px-3 py-1.5 text-xs border-none rounded cursor-pointer transition-colors bg-red-600 text-white hover:bg-red-700"
+                  title="欠席ボタン"
+                >
+                  欠席
+                </button>
+              </div>
+            </>
           ) : isTimeFormat(column5) ? (
             <>
-              {/* 時間形式の場合 - 入室時間をラベルで表示 */}
+              {/* 時間形式の場合 - 入室時間をラベルで表示、退室ボタンを表示 */}
               <div className="flex items-center gap-2 mb-3">
                 <label className="text-xs font-bold text-gray-700 w-12">入室:</label>
                 <label className="text-xs font-bold text-gray-700">{column5}</label>
               </div>
               
-              {/* 退出ボタン - column5Htmlの値によって機能が変わる */}
+              {/* 退室ボタン - 入室済みの場合のみ表示 */}
               <div className="flex items-center gap-2 mb-3">
-                <label className="text-xs font-bold text-gray-700 w-12">退出:</label>
+                <label className="text-xs font-bold text-gray-700 w-12">退室:</label>
                 <button
                   onClick={(e) => {
                     e.stopPropagation()
                     // TODO: column5Htmlの値に応じた機能を実装
                     // column5Htmlがある場合とない場合で異なる処理を行う
                     if (column5Html) {
-                      console.log('退出処理（入室情報あり）:', column5Html)
-                      // 入室情報がある場合の退出処理（未実装）
+                      console.log('退室処理（入室情報あり）:', column5Html)
+                      // 入室情報がある場合の退室処理（未実装）
                     } else {
-                      console.log('退出ボタンクリック')
-                      // 退出ボタンクリック時の処理（未実装）
+                      console.log('退室ボタンクリック')
+                      // 退室ボタンクリック時の処理（未実装）
                     }
                   }}
                   className={`flex-1 px-3 py-1.5 text-xs border-none rounded cursor-pointer transition-colors ${
@@ -147,9 +202,9 @@ function ChildMemoPanel() {
                       ? 'bg-green-600 text-white hover:bg-green-700' 
                       : 'bg-gray-400 text-white hover:bg-gray-500'
                   }`}
-                  title={column5Html ? "退出処理（入室情報あり）" : "退出ボタン"}
+                  title={column5Html ? "退室処理（入室情報あり）" : "退室ボタン"}
                 >
-                  退出
+                  退室
                 </button>
               </div>
             </>
@@ -159,16 +214,12 @@ function ChildMemoPanel() {
               <div className="flex items-center gap-2 mb-3">
                 <label className="text-xs font-bold text-gray-700 w-12">入室:</label>
                 <button
-                  onClick={(e) => {
+                  onClick={async (e) => {
                     e.stopPropagation()
-                    // TODO: column5Htmlの値に応じた機能を実装
-                    // column5Htmlがある場合とない場合で異なる処理を行う
                     if (column5Html) {
-                      console.log('入室情報あり:', column5Html)
-                      // 入室情報がある場合の処理（未実装）
+                      await clickEnterButton(column5Html)
                     } else {
-                      console.log('入室ボタンクリック')
-                      // 入室ボタンクリック時の処理（未実装）
+                      console.log('入室ボタンクリック（column5Htmlなし）')
                     }
                   }}
                   className={`flex-1 px-3 py-1.5 text-xs border-none rounded cursor-pointer transition-colors ${

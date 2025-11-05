@@ -1,7 +1,7 @@
 {
   "facilityId": "3",
   "dateStr": "2025-11-05",
-  "extractedAt": "2025-11-05T09:21:54.535Z",
+  "extractedAt": "2025-11-05T10:03:21.545Z",
   "extractedData": [
     {
       "rowIndex": 1,
@@ -28,8 +28,8 @@
       "column1Html": "<a href=\"profile_children.php?mode=profile&amp;id=88\" class=\"tdn\">\n                                            <div class=\"nameBox\">\n                                                <span class=\"furigana\">おかもり　ゆうだい</span>\n                                                <p>岡森　雄大\n                                                    さん</p>\n                                            </div>\n                                        </a>\n                                                                                                                                                                                                                                                    <span class=\"icon male\"><i class=\"fa fa-male\"></i></span>",
       "column5": "16:54",
       "column5Html": "<b><span class=\"green\">\n                                                                                                                                    16:54</span></b>",
-      "column6": "退室",
-      "column6Html": "<button class=\"btn btn-sm \" onclick=\"sendLeaveMail(26946,0,88,3,4,0);\">退室</button>"
+      "column6": "19:02",
+      "column6Html": "<b><span class=\"green\">19:02</span></b>"
     },
     {
       "rowIndex": 4,
@@ -54,8 +54,8 @@
       "column1Html": "<a href=\"profile_children.php?mode=profile&amp;id=618\" class=\"tdn\">\n                                            <div class=\"nameBox\">\n                                                <span class=\"furigana\">たかはし　こうたろう</span>\n                                                <p>高橋　孝太郎\n                                                    さん</p>\n                                            </div>\n                                        </a>\n                                                                                                                                                                                                                                                    <span class=\"icon male\"><i class=\"fa fa-male\"></i></span>",
       "column5": "16:29",
       "column5Html": "<b><span class=\"green\">\n                                                                                                                                    16:29</span></b>",
-      "column6": "退室",
-      "column6Html": "<button class=\"btn btn-sm \" onclick=\"sendLeaveMail(26379,0,618,3,4,0);\">退室</button>"
+      "column6": "18:31",
+      "column6Html": "<b><span class=\"green\">18:31</span></b>"
     },
     {
       "rowIndex": 7,
@@ -74,8 +74,8 @@
       "column1Html": "<a href=\"profile_children.php?mode=profile&amp;id=152\" class=\"tdn\">\n                                            <div class=\"nameBox\">\n                                                <span class=\"furigana\">みき　ゆきや</span>\n                                                <p>三木　幸也\n                                                    さん</p>\n                                            </div>\n                                        </a>\n                                                                                                                                                                                                                                                    <span class=\"icon male\"><i class=\"fa fa-male\"></i></span>",
       "column5": "16:54",
       "column5Html": "<b><span class=\"green\">\n                                                                                                                                    16:54</span></b>",
-      "column6": "退室",
-      "column6Html": "<button class=\"btn btn-sm \" onclick=\"sendLeaveMail(26226,0,152,3,4,0);\">退室</button>"
+      "column6": "19:01",
+      "column6Html": "<b><span class=\"green\">19:01</span></b>"
     },
     {
       "rowIndex": 9,
