@@ -19,6 +19,7 @@ import {
   setFacilityData,
   setStaffAndFacilityData,
   setAttendanceData as setAttendanceDataRedux,
+  setSelectedChildColumns,
   updateAppState as updateAppStateRedux,
   selectHugUsername,
   selectHugPassword,
@@ -29,6 +30,10 @@ import {
   selectSelectedChild,
   selectSelectedChildName,
   selectSelectedPcName,
+  selectSelectedChildColumn5,
+  selectSelectedChildColumn5Html,
+  selectSelectedChildColumn6,
+  selectSelectedChildColumn6Html,
   selectChildrenData,
   selectWaitingChildrenData,
   selectExperienceChildrenData,
@@ -57,6 +62,10 @@ export function AppStateProvider({ children }) {
   const reduxSelectedChild = useSelector(selectSelectedChild)
   const reduxSelectedChildName = useSelector(selectSelectedChildName)
   const reduxSelectedPcName = useSelector(selectSelectedPcName)
+  const reduxSelectedChildColumn5 = useSelector(selectSelectedChildColumn5)
+  const reduxSelectedChildColumn5Html = useSelector(selectSelectedChildColumn5Html)
+  const reduxSelectedChildColumn6 = useSelector(selectSelectedChildColumn6)
+  const reduxSelectedChildColumn6Html = useSelector(selectSelectedChildColumn6Html)
   const reduxChildrenData = useSelector(selectChildrenData)
   const reduxWaitingChildrenData = useSelector(selectWaitingChildrenData)
   const reduxExperienceChildrenData = useSelector(selectExperienceChildrenData)
@@ -128,6 +137,10 @@ export function AppStateProvider({ children }) {
     dispatch(setAttendanceDataRedux(data))
   }, [dispatch])
 
+  const setSelectedChildColumnsCallback = useCallback((columns) => {
+    dispatch(setSelectedChildColumns(columns))
+  }, [dispatch])
+
   // グローバルAPIとして登録（modules側からの使用のため）
   useEffect(() => {
     // window.AppStateとして状態を公開（Reduxから取得）
@@ -167,6 +180,7 @@ export function AppStateProvider({ children }) {
         setChildrenData,
         setSelectedPcName: setSelectedPcNameCallback,
         setAttendanceData,
+        setSelectedChildColumns: setSelectedChildColumnsCallback,
         // 便利なアクセサー（Reduxから取得）
         HUG_USERNAME: reduxHugUsername,
         HUG_PASSWORD: reduxHugPassword,
@@ -177,6 +191,10 @@ export function AppStateProvider({ children }) {
         SELECT_CHILD: reduxSelectedChild,
         SELECT_CHILD_NAME: reduxSelectedChildName,
         SELECT_PC_NAME: reduxSelectedPcName,
+        SELECTED_CHILD_COLUMN5: reduxSelectedChildColumn5,
+        SELECTED_CHILD_COLUMN5_HTML: reduxSelectedChildColumn5Html,
+        SELECTED_CHILD_COLUMN6: reduxSelectedChildColumn6,
+        SELECTED_CHILD_COLUMN6_HTML: reduxSelectedChildColumn6Html,
         childrenData: reduxChildrenData,
         waiting_childrenData: reduxWaitingChildrenData,
         Experience_childrenData: reduxExperienceChildrenData,

@@ -405,6 +405,23 @@ export function useTabs() {
 
       const japaneseDate = convertDateToJapanese(appState.DATE_STR)
 
+      // 時間のパース処理：SELECTED_CHILD_COLUMN5とSELECTED_CHILD_COLUMN6を分割
+      const parseTime = (timeStr) => {
+        if (!timeStr || typeof timeStr !== 'string') return { hour: null, minute: null }
+        const match = timeStr.match(/^(\d{2}):(\d{2})$/)
+        if (match) {
+          // 先頭の0を削除して数値に変換（セレクトボックスのvalueは数値）
+          return {
+            hour: parseInt(match[1], 10).toString(), // "16" -> "16", "09" -> "9"
+            minute: parseInt(match[2], 10).toString()  // "29" -> "29", "05" -> "5"
+          }
+        }
+        return { hour: null, minute: null }
+      }
+
+      const startTime = parseTime(appState.SELECTED_CHILD_COLUMN5)
+      const endTime = parseTime(appState.SELECTED_CHILD_COLUMN6)
+
       newWebview.executeJavaScript(`
         // 専門的支援実施加算
         const selectSupport = document.querySelector('select[name="adding_children_id"]');
@@ -462,12 +479,53 @@ export function useTabs() {
         } else {
           console.warn("⚠️ 日付入力欄（interview_date または dp1）が見つかりません");
         }
+
+        // 時間入力（SELECTED_CHILD_COLUMN5とSELECTED_CHILD_COLUMN6から自動入力）
+        ${startTime.hour !== null ? `
+        const startHourSelect = document.querySelector('select[name="start_hour"]#start_hour');
+        if (startHourSelect && startHourSelect.querySelector('option[value="${startTime.hour}"]')) {
+          startHourSelect.value = "${startTime.hour}";
+          startHourSelect.dispatchEvent(new Event("change", { bubbles: true }));
+          console.log("✅ 開始時間（時）を設定:", startHourSelect.value);
+        } else {
+          console.warn("⚠️ start_hour セレクトボックスまたは該当するオプションが見つかりません");
+        }
+
+        const startTimeSelect = document.querySelector('select[name="start_time"]#start_time');
+        if (startTimeSelect && startTimeSelect.querySelector('option[value="${startTime.minute}"]')) {
+          startTimeSelect.value = "${startTime.minute}";
+          startTimeSelect.dispatchEvent(new Event("change", { bubbles: true }));
+          console.log("✅ 開始時間（分）を設定:", startTimeSelect.value);
+        } else {
+          console.warn("⚠️ start_time セレクトボックスまたは該当するオプションが見つかりません");
+        }
+        ` : '// SELECTED_CHILD_COLUMN5が設定されていません'}
+
+        ${endTime.hour !== null ? `
+        const endHourSelect = document.querySelector('select[name="end_hour"]#end_hour');
+        if (endHourSelect && endHourSelect.querySelector('option[value="${endTime.hour}"]')) {
+          endHourSelect.value = "${endTime.hour}";
+          endHourSelect.dispatchEvent(new Event("change", { bubbles: true }));
+          console.log("✅ 終了時間（時）を設定:", endHourSelect.value);
+        } else {
+          console.warn("⚠️ end_hour セレクトボックスまたは該当するオプションが見つかりません");
+        }
+
+        const endTimeSelect = document.querySelector('select[name="end_time"]#end_time');
+        if (endTimeSelect && endTimeSelect.querySelector('option[value="${endTime.minute}"]')) {
+          endTimeSelect.value = "${endTime.minute}";
+          endTimeSelect.dispatchEvent(new Event("change", { bubbles: true }));
+          console.log("✅ 終了時間（分）を設定:", endTimeSelect.value);
+        } else {
+          console.warn("⚠️ end_time セレクトボックスまたは該当するオプションが見つかりません");
+        }
+        ` : '// SELECTED_CHILD_COLUMN6が設定されていません'}
       `)
     }, { once: true })
 
     // すぐにアクティブにする
     activateTab(newId)
-  }, [appState.SELECT_CHILD, appState.SELECT_CHILD_NAME, appState.DATE_STR, appState.STAFF_ID, appState.closeButtonsVisible])
+  }, [appState.SELECT_CHILD, appState.SELECT_CHILD_NAME, appState.DATE_STR, appState.STAFF_ID, appState.SELECTED_CHILD_COLUMN5, appState.SELECTED_CHILD_COLUMN6, appState.closeButtonsVisible])
 
   // タブ切り替えイベントの設定
   useEffect(() => {

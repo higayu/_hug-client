@@ -1,7 +1,7 @@
 {
   "facilityId": "3",
   "dateStr": "2025-11-05",
-  "extractedAt": "2025-11-05T10:03:21.545Z",
+  "extractedAt": "2025-11-06T04:01:36.825Z",
   "extractedData": [
     {
       "rowIndex": 1,
@@ -84,8 +84,8 @@
       "column1Html": "<a href=\"profile_children.php?mode=profile&amp;id=168\" class=\"tdn\">\n                                            <div class=\"nameBox\">\n                                                <span class=\"furigana\">ゆもと　かい</span>\n                                                <p>湯本　改\n                                                    さん</p>\n                                            </div>\n                                        </a>\n                                                                                                                                                                                                                                                    <span class=\"icon male\"><i class=\"fa fa-male\"></i></span>",
       "column5": "17:00",
       "column5Html": "<b><span class=\"green\">\n                                                                                                                                    17:00</span></b>",
-      "column6": "退室",
-      "column6Html": "<button class=\"btn btn-sm \" onclick=\"sendLeaveMail(26947,0,168,3,4,0);\">退室</button>"
+      "column6": "19:03",
+      "column6Html": "<b><span class=\"green\">19:03</span></b>"
     }
   ]
 }

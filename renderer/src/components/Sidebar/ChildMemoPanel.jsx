@@ -4,38 +4,66 @@
 import { useEffect, useRef, useState } from 'react'
 import { useAppState } from '../../contexts/AppStateContext.jsx'
 import { useChildrenList } from '../../hooks/useChildrenList.js'
+import { useTabs } from '../../hooks/useTabs/index.js'
 import { MESSAGES } from '../../utils/constants.js'
 import { clickEnterButton, clickAbsenceButton } from '../../utils/attendanceButtonClick.js'
 
 function ChildMemoPanel() {
-  const { SELECT_CHILD, SELECT_CHILD_NAME, attendanceData } = useAppState()
+  const { 
+    SELECT_CHILD, 
+    SELECT_CHILD_NAME, 
+    attendanceData,
+    SELECTED_CHILD_COLUMN5,
+    SELECTED_CHILD_COLUMN5_HTML,
+    SELECTED_CHILD_COLUMN6,
+    SELECTED_CHILD_COLUMN6_HTML,
+    setSelectedChildColumns
+  } = useAppState()
   const { childrenData, waitingChildrenData, experienceChildrenData, saveTempNote, loadTempNote } = useChildrenList()
+  const { addProfessionalSupportNewTab } = useTabs()
   const [selectedChildData, setSelectedChildData] = useState(null)
   const notesInputsRef = useRef({})
   
-  // attendanceDataから該当するchildren_idのcolumn5Htmlを取得
-  const getColumn5Html = () => {
-    if (!SELECT_CHILD || !attendanceData || !attendanceData.data || !Array.isArray(attendanceData.data)) {
-      return null
-    }
-    const attendanceItem = attendanceData.data.find(item => 
-      item.children_id && item.children_id === String(SELECT_CHILD)
-    )
-    return attendanceItem?.column5Html || null
-  }
-
-  const getColumn5 = () => {
-    if (!SELECT_CHILD || !attendanceData || !attendanceData.data || !Array.isArray(attendanceData.data)) {
-      return null
-    }
-    const attendanceItem = attendanceData.data.find(item => 
-      item.children_id && item.children_id === String(SELECT_CHILD)
-    )
-    return attendanceItem?.column5 || null
-  }
+  // storeから値を取得（優先的に使用）
+  const column5 = SELECTED_CHILD_COLUMN5
+  const column5Html = SELECTED_CHILD_COLUMN5_HTML
+  const column6 = SELECTED_CHILD_COLUMN6
+  const column6Html = SELECTED_CHILD_COLUMN6_HTML
   
-  const column5Html = getColumn5Html()
-  const column5 = getColumn5()
+  // SELECT_CHILDまたはattendanceDataが変更されたときに、storeに値を保存
+  useEffect(() => {
+    if (!SELECT_CHILD || !attendanceData || !attendanceData.data || !Array.isArray(attendanceData.data)) {
+      // データがない場合はクリア
+      setSelectedChildColumns({
+        column5: null,
+        column5Html: null,
+        column6: null,
+        column6Html: null
+      })
+      return
+    }
+    
+    const attendanceItem = attendanceData.data.find(item => 
+      item.children_id && item.children_id === String(SELECT_CHILD)
+    )
+    
+    if (attendanceItem) {
+      setSelectedChildColumns({
+        column5: attendanceItem.column5 || null,
+        column5Html: attendanceItem.column5Html || null,
+        column6: attendanceItem.column6 || null,
+        column6Html: attendanceItem.column6Html || null
+      })
+    } else {
+      // 該当するデータがない場合はクリア
+      setSelectedChildColumns({
+        column5: null,
+        column5Html: null,
+        column6: null,
+        column6Html: null
+      })
+    }
+  }, [SELECT_CHILD, attendanceData, setSelectedChildColumns])
 
   // column5が時間形式（HH:MM）かどうかをチェック
   const isTimeFormat = (value) => {
@@ -175,38 +203,69 @@ function ChildMemoPanel() {
             </>
           ) : isTimeFormat(column5) ? (
             <>
-              {/* 時間形式の場合 - 入室時間をラベルで表示、退室ボタンを表示 */}
+              {/* 時間形式の場合 - 入室時間をラベルで表示、退室時間または退室ボタンを表示 */}
               <div className="flex items-center gap-2 mb-3">
                 <label className="text-xs font-bold text-gray-700 w-12">入室:</label>
                 <label className="text-xs font-bold text-gray-700">{column5}</label>
               </div>
               
-              {/* 退室ボタン - 入室済みの場合のみ表示 */}
+              {/* 退室時間または退室ボタン - column6が時間形式の場合はラベル、そうでない場合はボタン */}
               <div className="flex items-center gap-2 mb-3">
                 <label className="text-xs font-bold text-gray-700 w-12">退室:</label>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    // TODO: column5Htmlの値に応じた機能を実装
-                    // column5Htmlがある場合とない場合で異なる処理を行う
-                    if (column5Html) {
-                      console.log('退室処理（入室情報あり）:', column5Html)
-                      // 入室情報がある場合の退室処理（未実装）
-                    } else {
-                      console.log('退室ボタンクリック')
-                      // 退室ボタンクリック時の処理（未実装）
-                    }
-                  }}
-                  className={`flex-1 px-3 py-1.5 text-xs border-none rounded cursor-pointer transition-colors ${
-                    column5Html 
-                      ? 'bg-green-600 text-white hover:bg-green-700' 
-                      : 'bg-gray-400 text-white hover:bg-gray-500'
-                  }`}
-                  title={column5Html ? "退室処理（入室情報あり）" : "退室ボタン"}
-                >
-                  退室
-                </button>
+                {isTimeFormat(column6) ? (
+                  // column6が時間形式の場合 - 退室時間をラベルで表示
+                  <>
+                    {column6Html ? (
+                      <span 
+                        className="text-xs font-bold text-gray-700"
+                        dangerouslySetInnerHTML={{ __html: column6Html }}
+                      />
+                    ) : (
+                      <label className="text-xs font-bold text-gray-700">{column6}</label>
+                    )}
+                  </>
+                ) : (
+                  // column6が時間形式でない場合 - 退室ボタンを表示
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      // TODO: column5Htmlの値に応じた機能を実装
+                      // column5Htmlがある場合とない場合で異なる処理を行う
+                      if (column5Html) {
+                        console.log('退室処理（入室情報あり）:', column5Html)
+                        // 入室情報がある場合の退室処理（未実装）
+                      } else {
+                        console.log('退室ボタンクリック')
+                        // 退室ボタンクリック時の処理（未実装）
+                      }
+                    }}
+                    className={`flex-1 px-3 py-1.5 text-xs border-none rounded cursor-pointer transition-colors ${
+                      column5Html 
+                        ? 'bg-green-600 text-white hover:bg-green-700' 
+                        : 'bg-gray-400 text-white hover:bg-gray-500'
+                    }`}
+                    title={column5Html ? "退室処理（入室情報あり）" : "退室ボタン"}
+                  >
+                    退室
+                  </button>
+                )}
               </div>
+              
+              {/* 専門的支援計画ページへの自動入力ボタン - column5とcolumn6が両方時間形式の場合のみ表示 */}
+              {isTimeFormat(column5) && isTimeFormat(column6) && (
+                <div className="flex items-center gap-2 mb-3">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      addProfessionalSupportNewTab()
+                    }}
+                    className="flex-1 px-3 py-1.5 text-xs border-none rounded cursor-pointer transition-colors bg-purple-600 text-white hover:bg-purple-700"
+                    title="専門的支援計画ページを開いて自動入力"
+                  >
+                    専門的支援を開く
+                  </button>
+                </div>
+              )}
             </>
           ) : (
             <>

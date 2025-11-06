@@ -19,6 +19,11 @@ const initialState = {
   SELECT_CHILD: "",
   SELECT_CHILD_NAME: "",
   SELECT_PC_NAME: "",
+  // 選択中の児童の出勤データ列
+  SELECTED_CHILD_COLUMN5: null,
+  SELECTED_CHILD_COLUMN5_HTML: null,
+  SELECTED_CHILD_COLUMN6: null,
+  SELECTED_CHILD_COLUMN6_HTML: null,
   
   // 子どもデータ
   childrenData: [],
@@ -75,6 +80,11 @@ const appStateSlice = createSlice({
       const { childId, childName } = action.payload
       state.SELECT_CHILD = childId || ""
       state.SELECT_CHILD_NAME = childName || ""
+      // 児童が変更されたときは列データもクリア
+      state.SELECTED_CHILD_COLUMN5 = null
+      state.SELECTED_CHILD_COLUMN5_HTML = null
+      state.SELECTED_CHILD_COLUMN6 = null
+      state.SELECTED_CHILD_COLUMN6_HTML = null
     },
     
     // PC名を設定
@@ -114,6 +124,15 @@ const appStateSlice = createSlice({
       state.attendanceData = action.payload || []
     },
     
+    // 選択中の児童のcolumn5とcolumn6を設定
+    setSelectedChildColumns: (state, action) => {
+      const { column5, column5Html, column6, column6Html } = action.payload
+      state.SELECTED_CHILD_COLUMN5 = column5 !== undefined ? column5 : null
+      state.SELECTED_CHILD_COLUMN5_HTML = column5Html !== undefined ? column5Html : null
+      state.SELECTED_CHILD_COLUMN6 = column6 !== undefined ? column6 : null
+      state.SELECTED_CHILD_COLUMN6_HTML = column6Html !== undefined ? column6Html : null
+    },
+    
     // 複数の状態を一度に更新
     updateAppState: (state, action) => {
       const updates = action.payload
@@ -129,6 +148,11 @@ const appStateSlice = createSlice({
       if (updates.SELECT_CHILD !== undefined) state.SELECT_CHILD = updates.SELECT_CHILD
       if (updates.SELECT_CHILD_NAME !== undefined) state.SELECT_CHILD_NAME = updates.SELECT_CHILD_NAME
       if (updates.SELECT_PC_NAME !== undefined) state.SELECT_PC_NAME = updates.SELECT_PC_NAME
+      // 選択中の児童の出勤データ列
+      if (updates.SELECTED_CHILD_COLUMN5 !== undefined) state.SELECTED_CHILD_COLUMN5 = updates.SELECTED_CHILD_COLUMN5
+      if (updates.SELECTED_CHILD_COLUMN5_HTML !== undefined) state.SELECTED_CHILD_COLUMN5_HTML = updates.SELECTED_CHILD_COLUMN5_HTML
+      if (updates.SELECTED_CHILD_COLUMN6 !== undefined) state.SELECTED_CHILD_COLUMN6 = updates.SELECTED_CHILD_COLUMN6
+      if (updates.SELECTED_CHILD_COLUMN6_HTML !== undefined) state.SELECTED_CHILD_COLUMN6_HTML = updates.SELECTED_CHILD_COLUMN6_HTML
       // 子どもデータ
       if (updates.childrenData !== undefined) state.childrenData = updates.childrenData
       if (updates.waiting_childrenData !== undefined) state.waiting_childrenData = updates.waiting_childrenData
@@ -148,6 +172,10 @@ const appStateSlice = createSlice({
       state.SELECT_CHILD = ""
       state.SELECT_CHILD_NAME = ""
       state.SELECT_PC_NAME = ""
+      state.SELECTED_CHILD_COLUMN5 = null
+      state.SELECTED_CHILD_COLUMN5_HTML = null
+      state.SELECTED_CHILD_COLUMN6 = null
+      state.SELECTED_CHILD_COLUMN6_HTML = null
     },
     
     // すべての状態をリセット
@@ -173,6 +201,7 @@ export const {
   setFacilityData,
   setStaffAndFacilityData,
   setAttendanceData,
+  setSelectedChildColumns,
   updateAppState,
   clearSelection,
   resetAppState
@@ -188,6 +217,10 @@ export const selectWeekDay = (state) => state.appState.WEEK_DAY
 export const selectSelectedChild = (state) => state.appState.SELECT_CHILD
 export const selectSelectedChildName = (state) => state.appState.SELECT_CHILD_NAME
 export const selectSelectedPcName = (state) => state.appState.SELECT_PC_NAME
+export const selectSelectedChildColumn5 = (state) => state.appState.SELECTED_CHILD_COLUMN5
+export const selectSelectedChildColumn5Html = (state) => state.appState.SELECTED_CHILD_COLUMN5_HTML
+export const selectSelectedChildColumn6 = (state) => state.appState.SELECTED_CHILD_COLUMN6
+export const selectSelectedChildColumn6Html = (state) => state.appState.SELECTED_CHILD_COLUMN6_HTML
 export const selectChildrenData = (state) => state.appState.childrenData
 export const selectWaitingChildrenData = (state) => state.appState.waiting_childrenData
 export const selectExperienceChildrenData = (state) => state.appState.Experience_childrenData
