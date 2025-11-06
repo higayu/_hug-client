@@ -22,18 +22,23 @@ function ContentArea({ preloadPath }) {
     >
       <div 
         id="settings" 
-        className="settings-sidebar open w-0 bg-[#f8f8f8] border-r-0 p-0 flex-none h-full shadow-[2px_0_8px_rgba(0,0,0,0.1)] transition-all overflow-hidden z-50 flex flex-col text-black"
+        className="settings-sidebar bg-[#f8f8f8] border-r-0 p-0 flex-none h-full shadow-[2px_0_8px_rgba(0,0,0,0.1)] transition-all overflow-hidden z-10 flex flex-col text-black"
       >
         <Sidebar />
       </div>
-      <webview
-        id="hugview"
-        src="https://www.hug-ayumu.link/hug/wm/"
-        allowpopups="true"
-        disablewebsecurity="true"
-        preload={preloadPath}
-        className="flex-1 w-full h-full min-h-0 border-none relative z-[1] overflow-hidden"
-      ></webview>
+      <div 
+        id="webview-container" 
+        className="flex-1 relative min-h-0 h-full overflow-hidden"
+      >
+        <webview
+          id="hugview"
+          src="https://www.hug-ayumu.link/hug/wm/"
+          allowpopups="true"
+          disablewebsecurity="true"
+          preload={preloadPath}
+          className="absolute inset-0 w-full h-full border-none z-[1] overflow-hidden"
+        ></webview>
+      </div>
     </div>
   )
 }

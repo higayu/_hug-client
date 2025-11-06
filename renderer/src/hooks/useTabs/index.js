@@ -18,10 +18,10 @@ export function useTabs() {
   const addNormalTab = useCallback(() => {
     console.log('🔍 [useTabs] ＋ボタンがクリックされました')
     const tabsContainer = document.getElementById('tabs')
-    const content = document.getElementById('content')
+    const webviewContainer = document.getElementById('webview-container')
     
-    if (!tabsContainer || !content) {
-      console.error('❌ tabsまたはcontent要素が見つかりません')
+    if (!tabsContainer || !webviewContainer) {
+      console.error('❌ tabsまたはwebview-container要素が見つかりません')
       return
     }
 
@@ -31,7 +31,7 @@ export function useTabs() {
       `https://www.hug-ayumu.link/hug/wm/attendance.php?mode=detail&f_id=${appState.FACILITY_ID}&date=${appState.DATE_STR}`
     )
     
-    content.appendChild(newWebview)
+    webviewContainer.appendChild(newWebview)
 
     const tabButton = createTabButton(
       newId,
@@ -75,10 +75,10 @@ export function useTabs() {
     }
 
     const tabsContainer = document.getElementById('tabs')
-    const content = document.getElementById('content')
+    const webviewContainer = document.getElementById('webview-container')
     
-    if (!tabsContainer || !content) {
-      console.error('❌ tabsまたはcontent要素が見つかりません')
+    if (!tabsContainer || !webviewContainer) {
+      console.error('❌ tabsまたはwebview-container要素が見つかりません')
       return
     }
 
@@ -88,7 +88,7 @@ export function useTabs() {
       `https://www.hug-ayumu.link/hug/wm/contact_book.php?id=${appState.SELECT_CHILD}`
     )
     
-    content.appendChild(newWebview)
+    webviewContainer.appendChild(newWebview)
 
     const tabButton = createTabButton(
       newId,
@@ -216,10 +216,10 @@ export function useTabs() {
   // 専門的支援一覧タブを追加
   const addProfessionalSupportListTab = useCallback(() => {
     const tabsContainer = document.getElementById('tabs')
-    const content = document.getElementById('content')
+    const webviewContainer = document.getElementById('webview-container')
     
-    if (!tabsContainer || !content) {
-      console.error('❌ tabsまたはcontent要素が見つかりません')
+    if (!tabsContainer || !webviewContainer) {
+      console.error('❌ tabsまたはwebview-container要素が見つかりません')
       return
     }
 
@@ -229,7 +229,7 @@ export function useTabs() {
       `https://www.hug-ayumu.link/hug/wm/record_proceedings.php`
     )
     
-    content.appendChild(newWebview)
+    webviewContainer.appendChild(newWebview)
 
     const tabButton = createTabButton(
       newId,
@@ -332,10 +332,10 @@ export function useTabs() {
     }
 
     const tabsContainer = document.getElementById('tabs')
-    const content = document.getElementById('content')
+    const webviewContainer = document.getElementById('webview-container')
 
-    if (!tabsContainer || !content) {
-      console.error('❌ tabsまたはcontent要素が見つかりません')
+    if (!tabsContainer || !webviewContainer) {
+      console.error('❌ tabsまたはwebview-container要素が見つかりません')
       return
     }
 
@@ -348,7 +348,7 @@ export function useTabs() {
     
     console.log('👤  — 選択した日付:', appState.DATE_STR)
     
-    content.appendChild(newWebview)
+    webviewContainer.appendChild(newWebview)
 
     const tabButton = createTabButton(
       newId,

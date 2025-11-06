@@ -48,7 +48,7 @@ function CustomButtonsPanel() {
     })
 
     // 新しいwebviewを作成
-    const content = document.getElementById("content")
+    const webviewContainer = document.getElementById("webview-container")
     const tabsContainer = document.getElementById("tabs")
     const addTabBtn = tabsContainer.querySelector("button:last-child")
 
@@ -65,9 +65,9 @@ function CustomButtonsPanel() {
     if (window.preloadPath) {
       newWebview.setAttribute("preload", window.preloadPath)
     }
-    newWebview.style.cssText = "position:absolute;top:0;left:0;width:100%;height:100%;"
+    newWebview.style.cssText = "position:absolute;inset:0;width:100%;height:100%;z-index:1;pointer-events:auto;"
     newWebview.classList.add("hidden")
-    content.appendChild(newWebview)
+    webviewContainer.appendChild(newWebview)
 
     // タブボタンを作成
     const tabButton = document.createElement("button")

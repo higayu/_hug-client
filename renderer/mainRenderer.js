@@ -48,10 +48,12 @@ window.addEventListener("DOMContentLoaded", async () => {
   let isSidebarPinned = false;
   
   if (settingsEl && menuToggle) {
-    menuToggle.addEventListener("click", () => {
+    menuToggle.addEventListener("click", (e) => {
+      e.stopPropagation();
+      e.preventDefault();
       const isOpen = settingsEl.classList.toggle("open");
       console.log(isOpen ? "📂 サイドバーを開いた" : "📁 サイドバーを閉じた");
-    });
+    }, true); // captureフェーズで処理
     
     // サイドバーの固定状態変更イベントをリスニング
     window.addEventListener("sidebar-pin-changed", (e) => {
@@ -66,10 +68,14 @@ window.addEventListener("DOMContentLoaded", async () => {
         return;
       }
       
+      // webviewのクリックは除外（webviewは外側クリックとして扱わない）
+      const isWebviewClick = e.target.tagName === 'WEBVIEW' || e.target.closest('webview');
+      
       if (
         settingsEl.classList.contains("open") &&
         !settingsEl.contains(e.target) &&
-        !menuToggle.contains(e.target)
+        !menuToggle.contains(e.target) &&
+        !isWebviewClick
       ) {
         settingsEl.classList.remove("open");
         console.log("📁 サイドバーを閉じました（外側クリック）");

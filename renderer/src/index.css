@@ -49,13 +49,16 @@ body {
 
 /* === サイドバー === */
 .settings-sidebar {
+  width: 0;
+  padding: 0;
+  border-right: 0;
   transition: width 0.3s ease, padding 0.3s ease, border-width 0.3s ease;
 }
 
 .settings-sidebar.open {
-  width: 400px;
-  padding: 15px;
-  border-right: 1px solid #ccc;
+  width: 400px !important;
+  padding: 15px !important;
+  border-right: 1px solid #ccc !important;
 }
 
 /* === アクティブタブ === */

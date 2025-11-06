@@ -207,11 +207,11 @@ function Toolbar() {
   return (
     <div 
       id="toolbar" 
-      className="bg-[#616161] text-white p-2 flex-none flex flex-nowrap items-center gap-2.5 overflow-x-auto whitespace-nowrap relative z-[1000]"
+      className="bg-[#616161] text-white p-2 flex-none flex flex-nowrap items-center gap-2.5 overflow-x-auto whitespace-nowrap relative z-[1000] pointer-events-auto"
     >
       <button 
         id="menuToggle" 
-        className="bg-transparent border-none text-white text-xl cursor-pointer mr-2 whitespace-nowrap flex-shrink-0 hover:scale-110 transition-transform"
+        className="bg-transparent border-none text-white text-xl cursor-pointer mr-2 whitespace-nowrap flex-shrink-0 hover:scale-110 transition-transform relative z-[1001]"
       >
         <i className="fa-solid fa-bars text-xl text-white min-w-[40px]"></i>
       </button>
