@@ -1,15 +1,16 @@
 import sqlite3
 import json
+from pathlib import Path
 from pprint import pprint
 
-# === SQLite データベースのパス ===
-db_path = r"houday.db"  # ← 実際のSQLiteファイルに合わせて修正
+# === SQLite データベースの絶対パスを設定 ===
+db_path = Path(__file__).resolve().parent / "houday.db"
 
 # === 検証パラメータ ===
 staff_id = 73
 day = "土"  # 例：曜日カラムに一致する値
 
-# === 検証SQL (プロシージャの代替SQL) ===
+# === SQLクエリ（SQLite対応版）===
 query = """
 SELECT 
     c.id AS children_id,
@@ -27,7 +28,7 @@ SELECT
     ptc.id AS ptc_id,
     ptc.start_time AS start_time,
     ptc.end_time AS end_time
-FROM Children c
+FROM children c
 INNER JOIN managers m ON c.id = m.children_id
 INNER JOIN staffs s ON m.staff_id = s.id
 LEFT JOIN pc_to_children ptc 
@@ -41,32 +42,41 @@ LEFT JOIN children_type ct
     ON c.children_type_id = ct.id
 WHERE 
     s.id = ?
-    AND json_extract(m.day_of_week, '$.days') LIKE ?
+    AND m.day_of_week LIKE ?
 ORDER BY s.id DESC, c.name;
 """
 
-# === 接続 ===
+# === SQLite接続 ===
+if not db_path.exists():
+    print(f"❌ DBファイルが存在しません: {db_path}")
+    exit(1)
+
 conn = sqlite3.connect(db_path)
 conn.row_factory = sqlite3.Row
 cur = conn.cursor()
 
 try:
-    # JSON_CONTAINS の代替（SQLite では LIKE を使用）
-    day_json_pattern = f'%"{day}"%'  # 例：  "days": ["月","火","金"] のようなJSONをLIKEで検出
-    
+    print(f"✅ 接続成功: {db_path}")
+    day_json_pattern = f'%"{day}"%'  # JSON風文字列をLIKEで判定
+
     cur.execute(query, (day, staff_id, day_json_pattern))
     rows = cur.fetchall()
 
-    print(f"🔍 検索結果: {len(rows)} 件")
+    print(f"\n🔍 検索結果: {len(rows)} 件")
 
     if len(rows) == 0:
-        print("\n⚠️ 結果が空でした。データが存在するか確認してください。")
-        print("- Children, managers, staffs, pc_to_children テーブルにデータがありますか？")
-        print("- day_of_week のJSON形式が正しいですか？（例: {'days': ['月','火']}）")
-        print("- 曜日が {day} に一致してますか？")
+        print("\n⚠️ 結果が空でした。以下を確認してください：")
+        print("  - children, managers, staffs, pc_to_children テーブルにデータがありますか？")
+        print("  - managers.day_of_week カラムの形式は JSON風文字列ですか？（例: {'days': ['月','火']}）")
+        print(f"  - 曜日が '{day}' に一致していますか？")
     else:
+        print("\n📋 検索結果サンプル:")
         for row in rows:
             pprint(dict(row))
 
+except sqlite3.Error as e:
+    print(f"❌ SQLiteエラー: {e}")
+
 finally:
     conn.close()
+    print("\n✅ データベース接続終了")

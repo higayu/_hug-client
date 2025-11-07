@@ -1,7 +1,7 @@
 import sqlite3
 from pathlib import Path
 
-db_path = Path("E:/_共有用_フォルダ/_hug-client/main/data/houday.db")
+db_path = Path("houday.db")
 
 if not db_path.exists():
     print("❌ DBファイルが存在しません:", db_path)
