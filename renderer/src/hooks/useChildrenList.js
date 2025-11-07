@@ -16,20 +16,20 @@ export function useChildrenList() {
   const [childrenData, setLocalChildrenData] = useState([]);
   const [waitingChildrenData, setWaitingChildrenData] = useState([]);
   const [experienceChildrenData, setExperienceChildrenData] = useState([]);
-  const [api, setApi] = useState(sqliteApi); // デフォルトはSQLite
 
   // 🔹 起動時にDBモードを判定
   useEffect(() => {
     (async () => {
       try {
-        const dbType = (await window.electronAPI.getDatabaseType()) || "sqlite";
-        setApi(dbType === "mariadb" ? mariadbApi : sqliteApi);
-        console.log(`⚙️ DBモード: ${dbType}`);
+        // index.js の機能を使う
+        const api = await initDatabase();
+        console.log("⚙️ DBモード初期化完了:", api);
       } catch (err) {
-        console.warn("⚠️ DBモード取得失敗: SQLiteを使用します", err);
+        console.warn("⚠️ DBモード初期化失敗:", err);
       }
     })();
   }, []);
+  
 
 
   // 🔹 子どもデータ取得
