@@ -2,11 +2,11 @@
 // 選択された要素のメモを表示するパネルコンポーネント
 
 import { useEffect, useRef, useState } from 'react'
-import { useAppState } from '../../contexts/AppStateContext.jsx'
-import { useChildrenList } from '../../hooks/useChildrenList.js'
-import { useTabs } from '../../hooks/useTabs/index.js'
-import { MESSAGES } from '../../utils/constants.js'
-import { clickEnterButton, clickAbsenceButton } from '../../utils/attendanceButtonClick.js'
+import { useAppState } from '../../../contexts/AppStateContext.jsx'
+import { useChildrenList } from '../../../hooks/useChildrenList.js'
+import { useTabs } from '../../../hooks/useTabs/index.js'
+import { MESSAGES } from '../../../utils/constants.js'
+import { clickEnterButton, clickAbsenceButton } from '../../../utils/attendanceButtonClick.js'
 
 function ChildMemoPanel() {
   const { 

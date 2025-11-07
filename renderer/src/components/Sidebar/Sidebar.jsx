@@ -4,8 +4,7 @@ import { getWeekdayFromDate, getDateString } from '../../utils/dateUtils.js'
 import { useToast } from '../../contexts/ToastContext.jsx'
 import { ELEMENT_IDS } from '../../utils/constants.js'
 import { useChildrenList } from '../../hooks/useChildrenList.js'
-import SidebarContent from './SidebarContent.jsx'
-import ChildMemoPanel from './ChildMemoPanel.jsx'
+import TabsContainer from './TabsContainer.jsx'  // ← これを追加
 
 function Sidebar() {
   const { showInfoToast } = useToast()
@@ -180,8 +179,8 @@ function Sidebar() {
 
       {/* スクロール可能なコンテンツ部分 - 横並びレイアウト */}
       <div className="flex flex-1 min-h-0 overflow-hidden">
-        <SidebarContent />
-        <ChildMemoPanel />
+          {/* スクロール可能なコンテンツ部分 */}
+          <TabsContainer />   {/* ← SidebarContent と ChildMemoPanel をここにまとめて挿入 */}
       </div>
     </div>
   )

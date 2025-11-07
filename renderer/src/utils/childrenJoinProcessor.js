@@ -15,7 +15,7 @@ export function joinChildrenData({ tables, staffId, date }) {
       children_type,
     } = tables;
     
-    staffId = 73;
+    //staffId = 73;
 
     console.group("🔗 [joinChildrenData] JOIN処理開始");
     console.log("👤 staffId:", staffId, "📅 date:", date);
