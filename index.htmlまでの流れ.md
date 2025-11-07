@@ -58,7 +58,7 @@ main.js
 
 ### 2. IPCハンドラー登録
 ```
-main/ipcHandlers.js
+main\parts\handlers\apiHandler.js
     ↓ handleApiCalls(ipcMain)
     ↓ ipcMain.handle("GetChildrenByStaffAndDay", ...)
 ```

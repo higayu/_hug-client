@@ -22,7 +22,7 @@ function registerIpcHandlers(mainWindow, tempNoteHandler) {
     handleLogin(ipcMain, mainWindow);
     console.log("✅ [MAIN] handleLogin 登録完了");
     
-    handleApiCalls(ipcMain, mainWindow);
+    handleApiCalls(ipcMain);
     console.log("✅ [MAIN] handleApiCalls 登録完了");
     
     handleConfigAccess(ipcMain);

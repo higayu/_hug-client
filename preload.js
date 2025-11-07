@@ -1,36 +1,46 @@
-// preload.js
 const { contextBridge, ipcRenderer } = require("electron");
 
 console.log("✅ preload.js が読み込まれた");
 
 // デバッグモード判定
-const isDebugMode = process.argv.includes('--dev') || process.argv.includes('--debug');
+const isDebugMode = process.argv.includes("--dev") || process.argv.includes("--debug");
 
+// ============================================
+// 🔹 SQLite テーブルAPI 一括登録
+// ============================================
+const tables = [
+  "children",
+  "staffs",
+  "facilitys",
+  "managers",
+  "pc",
+  "pc_to_children",
+  "pronunciation",
+  "children_type",
+  "individual_support",
+  "temp_notes",
+];
+
+const tableAPIs = {};
+for (const table of tables) {
+  tableAPIs[`${table}_getAll`] = () => ipcRenderer.invoke(`${table}:getAll`);
+}
+
+// ============================================
+// 🔹 すべてのAPIを一度に expose
+// ============================================
 contextBridge.exposeInMainWorld("electronAPI", {
-  // デバッグモード情報を提供
+  // ---- デバッグ情報 ----
   isDebugMode: () => isDebugMode,
+
+  // ---- ログイン系 ----
   hugLogin: () => ipcRenderer.invoke("hug-login"),
   doAutoLogin: (username, password) =>
     ipcRenderer.invoke("do-auto-login", { username, password }),
   onInjectLogin: (callback) =>
     ipcRenderer.on("inject-login", (event, args) => callback(args)),
 
-    // API 呼び出し (main 経由)
-  GetChildrenByStaffAndDay: async (args) => {
-    console.log("📤 [preload] GetChildrenByStaffAndDay 呼び出し");
-    console.log("  ↳ 渡す引数:", args);
-    try {
-      const result = await ipcRenderer.invoke("GetChildrenByStaffAndDay", args);
-      console.log("📥 [preload] main からの応答:", result);
-      return result;
-    } catch (err) {
-      console.error("❌ [preload] IPC 呼び出し失敗:", err);
-      throw err;
-    }
-  },
-
-
-
+  // ---- DB関連 ----
   getStaffAndFacility: async () => {
     try {
       const result = await ipcRenderer.invoke("getStaffAndFacility");
@@ -41,73 +51,56 @@ contextBridge.exposeInMainWorld("electronAPI", {
     }
   },
 
-  openIndividualSupportPlan: (childId) => ipcRenderer.send("open-individual-support-plan", childId),
+  getDatabaseType: () => ipcRenderer.invoke("get-database-type"),
 
-    // 既存のAPIに加えて...
-  openSpecializedSupportPlan: (childId) => ipcRenderer.send("open-specialized-support-plan", childId),
+  // ---- ファイル・設定関連 ----
+  readConfig: () => ipcRenderer.invoke("read-config"),
+  saveConfig: (data) => ipcRenderer.invoke("save-config", data),
+  readIni: () => ipcRenderer.invoke("read-ini"),
+  saveIni: (data) => ipcRenderer.invoke("save-ini", data),
+  updateIniSetting: (path, value) => ipcRenderer.invoke("update-ini-setting", path, value),
+  importConfigFile: () => ipcRenderer.invoke("import-config-file"),
+  openConfigFolder: () => ipcRenderer.invoke("open-config-folder"),
 
+  // ---- UI操作関連 ----
+  openIndividualSupportPlan: (childId) =>
+    ipcRenderer.send("open-individual-support-plan", childId),
+  openSpecializedSupportPlan: (childId) =>
+    ipcRenderer.send("open-specialized-support-plan", childId),
   Open_NowDayPage: (args) => ipcRenderer.send("Open_NowDayPage", args),
 
-    // 既存のAPIに加えて...
   open_addition_compare_btn: (facility_id, date_str) => {
     const eventName = "open-addition-compare-btn";
     const args = { facility_id, date_str };
-    console.log("📤 [PRELOAD] IPCイベントを送信します:", eventName);
-    console.log("📤 [PRELOAD] 引数:", args);
-    console.log("🔍 [PRELOAD] ipcRenderer:", ipcRenderer ? "存在" : "未定義");
-    try {
-      ipcRenderer.send(eventName, args);
-      console.log("✅ [PRELOAD] IPCイベントを送信しました:", eventName);
-    } catch (error) {
-      console.error("❌ [PRELOAD] IPCイベント送信に失敗:", error);
-      console.error("❌ [PRELOAD] エラー詳細:", {
-        eventName,
-        args,
-        error: error.message,
-        stack: error.stack
-      });
-    }
+    console.log("📤 [PRELOAD] IPCイベント送信:", eventName, args);
+    ipcRenderer.send(eventName, args);
   },
 
-  readConfig: () => ipcRenderer.invoke("read-config"),
-
-  saveConfig: (data) => ipcRenderer.invoke("save-config", data),
-
-  readIni: () => ipcRenderer.invoke("read-ini"),
-
-  saveIni: (data) => ipcRenderer.invoke("save-ini", data),
-
-  updateIniSetting: (path, value) => ipcRenderer.invoke("update-ini-setting", path, value),
-
-  importConfigFile: () => ipcRenderer.invoke("import-config-file"),
-
-  // 設定フォルダーを開く
-  openConfigFolder: () => ipcRenderer.invoke("open-config-folder"),
-
-  // 一時メモのAPI
+  // ---- 一時メモ ----
   saveTempNote: (data) => ipcRenderer.invoke("saveTempNote", data),
-  
   getTempNote: (data) => ipcRenderer.invoke("getTempNote", data),
 
-  // 🔧 アップデートデバッグAPI
+  // ---- アップデート関連 ----
   getUpdateDebugInfo: () => ipcRenderer.invoke("get-update-debug-info"),
-  
   checkForUpdates: () => ipcRenderer.invoke("check-for-updates"),
 
-  // カスタムボタン関連
+  // ---- カスタムボタン ----
   readCustomButtons: () => ipcRenderer.invoke("read-custom-buttons"),
   saveCustomButtons: (data) => ipcRenderer.invoke("save-custom-buttons", data),
   readAvailableActions: () => ipcRenderer.invoke("read-available-actions"),
 
-  // 🔒 アプリ終了確認ダイアログのIPC
-  onConfirmCloseRequest: (callback) => ipcRenderer.on("confirm-close-request", () => callback()),
-  sendConfirmCloseResponse: (shouldClose) => ipcRenderer.send("confirm-close-response", shouldClose),
+  // ---- 終了確認 ----
+  onConfirmCloseRequest: (callback) =>
+    ipcRenderer.on("confirm-close-request", () => callback()),
+  sendConfirmCloseResponse: (shouldClose) =>
+    ipcRenderer.send("confirm-close-response", shouldClose),
 
-  // 🔧 webviewのpreload属性用のパス取得
+  // ---- webview preload取得 ----
   getPreloadPath: () => ipcRenderer.invoke("get-preload-path"),
 
-  // 📊 出勤データ列データ保存
+  // ---- 出勤データ列保存 ----
   saveAttendanceColumnData: (data) => ipcRenderer.invoke("saveAttendanceColumnData", data),
 
+  // ---- SQLite テーブルAPIを展開 ----
+  ...tableAPIs,
 });
-

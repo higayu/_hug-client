@@ -327,4 +327,31 @@ window.addEventListener("DOMContentLoaded", async () => {
     }
   });
 
+    // ===== 🧩 SQLite GetChildrenByStaffAndDay テスト呼び出し =====
+    try {
+      console.log("🧩 SQLiteデータ取得テスト開始...");
+  
+      // 例: staffId=73, 曜日="土"（ini.jsonにある値に合わせてOK）
+      const response = await window.electronAPI.invoke("GetChildrenByStaffAndDay", {
+        staffId: 73,
+        date: "土",
+        facility_id: 3
+      });
+  
+      if (response?.success) {
+        console.log(`✅ 取得成功 (${response.week_children.length} 件)`);
+        console.table(response.week_children.map(c => ({
+          id: c.children_id,
+          name: c.children_name,
+          type: c.children_type_name,
+          pc: c.pc_name
+        })));
+      } else {
+        console.error("❌ 取得失敗:", response?.error || "不明なエラー");
+      }
+    } catch (err) {
+      console.error("❌ IPC呼び出しエラー:", err);
+    }
+   // ===== 🧩 SQLite GetChildrenByStaffAndDay テスト呼び出し =====
+
 });

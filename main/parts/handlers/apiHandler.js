@@ -1,18 +1,26 @@
 // main/parts/handlers/apiHandler.js
 const fs = require("fs");
 const path = require("path");
+const { app } = require("electron");
 const apiClient = require("../../../src/apiClient");
-const { getWaitingChildrenPc } = require("./sqlite/getWaitingChildrenPc");
-const { getExperienceChildrenV } = require("./sqlite/getExperienceChildrenV");
-// === ここを追加 ===
-const { initSQLiteHandler } = require("./sqlite/index");
-const { getChildrenByStaffAndDay } = require("./sqlite/getChildrenByStaffAndDay");
+const { registerSqliteHandlers } = require("./sqliteHandler");
+const sqlite3 = require("sqlite3").verbose(); // ← ここで一括読み込み
 
+function resolveIniPath() {
+  if (app.isPackaged) {
+    return path.join(app.getPath("userData"), "data", "ini.json");
+  } else {
+    return path.join(__dirname, "../../data/ini.json");
+  }
+}
 
-// ✅ 設定ファイルからDB種別を取得
 function getDatabaseType() {
   try {
-    const iniPath = path.join(__dirname, "../../data/ini.json");
+    const iniPath = resolveIniPath();
+    if (!fs.existsSync(iniPath)) {
+      console.log("⚠️ ini.jsonが見つかりません。デフォルト（SQLite）を使用します");
+      return "sqlite";
+    }
     const iniData = JSON.parse(fs.readFileSync(iniPath, "utf8"));
     const dbType = iniData?.apiSettings?.databaseType || "sqlite";
     return dbType.toLowerCase();
@@ -22,6 +30,9 @@ function getDatabaseType() {
   }
 }
 
+// ============================================================
+// 🧩 メイン関数
+// ============================================================
 async function handleApiCalls(ipcMain) {
   const DB_TYPE = getDatabaseType();
   console.log(`⚙️ 現在のDBモード: ${DB_TYPE}`);
@@ -39,59 +50,64 @@ async function handleApiCalls(ipcMain) {
       }
 
       // ----- SQLite -----
-      const { success, db, close, service } = await initSQLiteHandler();
-      if (!success) throw new Error("SQLite初期化に失敗しました");
+      const dbPath = path.join(__dirname, "../../data/houday.db");
+      const db = new sqlite3.Database(dbPath);
 
-      const staffs = await service.getStaffs();
-      const facilitys = await new Promise((resolve, reject) => {
-        db.all("SELECT * FROM facilitys", (err, rows) => {
-          if (err) reject(err);
-          else resolve(rows);
+      return await new Promise((resolve, reject) => {
+        const result = {};
+        db.serialize(() => {
+          db.all("SELECT * FROM staffs", (err, staffs) => {
+            if (err) return reject(err);
+            result.staffs = staffs;
+
+            db.all("SELECT * FROM facilitys", (err, facilitys) => {
+              if (err) return reject(err);
+              result.facilitys = facilitys;
+
+              const sql = `
+                SELECT f.name AS facility_name, s.name AS staff_name
+                FROM facility_staff fs
+                INNER JOIN facilitys f ON fs.facility_id = f.id
+                INNER JOIN staffs s ON fs.staff_id = s.id
+              `;
+              db.all(sql, (err, staffAndFacility) => {
+                if (err) return reject(err);
+                result.staffAndFacility = staffAndFacility;
+                db.close();
+                resolve(result);
+              });
+            });
+          });
         });
       });
-
-      const staffAndFacility = await new Promise((resolve, reject) => {
-        db.all(
-          `SELECT f.name AS facility_name, s.name AS staff_name
-           FROM facility_staff fs
-           INNER JOIN facilitys f ON fs.facility_id = f.id
-           INNER JOIN staffs s ON fs.staff_id = s.id`,
-          (err, rows) => (err ? reject(err) : resolve(rows))
-        );
-      });
-
-      close();
-      return { staffAndFacility, staffs: staffs.data, facilitys };
     } catch (err) {
       console.error("❌ getStaffAndFacility失敗:", err.message);
       throw err;
     }
   });
 
-  // === GetChildrenByStaffAndDay ハンドラー ===
-  ipcMain.handle("GetChildrenByStaffAndDay", async (event, args) => {
+  // ============================================================
+  // 🔹 getDatabaseType IPCハンドラー
+  // ============================================================
+  ipcMain.handle("get-database-type", async () => {
     try {
-      // ✅ 第一引数は event、第二引数はオブジェクトで渡ってくる
-      const { staffId, date, facility_id } = args || {};
-      console.log("📡 [MAIN] GetChildrenByStaffAndDay:", { staffId, date, facility_id });
-
-      // ✅ SQLiteを初期化
-      const { success, db, error } = await initSQLiteHandler();
-      if (!success || !db) {
-        console.error("❌ SQLite初期化失敗:", error);
-        return { success: false, error: "データベース初期化に失敗しました" };
-      }
-
-      // ✅ ここは staffId, date のみを渡す
-      const result = await getChildrenByStaffAndDay(db, staffId, date);
-
-      return { success: true, week_children: result };
+      const dbType = getDatabaseType();
+      return dbType;
     } catch (err) {
-      console.error("❌ GetChildrenByStaffAndDay エラー:", err);
-      return { success: false, error: err.message };
+      console.error("❌ getDatabaseType失敗:", err.message);
+      return "sqlite";
     }
   });
 
+
+  // ============================================================
+  // 📗 SQLite CRUD IPC登録
+  // ============================================================
+  if (DB_TYPE === "sqlite") {
+    registerSqliteHandlers(ipcMain);
+  }
+
+  console.log("✅ APIハンドラ登録完了");
 }
 
 module.exports = { handleApiCalls };
