@@ -40,7 +40,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
   onInjectLogin: (callback) =>
     ipcRenderer.on("inject-login", (event, args) => callback(args)),
 
-  // ---- MariaDB関連 ----
+  // ---- DB関連 ----
   getStaffAndFacility: async () => {
     try {
       const result = await ipcRenderer.invoke("getStaffAndFacility");
@@ -50,16 +50,6 @@ contextBridge.exposeInMainWorld("electronAPI", {
       throw err;
     }
   },
-  GetChildrenByStaffAndDay: async (args) => {
-    try {
-      const result = await ipcRenderer.invoke("GetChildrenAndFacility", args);
-      return result;
-    } catch (err) {
-      console.error("❌ [preload] IPC 呼び出し失敗:", err);
-      throw err;
-    }
-  },
-  // ---- MariaDB関連 ----
 
   getDatabaseType: () => ipcRenderer.invoke("get-database-type"),
 

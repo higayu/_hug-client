@@ -2,7 +2,7 @@
 // SQLiteテーブルデータの状態管理
 
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
-import { sqliteApi } from '../../sql/sqliteApi.js'
+import { sqliteApi } from '../../api/sqliteApi.js'
 
 // 非同期アクション: 全テーブルデータを取得
 export const fetchAllTables = createAsyncThunk(
