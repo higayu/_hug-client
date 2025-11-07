@@ -9,10 +9,7 @@ const { getDataPath } = require("./fileUtils");
 function getDefaultConfig() {
   return {
     HUG_USERNAME: "",
-    HUG_PASSWORD: "",
-    VITE_API_BASE_URL: "http://192.168.1.229:3001/api",
-    STAFF_ID: "",
-    FACILITY_ID: ""
+    HUG_PASSWORD: ""
   };
 }
 

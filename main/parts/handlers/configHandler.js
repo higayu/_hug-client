@@ -23,10 +23,7 @@ function handleConfigAccess(ipcMain) {
       if (!fs.existsSync(filePath)) {
         const defaultConfig = {
           HUG_USERNAME: "",
-          HUG_PASSWORD: "",
-          VITE_API_BASE_URL: "http://192.168.1.229:3001/api",
-          STAFF_ID: "",
-          FACILITY_ID: "3"
+          HUG_PASSWORD: ""
         };
         
         // ディレクトリが存在しない場合は作成

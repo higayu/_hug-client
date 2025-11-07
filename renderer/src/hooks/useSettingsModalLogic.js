@@ -101,14 +101,18 @@ export function useSettingsModalLogic(isOpen) {
     const configPassword = document.getElementById('config-password')
     if (configPassword) configPassword.value = appState.HUG_PASSWORD || ''
 
-    const configApiUrl = document.getElementById('config-api-url')
-    if (configApiUrl) configApiUrl.value = appState.VITE_API_BASE_URL || ''
+    // API設定 (ini.json)
+    const apiBaseUrl = document.getElementById('api-base-url')
+    if (apiBaseUrl) apiBaseUrl.value = iniState?.apiSettings?.baseURL || ''
 
-    const configStaffId = document.getElementById('config-staff-id')
-    if (configStaffId) configStaffId.value = appState.STAFF_ID || ''
+    const apiStaffId = document.getElementById('api-staff-id')
+    if (apiStaffId) apiStaffId.value = iniState?.apiSettings?.staffId || ''
 
-    const configFacilityId = document.getElementById('config-facility-id')
-    if (configFacilityId) configFacilityId.value = appState.FACILITY_ID || ''
+    const apiFacilityId = document.getElementById('api-facility-id')
+    if (apiFacilityId) apiFacilityId.value = iniState?.apiSettings?.facilityId || ''
+
+    const apiDatabaseType = document.getElementById('api-database-type')
+    if (apiDatabaseType) apiDatabaseType.value = iniState?.apiSettings?.databaseType || 'sqlite'
 
     console.log('✅ [SettingsModal] フォームに値を設定しました')
   }, [appState, iniState])
@@ -262,10 +266,7 @@ export function useSettingsModalLogic(isOpen) {
     try {
       const configData = {
         HUG_USERNAME: document.getElementById('config-username')?.value || '',
-        HUG_PASSWORD: document.getElementById('config-password')?.value || '',
-        VITE_API_BASE_URL: document.getElementById('config-api-url')?.value || '',
-        STAFF_ID: document.getElementById('config-staff-id')?.value || '',
-        FACILITY_ID: document.getElementById('config-facility-id')?.value || ''
+        HUG_PASSWORD: document.getElementById('config-password')?.value || ''
       }
 
       // AppStateを更新（Context APIとwindow.AppStateの両方を更新）
@@ -288,16 +289,22 @@ export function useSettingsModalLogic(isOpen) {
       showErrorToast('❌ エラーが発生しました: ' + error.message)
       return false
     }
+  }, [updateAppState, showSuccessToast, showErrorToast])
+
+  // セレクトボックスを初期化（Config用 - 現在は使用されていない）
+  const initializeSelectBoxes = useCallback(async () => {
+    // Config.jsonにはスタッフIDと施設IDがなくなったため、空の実装
+    console.log('✅ [SettingsModal] Configセレクトボックス初期化（不要）')
   }, [])
 
-  // セレクトボックスを初期化
-  const initializeSelectBoxes = useCallback(async () => {
+  // API設定のセレクトボックスを初期化
+  const initializeApiSelectBoxes = useCallback(async () => {
     try {
       // スタッフと施設のデータを取得
       const data = await window.electronAPI.getStaffAndFacility()
 
       // スタッフセレクトボックスを初期化
-      const staffSelect = document.getElementById('config-staff-id')
+      const staffSelect = document.getElementById('api-staff-id')
       if (staffSelect && data.staffs) {
         // 既存のオプションをクリア（最初の「選択してください」以外）
         while (staffSelect.children.length > 1) {
@@ -312,11 +319,11 @@ export function useSettingsModalLogic(isOpen) {
           staffSelect.appendChild(option)
         })
 
-        console.log('✅ [SettingsModal] スタッフセレクトボックスを初期化しました')
+        console.log('✅ [SettingsModal] APIスタッフセレクトボックスを初期化しました')
       }
 
       // 施設セレクトボックスを初期化
-      const facilitySelect = document.getElementById('config-facility-id')
+      const facilitySelect = document.getElementById('api-facility-id')
       if (facilitySelect && data.facilitys) {
         // 既存のオプションをクリア（最初の「選択してください」以外）
         while (facilitySelect.children.length > 1) {
@@ -331,16 +338,56 @@ export function useSettingsModalLogic(isOpen) {
           facilitySelect.appendChild(option)
         })
 
-        console.log('✅ [SettingsModal] 施設セレクトボックスを初期化しました')
+        console.log('✅ [SettingsModal] API施設セレクトボックスを初期化しました')
       }
 
       // 現在の値を設定
-      if (staffSelect) staffSelect.value = appState.STAFF_ID || ''
-      if (facilitySelect) facilitySelect.value = appState.FACILITY_ID || ''
+      if (staffSelect) staffSelect.value = iniState?.apiSettings?.staffId || ''
+      if (facilitySelect) facilitySelect.value = iniState?.apiSettings?.facilityId || ''
     } catch (error) {
-      console.error('❌ [SettingsModal] セレクトボックス初期化エラー:', error)
+      console.error('❌ [SettingsModal] APIセレクトボックス初期化エラー:', error)
     }
-  }, [appState])
+  }, [iniState])
+
+  // API設定を保存
+  const saveApiSettingsFromForm = useCallback(async () => {
+    try {
+      // 新しい状態オブジェクトを作成
+      const newIniState = JSON.parse(JSON.stringify(iniState)) // ディープコピー
+      
+      // apiSettingsが存在しない場合は作成
+      if (!newIniState.apiSettings) {
+        newIniState.apiSettings = {}
+      }
+
+      // フォームから値を取得して設定
+      const apiBaseUrl = document.getElementById('api-base-url')
+      if (apiBaseUrl) newIniState.apiSettings.baseURL = apiBaseUrl.value || ''
+
+      const apiStaffId = document.getElementById('api-staff-id')
+      if (apiStaffId) newIniState.apiSettings.staffId = apiStaffId.value || ''
+
+      const apiFacilityId = document.getElementById('api-facility-id')
+      if (apiFacilityId) newIniState.apiSettings.facilityId = apiFacilityId.value || ''
+
+      const apiDatabaseType = document.getElementById('api-database-type')
+      if (apiDatabaseType) newIniState.apiSettings.databaseType = apiDatabaseType.value || 'sqlite'
+
+      // ini.jsonに保存
+      const success = await saveIni(newIniState)
+      if (success) {
+        showSuccessToast('✅ API設定の保存が完了しました')
+        return true
+      } else {
+        showErrorToast('❌ API設定の保存に失敗しました')
+        return false
+      }
+    } catch (error) {
+      console.error('❌ API設定保存エラー:', error)
+      showErrorToast('❌ エラーが発生しました: ' + error.message)
+      return false
+    }
+  }, [iniState, saveIni, showSuccessToast, showErrorToast])
 
   return {
     populateForm,
@@ -348,7 +395,9 @@ export function useSettingsModalLogic(isOpen) {
     resetSettings,
     togglePasswordVisibility,
     saveConfigFromForm,
-    initializeSelectBoxes
+    initializeSelectBoxes,
+    saveApiSettingsFromForm,
+    initializeApiSelectBoxes
   }
 }
 

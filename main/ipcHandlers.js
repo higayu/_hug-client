@@ -200,6 +200,7 @@ function registerIpcHandlers(mainWindow, tempNoteHandler) {
   } catch (error) {
     console.error("❌ [MAIN] IPCハンドラー登録中にエラー:", error);
   }
+  
 }
 
 module.exports = { registerIpcHandlers };

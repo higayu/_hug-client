@@ -8,11 +8,13 @@ import UITab from './tabs/UITab'
 import WindowTab from './tabs/WindowTab'
 import CustomTab from './tabs/CustomTab'
 import UpdateTab from './tabs/UpdateTab'
+import ApiTab from './tabs/ApiTab'
 
 const TABS = [
   { id: 'features', label: '機能設定' },
   { id: 'ui', label: 'UI設定' },
   { id: 'window', label: 'ウィンドウ設定' },
+  { id: 'api', label: 'API設定' },
   { id: 'config', label: 'Config.json設定' },
   { id: 'custom', label: 'カスタムボタン' },
   { id: 'update', label: 'アップデート' }
@@ -27,7 +29,9 @@ function SettingsModal({ isOpen, onClose }) {
     resetSettings,
     togglePasswordVisibility,
     saveConfigFromForm,
-    initializeSelectBoxes
+    initializeSelectBoxes,
+    saveApiSettingsFromForm,
+    initializeApiSelectBoxes
   } = useSettingsModalLogic(isOpen)
 
   // モーダルが開かれた時にフォームに値を設定し、セレクトボックスを初期化
@@ -39,10 +43,11 @@ function SettingsModal({ isOpen, onClose }) {
       await new Promise(resolve => setTimeout(resolve, 100))
       populateForm()
       await initializeSelectBoxes()
+      await initializeApiSelectBoxes()
     }
 
     initializeModal()
-  }, [isOpen, populateForm, initializeSelectBoxes])
+  }, [isOpen, populateForm, initializeSelectBoxes, initializeApiSelectBoxes])
 
 
   // ESCキーでモーダルを閉じる
@@ -123,6 +128,16 @@ function SettingsModal({ isOpen, onClose }) {
           </div>
           <div className={activeTab === 'window' ? 'block' : 'hidden'}>
             <WindowTab />
+          </div>
+          <div className={activeTab === 'api' ? 'block' : 'hidden'}>
+            <ApiTab 
+              onSaveApiSettings={saveApiSettingsFromForm}
+              onReloadApiSettings={async () => {
+                await initializeApiSelectBoxes()
+                populateForm()
+              }}
+              onInitializeSelectBoxes={initializeApiSelectBoxes}
+            />
           </div>
           <div className={activeTab === 'config' ? 'block' : 'hidden'}>
             <ConfigTab 

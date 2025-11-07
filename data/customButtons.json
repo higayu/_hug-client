@@ -8,14 +8,6 @@
       "color": "#f9d4fc",
       "action": "additionCompare",
       "order": 1
-    },
-    {
-      "id": "custom1",
-      "enabled": true,
-      "text": "キャンセル待ち登録",
-      "color": "#dc3545",
-      "action": "customAction1",
-      "order": 2
     }
   ]
 }

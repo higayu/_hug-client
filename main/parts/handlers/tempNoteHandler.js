@@ -116,7 +116,7 @@ class TempNoteHandler {
         throw new Error(`データディレクトリに書き込み権限がありません: ${dataDir}`);
       }
 
-      this.dbPath = path.join(dataDir, 'temp_notes.db');
+      this.dbPath = path.join(dataDir, 'houday.db');
       console.log('🔍 [TempNoteHandler] データベースパス:', this.dbPath);
       
       // データベース接続
@@ -177,13 +177,13 @@ class TempNoteHandler {
   // テーブル作成
   async createTable() {
     return new Promise((resolve, reject) => {
-      // テーブルが存在するかチェック
+      // テーブルが存在するかチェック（大文字小文字を区別しない）
       const checkTableSQL = `
         SELECT name FROM sqlite_master 
-        WHERE type='table' AND name='temp_notes'
+        WHERE type='table' AND LOWER(name)=LOWER(?)
       `;
       
-      this.db.get(checkTableSQL, (err, row) => {
+      this.db.get(checkTableSQL, ['temp_notes'], (err, row) => {
         if (err) {
           console.error('❌ [TempNoteHandler] テーブル存在確認エラー:', err);
           reject(err);

@@ -52,7 +52,8 @@ export function IniStateProvider({ children }) {
       // 設定をマージ（デフォルト値と組み合わせ）
       const newState = {
         appSettings: { ...DEFAULT_APP_SETTINGS, ...appSettingsWithoutCustomButtons },
-        userPreferences: { ...DEFAULT_USER_PREFERENCES, ...data.userPreferences }
+        userPreferences: { ...DEFAULT_USER_PREFERENCES, ...data.userPreferences },
+        apiSettings: data.apiSettings || {}
       }
       
       setIniState(newState)
@@ -76,7 +77,8 @@ export function IniStateProvider({ children }) {
       const data = {
         version: "1.0.0",
         appSettings: appSettingsWithoutCustomButtons,
-        userPreferences: sourceState.userPreferences
+        userPreferences: sourceState.userPreferences,
+        apiSettings: sourceState.apiSettings || {}
       }
 
       const result = await window.electronAPI.saveIni(data)

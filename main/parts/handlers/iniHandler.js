@@ -90,6 +90,12 @@ function handleIniAccess(ipcMain) {
             lastLoginDate: "",
             rememberWindowState: true,
             showWelcomeMessage: true
+          },
+          apiSettings: {
+            baseURL: "http://192.168.1.229:3001/api",
+            staffId: "",
+            facilityId: "",
+            databaseType: "sqlite"
           }
         };
         

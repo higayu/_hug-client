@@ -1,13 +1,13 @@
 // src/apiClient.js
 const axios = require("axios");
-const { loadConfig } = require("./configUtils");
+const { loadIni } = require("./iniUtils");
 
 // ✅ 設定読み込み実行
-const config = loadConfig();
+const ini = loadIni();
 
 // ✅ axiosクライアント生成
 const apiClient = axios.create({
-  baseURL: config.VITE_API_BASE_URL || "http://localhost:3000", // fallback
+  baseURL: ini?.apiSettings?.baseURL || "http://192.168.1.229:3001/api",
   headers: { "Content-Type": "application/json" },
 });
 

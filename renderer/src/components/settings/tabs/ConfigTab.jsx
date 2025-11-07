@@ -28,22 +28,6 @@ function ConfigTab({ onSaveConfig, onReloadConfig, onTogglePassword }) {
             <button type="button" id="toggle-password" onClick={onTogglePassword} className="absolute right-2 bg-transparent border-none cursor-pointer text-base p-1 rounded transition-colors hover:bg-gray-100">👁️</button>
           </div>
         </div>
-        <div className="flex items-center mb-3 py-2">
-          <label htmlFor="config-api-url" className="font-medium text-gray-700 min-w-[120px]">APIベースURL:</label>
-          <input type="text" id="config-api-url" data-path="VITE_API_BASE_URL" className="px-3 py-2 border border-gray-300 rounded-md text-sm transition-all flex-1 max-w-[200px] focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-200" />
-        </div>
-        <div className="flex items-center mb-3 py-2">
-          <label htmlFor="config-staff-id" className="font-medium text-gray-700 min-w-[120px]">スタッフ:</label>
-          <select id="config-staff-id" data-path="STAFF_ID" className="px-3 py-2 border border-gray-300 rounded-md text-sm transition-all flex-1 max-w-[200px] focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-200">
-            <option value="">選択してください</option>
-          </select>
-        </div>
-        <div className="flex items-center mb-3 py-2">
-          <label htmlFor="config-facility-id" className="font-medium text-gray-700 min-w-[120px]">施設:</label>
-          <select id="config-facility-id" data-path="FACILITY_ID" className="px-3 py-2 border border-gray-300 rounded-md text-sm transition-all flex-1 max-w-[200px] focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-200">
-            <option value="">選択してください</option>
-          </select>
-        </div>
       </div>
       <div className="mb-6 flex gap-2.5">
         <button id="reload-config" onClick={handleReload} className="bg-gray-600 text-white border-none px-5 py-2.5 rounded-md cursor-pointer font-medium transition-all duration-200 hover:bg-gray-700 hover:-translate-y-0.5">Config.jsonを再読み込み</button>

@@ -184,12 +184,36 @@ export function useChildrenList() {
 
   // 子どもデータを読み込む
   const loadChildren = useCallback(async () => {
+    // STAFF_IDとWEEK_DAYの両方が設定されている場合のみ実行
+    if (!appState.STAFF_ID || !appState.WEEK_DAY) {
+      console.log('⏸️ [useChildrenList] STAFF_IDまたはWEEK_DAYが未設定のためスキップ:', {
+        STAFF_ID: appState.STAFF_ID,
+        WEEK_DAY: appState.WEEK_DAY
+      })
+      return
+    }
+    
     try {
       const facilitySelect = document.getElementById(ELEMENT_IDS.FACILITY_SELECT)
       const facility_id = facilitySelect ? facilitySelect.value : null
       
-      const data = await window.electronAPI.GetChildrenByStaffAndDay(appState.STAFF_ID, appState.WEEK_DAY, facility_id)
-      
+      console.log("🚀 [useChildrenList] STAFF_IDとWEEK_DAYが揃ったので loadChildren 実行")
+      console.log("🧩 [useChildrenList] appState:", appState)
+      console.log("🧩 [useChildrenList] facility_id:", facility_id)
+      console.log("📤 [useChildrenList] GetChildrenByStaffAndDay 呼び出し")
+      console.log("  ↳ 渡す引数:", {
+        staffId: appState.STAFF_ID,
+        date: appState.WEEK_DAY,
+        facility_id: facility_id
+      })
+
+      const data = await window.electronAPI.GetChildrenByStaffAndDay({
+        staffId: appState.STAFF_ID,
+        date: appState.WEEK_DAY,
+        facility_id: facility_id
+      })
+
+
       // React Contextを使用して更新
       setChildrenData(data.week_children || [])
       updateAppState({
@@ -237,13 +261,20 @@ export function useChildrenList() {
     }
   }, [loadChildren, setSelectedChild])
 
-  // WEEK_DAYが変更されたときに再読み込み
+  // STAFF_IDとWEEK_DAYが変更されたときに再読み込み
   useEffect(() => {
-    if (appState.WEEK_DAY) {
+    // STAFF_IDとWEEK_DAYの両方が設定されている場合のみ実行
+    if (appState.STAFF_ID && appState.WEEK_DAY) {
+      console.log('🚀 [useChildrenList] STAFF_IDとWEEK_DAYが揃ったので loadChildren 実行')
       loadChildren()
+    } else {
+      console.log('⏸️ [useChildrenList] STAFF_IDまたはWEEK_DAYが未設定のためスキップ:', {
+        STAFF_ID: appState.STAFF_ID,
+        WEEK_DAY: appState.WEEK_DAY
+      })
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [appState.WEEK_DAY])
+  }, [appState.STAFF_ID, appState.WEEK_DAY])
 
   // 最初の子どもを自動選択
   useEffect(() => {

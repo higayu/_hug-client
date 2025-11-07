@@ -2,6 +2,7 @@
 import { createContext, useContext, useCallback, useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { loadConfig as loadConfigFromUtils } from '../utils/configUtils.js'
+import { loadIni as loadIniFromUtils } from '../utils/iniUtils.js'
 import {
   setHugUsername,
   setHugPassword,
@@ -75,19 +76,73 @@ export function AppStateProvider({ children }) {
   const reduxStaffAndFacilityData = useSelector(selectStaffAndFacilityData)
   const reduxAttendanceData = useSelector(selectAttendanceData)
 
-  // config.jsonを読み込む
+  // config.jsonとini.jsonを読み込む
   useEffect(() => {
     const loadInitialConfig = async () => {
       try {
+        // config.jsonを読み込み（HUG_USERNAME, HUG_PASSWORDなど）
         const configData = await loadConfigFromUtils()
-        if (configData) {
-          // すべてのフィールドをReduxに更新
-          dispatch(updateAppStateRedux(configData))
+        console.log('🧩 [AppStateContext] configData 読み込み結果:', configData)
+        
+        // ini.jsonを読み込み（apiSettings.staffId, apiSettings.facilityIdなど）
+        const iniData = await loadIniFromUtils()
+        console.log('🧩 [AppStateContext] iniData 読み込み結果:', iniData)
+        
+        // マージ用のオブジェクトを作成
+        const mergedData = { ...(configData || {}) }
+        
+        // ini.jsonからapiSettingsを取得してマッピング
+        // ini.jsonの値を優先（config.jsonからini.jsonに移動したため）
+        if (iniData?.apiSettings) {
+          const apiSettings = iniData.apiSettings
+          
+          // apiSettings.staffId → STAFF_ID にマッピング（複数のキー名に対応）
+          // config.jsonの値が空文字列の場合は無視してini.jsonの値を優先
+          const staffIdFromConfig = mergedData.STAFF_ID
+          const staffIdFromIni = 
+            apiSettings.staffId ?? 
+            apiSettings.staff_id ?? 
+            apiSettings.STAFF_ID ?? 
+            null
+          
+          // config.jsonの値が有効（空文字列でない）場合のみ使用、それ以外はini.jsonを優先
+          mergedData.STAFF_ID = (staffIdFromConfig && staffIdFromConfig !== '') 
+            ? staffIdFromConfig 
+            : staffIdFromIni
+          
+          // apiSettings.facilityId → FACILITY_ID にマッピング（複数のキー名に対応）
+          const facilityIdFromConfig = mergedData.FACILITY_ID
+          const facilityIdFromIni = 
+            apiSettings.facilityId ?? 
+            apiSettings.facility_id ?? 
+            apiSettings.FACILITY_ID ?? 
+            null
+          
+          // config.jsonの値が有効（空文字列でない）場合のみ使用、それ以外はini.jsonを優先
+          mergedData.FACILITY_ID = (facilityIdFromConfig && facilityIdFromConfig !== '') 
+            ? facilityIdFromConfig 
+            : facilityIdFromIni
+          
+          console.log('🔍 [AppStateContext] マッピング結果:', {
+            'configData.STAFF_ID': staffIdFromConfig,
+            'configData.FACILITY_ID': facilityIdFromConfig,
+            'apiSettings.staffId': apiSettings.staffId,
+            'apiSettings.facilityId': apiSettings.facilityId,
+            '最終的なSTAFF_ID': mergedData.STAFF_ID,
+            '最終的なFACILITY_ID': mergedData.FACILITY_ID
+          })
+        }
+        
+        // すべてのフィールドをReduxに更新
+        if (configData || iniData) {
+          dispatch(updateAppStateRedux(mergedData))
           
           // window.AppStateも更新（後方互換性のため）
           if (window.AppState) {
-            Object.assign(window.AppState, configData)
+            Object.assign(window.AppState, mergedData)
           }
+          
+          console.log('✅ [AppStateContext] 初期設定の読み込み完了:', mergedData)
         }
       } catch (error) {
         console.error('❌ 初期設定の読み込みエラー:', error)

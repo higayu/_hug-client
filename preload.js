@@ -1,3 +1,4 @@
+// preload.js
 const { contextBridge, ipcRenderer } = require("electron");
 
 console.log("✅ preload.js が読み込まれた");
@@ -15,12 +16,11 @@ contextBridge.exposeInMainWorld("electronAPI", {
     ipcRenderer.on("inject-login", (event, args) => callback(args)),
 
     // API 呼び出し (main 経由)
-  // ✅ 子ども一覧取得 (引数を明示的にログ出力)
-  GetChildrenByStaffAndDay: async (staffId, date, facility_id) => {
+  GetChildrenByStaffAndDay: async (args) => {
     console.log("📤 [preload] GetChildrenByStaffAndDay 呼び出し");
-    console.log("  ↳ 渡す引数:", { staffId, date, facility_id });
+    console.log("  ↳ 渡す引数:", args);
     try {
-      const result = await ipcRenderer.invoke("GetChildrenByStaffAndDay", { staffId, date, facility_id });
+      const result = await ipcRenderer.invoke("GetChildrenByStaffAndDay", args);
       console.log("📥 [preload] main からの応答:", result);
       return result;
     } catch (err) {
@@ -29,15 +29,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
     }
   },
 
-  //     // API 呼び出し (main 経由)
-  // // ✅ キャンセル待ち子ども一覧取得 (引数を明示的にログ出力)
-  // Get_waiting_children_pc: async (facility_id) => {
-  //   console.log("📤 [preload] Get_waiting_children_pc 呼び出し");
-  //   console.log("  ↳ 渡す引数:", { facility_id });
-  //   const result = await ipcRenderer.invoke("Get_waiting_children_pc", { facility_id });
-  //   console.log("📥 [preload] main からの応答:", result);
-  //   return result;
-  // },
+
 
   getStaffAndFacility: async () => {
     try {
