@@ -80,7 +80,7 @@ export function AppStateProvider({ children }) {
   useEffect(() => {
     const loadInitialConfig = async () => {
       try {
-        // config.jsonを読み込み（HUG_USERNAME, HUG_PASSWORDなど）
+        // config.jsonを読み込み（HUG_USERNAME, HUG_PASSWORDのみ）
         const configData = await loadConfigFromUtils()
         console.log('🧩 [AppStateContext] configData 読み込み結果:', configData)
         
@@ -88,44 +88,59 @@ export function AppStateProvider({ children }) {
         const iniData = await loadIniFromUtils()
         console.log('🧩 [AppStateContext] iniData 読み込み結果:', iniData)
         
-        // マージ用のオブジェクトを作成
-        const mergedData = { ...(configData || {}) }
+        // マージ用のオブジェクトを作成（config.jsonからはHUG_USERNAMEとHUG_PASSWORDのみ）
+        const mergedData = {}
+        if (configData) {
+          // config.jsonからはHUG_USERNAMEとHUG_PASSWORDのみを取得
+          if (configData.HUG_USERNAME !== undefined) {
+            mergedData.HUG_USERNAME = configData.HUG_USERNAME
+          }
+          if (configData.HUG_PASSWORD !== undefined) {
+            mergedData.HUG_PASSWORD = configData.HUG_PASSWORD
+          }
+          // VITE_API_BASE_URLも必要に応じて取得
+          if (configData.VITE_API_BASE_URL !== undefined) {
+            mergedData.VITE_API_BASE_URL = configData.VITE_API_BASE_URL
+          }
+        }
         
         // ini.jsonからapiSettingsを取得してマッピング
-        // ini.jsonの値を優先（config.jsonからini.jsonに移動したため）
         if (iniData?.apiSettings) {
           const apiSettings = iniData.apiSettings
           
           // apiSettings.staffId → STAFF_ID にマッピング（複数のキー名に対応）
-          // config.jsonの値が空文字列の場合は無視してini.jsonの値を優先
-          const staffIdFromConfig = mergedData.STAFF_ID
           const staffIdFromIni = 
             apiSettings.staffId ?? 
             apiSettings.staff_id ?? 
             apiSettings.STAFF_ID ?? 
             null
           
-          // config.jsonの値が有効（空文字列でない）場合のみ使用、それ以外はini.jsonを優先
-          mergedData.STAFF_ID = (staffIdFromConfig && staffIdFromConfig !== '') 
-            ? staffIdFromConfig 
-            : staffIdFromIni
+          console.log('🔍 [AppStateContext] staffIdマッピング前:', {
+            'apiSettings.staffId': apiSettings.staffId,
+            'apiSettings.staffId型': typeof apiSettings.staffId,
+            'staffIdFromIni': staffIdFromIni,
+            'staffIdFromIni型': typeof staffIdFromIni
+          })
+          
+          // ini.jsonの値を文字列として統一（数値の場合は文字列に変換）
+          mergedData.STAFF_ID = staffIdFromIni != null ? String(staffIdFromIni) : ""
+          
+          console.log('✅ [AppStateContext] staffIdマッピング後:', {
+            'mergedData.STAFF_ID': mergedData.STAFF_ID,
+            'mergedData.STAFF_ID型': typeof mergedData.STAFF_ID
+          })
           
           // apiSettings.facilityId → FACILITY_ID にマッピング（複数のキー名に対応）
-          const facilityIdFromConfig = mergedData.FACILITY_ID
           const facilityIdFromIni = 
             apiSettings.facilityId ?? 
             apiSettings.facility_id ?? 
             apiSettings.FACILITY_ID ?? 
             null
           
-          // config.jsonの値が有効（空文字列でない）場合のみ使用、それ以外はini.jsonを優先
-          mergedData.FACILITY_ID = (facilityIdFromConfig && facilityIdFromConfig !== '') 
-            ? facilityIdFromConfig 
-            : facilityIdFromIni
+          // ini.jsonの値をそのまま使用
+          mergedData.FACILITY_ID = facilityIdFromIni != null ? String(facilityIdFromIni) : ""
           
           console.log('🔍 [AppStateContext] マッピング結果:', {
-            'configData.STAFF_ID': staffIdFromConfig,
-            'configData.FACILITY_ID': facilityIdFromConfig,
             'apiSettings.staffId': apiSettings.staffId,
             'apiSettings.facilityId': apiSettings.facilityId,
             '最終的なSTAFF_ID': mergedData.STAFF_ID,

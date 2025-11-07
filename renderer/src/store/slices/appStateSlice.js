@@ -62,7 +62,8 @@ const appStateSlice = createSlice({
     
     // スタッフIDを設定
     setStaffId: (state, action) => {
-      state.STAFF_ID = action.payload || ""
+      // 文字列として統一（数値の場合は文字列に変換）
+      state.STAFF_ID = action.payload != null ? String(action.payload) : ""
     },
     
     // 日付を設定
@@ -141,7 +142,10 @@ const appStateSlice = createSlice({
       if (updates.HUG_PASSWORD !== undefined) state.HUG_PASSWORD = updates.HUG_PASSWORD
       if (updates.VITE_API_BASE_URL !== undefined) state.VITE_API_BASE_URL = updates.VITE_API_BASE_URL
       // ID・日付・選択状態
-      if (updates.STAFF_ID !== undefined) state.STAFF_ID = updates.STAFF_ID
+      if (updates.STAFF_ID !== undefined) {
+        // 文字列として統一（数値の場合は文字列に変換）
+        state.STAFF_ID = updates.STAFF_ID != null ? String(updates.STAFF_ID) : ""
+      }
       if (updates.FACILITY_ID !== undefined) state.FACILITY_ID = updates.FACILITY_ID
       if (updates.DATE_STR !== undefined) state.DATE_STR = updates.DATE_STR
       if (updates.WEEK_DAY !== undefined) state.WEEK_DAY = updates.WEEK_DAY

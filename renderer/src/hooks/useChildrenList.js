@@ -50,7 +50,12 @@ export function useChildrenList() {
       let data;
       if (api === sqliteApi) {
         console.log("🪶 SQLiteモードでデータを取得");
+        console.log("🔍 [useChildrenList] appState.STAFF_ID:", appState.STAFF_ID, "型:", typeof appState.STAFF_ID);
         const tables = await sqliteApi.getAllTables();
+
+        console.log("🔍 [実行前のスタッフID] staffId:", appState.STAFF_ID, "型:", typeof appState.STAFF_ID);
+        console.log("🔍 [useChildrenList] date:", appState.WEEK_DAY, "型:", typeof appState.WEEK_DAY);
+
         data = joinChildrenData({
           tables,
           staffId: appState.STAFF_ID,

@@ -19,9 +19,17 @@ export function joinChildrenData({ tables, staffId, date }) {
 
     console.group("🔗 [joinChildrenData] JOIN処理開始");
     console.log("👤 staffId:", staffId, "📅 date:", date);
+    console.log("🔍 staffId型:", typeof staffId, "値:", staffId);
   
-    // スタッフの該当マネージャーデータを抽出
-    const filteredManagers = managers.filter((m) => m.staff_id === staffId);
+    // staffIdを数値に変換（文字列の場合は数値に変換）
+    const staffIdNum = typeof staffId === 'string' ? parseInt(staffId, 10) : Number(staffId);
+    console.log("🔢 変換後のstaffId:", staffIdNum, "型:", typeof staffIdNum);
+  
+    // スタッフの該当マネージャーデータを抽出（型を統一して比較）
+    const filteredManagers = managers.filter((m) => {
+      const mStaffIdNum = typeof m.staff_id === 'string' ? parseInt(m.staff_id, 10) : Number(m.staff_id);
+      return mStaffIdNum === staffIdNum;
+    });
     console.log(`📋 該当マネージャー件数: ${filteredManagers.length}`);
   
     // JOIN
