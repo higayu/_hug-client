@@ -23,7 +23,7 @@ export async function initDatabase() {
 /**
  * DBモードに応じて子どもデータを取得する
  */
-export async function getChildrenData({ staffId, date, facility_id }) {
+export async function getSQLData({ staffId, date, facility_id }) {
   try {
     // ✅ SQLiteモード
     if (activeApi === sqliteApi) {
@@ -38,11 +38,18 @@ export async function getChildrenData({ staffId, date, facility_id }) {
 
     // ✅ MariaDBモード
     console.log("🧩 [index.js] MariaDBモードで子どもデータ取得");
-    return await mariadbApi.getChildrenByStaffAndDay({
+    const childrenData = await mariadbApi.getChildrenByStaffAndDay({
       staffId,
       date,
       facility_id,
     });
+
+    const staffAndFacilityData = await mariadbApi.getStaffAndFacility() || {};
+
+    return {
+      "children": childrenData,
+      "staff": staffAndFacilityData,
+    };
   } catch (err) {
     console.error("❌ [index.js] 子どもデータ取得エラー:", err);
     throw err;
