@@ -5,9 +5,7 @@ import { useAppState } from "../contexts/AppStateContext.jsx";
 import { ELEMENT_IDS } from "../utils/constants.js";
 import { fetchAndExtractAttendanceData } from "../store/slices/attendanceSlice.js";
 import { selectExtractedData, selectAttendanceError } from "../store/slices/attendanceSlice.js";
-import { mariadbApi } from "../api/mariadbApi.js";
-import { sqliteApi } from "../api/sqliteApi.js";
-import { joinChildrenData } from "../utils/childrenJoinProcessor.js"; // ✅ 追加
+import { initDatabase, getChildrenData } from "../sql/index.js";
 
 export function useChildrenList() {
   const { appState, setSelectedChild, setSelectedPcName, setChildrenData, updateAppState, SELECT_CHILD } = useAppState();
@@ -33,6 +31,7 @@ export function useChildrenList() {
     })();
   }, []);
 
+
   // 🔹 子どもデータ取得
   const loadChildren = useCallback(async () => {
     if (!appState.STAFF_ID || !appState.WEEK_DAY) {
@@ -46,36 +45,18 @@ export function useChildrenList() {
 
       console.log("📤 [useChildrenList] データ取得開始");
 
-      // ✅ SQLiteモードの場合は getAllTables → joinChildrenData に分離
-      let data;
-      if (api === sqliteApi) {
-        console.log("🪶 SQLiteモードでデータを取得");
-        console.log("🔍 [useChildrenList] appState.STAFF_ID:", appState.STAFF_ID, "型:", typeof appState.STAFF_ID);
-        const tables = await sqliteApi.getAllTables();
+      const data = await getChildrenData({
+        staffId: appState.STAFF_ID,
+        date: appState.WEEK_DAY,
+        facility_id,
+      });
 
-        console.log("🔍 [実行前のスタッフID] staffId:", appState.STAFF_ID, "型:", typeof appState.STAFF_ID);
-        console.log("🔍 [useChildrenList] date:", appState.WEEK_DAY, "型:", typeof appState.WEEK_DAY);
-
-        data = joinChildrenData({
-          tables,
-          staffId: appState.STAFF_ID,
-          date: appState.WEEK_DAY,
-        });
-      } else {
-        console.log("🧩 MariaDBモードでAPIを呼び出し");
-        data = await mariadbApi.getChildrenByStaffAndDay({
-          staffId: appState.STAFF_ID,
-          date: appState.WEEK_DAY,
-          facility_id,
-        });
-      }
-
-      // ✅ 取得データを反映
       setChildrenData(data.week_children || []);
       updateAppState({
         waiting_childrenData: data.waiting_children || [],
         Experience_childrenData: data.Experience_children || [],
       });
+
       setLocalChildrenData(data.week_children || []);
       setWaitingChildrenData(data.waiting_children || []);
       setExperienceChildrenData(data.Experience_children || []);
@@ -88,9 +69,9 @@ export function useChildrenList() {
 
       console.log("✅ [useChildrenList] データ取得完了:", data);
     } catch (error) {
-      console.error("❌ 子どもデータ読み込みエラー:", error);
+      console.error("❌ [useChildrenList] 子どもデータ読み込みエラー:", error);
     }
-  }, [appState.STAFF_ID, appState.WEEK_DAY, setChildrenData, updateAppState, api]);
+  }, [appState.STAFF_ID, appState.WEEK_DAY, setChildrenData, updateAppState]);
 
   // 🔹 曜日変更イベント
   useEffect(() => {
