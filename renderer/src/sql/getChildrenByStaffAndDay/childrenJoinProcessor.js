@@ -1,106 +1,98 @@
-// src/utils/childrenJoinProcessor.js
+// renderer/src/sql/getChildrenByStaffAndDay/childrenJoinProcessor.js
 export function joinChildrenData({ tables, staffId, date }) {
-    if (!tables) {
-      console.error("❌ joinChildrenData: テーブルデータが未定義です");
-      return { week_children: [], waiting_children: [], Experience_children: [] };
-    }
-  
-    const {
-      children,
-      staffs,
-      managers,
-      pc,
-      pc_to_children,
-      pronunciation,
-      children_type,
-    } = tables;
-    
-    //staffId = 73;
+  if (!tables) {
+    console.error("❌ joinChildrenData: テーブルデータが未定義です");
+    return { week_children: [], waiting_children: [], Experience_children: [] };
+  }
 
-    console.group("🔗 [joinChildrenData] JOIN処理開始");
-    console.log("👤 staffId:", staffId, "📅 date:", date);
-    console.log("🔍 staffId型:", typeof staffId, "値:", staffId);
-  
-    // staffIdを数値に変換（文字列の場合は数値に変換）
-    const staffIdNum = typeof staffId === 'string' ? parseInt(staffId, 10) : Number(staffId);
-    console.log("🔢 変換後のstaffId:", staffIdNum, "型:", typeof staffIdNum);
-  
-    // スタッフの該当マネージャーデータを抽出（型を統一して比較）
-    const filteredManagers = managers.filter((m) => {
-      const mStaffIdNum = typeof m.staff_id === 'string' ? parseInt(m.staff_id, 10) : Number(m.staff_id);
-      return mStaffIdNum === staffIdNum;
-    });
-    console.log(`📋 該当マネージャー件数: ${filteredManagers.length}`);
-  
-    // JOIN
-    const joined = filteredManagers
-      .map((m) => {
-        const child = children.find((c) => c.id === m.children_id);
-        if (!child) return null;
-  
-        const ptc = pc_to_children.find(
-          (p) =>
-            p.children_id === child.id &&
-            (!p.day_of_week || p.day_of_week.includes(date))
-        );
-  
-        const pcItem = ptc ? pc.find((p) => p.id === ptc.pc_id) : null;
-        const pronun = pronunciation.find((p) => p.id === child.pronunciation_id);
-        const ctype = children_type.find((t) => t.id === child.children_type_id);
-  
-        return {
-          children_id: child.id,
-          children_name: child.name,
-          children_pronunciation_id: child.pronunciation_id,
-          children_pronunciation: pronun?.pronunciation || "",
-          notes: child.notes || "",
-          children_type_id: child.children_type_id,
-          children_type_name: ctype?.name || "",
-          pc_id: pcItem?.id || null,
-          pc_name: pcItem?.name || "",
-          pc_explanation: pcItem?.explanation || "",
-          pc_memo: pcItem?.memo || "",
-          pc_day_of_week: ptc?.day_of_week || "",
-          ptc_id: ptc?.id || null,
-          start_time: ptc?.start_time || null,
-          end_time: ptc?.end_time || null,
-        };
-      })
-      .filter(Boolean);
-  
-    console.log(`🧮 JOIN結果: ${joined.length}件`);
-  
-    // 曜日フィルタ
-    const weekChildren = joined.filter((child) => {
-      if (!child.pc_day_of_week) return true;
+  const {
+    children,
+    staffs,
+    managers,
+    pc,
+    pc_to_children,
+    pronunciation,
+    children_type,
+  } = tables;
+
+  console.group("🔗 [joinChildrenData] JOIN処理開始");
+  console.log("👤 staffId:", staffId, "📅 date:", date);
+
+  const staffIdNum = typeof staffId === "string" ? parseInt(staffId, 10) : Number(staffId);
+
+  // --- SQL相当の結合 ---
+  const joined = managers
+    .map((m) => {
+      const child = children.find((c) => c.id === m.children_id);
+      const staff = staffs.find((s) => s.id === m.staff_id);
+      if (!child || !staff) return null;
+
+      const weekDayList = ["日", "月", "火", "水", "木", "金", "土"];
+      const weekDay = weekDayList.includes(date)
+        ? date
+        : weekDayList[new Date(date).getDay()];
+
+      // 曜日判定
+      let match = false;
       try {
-        const parsed = JSON.parse(child.pc_day_of_week);
-        if (Array.isArray(parsed.days)) {
-          const weekDay = ["日", "月", "火", "水", "木", "金", "土"][
-            new Date(date).getDay()
-          ];
-          return parsed.days.includes(weekDay);
+        if (typeof m.day_of_week === "string" && m.day_of_week.trim().startsWith("{")) {
+          const parsed = JSON.parse(m.day_of_week);
+          match = parsed.days?.includes(weekDay);
+        } else if (typeof m.day_of_week === "string") {
+          match = m.day_of_week.includes(weekDay);
         }
       } catch {
-        const weekDay = ["日", "月", "火", "水", "木", "金", "土"][
-          new Date(date).getDay()
-        ];
-        return child.pc_day_of_week.includes(weekDay);
+        match = false;
       }
-      return false;
-    });
-  
-    weekChildren.sort((a, b) =>
-      a.children_name.localeCompare(b.children_name, "ja")
+
+      if (!match) return null;
+
+      // PC情報のJOIN
+      const ptc = pc_to_children.find((p) => p.children_id === child.id);
+      const pcItem = ptc ? pc.find((p) => p.id === ptc.pc_id) : null;
+      const pronun = pronunciation.find((p) => p.id === child.pronunciation_id);
+      const ctype = children_type.find((t) => t.id === child.children_type_id);
+
+      return {
+        children_id: child.id,
+        children_name: child.name,
+        staff_id: staff.id,
+        staff_name: staff.name,
+        day_of_week: m.day_of_week,
+        children_pronunciation_id: child.pronunciation_id,
+        children_pronunciation: pronun?.pronunciation || "",
+        notes: child.notes || "",
+        children_type_id: child.children_type_id,
+        children_type_name: ctype?.name || "",
+        pc_id: pcItem?.id || null,
+        pc_name: pcItem?.name || "",
+        pc_day_of_week: ptc?.day_of_week || "",
+      };
+    })
+    .filter(Boolean)
+    .sort((a, b) => a.children_name.localeCompare(b.children_name, "ja"));
+
+  console.log("🔍 担当児童全件:", joined);
+
+  // --- 自分のスタッフIDで絞り込み ---
+  const myChildren = joined.filter((child) => {
+    const match = Number(child.staff_id) === staffIdNum;
+    console.log(
+      `👤 staff check: ${child.children_name} → child.staff_id=${child.staff_id} vs staffId=${staffIdNum} → ${match}`
     );
-  
-    console.log(`✅ 曜日フィルタ後: ${weekChildren.length}件`);
-    console.groupEnd();
-  
-    return {
-      week_children: weekChildren,
-      waiting_children: [],
-      Experience_children: [],
-    };
-  }
+    return match;
+  });
+
+  console.log(`✅ 自分の担当のみ: ${myChildren.length}件`);
+  console.log("🔍 抽出結果:", myChildren);
+
+  console.groupEnd();
+
+  return {
+    week_children: myChildren,
+    waiting_children: [],
+    Experience_children: [],
+  };
+}
+
   
