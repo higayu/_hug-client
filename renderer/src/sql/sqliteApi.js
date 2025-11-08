@@ -1,4 +1,4 @@
-// src/api/sqliteApi.js
+// src/sql/sqliteApi.js
 export const sqliteApi = {
   async getAllTables() {
     try {
@@ -16,10 +16,14 @@ export const sqliteApi = {
       const timerName = `⌛ DB全テーブル取得時間_${uid}`;
       console.time(timerName);
 
+      // すべてのテーブルを同時に取得
       const [
         children,
         staffs,
         managers,
+        facility_children,
+        facility_staff,
+        facilitys,
         pc,
         pc_to_children,
         pronunciation,
@@ -28,6 +32,9 @@ export const sqliteApi = {
         window.electronAPI.children_getAll?.() ?? [],
         window.electronAPI.staffs_getAll?.() ?? [],
         window.electronAPI.managers_getAll?.() ?? [],
+        window.electronAPI.facility_children_getAll?.() ?? [],
+        window.electronAPI.facility_staff_getAll?.() ?? [],
+        window.electronAPI.facilitys_getAll?.() ?? [],
         window.electronAPI.pc_getAll?.() ?? [],
         window.electronAPI.pc_to_children_getAll?.() ?? [],
         window.electronAPI.pronunciation_getAll?.() ?? [],
@@ -40,6 +47,9 @@ export const sqliteApi = {
         children: children?.length ?? 0,
         staffs: staffs?.length ?? 0,
         managers: managers?.length ?? 0,
+        facility_children: facility_children?.length ?? 0,
+        facility_staff: facility_staff?.length ?? 0,
+        facilitys: facilitys?.length ?? 0,
         pc: pc?.length ?? 0,
         pc_to_children: pc_to_children?.length ?? 0,
         pronunciation: pronunciation?.length ?? 0,
@@ -50,17 +60,25 @@ export const sqliteApi = {
         children,
         staffs,
         managers,
+        facility_children,
+        facility_staff,
+        facilitys,
         pc,
         pc_to_children,
         pronunciation,
         children_type,
       });
+
       console.groupEnd();
 
+      // Redux に渡す形式で返す
       return {
         children,
         staffs,
         managers,
+        facility_children,
+        facility_staff,
+        facilitys,
         pc,
         pc_to_children,
         pronunciation,
@@ -73,3 +91,4 @@ export const sqliteApi = {
     }
   },
 };
+

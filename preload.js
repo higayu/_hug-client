@@ -19,6 +19,9 @@ const tables = [
   "children_type",
   "individual_support",
   "temp_notes",
+  "facility_children",
+  "facility_staff",
+  "facilitys",
 ];
 
 const tableAPIs = {};

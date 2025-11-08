@@ -3,11 +3,15 @@ import { useEffect, useState, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useAppState } from "../contexts/AppStateContext.jsx";
 import { ELEMENT_IDS } from "../utils/constants.js";
-import { fetchAndExtractAttendanceData } from "../store/slices/attendanceSlice.js";
-import { selectExtractedData, selectAttendanceError } from "../store/slices/attendanceSlice.js";
-import { mariadbApi } from "../api/mariadbApi.js";
-import { sqliteApi } from "../api/sqliteApi.js";
+
+import { mariadbApi } from "../sql/mariadbApi.js";
+import { sqliteApi } from "../sql/sqliteApi.js";
 import { joinChildrenData } from "../utils/childrenJoinProcessor.js"; // ✅ 追加
+import { fetchAllTables } from "../store/slices/sqliteSlice.js"; // ✅ 追加！
+import { selectExtractedData, selectAttendanceError } from "../store/slices/attendanceSlice.js";
+import { fetchAndExtractAttendanceData } from "../store/slices/attendanceSlice.js";
+import store from "../store/store.js";
+import { getJoinedStaffFacilityData } from "../store/dispatchers/staffDispatcher.js";
 
 export function useChildrenList() {
   const { appState, setSelectedChild, setSelectedPcName, setChildrenData, updateAppState, SELECT_CHILD } = useAppState();
@@ -53,8 +57,12 @@ export function useChildrenList() {
         console.log("🔍 [useChildrenList] appState.STAFF_ID:", appState.STAFF_ID, "型:", typeof appState.STAFF_ID);
         const tables = await sqliteApi.getAllTables();
 
+        // ✅ Reduxストアに全テーブルデータを保存
+        dispatch(fetchAllTables(tables));
+        console.log("🧾 Redux全体の状態:", store.getState().sqlite);
         console.log("🔍 [実行前のスタッフID] staffId:", appState.STAFF_ID, "型:", typeof appState.STAFF_ID);
         console.log("🔍 [useChildrenList] date:", appState.WEEK_DAY, "型:", typeof appState.WEEK_DAY);
+        getJoinedStaffFacilityData();
 
         data = joinChildrenData({
           tables,

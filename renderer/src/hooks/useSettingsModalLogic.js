@@ -300,45 +300,48 @@ export function useSettingsModalLogic(isOpen) {
   // API設定のセレクトボックスを初期化
   const initializeApiSelectBoxes = useCallback(async () => {
     try {
-      // スタッフと施設のデータを取得
-      const data = await window.electronAPI.getStaffAndFacility()
-
+      let data = null;
       // スタッフセレクトボックスを初期化
       const staffSelect = document.getElementById('api-staff-id')
-      if (staffSelect && data.staffs) {
-        // 既存のオプションをクリア（最初の「選択してください」以外）
-        while (staffSelect.children.length > 1) {
-          staffSelect.removeChild(staffSelect.lastChild)
-        }
-
-        // スタッフデータを追加
-        data.staffs.forEach(staff => {
-          const option = document.createElement('option')
-          option.value = staff.staff_id
-          option.textContent = staff.staff_name
-          staffSelect.appendChild(option)
-        })
-
-        console.log('✅ [SettingsModal] APIスタッフセレクトボックスを初期化しました')
-      }
-
       // 施設セレクトボックスを初期化
       const facilitySelect = document.getElementById('api-facility-id')
-      if (facilitySelect && data.facilitys) {
-        // 既存のオプションをクリア（最初の「選択してください」以外）
-        while (facilitySelect.children.length > 1) {
-          facilitySelect.removeChild(facilitySelect.lastChild)
-        }
+      // データを取得
+      if (activeApi === mariadbApi) {
+        // スタッフと施設のデータを取得
+        data = await mariadbApi.getStaffAndFacility()
+          if (staffSelect && data.staffs) {
+            // 既存のオプションをクリア（最初の「選択してください」以外）
+            while (staffSelect.children.length > 1) {
+              staffSelect.removeChild(staffSelect.lastChild)
+            }
+            // スタッフデータを追加
+            data.staffs.forEach(staff => {
+              const option = document.createElement('option')
+              option.value = staff.staff_id
+              option.textContent = staff.staff_name
+              staffSelect.appendChild(option)
+            })
 
-        // 施設データを追加
-        data.facilitys.forEach(facility => {
-          const option = document.createElement('option')
-          option.value = facility.id
-          option.textContent = facility.name
-          facilitySelect.appendChild(option)
-        })
+            console.log('✅ [SettingsModal] APIスタッフセレクトボックスを初期化しました')
+          }
+          if (facilitySelect && data.facilitys) {
+            // 既存のオプションをクリア（最初の「選択してください」以外）
+            while (facilitySelect.children.length > 1) {
+              facilitySelect.removeChild(facilitySelect.lastChild)
+            }
 
-        console.log('✅ [SettingsModal] API施設セレクトボックスを初期化しました')
+            // 施設データを追加
+            data.facilitys.forEach(facility => {
+              const option = document.createElement('option')
+              option.value = facility.id
+              option.textContent = facility.name
+              facilitySelect.appendChild(option)
+            })
+
+            console.log('✅ [SettingsModal] API施設セレクトボックスを初期化しました')
+          }
+      } else {
+       // data = await window.electronAPI.getStaffAndFacility()
       }
 
       // 現在の値を設定
