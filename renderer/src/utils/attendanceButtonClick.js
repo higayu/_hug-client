@@ -10,27 +10,36 @@ import { activateTab, closeTab } from '../hooks/useTabs/common/index.js'
 const FIRST_BUTTON_ID = 'hugview-first-button';
 
 // 👇 共通ヘルパー: hugview-first-button をクリック
-function waitForClickToFinish(id) {
+/**
+ * WebView が DOM に接続され、dom-ready イベントが発火するのを待つ
+ * @param {Electron.WebviewTag} webview 
+ * @returns {Promise<void>}
+ */
+async function waitForWebviewReady(webview) {
   return new Promise((resolve) => {
-    const btn = document.getElementById(id);
-    if (!btn) return resolve(false);
+    if (!webview) return resolve(false);
 
-    const handler = async () => {
-      try {
-        // 非同期処理をシミュレーション
-        await new Promise(r => setTimeout(r, 1000));
-        resolve(true);
-      } catch {
-        resolve(false);
-      } finally {
-        btn.removeEventListener('click', handler);
-      }
-    };
+    // 既にDOMに接続済み & 読み込み中でない場合は即解決
+    if (webview.isConnected && !webview.isLoading()) {
+      resolve(true);
+      return;
+    }
 
-    btn.addEventListener('click', handler, { once: true });
-    btn.click();
+    // DOM接続を監視して、接続されたらdom-readyを待つ
+    if (!webview.isConnected) {
+      const observer = new MutationObserver(() => {
+        if (webview.isConnected) {
+          observer.disconnect();
+          webview.addEventListener('dom-ready', () => resolve(true), { once: true });
+        }
+      });
+      observer.observe(document.body, { childList: true, subtree: true });
+    } else {
+      webview.addEventListener('dom-ready', () => resolve(true), { once: true });
+    }
   });
 }
+
 
 
 /**
@@ -187,22 +196,23 @@ async function createNewTabAndNavigate() {
  * @returns {Promise<Object>} 実行結果 {success: boolean, error: string}
  */
 export async function clickEnterButton(column5Html) {
-  let webview = null
+  let webview = null;
 
   try {
-    // 新しいタブを作成してURLに移動
-    console.log('🔘 [ATTENDANCE] 新しいタブを作成して入室ボタンをクリックします')
-    webview = await createNewTabAndNavigate()
-    setActiveWebview(webview)
+    console.log('🔘 [ATTENDANCE] 新しいタブを作成して入室ボタンをクリックします');
+    webview = await createNewTabAndNavigate();
+    setActiveWebview(webview);
 
-    // 入室ボタンのonclick関数を抽出
-    const onclickCode = extractEnterButtonOnclick(column5Html)
-    
+    // dom-ready を確実に待つ
+    await waitForWebviewReady(webview);
+
+    // 入室ボタンの onclick 抽出
+    const onclickCode = extractEnterButtonOnclick(column5Html);
+
     if (onclickCode) {
-      console.log('🔘 [ATTENDANCE] 入室ボタンクリック実行:', onclickCode)
-      
-      // onclick関数を実行
-      await webview.executeJavaScript(`
+      console.log('🔘 [ATTENDANCE] 入室ボタンクリック実行:', onclickCode);
+
+      const execResult = await webview.executeJavaScript(`
         (function() {
           try {
             ${onclickCode}
@@ -211,61 +221,48 @@ export async function clickEnterButton(column5Html) {
             return { success: false, error: error.message };
           }
         })();
-      `)
-      
-      console.log('✅ [ATTENDANCE] 入室ボタンクリック完了')
-      
-      if (window.showSuccessToast) {
-        window.showSuccessToast('✅ 入室ボタンをクリックしました', 2000)
+      `);
+
+      if (execResult.success) {
+        console.log('✅ [ATTENDANCE] 入室ボタンクリック完了');
+        window.showSuccessToast?.('✅ 入室ボタンをクリックしました', 2000);
+        return { success: true };
+      } else {
+        throw new Error(execResult.error || 'onclickコードの実行に失敗しました');
       }
-      
-      return { success: true }
     } else {
-      // onclickが見つからない場合、入室ボタンを探してクリック
-      console.log('🔍 [ATTENDANCE] onclickが見つからないため、入室ボタンを検索してクリック')
-      
+      console.log('🔍 [ATTENDANCE] onclickが見つからないため、入室ボタンを検索してクリック');
       const result = await webview.executeJavaScript(`
         (function() {
           try {
-            // 入室ボタンを探す（テキストが"入室"のボタン）
             const buttons = Array.from(document.querySelectorAll('button'));
             const enterButton = buttons.find(btn => btn.textContent.trim() === '入室');
-            
             if (enterButton) {
               enterButton.click();
               return { success: true, method: 'button_click' };
             }
-            
             return { success: false, error: '入室ボタンが見つかりません' };
           } catch (error) {
             return { success: false, error: error.message };
           }
         })();
-      `)
-      
+      `);
+
       if (result.success) {
-        console.log('✅ [ATTENDANCE] 入室ボタンクリック完了（ボタン検索）')
-        if (window.showSuccessToast) {
-          window.showSuccessToast('✅ 入室ボタンをクリックしました', 2000)
-        }
-        return { success: true }
+        console.log('✅ [ATTENDANCE] 入室ボタンクリック完了（ボタン検索）');
+        window.showSuccessToast?.('✅ 入室ボタンをクリックしました', 2000);
+        return { success: true };
       } else {
-        throw new Error(result.error || '入室ボタンのクリックに失敗しました')
+        throw new Error(result.error || '入室ボタンのクリックに失敗しました');
       }
     }
   } catch (error) {
-    console.error('❌ [ATTENDANCE] 入室ボタンクリックエラー:', error)
-    
-    if (window.showErrorToast) {
-      window.showErrorToast(`❌ 入室ボタンクリック失敗\n${error.message}`, 3000)
-    }
-    
-    return {
-      success: false,
-      error: error.message || '入室ボタンのクリックに失敗しました'
-    }
+    console.error('❌ [ATTENDANCE] 入室ボタンクリックエラー:', error);
+    window.showErrorToast?.(`❌ 入室ボタンクリック失敗\n${error.message}`, 3000);
+    return { success: false, error: error.message || '入室ボタンのクリックに失敗しました' };
   }
 }
+
 
 /**
  * 欠席ボタンをWebViewで自動クリックする
@@ -368,82 +365,69 @@ export async function clickAbsenceButton(column5Html) {
  * @returns {Promise<Object>} 実行結果 {success: boolean, error: string}
  */
 export async function clickExitButton(column6Html) {
-  let webview = null
+  let webview = null;
 
   try {
-    // 新しいタブを作成してURLに移動
-    console.log('🔘 [ATTENDANCE] 新しいタブを作成して退室ボタンをクリックします')
-    webview = await createNewTabAndNavigate()
-    setActiveWebview(webview)
+    console.log('🔘 [ATTENDANCE] 新しいタブを作成して退室ボタンをクリックします');
+    webview = await createNewTabAndNavigate();
+    setActiveWebview(webview);
 
-    // onclick の JavaScript コードを抽出
-    const onclickCode = extractExitButtonOnclick(column6Html)
+    // dom-ready を確実に待つ
+    await waitForWebviewReady(webview);
+
+    const onclickCode = extractExitButtonOnclick(column6Html);
 
     if (onclickCode) {
-      console.log('🔘 [ATTENDANCE] 退室ボタンクリック実行:', onclickCode)
+      console.log('🔘 [ATTENDANCE] 退室ボタンクリック実行:', onclickCode);
 
-      // onclick 関数を実行
       const execResult = await webview.executeJavaScript(`
         (function() {
           try {
             ${onclickCode}
-            return { success: true }
+            return { success: true };
           } catch (error) {
-            return { success: false, error: error.message }
+            return { success: false, error: error.message };
           }
         })();
-      `)
+      `);
 
       if (execResult.success) {
-        console.log('✅ [ATTENDANCE] 退室ボタンクリック完了')
-        if (window.showSuccessToast) {
-          window.showSuccessToast('✅ 退室ボタンをクリックしました', 2000)
-        }
-        return { success: true }
+        console.log('✅ [ATTENDANCE] 退室ボタンクリック完了');
+        window.showSuccessToast?.('✅ 退室ボタンをクリックしました', 2000);
+        return { success: true };
       } else {
-        throw new Error(execResult.error || 'onclickコードの実行に失敗しました')
+        throw new Error(execResult.error || 'onclickコードの実行に失敗しました');
       }
     } else {
-      // onclickが見つからない場合、退室ボタンを直接探す
-      console.log('🔍 [ATTENDANCE] onclickが見つからないため、退室ボタンを検索してクリック')
-
+      console.log('🔍 [ATTENDANCE] onclickが見つからないため、退室ボタンを検索してクリック');
       const result = await webview.executeJavaScript(`
         (function() {
           try {
-            const buttons = Array.from(document.querySelectorAll('button'))
-            const exitButton = buttons.find(btn => btn.textContent.trim() === '退室')
+            const buttons = Array.from(document.querySelectorAll('button'));
+            const exitButton = buttons.find(btn => btn.textContent.trim() === '退室');
             if (exitButton) {
-              exitButton.click()
-              return { success: true, method: 'button_click' }
+              exitButton.click();
+              return { success: true, method: 'button_click' };
             }
-            return { success: false, error: '退室ボタンが見つかりません' }
+            return { success: false, error: '退室ボタンが見つかりません' };
           } catch (error) {
-            return { success: false, error: error.message }
+            return { success: false, error: error.message };
           }
         })();
-      `)
+      `);
 
       if (result.success) {
-        console.log('✅ [ATTENDANCE] 退室ボタンクリック完了（ボタン検索）')
-        if (window.showSuccessToast) {
-          window.showSuccessToast('✅ 退室ボタンをクリックしました', 2000)
-        }
-        return { success: true }
+        console.log('✅ [ATTENDANCE] 退室ボタンクリック完了（ボタン検索）');
+        window.showSuccessToast?.('✅ 退室ボタンをクリックしました', 2000);
+        return { success: true };
       } else {
-        throw new Error(result.error || '退室ボタンのクリックに失敗しました')
+        throw new Error(result.error || '退室ボタンのクリックに失敗しました');
       }
     }
   } catch (error) {
-    console.error('❌ [ATTENDANCE] 退室ボタンクリックエラー:', error)
-
-    if (window.showErrorToast) {
-      window.showErrorToast(`❌ 退室ボタンクリック失敗\n${error.message}`, 3000)
-    }
-
-    return {
-      success: false,
-      error: error.message || '退室ボタンのクリックに失敗しました'
-    }
+    console.error('❌ [ATTENDANCE] 退室ボタンクリックエラー:', error);
+    window.showErrorToast?.(`❌ 退室ボタンクリック失敗\n${error.message}`, 3000);
+    return { success: false, error: error.message || '退室ボタンのクリックに失敗しました' };
   }
 }
 
