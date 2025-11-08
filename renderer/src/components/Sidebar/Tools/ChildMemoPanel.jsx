@@ -155,52 +155,50 @@ function ChildMemoPanel() {
               <label className="text-xs font-bold text-red-600">欠席</label>
             </div>
           ) : hasBothEnterAndAbsent(column5) ? (
-            <>
-              {/* 入室と欠席の両方を含む場合 - 入室ボタンと欠席ボタンを表示 */}
-              <div className="flex items-center gap-2 mb-3">
-                <label className="text-xs font-bold text-gray-700 w-12">入室:</label>
-                <button
-                  onClick={async (e) => {
-                    e.stopPropagation()
-                    if (column5Html) {
-                      await clickEnterButton(column5Html)
-                    } else {
-                      console.log('入室ボタンクリック（column5Htmlなし）')
-                    }
-                  }}
-                  className={`flex-1 px-3 py-1.5 text-xs border-none rounded cursor-pointer transition-colors ${
-                    column5Html 
-                      ? 'bg-blue-600 text-white hover:bg-blue-700' 
-                      : 'bg-gray-400 text-white hover:bg-gray-500'
-                  }`}
-                  title={column5Html ? "入室情報あり" : "入室ボタン"}
-                >
-                  {column5Html ? (
-                    <span dangerouslySetInnerHTML={{ __html: column5Html }} />
-                  ) : (
-                    '入室'
-                  )}
-                </button>
-              </div>
-              
-              <div className="flex items-center gap-2 mb-3">
-                <label className="text-xs font-bold text-gray-700 w-12">欠席:</label>
-                <button
-                  onClick={async (e) => {
-                    e.stopPropagation()
-                    if (column5Html) {
-                      await clickAbsenceButton(column5Html)
-                    } else {
-                      console.log('欠席ボタンクリック（column5Htmlなし）')
-                    }
-                  }}
-                  className="flex-1 px-3 py-1.5 text-xs border-none rounded cursor-pointer transition-colors bg-red-600 text-white hover:bg-red-700"
-                  title="欠席ボタン"
-                >
-                  欠席
-                </button>
-              </div>
-            </>
+          <>
+            {/* 入室と欠席の両方を含む場合 - 入室ボタンと欠席ボタンを表示 */}
+            <div className="flex items-center gap-2 mb-3">
+              <label className="text-xs font-bold text-gray-700 w-12">入室:</label>
+              <button
+                onClick={async (e) => {
+                  e.stopPropagation()
+                  // column5Html が HTML でも、処理には使う（クリック動作は保持）
+                  if (column5Html) {
+                    await clickEnterButton(column5Html)
+                  } else {
+                    console.log('入室ボタンクリック（column5Htmlなし）')
+                  }
+                }}
+                className={`flex-1 px-3 py-1.5 text-xs border-none rounded cursor-pointer transition-colors ${
+                  column5Html 
+                    ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                    : 'bg-gray-400 text-white hover:bg-gray-500'
+                }`}
+                title={column5Html ? "入室情報あり" : "入室ボタン"}
+              >
+                入室
+              </button>
+            </div>
+            
+            <div className="flex items-center gap-2 mb-3">
+              <label className="text-xs font-bold text-gray-700 w-12">欠席:</label>
+              <button
+                onClick={async (e) => {
+                  e.stopPropagation()
+                  if (column5Html) {
+                    await clickAbsenceButton(column5Html)
+                  } else {
+                    console.log('欠席ボタンクリック（column5Htmlなし）')
+                  }
+                }}
+                className="flex-1 px-3 py-1.5 text-xs border-none rounded cursor-pointer transition-colors bg-red-600 text-white hover:bg-red-700"
+                title="欠席ボタン"
+              >
+                欠席
+              </button>
+            </div>
+          </>
+
           ) : isTimeFormat(column5) ? (
             <>
               {/* 時間形式の場合 - 入室時間をラベルで表示、退室時間または退室ボタンを表示 */}
@@ -284,15 +282,12 @@ function ChildMemoPanel() {
                   className={`flex-1 px-3 py-1.5 text-xs border-none rounded cursor-pointer transition-colors ${
                     column5Html 
                       ? 'bg-blue-600 text-white hover:bg-blue-700' 
-                      : 'bg-gray-400 text-white hover:bg-gray-500'
+                      : 'bg-gray-400 text-white hover:bg-gray-500 disabled:bg-gray-400 disabled:text-white disabled:cursor-not-allowed'
                   }`}
-                  title={column5Html ? "入室情報あり" : "入室ボタン"}
+                  title={column5 ? "入室情報あり" : "入室ボタン"}
                 >
-                  {column5Html ? (
-                    <span dangerouslySetInnerHTML={{ __html: column5Html }} />
-                  ) : (
-                    '入室'
-                  )}
+                  {/* ← ここを固定 */}
+                  入室
                 </button>
               </div>
               
