@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback } from 'react'
+import { useEffect, useRef, useCallback, useState } from 'react'
 import { useIniState } from '../contexts/IniStateContext.jsx'
 import { useCustomButtons } from '../contexts/CustomButtonsContext.jsx'
 // AppState は window.AppState または useAppState() フック経由でアクセス可能
@@ -10,6 +10,9 @@ import { updateButtonVisibility } from '../utils/buttonVisibility.js'
 import { useCustomButtonManager } from './useCustomButtonManager.js'
 // buttonVisibilityManager は削除されました（機能が空のため）
 import { getActiveWebview } from '../utils/webviewState.js'
+import { getJoinedStaffFacilityData } from "../store/dispatchers/staffDispatcher.js";
+import { sqliteApi } from "../sql/sqliteApi.js";
+import { mariadbApi } from "../sql/mariadbApi.js";
 
 export function useSettingsModalLogic(isOpen) {
   const { showSuccessToast, showErrorToast } = useToast()
@@ -18,7 +21,7 @@ export function useSettingsModalLogic(isOpen) {
   const { saveCustomButtons: saveCustomButtonsContext } = useCustomButtons()
   const { reloadCustomButtons } = useCustomButtonManager()
   const originalSettingsRef = useRef(null)
-
+  const [activeApi, setActiveApi] = useState(sqliteApi);
   // モーダルが開かれた時に元の設定をバックアップ
   useEffect(() => {
     if (isOpen && !originalSettingsRef.current) {
@@ -297,60 +300,106 @@ export function useSettingsModalLogic(isOpen) {
     console.log('✅ [SettingsModal] Configセレクトボックス初期化（不要）')
   }, [])
 
+
   // API設定のセレクトボックスを初期化
   const initializeApiSelectBoxes = useCallback(async () => {
     try {
+      console.group("🧩 [SettingsModal] initializeApiSelectBoxes 開始");
+  
       let data = null;
-      // スタッフセレクトボックスを初期化
-      const staffSelect = document.getElementById('api-staff-id')
-      // 施設セレクトボックスを初期化
-      const facilitySelect = document.getElementById('api-facility-id')
-      // データを取得
+      const staffSelect = document.getElementById("api-staff-id");
+      const facilitySelect = document.getElementById("api-facility-id");
+  
+      console.log("📌 activeApi:", activeApi);
+  
+      // データ取得
       if (activeApi === mariadbApi) {
-        // スタッフと施設のデータを取得
-        data = await mariadbApi.getStaffAndFacility()
-          if (staffSelect && data.staffs) {
-            // 既存のオプションをクリア（最初の「選択してください」以外）
-            while (staffSelect.children.length > 1) {
-              staffSelect.removeChild(staffSelect.lastChild)
-            }
-            // スタッフデータを追加
-            data.staffs.forEach(staff => {
-              const option = document.createElement('option')
-              option.value = staff.staff_id
-              option.textContent = staff.staff_name
-              staffSelect.appendChild(option)
-            })
-
-            console.log('✅ [SettingsModal] APIスタッフセレクトボックスを初期化しました')
-          }
-          if (facilitySelect && data.facilitys) {
-            // 既存のオプションをクリア（最初の「選択してください」以外）
-            while (facilitySelect.children.length > 1) {
-              facilitySelect.removeChild(facilitySelect.lastChild)
-            }
-
-            // 施設データを追加
-            data.facilitys.forEach(facility => {
-              const option = document.createElement('option')
-              option.value = facility.id
-              option.textContent = facility.name
-              facilitySelect.appendChild(option)
-            })
-
-            console.log('✅ [SettingsModal] API施設セレクトボックスを初期化しました')
-          }
+        console.log("🪶 MariaDBモードでスタッフ・施設を取得");
+        data = await mariadbApi.getStaffAndFacility();
       } else {
-       // data = await window.electronAPI.getStaffAndFacility()
+        console.log("🪶 SQLiteモードで getJoinedStaffFacilityData() を実行");
+        data = getJoinedStaffFacilityData();
       }
-
-      // 現在の値を設定
-      if (staffSelect) staffSelect.value = iniState?.apiSettings?.staffId || ''
-      if (facilitySelect) facilitySelect.value = iniState?.apiSettings?.facilityId || ''
+  
+      console.log("📊 取得データ:", data);
+  
+      // データ正規化（SQLite配列 → 共通形式に変換）
+      let staffList = [];
+      let facilityList = [];
+  
+      if (Array.isArray(data)) {
+        // SQLite形式（スタッフ配列）
+        staffList = data.map((s) => ({
+          staff_id: s.staff_id,
+          staff_name: s.staff_name,
+        }));
+  
+        // facility_namesの重複を削除して施設リストを生成
+        const uniqueFacilities = [...new Set(data.map((s) => s.facility_names))];
+        facilityList = uniqueFacilities.map((name, idx) => ({
+          id: data.find((s) => s.facility_names === name)?.facility_ids ?? idx,
+          name,
+        }));
+      } else {
+        // MariaDB形式（オブジェクト内にstaffs/facilitys）
+        staffList = data.staffs || [];
+        facilityList = data.facilitys || [];
+      }
+  
+      console.log("👥 スタッフ数:", staffList.length);
+      console.log("🏢 施設数:", facilityList.length);
+  
+      // スタッフセレクト初期化
+      if (staffSelect) {
+        while (staffSelect.children.length > 1) {
+          staffSelect.removeChild(staffSelect.lastChild);
+        }
+        staffList.forEach((staff) => {
+          const option = document.createElement("option");
+          option.value = staff.staff_id;
+          option.textContent = staff.staff_name;
+          staffSelect.appendChild(option);
+        });
+        console.log("✅ [SettingsModal] スタッフセレクト初期化完了");
+      } else {
+        console.warn("⚠️ staffSelect 要素が見つかりません");
+      }
+  
+      // 施設セレクト初期化
+      if (facilitySelect) {
+        while (facilitySelect.children.length > 1) {
+          facilitySelect.removeChild(facilitySelect.lastChild);
+        }
+        facilityList.forEach((facility) => {
+          const option = document.createElement("option");
+          option.value = facility.id;
+          option.textContent = facility.name;
+          facilitySelect.appendChild(option);
+        });
+        console.log("✅ [SettingsModal] 施設セレクト初期化完了");
+      } else {
+        console.warn("⚠️ facilitySelect 要素が見つかりません");
+      }
+  
+      // 現在値の設定
+      const selectedStaffId = iniState?.apiSettings?.staffId || "";
+      const selectedFacilityId = iniState?.apiSettings?.facilityId || "";
+  
+      console.log("🎯 iniState.apiSettings:", iniState?.apiSettings);
+      console.log("🎯 適用 staffId:", selectedStaffId);
+      console.log("🎯 適用 facilityId:", selectedFacilityId);
+  
+      if (staffSelect) staffSelect.value = selectedStaffId;
+      if (facilitySelect) facilitySelect.value = selectedFacilityId;
+  
+      console.groupEnd();
     } catch (error) {
-      console.error('❌ [SettingsModal] APIセレクトボックス初期化エラー:', error)
+      console.error("❌ [SettingsModal] APIセレクトボックス初期化エラー:", error);
+      console.groupEnd();
     }
-  }, [iniState])
+  }, [iniState, activeApi]);
+  
+
 
   // API設定を保存
   const saveApiSettingsFromForm = useCallback(async () => {

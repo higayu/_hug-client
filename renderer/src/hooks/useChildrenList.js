@@ -62,7 +62,7 @@ export function useChildrenList() {
         console.log("🧾 Redux全体の状態:", store.getState().sqlite);
         console.log("🔍 [実行前のスタッフID] staffId:", appState.STAFF_ID, "型:", typeof appState.STAFF_ID);
         console.log("🔍 [useChildrenList] date:", appState.WEEK_DAY, "型:", typeof appState.WEEK_DAY);
-        getJoinedStaffFacilityData();
+        //getJoinedStaffFacilityData();
 
         data = joinChildrenData({
           tables,
