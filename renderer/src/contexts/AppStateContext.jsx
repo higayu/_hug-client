@@ -24,6 +24,7 @@ import {
   updateAppState as updateAppStateRedux,
   selectHugUsername,
   selectHugPassword,
+  selectGeminiApiKey, // ←★追加
   selectStaffId,
   selectFacilityId,
   selectDateStr,
@@ -56,6 +57,7 @@ export function AppStateProvider({ children }) {
   // 個別のセレクター（後方互換性のため）
   const reduxHugUsername = useSelector(selectHugUsername)
   const reduxHugPassword = useSelector(selectHugPassword)
+  const reduxGeminiApiKey = useSelector(selectGeminiApiKey) // ←★追加
   const reduxStaffId = useSelector(selectStaffId)
   const reduxFacilityId = useSelector(selectFacilityId)
   const reduxDateStr = useSelector(selectDateStr)
@@ -101,6 +103,9 @@ export function AppStateProvider({ children }) {
           // VITE_API_BASE_URLも必要に応じて取得
           if (configData.VITE_API_BASE_URL !== undefined) {
             mergedData.VITE_API_BASE_URL = configData.VITE_API_BASE_URL
+          }
+          if (configData.GEMINI_API_KEY !== undefined) {
+            mergedData.GEMINI_API_KEY = configData.GEMINI_API_KEY
           }
         }
         
@@ -254,6 +259,7 @@ export function AppStateProvider({ children }) {
         // 便利なアクセサー（Reduxから取得）
         HUG_USERNAME: reduxHugUsername,
         HUG_PASSWORD: reduxHugPassword,
+        GEMINI_API_KEY: reduxGeminiApiKey,
         STAFF_ID: reduxStaffId,
         FACILITY_ID: reduxFacilityId,
         DATE_STR: reduxDateStr,

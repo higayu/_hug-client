@@ -535,10 +535,20 @@ export function useTabs() {
     const handleTabClick = (e) => {
       const tab = e.target.closest('button[data-target]')
       if (!tab) return
-
+    
       const targetId = tab.dataset.target
+    
+      if (tab.id === 'hugview-first-button') {
+        console.log('Hugタブがクリックされました')
+      } else if (tab.id === 'other-tab') {
+        console.log('別のタブがクリックされました')
+      }
+      
+      console.log('🎯 data-target:', targetId)
+    
       activateTab(targetId)
     }
+    
 
     tabsContainer.addEventListener('click', handleTabClick)
 

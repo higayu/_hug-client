@@ -6,7 +6,7 @@ import { useAppState } from '../../../contexts/AppStateContext.jsx'
 import { useChildrenList } from '../../../hooks/useChildrenList.js'
 import { useTabs } from '../../../hooks/useTabs/index.js'
 import { MESSAGES } from '../../../utils/constants.js'
-import { clickEnterButton, clickAbsenceButton } from '../../../utils/attendanceButtonClick.js'
+import { clickEnterButton, clickAbsenceButton, clickExitButton } from '../../../utils/attendanceButtonClick.js'
 
 function ChildMemoPanel() {
   const { 
@@ -225,22 +225,20 @@ function ChildMemoPanel() {
                 ) : (
                   // column6が時間形式でない場合 - 退室ボタンを表示
                   <button
-                    onClick={(e) => {
+                  onClick={async (e) => {
                       e.stopPropagation()
                       // TODO: column5Htmlの値に応じた機能を実装
                       // column5Htmlがある場合とない場合で異なる処理を行う
                       if (column5Html) {
                         console.log('退室処理（入室情報あり）:', column5Html)
                         // 入室情報がある場合の退室処理（未実装）
-                      } else {
-                        console.log('退室ボタンクリック')
-                        // 退室ボタンクリック時の処理（未実装）
+                        await clickExitButton(column5Html)
                       }
                     }}
                     className={`flex-1 px-3 py-1.5 text-xs border-none rounded cursor-pointer transition-colors ${
                       column5Html 
                         ? 'bg-green-600 text-white hover:bg-green-700' 
-                        : 'bg-gray-400 text-white hover:bg-gray-500'
+                        : 'bg-gray-400 text-white hover:bg-gray-500 disabled:bg-gray-400 disabled:text-white disabled:cursor-not-allowed'
                     }`}
                     title={column5Html ? "退室処理（入室情報あり）" : "退室ボタン"}
                   >

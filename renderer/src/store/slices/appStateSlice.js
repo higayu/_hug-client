@@ -9,6 +9,7 @@ const initialState = {
   // 認証情報
   HUG_USERNAME: "",
   HUG_PASSWORD: "",
+  GEMINI_API_KEY: "",
   VITE_API_BASE_URL: "",
   
   // ID・日付・選択状態
@@ -214,6 +215,7 @@ export const {
 // セレクターのエクスポート
 export const selectHugUsername = (state) => state.appState.HUG_USERNAME
 export const selectHugPassword = (state) => state.appState.HUG_PASSWORD
+export const selectGeminiApiKey = (state) => state.appState.GEMINI_API_KEY
 export const selectStaffId = (state) => state.appState.STAFF_ID
 export const selectFacilityId = (state) => state.appState.FACILITY_ID
 export const selectDateStr = (state) => state.appState.DATE_STR
