@@ -12,6 +12,9 @@ import { selectExtractedData, selectAttendanceError } from "../store/slices/atte
 import { fetchAndExtractAttendanceData } from "../store/slices/attendanceSlice.js";
 import store from "../store/store.js";
 import { getJoinedStaffFacilityData } from "../store/dispatchers/staffDispatcher.js";
+// 追加
+import { handleFetchAttendanceForChild } from './useToDayWorkList.js';
+
 
 export function useChildrenList() {
   const { appState, setSelectedChild, setSelectedPcName, setChildrenData, updateAppState, SELECT_CHILD } = useAppState();
@@ -69,13 +72,16 @@ export function useChildrenList() {
           staffId: appState.STAFF_ID,
           date: appState.WEEK_DAY,
         });
-      } else {
+      } else if (api === mariadbApi) {
         console.log("🧩 MariaDBモードでAPIを呼び出し");
         data = await mariadbApi.getChildrenByStaffAndDay({
           staffId: appState.STAFF_ID,
           date: appState.WEEK_DAY,
           facility_id,
         });
+      } else {
+        console.log("❌ それ以外のAPIモードです");
+        return;
       }
 
       // ✅ 取得データを反映

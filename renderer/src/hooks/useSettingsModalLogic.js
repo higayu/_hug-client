@@ -316,9 +316,12 @@ export function useSettingsModalLogic(isOpen) {
       if (activeApi === mariadbApi) {
         console.log("🪶 MariaDBモードでスタッフ・施設を取得");
         data = await mariadbApi.getStaffAndFacility();
-      } else {
+      } else if (activeApi === sqliteApi) {
         console.log("🪶 SQLiteモードで getJoinedStaffFacilityData() を実行");
         data = getJoinedStaffFacilityData();
+      } else {
+        console.log("❌ それ以外のAPIモードです");
+        return;
       }
   
       console.log("📊 取得データ:", data);

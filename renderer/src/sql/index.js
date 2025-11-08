@@ -34,22 +34,25 @@ export async function getSQLData({ staffId, date, facility_id }) {
         staffId,
         date,
       });
+    }else if (activeApi === mariadbApi) {
+      // ✅ MariaDBモード
+      console.log("🧩 [index.js] MariaDBモードで子どもデータ取得");
+      const childrenData = await mariadbApi.getChildrenByStaffAndDay({
+        staffId,
+        date,
+        facility_id,
+      });
+
+      const staffAndFacilityData = await mariadbApi.getStaffAndFacility() || {};
+
+      return {
+        "children": childrenData,
+        "staff": staffAndFacilityData,
+      };
+    }else {
+      console.log("❌ [index.js] 不正なAPIモードです");
+      return;
     }
-
-    // ✅ MariaDBモード
-    console.log("🧩 [index.js] MariaDBモードで子どもデータ取得");
-    const childrenData = await mariadbApi.getChildrenByStaffAndDay({
-      staffId,
-      date,
-      facility_id,
-    });
-
-    const staffAndFacilityData = await mariadbApi.getStaffAndFacility() || {};
-
-    return {
-      "children": childrenData,
-      "staff": staffAndFacilityData,
-    };
   } catch (err) {
     console.error("❌ [index.js] 子どもデータ取得エラー:", err);
     throw err;
