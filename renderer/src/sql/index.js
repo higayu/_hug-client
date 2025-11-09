@@ -29,10 +29,11 @@ export async function getSQLData({ staffId, date, facility_id }) {
     if (activeApi === sqliteApi) {
       console.log("🪶 [index.js] SQLiteモードで子どもデータ取得");
       const tables = await sqliteApi.getAllTables();
-      return joinChildrenData({
+      return await joinChildrenData({
         tables,
         staffId,
         date,
+        facility_id,
       });
     }else if (activeApi === mariadbApi) {
       // ✅ MariaDBモード
