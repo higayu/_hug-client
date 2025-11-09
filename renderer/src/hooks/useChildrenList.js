@@ -64,11 +64,12 @@ export function useChildrenList() {
         console.log("🔍 [useChildrenList] date:", appState.WEEK_DAY, "型:", typeof appState.WEEK_DAY);
         //getJoinedStaffFacilityData();
 
-        data = joinChildrenData({
-          tables,
-          staffId: appState.STAFF_ID,
-          date: appState.WEEK_DAY,
-        });
+      data = await joinChildrenData({
+        tables,
+        staffId: appState.STAFF_ID,
+        date: appState.WEEK_DAY,
+      });
+
       } else if (api === mariadbApi) {
         console.log("🧩 MariaDBモードでAPIを呼び出し");
         data = await mariadbApi.getChildrenByStaffAndDay({
