@@ -5,8 +5,9 @@ import { getWeekdayFromDate, getDateString } from '../../utils/dateUtils.js'
 import { useToast } from '../../contexts/ToastContext.jsx'
 import { ELEMENT_IDS } from '../../utils/constants.js'
 import TabsContainer from './TabsContainer.jsx'  // ← これを追加
-import { handleFetchAttendanceForChild } from "../../hooks/useToDayWorkList.js"
+//import { handleFetchAttendanceForChild } from "../../hooks/useToDayWorkList.js"
 import { updateAppState } from "../../store/slices/appStateSlice.js"
+import TableDataGetButon from './Tools/TableDataGetButon.jsx'
 
 function Sidebar() {
   const { showInfoToast } = useToast()
@@ -157,23 +158,8 @@ function Sidebar() {
 
       </div>
 
-      {/* 🌟 児童対応一覧データ取得ボタン */}
-      <button
-        onClick={async () => {
-          try {
-            console.log("📊 [Sidebar] 児童対応一覧データ取得:", { SELECT_CHILD, SELECT_CHILD_NAME })
-            showInfoToast("📊 データ取得中...")
-            await handleFetchAttendanceForChild(appState, updateAppState, dispatch)
-            showInfoToast("✅ データ取得完了")
-          } catch (error) {
-            console.error("❌ [Sidebar] データ取得エラー:", error)
-            showInfoToast(`❌ エラー: ${error.message || 'データ取得に失敗しました'}`)
-          }
-        }}
-        className="w-full px-2 py-1 text-xs bg-blue-600 text-white border-none rounded cursor-pointer hover:bg-blue-700"
-      >
-        📊 児童対応一覧データ取得
-      </button>
+      {/* 🌟 児童対応データ取得ボタン（新タブ版） */}
+      <TableDataGetButon />
 
 
       {/* スクロール可能なコンテンツ部分 - 横並びレイアウト */}

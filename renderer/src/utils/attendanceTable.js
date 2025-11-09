@@ -42,7 +42,8 @@ async function waitForPageReady(webview, maxAttempts = 30, interval = 500) {
 export async function fetchAttendanceTableData(
   facility_id,
   date_str,
-  options = {}
+  options = {},
+  webviewParam = null // ← 追加
 ) {
   const {
     selector = 'table',
@@ -53,14 +54,16 @@ export async function fetchAttendanceTableData(
   let webview
   
   try {
-    if (useMainWebview) {
+    // ✅ 新しく渡された webviewParam がある場合はそれを優先的に使う
+    if (webviewParam) {
+      webview = webviewParam
+      console.log('🌐 [ATTENDANCE] 指定されたWebViewを使用:', webview.id)
+    } else if (useMainWebview) {
       // メインwebviewを使用
       webview = getActiveWebview()
-      if (!webview) {
-        throw new Error('メインwebviewが見つかりません')
-      }
+      if (!webview) throw new Error('メインwebviewが見つかりません')
     } else {
-      throw new Error('メインwebview以外は現在サポートしていません')
+      throw new Error('対象webviewが指定されていません')
     }
 
     const targetUrl = `https://www.hug-ayumu.link/hug/wm/attendance.php?mode=detail&f_id=${facility_id}&date=${date_str}`
@@ -75,7 +78,13 @@ export async function fetchAttendanceTableData(
 
     // 指定URLを読み込む
     console.log('🔄 [ATTENDANCE] URLを読み込み中:', targetUrl)
-    webview.src = targetUrl
+    
+    const currentSrc = webview.getURL?.() || "";
+    if (!currentSrc.includes(targetUrl)) {
+      webview.src = targetUrl;
+    } else {
+      console.log("⚡ 既に同じURLを読み込み中のため再ロードをスキップ:", currentSrc);
+    }
 
     // ページが読み込まれるまで待機
     console.log('⏳ [ATTENDANCE] ページ読み込みを待機中...')
