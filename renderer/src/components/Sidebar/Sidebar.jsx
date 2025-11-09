@@ -22,43 +22,39 @@ function Sidebar() {
   const [isPinned, setIsPinned] = useState(false)
   const sidebarRef = useRef(null)
 
-  // 日付変更時の処理
+  // 日付変更時の処理（曜日には干渉しない）
   const handleDateChange = (e) => {
     const selectedDate = e.target.value
     console.log("📅 日付が変更されました:", selectedDate)
     
     if (selectedDate) {
       const weekday = getWeekdayFromDate(selectedDate)
-      setDateValue(selectedDate) // まずローカル状態を更新
-      setDate(selectedDate)
-      setWeekday(weekday)
-      setWeekdayValue(weekday)
-      showInfoToast(`📅 日付を ${selectedDate} (${weekday}) に設定しました`)
-      console.log("✅ 日付と曜日を更新:", { date: selectedDate, weekday })
       
-      // 日付変更イベントを発行（他のコンポーネントに通知）
+      // ローカル状態とコンテキスト更新（曜日は更新しない）
+      setDateValue(selectedDate)
+      setDate(selectedDate)
+
+      showInfoToast(`📅 日付を ${selectedDate} (${weekday}) に設定しました`)
+      console.log("✅ 日付のみを更新:", { date: selectedDate, weekday })
+
+      // 他コンポーネントへの通知
       window.dispatchEvent(new CustomEvent('date-changed', { 
-        detail: { date: selectedDate, weekday } 
+        detail: { date: selectedDate, weekday }
       }))
       
-      // 曜日も変更されたので、曜日変更イベントも発行
-      window.dispatchEvent(new Event('weekday-changed'))
+      // 🚫 ここでは曜日変更イベントを発行しない
+      // window.dispatchEvent(new Event('weekday-changed'))
     }
   }
 
-  // 曜日変更時の処理
+  // 曜日変更時
   const handleWeekdayChange = (e) => {
     const selectedWeekday = e.target.value
-    console.log("📅 曜日が変更されました:", selectedWeekday)
-    
     setWeekday(selectedWeekday)
     setWeekdayValue(selectedWeekday)
     showInfoToast(`📅 曜日を ${selectedWeekday} に設定しました`)
-    console.log("✅ 曜日を更新:", selectedWeekday)
-    
-    // childrenList.jsのロジックをトリガー（loadChildren()を呼び出す）
-    window.dispatchEvent(new Event('weekday-changed'))
   }
+
 
   // 固定状態の切り替え
   const handlePinToggle = () => {
@@ -90,15 +86,13 @@ function Sidebar() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []) // 初回マウント時のみ実行
 
-  // appStateのDATE_STRとWEEK_DAYが外部から変更された場合に同期（ただしローカル状態が空の場合のみ）
+
+  // weekdayValue の変更を検知してイベント発火
   useEffect(() => {
-    if (!dateValue && DATE_STR) {
-      setDateValue(DATE_STR)
+    if (weekdayValue) {
+      window.dispatchEvent(new Event('weekday-changed'))
     }
-    if (!weekdayValue && WEEK_DAY) {
-      setWeekdayValue(WEEK_DAY)
-    }
-  }, [DATE_STR, WEEK_DAY, dateValue, weekdayValue])
+  }, [weekdayValue])
 
   return (
     <div ref={sidebarRef} className="text-black bg-gray-50 flex flex-col h-full">
