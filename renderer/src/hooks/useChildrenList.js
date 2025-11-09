@@ -12,9 +12,6 @@ import { selectExtractedData, selectAttendanceError } from "../store/slices/atte
 import { fetchAndExtractAttendanceData } from "../store/slices/attendanceSlice.js";
 import store from "../store/store.js";
 import { getJoinedStaffFacilityData } from "../store/dispatchers/staffDispatcher.js";
-// 追加
-import { handleFetchAttendanceForChild } from './useToDayWorkList.js';
-
 
 export function useChildrenList() {
   const { appState, setSelectedChild, setSelectedPcName, setChildrenData, updateAppState, SELECT_CHILD } = useAppState();
@@ -145,9 +142,6 @@ export function useChildrenList() {
     waitingChildrenData,
     experienceChildrenData,
     loadChildren,
-    handleFetchAttendanceForChild: useCallback(() => {
-      handleFetchAttendanceForChild(appState, updateAppState, dispatch);
-    }, [appState, updateAppState, dispatch]),
     saveTempNote: useCallback(async (childId, enterTime, exitTime, memo) => {
       await saveTempNote(childId, enterTime, exitTime, memo, appState);
     }, [appState]),

@@ -1,4 +1,4 @@
-// src/hooks/useTabs/index.js
+//renderer\src\hooks\useTabs\index.js
 // タブ管理のフック
 
 import { useEffect, useCallback, useRef } from 'react'

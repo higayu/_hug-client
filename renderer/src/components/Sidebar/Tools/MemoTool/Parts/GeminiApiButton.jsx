@@ -1,6 +1,6 @@
 // renderer/src/components/Sidebar/Tools/GeminiApiButton.jsx
 import React, { useState } from 'react'
-import { useAppState } from '../../../contexts/AppStateContext.jsx'
+import { useAppState } from '../../../../../contexts/AppStateContext.jsx'
 
 export default function GeminiApiButton() {
   const { GEMINI_API_KEY } = useAppState()

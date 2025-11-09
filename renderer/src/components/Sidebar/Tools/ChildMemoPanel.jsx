@@ -7,6 +7,7 @@ import { useChildrenList } from '../../../hooks/useChildrenList.js'
 import { useTabs } from '../../../hooks/useTabs/index.js'
 import { MESSAGES } from '../../../utils/constants.js'
 import { clickEnterButton, clickAbsenceButton, clickExitButton } from '../../../utils/attendanceButtonClick.js'
+import MemoContainer from './MemoTool/MemoContainer'
 
 function ChildMemoPanel() {
   const { 
@@ -317,23 +318,11 @@ function ChildMemoPanel() {
               </div>
             </>
           )}
-          <div className="mb-3">
-            <label className="text-xs font-bold text-gray-700 block mb-1">メモ:</label>
-            <textarea
-              id={`memo-${SELECT_CHILD}`}
-              className="w-full p-1.5 border border-gray-300 rounded text-xs bg-white resize-y min-h-[100px] font-inherit text-black focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-200"
-              placeholder={MESSAGES.PLACEHOLDERS?.MEMO || 'メモを入力...'}
-              rows={5}
-              onInput={handleSaveTempNote}
-            />
+          
+          {/* --- ここにAI入力＋OpenAIボタンUIを埋め込む --- */}
+          <div className="mb-4 border-t border-gray-200 pt-3">
+            <MemoContainer />
           </div>
-          <button
-            onClick={handleSaveTempNote}
-            className="w-full px-3 py-1.5 bg-blue-600 text-white border-none rounded text-xs cursor-pointer hover:bg-blue-700 transition-colors"
-          >
-            保存
-          </button>
-
           
         </div>
 

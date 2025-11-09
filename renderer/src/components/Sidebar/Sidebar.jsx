@@ -1,16 +1,17 @@
+import { useDispatch } from "react-redux"
 import { useEffect, useRef, useState } from 'react'
 import { useAppState } from '../../contexts/AppStateContext.jsx'
 import { getWeekdayFromDate, getDateString } from '../../utils/dateUtils.js'
 import { useToast } from '../../contexts/ToastContext.jsx'
 import { ELEMENT_IDS } from '../../utils/constants.js'
-import { useChildrenList } from '../../hooks/useChildrenList.js'
 import TabsContainer from './TabsContainer.jsx'  // ← これを追加
+import { handleFetchAttendanceForChild } from "../../hooks/useToDayWorkList.js"
+import { updateAppState } from "../../store/slices/appStateSlice.js"
 
 function Sidebar() {
   const { showInfoToast } = useToast()
   const { appState, setDate, setWeekday, DATE_STR, WEEK_DAY, SELECT_CHILD, SELECT_CHILD_NAME } = useAppState()
-  const { handleFetchAttendanceForChild } = useChildrenList()
-  
+  const dispatch = useDispatch()
   // 初期値を設定（appStateに値がない場合は今日の日付を使用）
   const initialDate = DATE_STR || getDateString()
   const initialWeekday = WEEK_DAY || getWeekdayFromDate(initialDate)
@@ -157,25 +158,23 @@ function Sidebar() {
       </div>
 
       {/* 🌟 児童対応一覧データ取得ボタン */}
-      <div className="flex-shrink-0 pb-2.5 border-b border-gray-200 mb-2.5">
-        <button
-          onClick={async () => {
-            try {
-                console.log('📊 [Sidebar] 児童対応一覧データ取得ボタンクリック:', { SELECT_CHILD, SELECT_CHILD_NAME })
-                showInfoToast('📊 データ取得中...')
-                await handleFetchAttendanceForChild(SELECT_CHILD, SELECT_CHILD_NAME)
-                showInfoToast('✅ データ取得完了')
-            } catch (error) {
-              console.error('❌ [Sidebar] データ取得エラー:', error)
-              showInfoToast(`❌ エラー: ${error.message || 'データ取得に失敗しました'}`)
-            }
-          }}
-          className="w-full px-2 py-1 text-xs bg-blue-600 text-white border-none rounded cursor-pointer hover:bg-blue-700"
-          title="児童対応一覧"
-        >
-          📊 児童対応一覧データ取得
-        </button>
-      </div>
+      <button
+        onClick={async () => {
+          try {
+            console.log("📊 [Sidebar] 児童対応一覧データ取得:", { SELECT_CHILD, SELECT_CHILD_NAME })
+            showInfoToast("📊 データ取得中...")
+            await handleFetchAttendanceForChild(appState, updateAppState, dispatch)
+            showInfoToast("✅ データ取得完了")
+          } catch (error) {
+            console.error("❌ [Sidebar] データ取得エラー:", error)
+            showInfoToast(`❌ エラー: ${error.message || 'データ取得に失敗しました'}`)
+          }
+        }}
+        className="w-full px-2 py-1 text-xs bg-blue-600 text-white border-none rounded cursor-pointer hover:bg-blue-700"
+      >
+        📊 児童対応一覧データ取得
+      </button>
+
 
       {/* スクロール可能なコンテンツ部分 - 横並びレイアウト */}
       <div className="flex flex-1 min-h-0 overflow-hidden">
