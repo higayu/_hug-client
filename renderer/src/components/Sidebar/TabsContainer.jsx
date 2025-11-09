@@ -1,7 +1,7 @@
 // renderer/src/components/Sidebar/TabsContainer.jsx
 import { useState } from 'react'
-import ToolContent from './Tools/ToolContent.jsx'
-import SQLiteManager from './sqlitemanager/index.jsx' // ← SQLite Manager を追加
+import ToolContent from './Tools/SelectChildren/ToolContent.jsx'
+import SQLiteManager from './Tools/SqliteManager/index.jsx' // ← SQLite Manager を追加
 
 function TabsContainer() {
   // デフォルトでツールタブを開く

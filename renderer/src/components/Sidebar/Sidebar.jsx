@@ -7,7 +7,6 @@ import { ELEMENT_IDS } from '../../utils/constants.js'
 import TabsContainer from './TabsContainer.jsx'  // ← これを追加
 //import { handleFetchAttendanceForChild } from "../../hooks/useToDayWorkList.js"
 import { updateAppState } from "../../store/slices/appStateSlice.js"
-import TableDataGetButon from './Tools/TableDataGetButon.jsx'
 
 function Sidebar() {
   const { showInfoToast } = useToast()
@@ -151,10 +150,6 @@ function Sidebar() {
         </button>
 
       </div>
-
-      {/* 🌟 児童対応データ取得ボタン（新タブ版） */}
-      <TableDataGetButon />
-
 
       {/* スクロール可能なコンテンツ部分 - 横並びレイアウト */}
       <div className="flex flex-1 min-h-0 overflow-hidden">

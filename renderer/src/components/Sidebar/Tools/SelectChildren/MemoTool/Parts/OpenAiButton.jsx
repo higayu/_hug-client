@@ -1,9 +1,9 @@
 // renderer/src/components/Sidebar/Tools/MemoTool/Parts/OpenAiButton.jsx
 import React, { useCallback } from "react"
 import { FaRobot } from "react-icons/fa"
-import { useTabs } from "../../../../../hooks/useTabs/index.js"
-import { useAppState } from "../../../../../contexts/AppStateContext.jsx"
-import { createWebview, createTabButton } from "../../../../../hooks/useTabs/common/index.js"
+import { useTabs } from "@/hooks/useTabs";
+import { useAppState } from "@/contexts/AppStateContext.jsx"
+import { createWebview, createTabButton } from "@/hooks/useTabs/common/index.js"
 
 export default function OpenAiButton() {
   const { appState } = useAppState()

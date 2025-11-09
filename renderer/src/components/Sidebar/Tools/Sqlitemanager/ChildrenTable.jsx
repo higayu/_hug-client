@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { useChildrenList } from "../../../hooks/useChildrenList";
-import { useToast } from "../../../contexts/ToastContext.jsx";
+import { useChildrenList } from "@/hooks/useChildrenList";
+import { useToast } from "@/contexts/ToastContext.jsx";
 
 export default function ChildrenTable() {
   const { childrenData, loadChildren } = useChildrenList();

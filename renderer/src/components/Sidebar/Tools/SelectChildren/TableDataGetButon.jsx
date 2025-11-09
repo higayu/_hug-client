@@ -1,12 +1,12 @@
 import React, { useCallback } from "react";
 import { FaTable } from "react-icons/fa";
 import { useDispatch } from "react-redux";
-import { useTabs } from "../../../hooks/useTabs/index.js";
-import { useAppState } from "../../../contexts/AppStateContext.jsx";
-import { createWebview, createTabButton } from "../../../hooks/useTabs/common/index.js";
-import { fetchAndExtractAttendanceData } from "../../../store/slices/attendanceSlice.js";
-import { useToast } from "../../../contexts/ToastContext.jsx";
-import { handleAttendancePageLoad } from "../../../utils/ToDayChildrenList/attendancePageHandler.js";
+import { useTabs } from "@/hooks/useTabs";
+import { useAppState } from "@/contexts/AppStateContext.jsx";
+import { createWebview, createTabButton } from "@/hooks/useTabs/common/index.js";
+import { fetchAndExtractAttendanceData } from "@/store/slices/attendanceSlice.js";
+import { useToast } from "@/contexts/ToastContext.jsx";
+import { handleAttendancePageLoad } from "@/utils/ToDayChildrenList/attendancePageHandler.js";
 
 /**
  * メインコンポーネント
