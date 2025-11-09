@@ -10,7 +10,7 @@ import { updateButtonVisibility } from '../utils/buttonVisibility.js'
 import { useCustomButtonManager } from './useCustomButtonManager.js'
 // buttonVisibilityManager は削除されました（機能が空のため）
 import { getActiveWebview } from '../utils/webviewState.js'
-import { getJoinedStaffFacilityData } from "../store/dispatchers/staffDispatcher.js";
+import { getJoinedStaffFacilityData } from "../sql/staff_facility_v/staffDispatcher.js";
 import { sqliteApi } from "../sql/sqliteApi.js";
 import { mariadbApi } from "../sql/mariadbApi.js";
 

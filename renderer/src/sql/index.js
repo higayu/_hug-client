@@ -1,7 +1,7 @@
 // renderer/src/sql/index.js
 import { mariadbApi } from "./mariadbApi.js";
 import { sqliteApi } from "./sqliteApi.js";
-import { joinChildrenData } from "./getChildrenByStaffAndDay/childrenJoinProcessor.js";
+import { joinChildrenData } from "./getChildren/childrenJoinProcessor.js";
 
 let activeApi = sqliteApi; // デフォルトはSQLite
 

@@ -6,12 +6,12 @@ import { ELEMENT_IDS } from "../utils/constants.js";
 
 import { mariadbApi } from "../sql/mariadbApi.js";
 import { sqliteApi } from "../sql/sqliteApi.js";
-import { joinChildrenData } from "../sql/getChildrenByStaffAndDay/childrenJoinProcessor.js"; // ✅ 追加
+import { joinChildrenData } from "../sql/getChildren/childrenJoinProcessor.js"; // ✅ 追加
 import { fetchAllTables } from "../store/slices/sqliteSlice.js"; // ✅ 追加！
 import { selectExtractedData, selectAttendanceError } from "../store/slices/attendanceSlice.js";
 import { fetchAndExtractAttendanceData } from "../store/slices/attendanceSlice.js";
 import store from "../store/store.js";
-import { getJoinedStaffFacilityData } from "../store/dispatchers/staffDispatcher.js";
+import { getJoinedStaffFacilityData } from "../sql/staff_facility_v/staffDispatcher.js";
 
 export function useChildrenList() {
   const { appState, setSelectedChild, setSelectedPcName, setChildrenData, updateAppState, SELECT_CHILD } = useAppState();
