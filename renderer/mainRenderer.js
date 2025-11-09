@@ -17,7 +17,7 @@ import {
   fetchAttendanceTableData, 
   fetchAttendanceData, 
   parseAttendanceTable 
-} from "./src/utils/attendanceTable.js";
+} from "./src/utils/ToDayChildrenList/attendanceTable.js";
 // toastはReact側のToastContextからwindow経由でアクセス可能
 
 // グローバルにエクスポート（デバッグ・開発用）

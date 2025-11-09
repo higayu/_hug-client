@@ -1,7 +1,7 @@
-// src/utils/attendanceTable.js
+// renderer/src/utils/ToDayChildrenList/attendanceTable.js
 // 出勤データテーブルの取得機能
 
-import { getActiveWebview } from './webviewState.js'
+import { getActiveWebview } from '../webviewState.js'
 
 /**
  * WebViewのページが完全に読み込まれるまで待機する

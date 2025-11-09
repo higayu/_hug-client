@@ -2,7 +2,7 @@
 // 出勤データテーブルの状態管理
 
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
-import { fetchAttendanceTableData, extractColumnData, parseAttendanceTable } from '../../utils/attendanceTable.js'
+import { fetchAttendanceTableData, extractColumnData, parseAttendanceTable } from '../../utils/ToDayChildrenList/attendanceTable.js'
 
 // 非同期アクション: テーブルデータを取得
 export const fetchAttendanceTable = createAsyncThunk(

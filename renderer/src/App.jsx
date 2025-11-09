@@ -2,7 +2,7 @@ import {
   fetchAttendanceTableData, 
   fetchAttendanceData, 
   parseAttendanceTable 
-} from './utils/attendanceTable.js'
+} from './utils/ToDayChildrenList/attendanceTable.js'
 import { usePreloadPath } from './hooks/usePreloadPath.js'
 import { useAppInitialization } from './hooks/useAppInitialization.js'
 import { Provider } from 'react-redux'
