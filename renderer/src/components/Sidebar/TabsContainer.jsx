@@ -2,7 +2,7 @@
 import { useState } from 'react'
 import ToolContent from './Tools/SelectChildren/ToolContent.jsx'
 import SQLiteManager from './Tools/SqliteManager/index.jsx' // ← SQLite Manager を追加
-import ChildrenListManager from './Tools/AddManageChildren/ChildrenListManager.jsx'
+import ChildrenTable from './Tools/AddManageChildren/index.jsx'
 
 function TabsContainer() {
   // デフォルトでツールタブを開く
@@ -49,7 +49,7 @@ function TabsContainer() {
 
         {activeTab === 'addManageChildren' && (
           <div className="h-full flex flex-col">
-            <ChildrenListManager />
+            <ChildrenTable />
           </div>
         )}
 
