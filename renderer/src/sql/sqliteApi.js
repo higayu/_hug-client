@@ -1,4 +1,6 @@
 // src/sql/sqliteApi.js
+import { insertManager } from "./insertManager/insertManager.js";
+
 export const sqliteApi = {
   async getAllTables() {
     try {
@@ -89,6 +91,10 @@ export const sqliteApi = {
       console.groupEnd();
       return null;
     }
+  },
+
+  async insertManager(manager) {
+    return await insertManager.insertManager(manager);
   },
 };
 

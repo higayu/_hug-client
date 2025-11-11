@@ -56,10 +56,11 @@ body {
 }
 
 .settings-sidebar.open {
-  width: 400px !important;
+  width: 50vw !important; /* 画面幅の50% */
   padding: 15px !important;
   border-right: 1px solid #ccc !important;
 }
+
 
 /* === アクティブタブ === */
 .active-tab {

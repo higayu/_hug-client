@@ -27,7 +27,12 @@ const tables = [
 const tableAPIs = {};
 for (const table of tables) {
   tableAPIs[`${table}_getAll`] = () => ipcRenderer.invoke(`${table}:getAll`);
+  // 🟢 CRUD 対応追加
+  tableAPIs[`${table}_insert`] = (data) => ipcRenderer.invoke(`${table}:insert`, data);
+  tableAPIs[`${table}_update`] = (data) => ipcRenderer.invoke(`${table}:update`, data);
+  tableAPIs[`${table}_delete`] = (ids) => ipcRenderer.invoke(`${table}:delete`, ids);
 }
+
 
 // ============================================
 // 🔹 すべてのAPIを一度に expose

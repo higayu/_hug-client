@@ -14,25 +14,4 @@ function connect() {
   });
 }
 
-/**
- * 安全にクエリを実行して結果を返す（Promiseでラップ）
- */
-function runQuery(query, params = []) {
-  const db = connect();
-  return new Promise((resolve, reject) => {
-    db.all(query, params, (err, rows) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve(rows);
-      }
-
-      // クエリ完了後に安全に閉じる
-      db.close((closeErr) => {
-        if (closeErr) console.error("⚠️ DBクローズ失敗:", closeErr.message);
-      });
-    });
-  });
-}
-
-module.exports = { connect, runQuery };
+module.exports = { connect};
