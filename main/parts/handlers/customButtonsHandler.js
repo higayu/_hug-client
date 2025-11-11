@@ -1,38 +1,18 @@
 // main/parts/handlers/customButtonsHandler.js
 const fs = require("fs");
 const path = require("path");
-const { app } = require("electron");
-const { getDataPath } = require("../utils/util");
-
-function resolveCustomButtonsPath() {
-  if (app.isPackaged) {
-    // ✅ ビルド後: ユーザーディレクトリ/data/customButtons.json
-    return path.join(app.getPath("userData"), "data", "customButtons.json");
-  } else {
-    // ✅ 開発時: プロジェクトルート直下の data/customButtons.json
-    return path.join(__dirname, "../../data/customButtons.json");
-  }
-}
-
-function resolveAvailableActionsPath() {
-  if (app.isPackaged) {
-    // ✅ ビルド後: ユーザーディレクトリ/data/availableActions.json
-    return path.join(app.getPath("userData"), "data", "availableActions.json");
-  } else {
-    // ✅ 開発時: プロジェクトルート直下の data/availableActions.json
-    return path.join(__dirname, "../../data/availableActions.json");
-  }
-}
+const { getCustomButtonsPath, getAvailableActionsPath } = require("../utils/pathResolver");
 
 function handleCustomButtonsAccess(ipcMain) {
-  // customButtons.json読み込み
+  // ============================================================
+  // 🟦 customButtons.json 読み込み
+  // ============================================================
   ipcMain.handle("read-custom-buttons", async () => {
     try {
-      const filePath = resolveCustomButtonsPath();
-      console.log("🔍 [CUSTOM_BUTTONS] customButtons.jsonのパス:", filePath);
+      const filePath = getCustomButtonsPath();
+      console.log("🔍 [CUSTOM_BUTTONS] customButtons.json のパス:", filePath);
       console.log("🔍 [CUSTOM_BUTTONS] ファイルの存在確認:", fs.existsSync(filePath));
-      
-      // customButtons.jsonが存在しない場合は自動生成
+
       if (!fs.existsSync(filePath)) {
         const defaultCustomButtons = {
           version: "1.0.0",
@@ -43,59 +23,53 @@ function handleCustomButtonsAccess(ipcMain) {
               text: "加算の比較",
               color: "#f9d4fc",
               action: "additionCompare",
-              order: 1
-            }
-          ]
+              order: 1,
+            },
+          ],
         };
-        
-        // ディレクトリが存在しない場合は作成
+
         const dir = path.dirname(filePath);
-        if (!fs.existsSync(dir)) {
-          fs.mkdirSync(dir, { recursive: true });
-        }
-        
+        if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
         fs.writeFileSync(filePath, JSON.stringify(defaultCustomButtons, null, 2));
-        console.log("🆕 新しいcustomButtons.jsonを作成しました:", filePath);
+        console.log("🆕 新しい customButtons.json を作成しました:", filePath);
         return { success: true, data: defaultCustomButtons };
       }
-      
+
       const jsonData = JSON.parse(fs.readFileSync(filePath, "utf8"));
       return { success: true, data: jsonData };
     } catch (err) {
-      console.error("❌ customButtons.json読み込み失敗:", err);
+      console.error("❌ customButtons.json 読み込み失敗:", err);
       return { success: false, error: err.message };
     }
   });
 
-  // customButtons.json保存
+  // ============================================================
+  // 🟨 customButtons.json 保存
+  // ============================================================
   ipcMain.handle("save-custom-buttons", async (event, data) => {
     try {
-      const filePath = resolveCustomButtonsPath();
-      
-      // ディレクトリが存在しない場合は作成
+      const filePath = getCustomButtonsPath();
       const dir = path.dirname(filePath);
-      if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir, { recursive: true });
-      }
-      
-      const jsonString = JSON.stringify(data, null, 2);
-      fs.writeFileSync(filePath, jsonString, "utf8");
-      console.log("✅ customButtons.json保存成功:", filePath);
+      if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+
+      fs.writeFileSync(filePath, JSON.stringify(data, null, 2), "utf8");
+      console.log("✅ customButtons.json 保存成功:", filePath);
       return { success: true };
     } catch (err) {
-      console.error("❌ customButtons.json保存失敗:", err);
+      console.error("❌ customButtons.json 保存失敗:", err);
       return { success: false, error: err.message };
     }
   });
 
-  // availableActions.json読み込み
+  // ============================================================
+  // 🟩 availableActions.json 読み込み
+  // ============================================================
   ipcMain.handle("read-available-actions", async () => {
     try {
-      const filePath = resolveAvailableActionsPath();
-      console.log("🔍 [CUSTOM_BUTTONS] availableActions.jsonのパス:", filePath);
+      const filePath = getAvailableActionsPath();
+      console.log("🔍 [CUSTOM_BUTTONS] availableActions.json のパス:", filePath);
       console.log("🔍 [CUSTOM_BUTTONS] ファイルの存在確認:", fs.existsSync(filePath));
-      
-      // availableActions.jsonが存在しない場合は自動生成
+
       if (!fs.existsSync(filePath)) {
         const defaultAvailableActions = {
           version: "1.0.0",
@@ -105,33 +79,29 @@ function handleCustomButtonsAccess(ipcMain) {
               name: "加算比較",
               description: "加算登録の比較機能を実行します",
               category: "比較機能",
-              icon: "📊"
+              icon: "📊",
             },
             {
               id: "customAction1",
               name: "キャンセル待ちの登録",
               description: "キャンセル待ちの登録を実行します",
               category: "カスタム",
-              icon: "🔧"
-            }
-          ]
+              icon: "🔧",
+            },
+          ],
         };
-        
-        // ディレクトリが存在しない場合は作成
+
         const dir = path.dirname(filePath);
-        if (!fs.existsSync(dir)) {
-          fs.mkdirSync(dir, { recursive: true });
-        }
-        
+        if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
         fs.writeFileSync(filePath, JSON.stringify(defaultAvailableActions, null, 2));
-        console.log("🆕 新しいavailableActions.jsonを作成しました:", filePath);
+        console.log("🆕 新しい availableActions.json を作成しました:", filePath);
         return { success: true, data: defaultAvailableActions };
       }
-      
+
       const jsonData = JSON.parse(fs.readFileSync(filePath, "utf8"));
       return { success: true, data: jsonData };
     } catch (err) {
-      console.error("❌ availableActions.json読み込み失敗:", err);
+      console.error("❌ availableActions.json 読み込み失敗:", err);
       return { success: false, error: err.message };
     }
   });

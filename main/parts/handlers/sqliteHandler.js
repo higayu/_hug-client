@@ -1,4 +1,11 @@
 // main/parts/handlers/sqliteHandler.js
+const path = require("path");
+const { getDbPath } = require("../utils/pathResolver");
+
+// ✅ デバッグ目的でDBパスをログ出力
+console.log("🗂 SQLite DBパス:", getDbPath());
+
+// 各テーブルモジュールを読み込み
 const {
   children,
   staffs,
@@ -10,8 +17,8 @@ const {
   pc_to_children,
   individual_support,
   temp_notes,
-  pronunciation,     // ✅ ← 追加
-  children_type,     // ✅ ← 追加
+  pronunciation, // ✅
+  children_type, // ✅
 } = {
   children: require("./sqlite/children"),
   staffs: require("./sqlite/staffs"),
@@ -23,10 +30,13 @@ const {
   pc_to_children: require("./sqlite/pc_to_children"),
   individual_support: require("./sqlite/individual_support"),
   temp_notes: require("./sqlite/temp_notes"),
-  pronunciation: require("./sqlite/pronunciation"),   // ✅ ← 追加
-  children_type: require("./sqlite/children_type"),   // ✅ ← 追加
+  pronunciation: require("./sqlite/pronunciation"),
+  children_type: require("./sqlite/children_type"),
 };
 
+// ============================================================
+// 📘 SQLite IPCハンドラ登録
+// ============================================================
 function registerSqliteHandlers(ipcMain) {
   const tables = {
     children,
@@ -39,8 +49,8 @@ function registerSqliteHandlers(ipcMain) {
     pc_to_children,
     individual_support,
     temp_notes,
-    pronunciation,   // ✅ ← 追加
-    children_type,   // ✅ ← 追加
+    pronunciation,
+    children_type,
   };
 
   for (const [table, handler] of Object.entries(tables)) {
@@ -52,8 +62,11 @@ function registerSqliteHandlers(ipcMain) {
       ipcMain.handle(`${table}:insert`, async (_, data) => await handler.insert(data));
     if (handler.update)
       ipcMain.handle(`${table}:update`, async (_, idOrData, maybeData) => {
-        if (maybeData !== undefined) return await handler.update(idOrData, maybeData);
-        else return await handler.update(idOrData);
+        if (maybeData !== undefined) {
+          return await handler.update(idOrData, maybeData);
+        } else {
+          return await handler.update(idOrData);
+        }
       });
     if (handler.delete)
       ipcMain.handle(`${table}:delete`, async (_, ...args) => await handler.delete(...args));
