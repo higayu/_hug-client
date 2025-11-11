@@ -12,6 +12,14 @@ const apiClient = axios.create({
 });
 
 /* ------------------------------
+   全件
+------------------------------ */
+async function fetchTableAll() {
+  const res = await apiClient.get("/houday/__all");
+  return res.data;
+}
+
+/* ------------------------------
    Staffs
 ------------------------------ */
 async function fetchStaff() {

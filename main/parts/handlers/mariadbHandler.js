@@ -1,48 +1,35 @@
-// main/parts/handlers/mariadbHandler.js
 const apiClient = require("../../../src/apiClient");
+const { getStaffAndFacility, GetChildrenByStaffAndDay } = require("./mariadb/GetProcedure");
 
 function registerMariadbHandlers(ipcMain) {
   // ============================================================
-  // 📘 getStaffAndFacility
+  // 📘 fetchTableAll
   // ============================================================
-  ipcMain.handle("getStaffAndFacility", async () => {
+  ipcMain.handle("fetchTableAll", async () => {
     try {
-      const staffAndFacility = await apiClient.getStaffAndFacility();
-      const staffs = await apiClient.fetchStaff();
-      const facilitys = await apiClient.getFacilitys();
-      return { staffAndFacility, staffs, facilitys };
+      const allTables = await apiClient.fetchTableAll();
+      return allTables;
     } catch (err) {
-      console.error("❌ getStaffAndFacility失敗:", err.message);
+      console.error("❌ fetchTableAll失敗:", err.message);
       throw err;
     }
   });
 
+  // ============================================================
+  // 📘 getStaffAndFacility
+  // ============================================================
+  ipcMain.handle("getStaffAndFacility", async () => {
+    return await getStaffAndFacility();
+  });
+
+  // ============================================================
+  // 📘 GetChildrenByStaffAndDay
+  // ============================================================
   ipcMain.handle("GetChildrenByStaffAndDay", async (event, args) => {
-    const { staffId, date, facility_id } = args;
-    //console.log("📡 GetChildrenByStaffAndDay:", { staffId, date });
-
-    try {
-      const result1 = await apiClient.callProcedure("GetChildrenByStaffAndDay", [
-        { name: "staff_id", value: Number(staffId) },
-        { name: "weekday", value: date },
-      ]);
-
-      const result2 = await apiClient.callProcedure("Get_waiting_children_pc", [
-        { name: "facility_id", value: Number(facility_id) },
-      ]);
-
-      const result3 = await apiClient.getExperience_children_v();
-
-      // プロシージャの値だけを取得
-      return {week_children: result1, waiting_children: result2, Experience_children: result3}; //result.data || result;
-    } catch (err) {
-      console.error("❌ API失敗:", err.message);
-      throw err;
-    }
+    return await GetChildrenByStaffAndDay(args);
   });
 
   console.log("✅ MariaDB IPCハンドラ登録完了");
 }
 
 module.exports = { registerMariadbHandlers };
-

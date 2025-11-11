@@ -48,7 +48,19 @@ contextBridge.exposeInMainWorld("electronAPI", {
   onInjectLogin: (callback) =>
     ipcRenderer.on("inject-login", (event, args) => callback(args)),
 
-  // ---- DB関連 ----
+  // ---- MariaDB関連 ----
+  // ✅ 追加: すべてのテーブルを一括取得
+  fetchTableAll: async () => {
+    try {
+      const result = await ipcRenderer.invoke("fetchTableAll");
+      return result;
+    } catch (err) {
+      console.error("❌ [preload] fetchTableAll 失敗:", err);
+      throw err;
+    }
+  },
+
+
   getStaffAndFacility: async () => {
     try {
       const result = await ipcRenderer.invoke("getStaffAndFacility");
