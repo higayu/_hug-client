@@ -10,7 +10,7 @@ function resolveCustomButtonsPath() {
     return path.join(app.getPath("userData"), "data", "customButtons.json");
   } else {
     // ✅ 開発時: プロジェクトルート直下の data/customButtons.json
-    return path.join(__dirname, "../../../data/customButtons.json");
+    return path.join(__dirname, "../../data/customButtons.json");
   }
 }
 
@@ -20,7 +20,7 @@ function resolveAvailableActionsPath() {
     return path.join(app.getPath("userData"), "data", "availableActions.json");
   } else {
     // ✅ 開発時: プロジェクトルート直下の data/availableActions.json
-    return path.join(__dirname, "../../../data/availableActions.json");
+    return path.join(__dirname, "../../data/availableActions.json");
   }
 }
 

@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import ConfirmModal from "./ConfirmModal.jsx";
+import { useAppState } from '@/contexts/AppStateContext.jsx'
+import {store} from '@/store/store.js'
 
 /**
  * 出勤データを一覧表示するコンポーネント
@@ -8,6 +10,10 @@ import ConfirmModal from "./ConfirmModal.jsx";
 function ChildrenTableList({ childrenList = [] }) {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [selectedIds, setSelectedIds] = useState([]); // ✅ 選択された児童ID
+  const childrenData = store.getState().sqlite.children;
+  const managersData = store.getState().sqlite.managers;
+  const { STAFF_ID, WEEK_DAY, FACILITY_ID } = useAppState();
+
 
   if (!childrenList || childrenList.length === 0) {
     return <p className="text-gray-500 mt-4">データがありません。</p>;
@@ -29,13 +35,82 @@ function ChildrenTableList({ childrenList = [] }) {
     }
   };
 
-  const handleConfirm = (selectedChildren) => {
-    console.log("✅ 親が受け取った児童リスト:", selectedChildren);
+  const handleConfirm = async (selectedChildren) => {
 
     // ここで登録処理などを実行できる
-    selectedChildren.forEach((child) => {
+    selectedChildren.forEach(async (child) => {
       console.log("登録:", child.children_name);
-      // 例: window.electronAPI.managers_insert({...})
+      // まず、選んだ児童のidがすでにchildrenテーブルに存在するか確認する（存在しなければテーブルに追加する必要がある）
+      const existingChild = childrenData.find(
+        (c) => String(c.id) === String(child.children_id)
+      );
+      
+      if (!existingChild) {
+        console.log("児童が存在しません:", child.children_id);
+        // 児童が存在しない場合はテーブルに追加する
+        const result = await window.electronAPI.children_insert({
+          id: child.children_id,
+          name: child.children_name,
+          notes: child.notes,
+          pronunciation_id: child.pronunciation_id,
+          children_type_id: child.children_type_id,
+        });
+        console.log("児童をテーブルに追加しました:", result);
+      
+        const result2 = await window.electronAPI.facility_children_insert({
+          children_id: child.children_id,
+          facility_id: FACILITY_ID,
+        });
+        console.log("児童をファシリティに追加しました:", result2);
+      }
+
+      const existingManager = managersData.find((m) => {
+        const sameChild = String(m.children_id) === String(child.children_id);
+        const sameStaff = String(m.staff_id) === String(STAFF_ID);
+        return sameChild && sameStaff;
+      });
+      
+      if (!existingManager) {
+        // ✅ ① レコードが存在しない → 新規追加
+        const dayOfWeekJson = JSON.stringify({ days: [WEEK_DAY] });
+      
+        const result3 = await window.electronAPI.managers_insert({
+          children_id: child.children_id,
+          staff_id: STAFF_ID,
+          day_of_week: dayOfWeekJson,
+        });
+      
+        console.log("✅ 新しい担当スタッフを追加しました:", result3);
+      } else {
+        // ✅ 既に同じ児童・スタッフの組み合わせが存在する場合
+        try {
+          // JSON文字列をオブジェクトに変換
+          const parsed = JSON.parse(existingManager.day_of_week);
+          const daysArray = parsed?.days ?? [];
+      
+          if (daysArray.includes(WEEK_DAY)) {
+            // ✅ ③ 今の曜日がすでに登録済み → 何もしない
+            console.log("⏭ すでに同じ曜日が登録されています:", WEEK_DAY);
+          } else {
+            // ✅ ② 今の曜日が未登録 → JSONを更新
+            const updatedDays = [...daysArray, WEEK_DAY];
+            const updatedJson = JSON.stringify({ days: updatedDays });
+      
+            const result4 = await window.electronAPI.managers_update({
+              children_id: child.children_id,
+              staff_id: STAFF_ID,
+              day_of_week: updatedJson,
+            });
+      
+            console.log("🔄 曜日を追加更新しました:", updatedDays);
+          }
+        } catch (error) {
+          console.error("⚠️ day_of_week の JSON 解析に失敗:", error);
+        }
+      }
+      
+
+      
     });
 
     setShowConfirmModal(false);

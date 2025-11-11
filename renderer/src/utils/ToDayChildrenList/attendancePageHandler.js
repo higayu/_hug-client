@@ -116,14 +116,14 @@ export async function handleAttendancePageLoad({
         updateAppState({ attendanceData });
         if (window.AppState) window.AppState.attendanceData = attendanceData;
 
-        // === Electron側へ保存（任意） ===
-        if (window.electronAPI?.saveAttendanceColumnData) {
-          await window.electronAPI.saveAttendanceColumnData({
-            facilityId: facility_id,
-            dateStr: date_str,
-            extractedData: extractedData.data,
-          });
-        }
+        // === Electron側へJsonファイルの保存（任意） ===
+        // if (window.electronAPI?.saveAttendanceColumnData) {
+        //   await window.electronAPI.saveAttendanceColumnData({
+        //     facilityId: facility_id,
+        //     dateStr: date_str,
+        //     extractedData: extractedData.data,
+        //   });
+        // }
 
         showInfoToast(`✅ 勤怠データを抽出・保存しました。\n行数: ${attendanceData.rowCount || "不明"}`);
       } else {

@@ -10,8 +10,8 @@ function TabsContainer() {
 
   const tabs = [
     { id: 'tools', label: '🧰 ツール' },
-    { id: 'sqlite', label: '🗄️ SQLite管理' },
     { id: 'addManageChildren', label: '👶 子ども管理' },
+    { id: 'sqlite', label: '🗄️ SQLite管理' },
   ]
 
   return (

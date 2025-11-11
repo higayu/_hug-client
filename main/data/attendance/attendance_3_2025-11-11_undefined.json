@@ -1,7 +1,7 @@
 {
   "facilityId": "3",
   "dateStr": "2025-11-11",
-  "extractedAt": "2025-11-11T00:22:07.897Z",
+  "extractedAt": "2025-11-11T03:42:47.947Z",
   "extractedData": [
     {
       "rowIndex": 1,
@@ -56,8 +56,8 @@
       "children_id": "613",
       "children_name": "羽根 遙真 さん",
       "column1Html": "<a href=\"profile_children.php?mode=profile&amp;id=613\" class=\"tdn\">\n                                            <div class=\"nameBox\">\n                                                <span class=\"furigana\">はね　はるま</span>\n                                                <p>羽根　遙真\n                                                    さん</p>\n                                            </div>\n                                        </a>\n                                                                                                                                                                                                                                                    <span class=\"icon male\"><i class=\"fa fa-male\"></i></span>",
-      "column5": "入室\n                                            欠席",
-      "column5Html": "<button class=\"btn btn-sm \" onclick=\"sendEnterMail('26367',0,613,3,1,0,'2025-11-11',0,0,0);\">入室</button>\n                                            <button class=\"btn btn-sm jqeryui-absence \" id=\"absence_26367_613_3_2025-11-11_0_0\" name=\"absence_26367\">欠席</button>"
+      "column5": "欠席",
+      "column5Html": "<b><span class=\"red js_attend_absenceflg2\">欠席</span></b>"
     },
     {
       "rowIndex": 8,
@@ -96,8 +96,10 @@
       "children_id": "141",
       "children_name": "堀 未來 さん",
       "column1Html": "<a href=\"profile_children.php?mode=profile&amp;id=141\" class=\"tdn\">\n                                            <div class=\"nameBox\">\n                                                <span class=\"furigana\">ほり　みらい</span>\n                                                <p>堀　未來\n                                                    さん</p>\n                                            </div>\n                                        </a>\n                                                                                                                                                                                                                                                    <span class=\"icon male\"><i class=\"fa fa-male\"></i></span>",
-      "column5": "入室\n                                            欠席",
-      "column5Html": "<button class=\"btn btn-sm \" onclick=\"sendEnterMail('26789',0,141,3,1,0,'2025-11-11',0,0,0);\">入室</button>\n                                            <button class=\"btn btn-sm jqeryui-absence \" id=\"absence_26789_141_3_2025-11-11_0_0\" name=\"absence_26789\">欠席</button>"
+      "column5": "09:58",
+      "column5Html": "<b><span class=\"green\">\n                                                                                                                                    09:58</span></b>",
+      "column6": "12:01",
+      "column6Html": "<b><span class=\"green\">12:01</span></b>"
     },
     {
       "rowIndex": 13,
