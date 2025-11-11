@@ -1,9 +1,15 @@
 // main/parts/handlers/sqliteHandler.js
+const fs = require("fs");
 const path = require("path");
 const { getDbPath } = require("../utils/pathResolver");
+const { initializeDatabase } = require("../utils/initDatabase");
 
-// ✅ デバッグ目的でDBパスをログ出力
-console.log("🗂 SQLite DBパス:", getDbPath());
+// ✅ デバッグ用ログ
+const dbPath = getDbPath();
+console.log("🗂 SQLite DBパス:", dbPath);
+
+// DBが存在しない場合は作成＆テーブル構築
+initializeDatabase();
 
 // 各テーブルモジュールを読み込み
 const {
@@ -17,8 +23,8 @@ const {
   pc_to_children,
   individual_support,
   temp_notes,
-  pronunciation, // ✅
-  children_type, // ✅
+  pronunciation,
+  children_type,
 } = {
   children: require("./sqlite/children"),
   staffs: require("./sqlite/staffs"),

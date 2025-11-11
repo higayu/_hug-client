@@ -88,7 +88,7 @@ function handleIniAccess(ipcMain) {
             baseURL: "http://192.168.1.229:3001/api",
             staffId: "",
             facilityId: "",
-            databaseType: "sqlite",
+            databaseType: "mariadb",
           },
         };
 
