@@ -7,7 +7,7 @@ import { ELEMENT_IDS } from "../utils/constants.js";
 import { mariadbApi } from "../sql/mariadbApi.js";
 import { sqliteApi } from "../sql/sqliteApi.js";
 import { joinChildrenData } from "../sql/getChildren/childrenJoinProcessor.js"; // ✅ 追加
-import { fetchAllTables } from "../store/slices/sqliteSlice.js"; // ✅ 追加！
+import { fetchAllTables } from "../store/slices/databaseSlice.js"; // ✅ 追加！
 import { selectExtractedData, selectAttendanceError } from "../store/slices/attendanceSlice.js";
 import store from "../store/store.js";
 

@@ -1,4 +1,4 @@
-// src/store/slices/sqliteSlice.js
+// src/store/slices/databaseSlice.js
 // SQLiteテーブルデータの状態管理
 
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
@@ -33,7 +33,7 @@ const initialState = {
 }
 
 // Slice
-const sqliteSlice = createSlice({
+const databaseSlice = createSlice({
   name: 'sqlite',
   initialState,
   reducers: {
@@ -117,5 +117,5 @@ const sqliteSlice = createSlice({
   }
 })
 
-export const { setAllTables, clearSqliteData, clearError } = sqliteSlice.actions
-export default sqliteSlice.reducer
+export const { setAllTables, clearSqliteData, clearError } = databaseSlice.actions
+export default databaseSlice.reducer

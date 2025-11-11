@@ -4,7 +4,7 @@
 import { configureStore } from '@reduxjs/toolkit'
 import attendanceReducer from './slices/attendanceSlice.js'
 import appStateReducer from './slices/appStateSlice.js'
-import sqliteReducer from './slices/sqliteSlice.js'
+import sqliteReducer from './slices/databaseSlice.js'
 
 export const store = configureStore({
   reducer: {
