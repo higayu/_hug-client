@@ -1,6 +1,5 @@
 // renderer/src/sql/getChildren/Experience_children_v.js
-import { sqliteApi } from "../sqliteApi.js";
-import { mariadbApi } from "../mariadbApi.js";
+// ⚠️ sqliteApiとmariadbApiのimportを削除（使用していないため）
 
 /**
  * DBの種類に応じて「体験児童（children_type_id = -1）」データを取得

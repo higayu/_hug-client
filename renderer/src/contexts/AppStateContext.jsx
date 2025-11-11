@@ -57,7 +57,10 @@ export function AppStateProvider({ children }) {
   const appStateRedux = useSelector(selectAppState)
   
   // activeApiを管理（databaseTypeに基づいて設定）
-  const [activeApi, setActiveApi] = useState(sqliteApi)
+  // 初期値をnullにして、設定が完了するまで待つ
+  const [activeApi, setActiveApi] = useState(null)
+  // ⚠️ 初期化が完了したかどうかを追跡
+  const [isInitialized, setIsInitialized] = useState(false)
   
   // 個別のセレクター（後方互換性のため）
   const reduxHugUsername = useSelector(selectHugUsername)
@@ -115,13 +118,13 @@ export function AppStateProvider({ children }) {
         }
         
         // ini.jsonからapiSettingsを取得してマッピング
+        let newActiveApi = null
         if (iniData?.apiSettings) {
           const apiSettings = iniData.apiSettings
           
           // databaseTypeに基づいてactiveApiを設定（Reduxには保存しない）
           const databaseType = apiSettings.databaseType || 'sqlite'
-          const newActiveApi = databaseType === 'mariadb' ? mariadbApi : sqliteApi
-          setActiveApi(newActiveApi)
+          newActiveApi = databaseType === 'mariadb' ? mariadbApi : sqliteApi
           console.log('🔍 [AppStateContext] activeApi設定:', { databaseType, activeApi: newActiveApi === mariadbApi ? 'mariadbApi' : 'sqliteApi' })
           
           // apiSettings.staffId → STAFF_ID にマッピング（複数のキー名に対応）
@@ -162,38 +165,48 @@ export function AppStateProvider({ children }) {
             '最終的なSTAFF_ID': mergedData.STAFF_ID,
             '最終的なFACILITY_ID': mergedData.FACILITY_ID
           })
+        } else {
+          // ini.jsonにapiSettingsがない場合、デフォルトでsqliteApiを設定
+          newActiveApi = sqliteApi
+          console.log('🔍 [AppStateContext] apiSettingsなし、デフォルトでsqliteApiを設定')
         }
+        
+        // ⚠️ activeApiを設定（同期してから続行）
+        setActiveApi(newActiveApi)
+        setIsInitialized(true)
         
         // すべてのフィールドをReduxに更新
         if (configData || iniData) {
           dispatch(updateAppStateRedux(mergedData))
           
-          // window.AppStateも更新（後方互換性のため）
-          if (window.AppState) {
-            Object.assign(window.AppState, mergedData)
-          }
-          
           console.log('✅ [AppStateContext] 初期設定の読み込み完了:', mergedData)
         }
       } catch (error) {
         console.error('❌ 初期設定の読み込みエラー:', error)
+        // エラー時もデフォルトでsqliteApiを設定
+        setActiveApi(sqliteApi)
+        setIsInitialized(true)
       }
     }
     loadInitialConfig()
   }, [dispatch])
 
-  // Reduxの状態をwindow.AppStateに同期
+  // ⚠️ activeApiがnullの場合は、初期化が完了するまで待つ（sqliteApiをデフォルトにしない）
+  // これにより、useChildrenListでactiveApiがnullの場合は処理がスキップされる
+
+  // Reduxの状態をwindow.AppStateに同期（activeApiも含める）
   useEffect(() => {
-    if (window.AppState) {
+    if (window.AppState && isInitialized) {
       Object.assign(window.AppState, { ...appStateRedux, activeApi })
     }
-  }, [appStateRedux, activeApi])
+  }, [appStateRedux, activeApi, isInitialized])
 
   // 状態を更新する関数（すべてReduxで管理）
   const updateAppState = useCallback((updates) => {
     // activeApiが更新された場合は状態も更新（Reduxには保存しない）
-    if (updates.activeApi && updates.activeApi !== activeApi) {
+    if (updates.activeApi !== undefined && updates.activeApi !== activeApi) {
       setActiveApi(updates.activeApi)
+      console.log('🔄 [AppStateContext] activeApi更新:', { activeApi: updates.activeApi === mariadbApi ? 'mariadbApi' : 'sqliteApi' })
     }
     
     // activeApiを除いた更新をReduxに送信
@@ -203,10 +216,10 @@ export function AppStateProvider({ children }) {
     }
     
     // window.AppStateも更新（後方互換性のため）
-    if (window.AppState) {
-      Object.assign(window.AppState, { ...reduxUpdates, activeApi: updates.activeApi || activeApi })
+    if (window.AppState && isInitialized) {
+      Object.assign(window.AppState, { ...reduxUpdates, activeApi: updates.activeApi !== undefined ? updates.activeApi : activeApi })
     }
-  }, [dispatch, activeApi])
+  }, [dispatch, activeApi, isInitialized])
 
   // 個別の更新関数（Reduxアクションを使用）
   const setDate = useCallback((date) => {
@@ -239,14 +252,17 @@ export function AppStateProvider({ children }) {
 
   // グローバルAPIとして登録（modules側からの使用のため）
   useEffect(() => {
-    // window.AppStateとして状態を公開（Reduxから取得）
-    window.AppState = { ...appStateRedux }
-    
-    window.updateAppState = updateAppState
-    window.setSelectedChild = setSelectedChildCallback
-    window.setChildrenData = setChildrenData
-    window.setSelectedPcName = setSelectedPcNameCallback
-    window.setAttendanceData = setAttendanceData
+    // window.AppStateとして状態を公開（Reduxから取得、activeApiも含める）
+    // ⚠️ 初期化が完了してから設定
+    if (isInitialized) {
+      window.AppState = { ...appStateRedux, activeApi }
+      
+      window.updateAppState = updateAppState
+      window.setSelectedChild = setSelectedChildCallback
+      window.setChildrenData = setChildrenData
+      window.setSelectedPcName = setSelectedPcNameCallback
+      window.setAttendanceData = setAttendanceData
+    }
     
     return () => {
       delete window.AppState
@@ -258,6 +274,8 @@ export function AppStateProvider({ children }) {
     }
   }, [
     appStateRedux,
+    activeApi,
+    isInitialized,
     updateAppState,
     setSelectedChildCallback,
     setChildrenData,
@@ -268,6 +286,7 @@ export function AppStateProvider({ children }) {
   return (
     <AppStateContext.Provider
       value={{
+        // ⚠️ activeApiがnullの場合はそのままnullを返す（sqliteApiをデフォルトにしない）
         appState: { ...appStateRedux, activeApi },
         updateAppState,
         setDate,

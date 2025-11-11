@@ -6,7 +6,6 @@ import { useDispatch } from 'react-redux'
 import { useAppState } from '../contexts/AppStateContext.jsx'
 import { useToast } from '../contexts/ToastContext.jsx'
 import { getActiveWebview } from '../utils/webviewState.js'
-// initChildrenList は React側の useChildrenList() フックに移行済み
 import { loadAllReload } from '../utils/reloadSettings.js'
 import { updateButtonVisibility } from '../utils/buttonVisibility.js'
 import { useCustomButtonManager } from './useCustomButtonManager.js'
@@ -48,7 +47,7 @@ export function useHugActions() {
         facility_id
       )
       updateAppState({ childrenData: childrenData.week_children })
-      // initChildrenList は React側の useChildrenList() フックに移行済み（SidebarContent内で自動実行）
+    
     } catch (err) {
       console.error("❌ 子リスト再取得エラー:", err)
       alert("子どもリストの再取得に失敗しました")

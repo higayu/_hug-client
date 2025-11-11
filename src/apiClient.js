@@ -2,19 +2,37 @@
 const axios = require("axios");
 const { loadIni } = require("./iniUtils");
 
-// ✅ 設定読み込み実行
-const ini = loadIni();
-
-// ✅ axiosクライアント生成
+// ✅ axiosクライアント生成（baseURLは動的に設定）
 const apiClient = axios.create({
-  baseURL: ini?.apiSettings?.baseURL || "http://192.168.1.229:3001/api",
   headers: { "Content-Type": "application/json" },
 });
+
+/**
+ * ini.jsonからbaseURLを取得してapiClientのbaseURLを更新
+ */
+function updateBaseURL() {
+  try {
+    const ini = loadIni();
+    const baseURL = ini?.apiSettings?.baseURL || "http://192.168.1.229:3001/api";
+    apiClient.defaults.baseURL = baseURL;
+    console.log("🔧 [apiClient] baseURL更新:", baseURL);
+    return baseURL;
+  } catch (err) {
+    console.error("❌ [apiClient] baseURL更新エラー:", err);
+    apiClient.defaults.baseURL = "http://192.168.1.229:3001/api";
+    return apiClient.defaults.baseURL;
+  }
+}
+
+// ⚠️ 初回読み込み時にbaseURLを設定
+updateBaseURL();
 
 /* ------------------------------
    全件
 ------------------------------ */
 async function fetchTableAll() {
+  // ⚠️ リクエスト前にbaseURLを更新（ini.jsonの変更に対応）
+  updateBaseURL();
   const res = await apiClient.get("/houday/__all");
   return res.data;
 }
@@ -23,11 +41,13 @@ async function fetchTableAll() {
    Staffs
 ------------------------------ */
 async function fetchStaff() {
+  updateBaseURL();
   const res = await apiClient.get("/houday/staff_v");
   return res.data;
 }
 
 async function getStaffAndFacility() {
+  updateBaseURL();
   const res = await apiClient.get("/houday/staff_facility_v");
   return res.data;
 }
@@ -36,15 +56,16 @@ async function getStaffAndFacility() {
    facilitys
 ------------------------------ */
 async function getFacilitys() {
+  updateBaseURL();
   const res = await apiClient.get("/houday/facilitys");
   return res.data;
 }
-
 
 /* ------------------------------
    facility_children
 ------------------------------ */
 async function getFacility_children() {
+  updateBaseURL();
   const res = await apiClient.get("/houday/facility_children");
   return res.data;
 }
@@ -53,27 +74,27 @@ async function getFacility_children() {
    Children
 ------------------------------ */
 async function fetchChildren() {
+  updateBaseURL();
   const res = await apiClient.get("/houday/Children");
   return res.data;
 }
 
 async function fetchChildById(id) {
+  updateBaseURL();
   const res = await apiClient.get("/houday/Children/search", {
     params: { pk: "children_id", values: id },
   });
   return res.data[0];
 }
 
-
 /* ------------------------------
    初回・体験
 ------------------------------ */
-
 async function getExperience_children_v() {
+  updateBaseURL();
   const res = await apiClient.get("/houday/experience_children_v");
   return res.data;
 }
-
 
 /* ------------------------------
    Stored Procedures
@@ -87,6 +108,7 @@ async function callProcedure(procname, params = []) {
   console.log("📡 callProcedure:", procname, params);
 
   try {
+    updateBaseURL();
     // ✅ name/value配列 → 値だけの配列に変換
     const values = params.map(p => p.value);
 
@@ -101,13 +123,11 @@ async function callProcedure(procname, params = []) {
   }
 }
 
-
-
-
 /* ------------------------------
    エクスポート
 ------------------------------ */
 module.exports = {
+  fetchTableAll,
   fetchStaff,
   getStaffAndFacility,
   getFacility_children,
@@ -116,4 +136,5 @@ module.exports = {
   fetchChildById,
   getExperience_children_v,
   callProcedure,
+  updateBaseURL, // ⚠️ 外部からbaseURLを更新できるようにエクスポート
 };

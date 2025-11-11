@@ -1,6 +1,5 @@
 // renderer/src/sql/getChildren/GetchildrenByStaffAndDay.js
-import { sqliteApi } from "../sqliteApi.js";
-import { mariadbApi } from "../mariadbApi.js";
+// ⚠️ sqliteApiとmariadbApiのimportを削除（使用していないため）
 import { joinChildrenData } from "./childrenJoinProcessor.js";
 
 /**
@@ -14,26 +13,48 @@ import { joinChildrenData } from "./childrenJoinProcessor.js";
 export async function GetchildrenByStaffAndDay({ tables, staffId, date }) {
   if (!tables) {
     console.error("❌ joinChildrenData: テーブルデータが未定義です");
-    return { week_children: [], waiting_children: [], Experience_children: [] };
+    return [];
   }
+  
+  // ⚠️ 安全にデストラクチャリング（デフォルト値を設定）
   const {
-    children,
-    staffs,
-    managers,
-    pc,
-    pc_to_children,
-    pronunciation,
-    children_type,
+    children = [],
+    staffs = [],
+    managers = [],
+    pc = [],
+    pc_to_children = [],
+    pronunciation = [],
+    children_type = [],
   } = tables;
 
   console.group("🔗 [GetchildrenByStaffAndDay] JOIN処理開始");
   console.log("👤 staffId:", staffId, "📅 date:", date);
+  console.log("📊 テーブルデータ:", {
+    children: children?.length || 0,
+    staffs: staffs?.length || 0,
+    managers: managers?.length || 0,
+    pc: pc?.length || 0,
+    pc_to_children: pc_to_children?.length || 0,
+    pronunciation: pronunciation?.length || 0,
+    children_type: children_type?.length || 0,
+  });
+
+  // ⚠️ 必須データが存在するかチェック
+  if (!Array.isArray(children) || !Array.isArray(staffs) || !Array.isArray(managers)) {
+    console.error("❌ [GetchildrenByStaffAndDay] 必須テーブルデータが配列ではありません:", {
+      children: Array.isArray(children),
+      staffs: Array.isArray(staffs),
+      managers: Array.isArray(managers),
+    });
+    return [];
+  }
 
   const staffIdNum = typeof staffId === "string" ? parseInt(staffId, 10) : Number(staffId);
 
   // --- SQL相当の結合 ---
   const joined = managers
     .map((m) => {
+      // ⚠️ 安全にアクセス
       const child = children.find((c) => c.id === m.children_id);
       const staff = staffs.find((s) => s.id === m.staff_id);
       if (!child || !staff) return null;

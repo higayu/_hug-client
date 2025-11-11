@@ -3,8 +3,6 @@ import { useEffect, useRef } from 'react'
 import { updateButtonVisibility } from '../utils/buttonVisibility.js'
 // initChildrenList は React側の useChildrenList() フックに移行済み
 import { useHugActions } from './useHugActions.js'
-// initSettingsEditorはReactコンポーネントに統合されたため、ここでは初期化しない
-// import { initSettingsEditor } from '../../modules/ui/settingsEditor.js'
 import { loadAllReload } from '../utils/reloadSettings.js'
 // updateUI は React側の useUpdateUI() フックに移行済み
 import { useUpdateUI } from './useUpdateUI.js'
@@ -88,13 +86,6 @@ export function useAppInitialization() {
         console.log("✅ サイドバーの開閉機能を設定しました")
       }
 
-      // initTabs は React側の useTabs() フックに移行済み（Tabsコンポーネント内で自動実行）
-
-      // ===== 3️⃣ 子ども一覧と曜日選択を初期化 =====
-      // initChildrenList は React側の useChildrenList() フックに移行済み（SidebarContent内で自動実行）
-
-      // ===== 4️⃣ 各種ボタン（ログイン・計画）を設定 =====
-      // initHugActions() は useHugActions() フックに移行済み
 
       // ===== 5️⃣ 設定エディター初期化 =====
       // 少し遅延させて確実に初期化

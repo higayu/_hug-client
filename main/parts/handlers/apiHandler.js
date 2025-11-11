@@ -4,6 +4,7 @@ const path = require("path");
 const { app } = require("electron");
 const apiClient = require("../../../src/apiClient");
 const { registerSqliteHandlers } = require("./sqliteHandler");
+const { registerMariadbHandlers } = require("./mariadbHandler"); // ⚠️ 追加
 const sqlite3 = require("sqlite3").verbose(); // ← ここで一括読み込み
 
 function resolveIniPath() {
@@ -101,9 +102,15 @@ async function handleApiCalls(ipcMain) {
 
 
   // ============================================================
-  // 📗 SQLite CRUD IPC登録
+  // 📗 SQLite/MariaDB CRUD IPC登録
   // ============================================================
   if (DB_TYPE === "sqlite") {
+    registerSqliteHandlers(ipcMain);
+  } else if (DB_TYPE === "mariadb") {
+    // ⚠️ MariaDBハンドラーを登録
+    registerMariadbHandlers(ipcMain);
+  } else {
+    console.warn(`⚠️ 不明なDBモード: ${DB_TYPE}。デフォルト（SQLite）を使用します。`);
     registerSqliteHandlers(ipcMain);
   }
 

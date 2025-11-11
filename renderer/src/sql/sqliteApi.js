@@ -2,6 +2,7 @@
 import { insertManager } from "./insertManager/insertManager.js";
 
 export const sqliteApi = {
+  
   async getAllTables() {
     try {
       const uid = Math.random().toString(36).slice(2, 8);

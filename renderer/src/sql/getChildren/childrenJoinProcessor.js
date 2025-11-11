@@ -1,7 +1,5 @@
 // renderer/src/sql/getChildren/childrenJoinProcessor.js
-
-import { sqliteApi } from "../sqliteApi.js";
-import { mariadbApi } from "../mariadbApi.js";
+// ⚠️ sqliteApiとmariadbApiのimportを削除（使用していないため）
 import { GetchildrenByStaffAndDay } from "./GetchildrenByStaffAndDay.js";
 import { Get_waiting_children_pc } from "./Get_waiting_children_pc.js";
 import { Experience_children_v } from "./Experience_children_v.js";

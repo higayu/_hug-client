@@ -27,13 +27,27 @@ export function useChildrenList() {
       return;
     }
 
+    // ⚠️ activeApiが設定されていない場合は処理をスキップ
+    if (!appState.activeApi) {
+      console.warn("⚠️ [useChildrenList] activeApiが設定されていません。データベース設定の読み込み待ち...");
+      return;
+    }
+
     try {
       const facilitySelect = document.getElementById(ELEMENT_IDS.FACILITY_SELECT);
       const facility_id = facilitySelect ? facilitySelect.value : null;
 
-      // API選択を共通化
-      const api = appState.activeApi === mariadbApi ? mariadbApi : sqliteApi;
+      // ⚠️ activeApiを直接使用
+      const api = appState.activeApi;
+      console.log('🔍 [useChildrenList] 使用するAPI:', api === mariadbApi ? 'mariadbApi' : (api === sqliteApi ? 'sqliteApi' : '不明'));
+      
       const tables = await api.getAllTables();
+      console.log("🔍 [useChildrenList] テーブルデータ:", tables);
+      // ⚠️ tablesがnullの場合はエラー
+      if (!tables) {
+        console.error("❌ [useChildrenList] テーブルデータの取得に失敗しました");
+        return;
+      }
 
       // Reduxストアに全テーブルデータを保存（awaitで待機）
       await dispatch(fetchAllTables(tables));
