@@ -1,8 +1,10 @@
 // src/contexts/AppStateContext.jsx
-import { createContext, useContext, useCallback, useEffect } from 'react'
+import { createContext, useContext, useCallback, useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { loadConfig as loadConfigFromUtils } from '../utils/configUtils.js'
 import { loadIni as loadIniFromUtils } from '../utils/iniUtils.js'
+import { sqliteApi } from '../sql/sqliteApi.js'
+import { mariadbApi } from '../sql/mariadbApi.js'
 import {
   setHugUsername,
   setHugPassword,
@@ -53,6 +55,9 @@ export function AppStateProvider({ children }) {
   // Redux hooks - すべての状態をReduxから取得
   const dispatch = useDispatch()
   const appStateRedux = useSelector(selectAppState)
+  
+  // activeApiを管理（databaseTypeに基づいて設定）
+  const [activeApi, setActiveApi] = useState(sqliteApi)
   
   // 個別のセレクター（後方互換性のため）
   const reduxHugUsername = useSelector(selectHugUsername)
@@ -112,6 +117,12 @@ export function AppStateProvider({ children }) {
         // ini.jsonからapiSettingsを取得してマッピング
         if (iniData?.apiSettings) {
           const apiSettings = iniData.apiSettings
+          
+          // databaseTypeに基づいてactiveApiを設定（Reduxには保存しない）
+          const databaseType = apiSettings.databaseType || 'sqlite'
+          const newActiveApi = databaseType === 'mariadb' ? mariadbApi : sqliteApi
+          setActiveApi(newActiveApi)
+          console.log('🔍 [AppStateContext] activeApi設定:', { databaseType, activeApi: newActiveApi === mariadbApi ? 'mariadbApi' : 'sqliteApi' })
           
           // apiSettings.staffId → STAFF_ID にマッピング（複数のキー名に対応）
           const staffIdFromIni = 
@@ -174,18 +185,28 @@ export function AppStateProvider({ children }) {
   // Reduxの状態をwindow.AppStateに同期
   useEffect(() => {
     if (window.AppState) {
-      Object.assign(window.AppState, appStateRedux)
+      Object.assign(window.AppState, { ...appStateRedux, activeApi })
     }
-  }, [appStateRedux])
+  }, [appStateRedux, activeApi])
 
   // 状態を更新する関数（すべてReduxで管理）
   const updateAppState = useCallback((updates) => {
-    dispatch(updateAppStateRedux(updates))
+    // activeApiが更新された場合は状態も更新（Reduxには保存しない）
+    if (updates.activeApi && updates.activeApi !== activeApi) {
+      setActiveApi(updates.activeApi)
+    }
+    
+    // activeApiを除いた更新をReduxに送信
+    const { activeApi: _, ...reduxUpdates } = updates
+    if (Object.keys(reduxUpdates).length > 0) {
+      dispatch(updateAppStateRedux(reduxUpdates))
+    }
+    
     // window.AppStateも更新（後方互換性のため）
     if (window.AppState) {
-      Object.assign(window.AppState, updates)
+      Object.assign(window.AppState, { ...reduxUpdates, activeApi: updates.activeApi || activeApi })
     }
-  }, [dispatch])
+  }, [dispatch, activeApi])
 
   // 個別の更新関数（Reduxアクションを使用）
   const setDate = useCallback((date) => {
@@ -247,7 +268,7 @@ export function AppStateProvider({ children }) {
   return (
     <AppStateContext.Provider
       value={{
-        appState: appStateRedux,
+        appState: { ...appStateRedux, activeApi },
         updateAppState,
         setDate,
         setWeekday,

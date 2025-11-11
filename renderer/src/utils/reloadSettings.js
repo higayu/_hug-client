@@ -2,6 +2,9 @@
 // config.json と ini.json の両方を再読み込みしてUIに反映
 
 import { loadConfig } from './configUtils.js'
+import { loadIni as loadIniFromUtils } from './iniUtils.js'
+import { sqliteApi } from '../sql/sqliteApi.js'
+import { mariadbApi } from '../sql/mariadbApi.js'
 
 /**
  * config.json と ini.json の両方を再読み込みしてUIに反映
@@ -31,6 +34,23 @@ export async function loadAllReload() {
       // updateButtonVisibility() は呼び出し側で実行される
     } else {
       console.warn("⚠️ ini.json の読み込みに失敗しました")
+    }
+
+    // ✅ databaseTypeに基づいてactiveApiを更新
+    try {
+      const iniData = await loadIniFromUtils()
+      if (iniData?.apiSettings?.databaseType) {
+        const databaseType = iniData.apiSettings.databaseType
+        const newActiveApi = databaseType === 'mariadb' ? mariadbApi : sqliteApi
+        
+        // window.AppStateとupdateAppStateを更新
+        if (window.AppState && window.updateAppState) {
+          window.updateAppState({ activeApi: newActiveApi })
+          console.log('🔄 [reloadSettings] activeApi更新:', { databaseType, activeApi: newActiveApi === mariadbApi ? 'mariadbApi' : 'sqliteApi' })
+        }
+      }
+    } catch (error) {
+      console.error('❌ [reloadSettings] activeApi更新エラー:', error)
     }
 
     // AppStateを更新（後方互換性のため）

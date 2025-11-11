@@ -6,10 +6,10 @@ import { ELEMENT_IDS } from "../utils/constants.js";
 
 import { mariadbApi } from "../sql/mariadbApi.js";
 import { sqliteApi } from "../sql/sqliteApi.js";
-import { joinChildrenData } from "../sql/getChildren/childrenJoinProcessor.js"; // ✅ 追加
-import { fetchAllTables } from "../store/slices/databaseSlice.js"; // ✅ 追加！
+import { joinChildrenData } from "../sql/getChildren/childrenJoinProcessor.js";
+import { fetchAllTables } from "../store/slices/databaseSlice.js";
 import { selectExtractedData, selectAttendanceError } from "../store/slices/attendanceSlice.js";
-import store from "../store/store.js";
+import { saveTempNote, loadTempNote } from "../utils/noteUtils.js";
 
 export function useChildrenList() {
   const { appState, setSelectedChild, setSelectedPcName, setChildrenData, updateAppState, SELECT_CHILD } = useAppState();
@@ -20,25 +20,10 @@ export function useChildrenList() {
   const [childrenData, setLocalChildrenData] = useState([]);
   const [waitingChildrenData, setWaitingChildrenData] = useState([]);
   const [experienceChildrenData, setExperienceChildrenData] = useState([]);
-  const [api, setApi] = useState(sqliteApi); // デフォルトはSQLite
-
-  // 🔹 起動時にDBモードを判定
-  useEffect(() => {
-    (async () => {
-      try {
-        const dbType = (await window.electronAPI.getDatabaseType()) || "sqlite";
-        setApi(dbType === "mariadb" ? mariadbApi : sqliteApi);
-        console.log(`⚙️ DBモード: ${dbType}`);
-      } catch (err) {
-        console.warn("⚠️ DBモード取得失敗: SQLiteを使用します", err);
-      }
-    })();
-  }, []);
 
   // 🔹 子どもデータ取得
   const loadChildren = useCallback(async () => {
     if (!appState.STAFF_ID || !appState.WEEK_DAY) {
-      console.log("⏸️ STAFF_IDまたはWEEK_DAYが未設定のためスキップ");
       return;
     }
 
@@ -46,70 +31,40 @@ export function useChildrenList() {
       const facilitySelect = document.getElementById(ELEMENT_IDS.FACILITY_SELECT);
       const facility_id = facilitySelect ? facilitySelect.value : null;
 
-      console.log("📤 [useChildrenList] データ取得開始");
+      // API選択を共通化
+      const api = appState.activeApi === mariadbApi ? mariadbApi : sqliteApi;
+      const tables = await api.getAllTables();
 
-      // ✅ SQLiteモードの場合は getAllTables → joinChildrenData に分離
-      let data;
-      if (api === sqliteApi) {
-        console.log("🪶 SQLiteモードでデータを取得");
-        console.log("🔍 [useChildrenList] appState.STAFF_ID:", appState.STAFF_ID, "型:", typeof appState.STAFF_ID);
-        const tables = await sqliteApi.getAllTables();
+      // Reduxストアに全テーブルデータを保存（awaitで待機）
+      await dispatch(fetchAllTables(tables));
 
-        // ✅ Reduxストアに全テーブルデータを保存
-        dispatch(fetchAllTables(tables));
-        console.log("🧾 Redux全体の状態:", store.getState().sqlite);
-        console.log("🔍 [実行前のスタッフID] staffId:", appState.STAFF_ID, "型:", typeof appState.STAFF_ID);
-        console.log("🔍 [useChildrenList] date:", appState.WEEK_DAY, "型:", typeof appState.WEEK_DAY);
-        //getJoinedStaffFacilityData();
-
-      data = await joinChildrenData({
+      // joinChildrenData呼び出し（SQLite/MariaDB共通化）
+      const data = await joinChildrenData({
         tables,
         staffId: appState.STAFF_ID,
         date: appState.WEEK_DAY,
+        ...(facility_id && { facility_id }),
       });
 
-      } else if (api === mariadbApi) {
-        console.log("🧩 MariaDBモードでAPIを呼び出し");
-        data = await mariadbApi.getChildrenByStaffAndDay({
-          staffId: appState.STAFF_ID,
-          date: appState.WEEK_DAY,
-          facility_id,
-        });
-      } else {
-        console.log("❌ それ以外のAPIモードです");
-        return;
-      }
-
-      // ✅ 取得データを反映
+      // 取得データを反映（Context経由で一元管理）
       setChildrenData(data.week_children || []);
       updateAppState({
         waiting_childrenData: data.waiting_children || [],
         Experience_childrenData: data.Experience_children || [],
+        childrenData: data.week_children || [],
       });
       setLocalChildrenData(data.week_children || []);
       setWaitingChildrenData(data.waiting_children || []);
       setExperienceChildrenData(data.Experience_children || []);
-
-      if (window.AppState) {
-        window.AppState.childrenData = data.week_children || [];
-        window.AppState.waiting_childrenData = data.waiting_children || [];
-        window.AppState.Experience_childrenData = data.Experience_children || [];
-      }
-
-      console.log("✅ [useChildrenList] データ取得完了:", data);
     } catch (error) {
       console.error("❌ 子どもデータ読み込みエラー:", error);
     }
-  }, [appState.STAFF_ID, appState.WEEK_DAY, setChildrenData, updateAppState, api]);
+  }, [appState.STAFF_ID, appState.WEEK_DAY, appState.activeApi, dispatch, setChildrenData, updateAppState]);
 
   // 🔹 曜日変更イベント
   useEffect(() => {
     const handleWeekdayChanged = async () => {
       setSelectedChild("", "");
-      if (window.AppState) {
-        window.AppState.SELECT_CHILD = "";
-        window.AppState.SELECT_CHILD_NAME = "";
-      }
       await loadChildren();
     };
     window.addEventListener("weekday-changed", handleWeekdayChanged);
@@ -127,12 +82,6 @@ export function useChildrenList() {
       const firstChild = childrenData[0];
       setSelectedChild(firstChild.children_id, firstChild.children_name);
       if (firstChild.pc_name) setSelectedPcName(firstChild.pc_name);
-
-      if (window.AppState) {
-        window.AppState.SELECT_CHILD = firstChild.children_id;
-        window.AppState.SELECT_CHILD_NAME = firstChild.children_name;
-        window.AppState.SELECT_PC_NAME = firstChild.pc_name || "";
-      }
     }
   }, [childrenData, SELECT_CHILD, setSelectedChild, setSelectedPcName]);
 
@@ -141,12 +90,19 @@ export function useChildrenList() {
     waitingChildrenData,
     experienceChildrenData,
     loadChildren,
-    saveTempNote: useCallback(async (childId, enterTime, exitTime, memo) => {
-      await saveTempNote(childId, enterTime, exitTime, memo, appState);
-    }, [appState]),
-    loadTempNote: useCallback((childId, enterTimeInput, exitTimeInput, memoTextarea) => {
-      loadTempNote(childId, enterTimeInput, exitTimeInput, memoTextarea, appState);
-    }, [appState]),
+    saveTempNote: useCallback(async (childId, memo) => {
+      await saveTempNote(childId, memo, {
+        STAFF_ID: appState.STAFF_ID,
+        WEEK_DAY: appState.WEEK_DAY,
+        DATE_STR: appState.DATE_STR,
+      });
+    }, [appState.STAFF_ID, appState.WEEK_DAY, appState.DATE_STR]),
+    loadTempNote: useCallback((childId, memoTextarea) => {
+      loadTempNote(childId, memoTextarea, {
+        STAFF_ID: appState.STAFF_ID,
+        WEEK_DAY: appState.WEEK_DAY,
+      });
+    }, [appState.STAFF_ID, appState.WEEK_DAY]),
     SELECT_CHILD: appState.SELECT_CHILD,
     extractedData,
     attendanceError,

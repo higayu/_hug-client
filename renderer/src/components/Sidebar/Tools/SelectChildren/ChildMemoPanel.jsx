@@ -105,12 +105,10 @@ function ChildMemoPanel() {
     // データが変更されたときに一時メモを読み込む
     if (child) {
       setTimeout(() => {
-        const enterInput = document.getElementById(`enter-${SELECT_CHILD}`)
-        const exitInput = document.getElementById(`exit-${SELECT_CHILD}`)
         const memoTextarea = document.getElementById(`memo-${SELECT_CHILD}`)
-        if (enterInput && exitInput && memoTextarea) {
-          notesInputsRef.current[SELECT_CHILD] = { enterInput, exitInput, memoTextarea }
-          loadTempNote(SELECT_CHILD, enterInput, exitInput, memoTextarea)
+        if (memoTextarea) {
+          notesInputsRef.current[SELECT_CHILD] = { memoTextarea }
+          loadTempNote(SELECT_CHILD, memoTextarea)
         }
       }, 100)
     }
@@ -120,8 +118,8 @@ function ChildMemoPanel() {
   const handleSaveTempNote = async () => {
     if (!SELECT_CHILD) return
     const inputs = notesInputsRef.current[SELECT_CHILD]
-    if (inputs) {
-      await saveTempNote(SELECT_CHILD, inputs.enterInput.value, inputs.exitInput.value, inputs.memoTextarea.value)
+    if (inputs && inputs.memoTextarea) {
+      await saveTempNote(SELECT_CHILD, inputs.memoTextarea.value)
     }
   }
 

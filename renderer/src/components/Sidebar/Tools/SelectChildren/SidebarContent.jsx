@@ -129,7 +129,7 @@ function SidebarContent() {
               : 'max-h-[5000px] opacity-100 overflow-y-visible'
           }`}
         >
-          {childrenData.length === 0 ? (
+          {!Array.isArray(childrenData) || childrenData.length === 0 ? (
             <li>{MESSAGES.INFO.NO_CHILDREN}</li>
           ) : (
             childrenData.map((c, i) => renderChildItem(c, i === 0 && !SELECT_CHILD))
@@ -160,7 +160,7 @@ function SidebarContent() {
               : 'max-h-[5000px] opacity-100 overflow-y-visible'
           }`}
         >
-          {waitingChildrenData.length === 0 ? (
+          {!Array.isArray(waitingChildrenData) || waitingChildrenData.length === 0 ? (
             <li>{MESSAGES.INFO.NO_WAITING}</li>
           ) : (
             waitingChildrenData.map(c => renderSimpleChildItem(c, 'waiting'))
@@ -175,7 +175,7 @@ function SidebarContent() {
         体験子ども:
       </label>
       <ul id={ELEMENT_IDS.EXPERIENCE_CHILDREN_LIST} className="list-none p-0 m-0">
-        {experienceChildrenData.length === 0 ? (
+        {!Array.isArray(experienceChildrenData) || experienceChildrenData.length === 0 ? (
           <li>{MESSAGES.INFO.NO_EXPERIENCE}</li>
         ) : (
           experienceChildrenData.map(c => renderSimpleChildItem(c, 'experience'))

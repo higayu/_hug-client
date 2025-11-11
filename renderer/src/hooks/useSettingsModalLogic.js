@@ -306,51 +306,46 @@ export function useSettingsModalLogic(isOpen) {
     try {
       console.group("🧩 [SettingsModal] initializeApiSelectBoxes 開始");
   
-      let data = null;
       const staffSelect = document.getElementById("api-staff-id");
       const facilitySelect = document.getElementById("api-facility-id");
   
       console.log("📌 activeApi:", activeApi);
   
       // データ取得
-      if (activeApi === mariadbApi) {
-        console.log("🪶 MariaDBモードでスタッフ・施設を取得");
-        data = await mariadbApi.getStaffAndFacility();
-      } else if (activeApi === sqliteApi) {
-        console.log("🪶 SQLiteモードで getJoinedStaffFacilityData() を実行");
-        data = getJoinedStaffFacilityData();
-      } else {
-        console.log("❌ それ以外のAPIモードです");
+      const data = getJoinedStaffFacilityData();
+      console.log("📊 取得データ:", data);
+  
+      if (!data || !Array.isArray(data) || data.length === 0) {
+        console.warn("⚠️ データが取得できませんでした");
+        console.groupEnd();
         return;
       }
   
-      console.log("📊 取得データ:", data);
+      // スタッフリストを生成（dataそのものを使用）
+      const staffList = data.map((item) => ({
+        staff_id: item.staff_id,
+        staff_name: item.staff_name,
+      }));
   
-      // データ正規化（SQLite配列 → 共通形式に変換）
-      let staffList = [];
-      let facilityList = [];
-  
-      if (Array.isArray(data)) {
-        // SQLite形式（スタッフ配列）
-        staffList = data.map((s) => ({
-          staff_id: s.staff_id,
-          staff_name: s.staff_name,
-        }));
-  
-        // facility_namesの重複を削除して施設リストを生成
-        const uniqueFacilities = [...new Set(data.map((s) => s.facility_names))];
-        facilityList = uniqueFacilities.map((name, idx) => ({
-          id: data.find((s) => s.facility_names === name)?.facility_ids ?? idx,
-          name,
-        }));
-      } else {
-        // MariaDB形式（オブジェクト内にstaffs/facilitys）
-        staffList = data.staffs || [];
-        facilityList = data.facilitys || [];
-      }
-  
-      console.log("👥 スタッフ数:", staffList.length);
-      console.log("🏢 施設数:", facilityList.length);
+      // 施設リストを生成（facility_namesを分割して重複を削除）
+      const facilityMap = new Map();
+      data.forEach((item) => {
+        if (item.facility_names && item.facility_ids) {
+          const facilityNames = item.facility_names.split(", ").map((name) => name.trim());
+          const facilityIds = item.facility_ids.split(",").map((id) => id.trim());
+          
+          facilityNames.forEach((name, index) => {
+            if (name && !facilityMap.has(name)) {
+              facilityMap.set(name, facilityIds[index] || "");
+            }
+          });
+        }
+      });
+      
+      const facilityList = Array.from(facilityMap.entries()).map(([name, id]) => ({
+        id: id || "",
+        name: name,
+      }));
   
       // スタッフセレクト初期化
       if (staffSelect) {
@@ -431,6 +426,14 @@ export function useSettingsModalLogic(isOpen) {
       // ini.jsonに保存
       const success = await saveIni(newIniState)
       if (success) {
+        // databaseTypeに基づいてactiveApiを更新
+        const databaseType = newIniState.apiSettings.databaseType || 'sqlite'
+        const newActiveApi = databaseType === 'mariadb' ? mariadbApi : sqliteApi
+        if (window.AppState && window.updateAppState) {
+          window.updateAppState({ activeApi: newActiveApi })
+          console.log('🔄 [useSettingsModalLogic] activeApi更新:', { databaseType, activeApi: newActiveApi === mariadbApi ? 'mariadbApi' : 'sqliteApi' })
+        }
+        
         showSuccessToast('✅ API設定の保存が完了しました')
         return true
       } else {
