@@ -39,55 +39,6 @@ async function handleApiCalls(ipcMain) {
   console.log(`⚙️ 現在のDBモード: ${DB_TYPE}`);
 
   // ============================================================
-  // 📘 getStaffAndFacility
-  // ============================================================
-  ipcMain.handle("getStaffAndFacility", async () => {
-    try {
-      if (DB_TYPE === "mariadb") {
-        const staffAndFacility = await apiClient.getStaffAndFacility();
-        const staffs = await apiClient.fetchStaff();
-        const facilitys = await apiClient.getFacilitys();
-        return { staffAndFacility, staffs, facilitys };
-      }
-
-      // ----- SQLite -----
-      const dbPath = path.join(__dirname, "../../data/houday.db");
-      const db = new sqlite3.Database(dbPath);
-
-      return await new Promise((resolve, reject) => {
-        const result = {};
-        db.serialize(() => {
-          db.all("SELECT * FROM staffs", (err, staffs) => {
-            if (err) return reject(err);
-            result.staffs = staffs;
-
-            db.all("SELECT * FROM facilitys", (err, facilitys) => {
-              if (err) return reject(err);
-              result.facilitys = facilitys;
-
-              const sql = `
-                SELECT f.name AS facility_name, s.name AS staff_name
-                FROM facility_staff fs
-                INNER JOIN facilitys f ON fs.facility_id = f.id
-                INNER JOIN staffs s ON fs.staff_id = s.id
-              `;
-              db.all(sql, (err, staffAndFacility) => {
-                if (err) return reject(err);
-                result.staffAndFacility = staffAndFacility;
-                db.close();
-                resolve(result);
-              });
-            });
-          });
-        });
-      });
-    } catch (err) {
-      console.error("❌ getStaffAndFacility失敗:", err.message);
-      throw err;
-    }
-  });
-
-  // ============================================================
   // 🔹 getDatabaseType IPCハンドラー
   // ============================================================
   ipcMain.handle("get-database-type", async () => {

@@ -59,14 +59,24 @@ contextBridge.exposeInMainWorld("electronAPI", {
       throw err;
     }
   },
-
-
   getStaffAndFacility: async () => {
     try {
       const result = await ipcRenderer.invoke("getStaffAndFacility");
       return result;
     } catch (err) {
       console.error("❌ [preload] IPC 呼び出し失敗:", err);
+      throw err;
+    }
+  },
+  // ✅ MariaDB 一括登録（児童＋施設＋スタッフ）
+  manager_insert_procedure: async (data) => {
+    try {
+      console.log("📤 [PRELOAD] manager_insert_procedure 呼び出し:", data);
+      const result = await ipcRenderer.invoke("manager_insert_procedure", data);
+      console.log("✅ [PRELOAD] manager_insert_procedure 結果:", result);
+      return result;
+    } catch (err) {
+      console.error("❌ [PRELOAD] manager_insert_procedure 失敗:", err);
       throw err;
     }
   },
