@@ -5,7 +5,7 @@ import store from "../../store/store.js";
  * SQLと同等のデータ構造を生成する関数
  */
 export function getJoinedStaffFacilityData() {
-  const state = store.getState().sqlite;
+  const state = store.getState().database;
   const staffs = state.staffs || [];
   const facilityStaff = state.facility_staff || [];
   const facilitys = state.facilitys || [];

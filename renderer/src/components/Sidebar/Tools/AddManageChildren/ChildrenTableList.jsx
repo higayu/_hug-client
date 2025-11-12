@@ -10,8 +10,8 @@ import {store} from '@/store/store.js'
 function ChildrenTableList({ childrenList = [] }) {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [selectedIds, setSelectedIds] = useState([]); // ✅ 選択された児童ID
-  const childrenData = store.getState().sqlite.children;
-  const managersData = store.getState().sqlite.managers;
+  const childrenData = store.getState().database.children;
+  const managersData = store.getState().database.managers;
   const { STAFF_ID, WEEK_DAY, FACILITY_ID } = useAppState();
 
 

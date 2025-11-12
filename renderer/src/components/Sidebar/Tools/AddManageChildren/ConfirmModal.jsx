@@ -13,9 +13,9 @@ import { store } from "@/store/store.js";
 function ConfirmModal({ show, message, list = [], onConfirm, onCancel }) {
   if (!show) return null;
 
-  const pronunciation = store.getState().sqlite.pronunciation;
-  const childrenType = store.getState().sqlite.children_type;
-  const childrenData = store.getState().sqlite.children;
+  const pronunciation = store.getState().database.pronunciation;
+  const childrenType = store.getState().database.children_type;
+  const childrenData = store.getState().database.children;
   const { STAFF_ID, WEEK_DAY, FACILITY_ID } = useAppState();
 
   // ✅ 各児童の選択内容を管理

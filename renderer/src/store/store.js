@@ -4,13 +4,13 @@
 import { configureStore } from '@reduxjs/toolkit'
 import attendanceReducer from './slices/attendanceSlice.js'
 import appStateReducer from './slices/appStateSlice.js'
-import sqliteReducer from './slices/databaseSlice.js'
+import databaseReducer from './slices/databaseSlice.js'
 
 export const store = configureStore({
   reducer: {
     attendance: attendanceReducer,
     appState: appStateReducer,
-    sqlite: sqliteReducer
+    database: databaseReducer
   },
   // Redux DevToolsは開発環境で有効
   devTools: process.env.NODE_ENV !== 'production'
