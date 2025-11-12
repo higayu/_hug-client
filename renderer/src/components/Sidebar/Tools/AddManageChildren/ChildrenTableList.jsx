@@ -12,7 +12,7 @@ function ChildrenTableList({ childrenList = [] }) {
   const [selectedIds, setSelectedIds] = useState([]); // ✅ 選択された児童ID
   const childrenData = store.getState().database.children;
   const managersData = store.getState().database.managers;
-  const { STAFF_ID, WEEK_DAY, FACILITY_ID } = useAppState();
+  const { STAFF_ID, WEEK_DAY, FACILITY_ID, appState } = useAppState();
 
 
   if (!childrenList || childrenList.length === 0) {
@@ -37,6 +37,13 @@ function ChildrenTableList({ childrenList = [] }) {
 
   const handleConfirm = async (selectedChildren) => {
 
+    // ⚠️ activeApiが設定されていない場合は処理をスキップ
+    if (!appState.activeApi) {
+      console.warn("⚠️ [useChildrenList] activeApiが設定されていません。データベース設定の読み込み待ち...");
+      return;
+    }
+
+
     // ここで登録処理などを実行できる
     selectedChildren.forEach(async (child) => {
       console.log("登録:", child.children_name);
@@ -47,20 +54,41 @@ function ChildrenTableList({ childrenList = [] }) {
       
       if (!existingChild) {
         console.log("児童が存在しません:", child.children_id);
+        let result = null;
+        if(activeApi === mariadbApi) {
+          // result = await window.electronAPI.children_insert({
+          //   id: child.children_id,
+          //   name: child.children_name,
+          //   notes: child.notes,
+          //   pronunciation_id: child.pronunciation_id,
+          //   children_type_id: child.children_type_id,
+          // });
+        }else if(activeApi === sqliteApi) {
         // 児童が存在しない場合はテーブルに追加する
-        const result = await window.electronAPI.children_insert({
+        result = await window.electronAPI.children_insert({
           id: child.children_id,
           name: child.children_name,
-          notes: child.notes,
-          pronunciation_id: child.pronunciation_id,
-          children_type_id: child.children_type_id,
-        });
+            notes: child.notes,
+            pronunciation_id: child.pronunciation_id,
+            children_type_id: child.children_type_id,
+          });
+        }
+
+  
         console.log("児童をテーブルに追加しました:", result);
-      
-        const result2 = await window.electronAPI.facility_children_insert({
-          children_id: child.children_id,
-          facility_id: FACILITY_ID,
-        });
+      let result2 = null;
+        if(activeApi === mariadbApi) {
+          // const result2 = await window.electronAPI.facility_children_insert({
+          //   children_id: child.children_id,
+          //   facility_id: FACILITY_ID,
+          // });
+          // console.log("児童をファシリティに追加しました:", result2);
+        }else if(activeApi === sqliteApi) {
+          result2 = await window.electronAPI.facility_children_insert({
+            children_id: child.children_id,
+            facility_id: FACILITY_ID,
+          });
+        }
         console.log("児童をファシリティに追加しました:", result2);
       }
 
