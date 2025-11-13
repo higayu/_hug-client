@@ -1,5 +1,5 @@
 const apiClient = require("../../../src/apiClient");
-const { manager_insert_procedure } = require("./mariadb/GetProcedure");
+const { insert_manager_p } = require("./mariadb/GetProcedure");
 
 function registerMariadbHandlers(ipcMain) {
   // ============================================================
@@ -40,10 +40,10 @@ function registerMariadbHandlers(ipcMain) {
   });
 
     // ============================================================
-  // 📘 manager_insert_procedure
+  // 📘 insert_manager_p
   // ============================================================
-  ipcMain.handle("manager_insert_procedure", async (event, data) => {
-    return await manager_insert_procedure(data);
+  ipcMain.handle("insert_manager_p", async (event, data) => {
+    return await insert_manager_p(data);
   });
 
 

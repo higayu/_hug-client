@@ -61,7 +61,7 @@ export async function mariadbFnc({
     console.log("📤 送信データ(MariaDB):", requestPayload);
 
     // 🚀 MariaDB APIに一括送信
-    const result = await window.electronAPI.manager_insert_procedure(requestPayload);
+    const result = await window.electronAPI.insert_manager_p(requestPayload);
 
     console.log("✅ MariaDB 登録処理完了:", result);
     return result;

@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import ConfirmModal from "./ConfirmModal.jsx";
 import { useAppState } from '@/contexts/AppStateContext.jsx'
 import {store} from '@/store/store.js'
-import { insertManager } from "@/sql/insertManager/insertManager.js";
+import { insertManager } from "@/sql/useManager/insertManager/insertManager.js";
 
 /**
  * 出勤データを一覧表示するコンポーネント

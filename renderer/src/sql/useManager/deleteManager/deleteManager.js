@@ -1,11 +1,11 @@
-// renderer/src/sql/insertManager/insertManager.js
+// renderer/src/sql/useManager/deleteManager/deleteManager.js
 
-import { handleSQLiteInsert } from "./parts/sqlite.js";
-import { handleMariaDBInsert } from "./parts/mariadb.js";
+import { handleSQLiteDelete } from "./parts/sqlite.js";
+import { handleMariaDBDelete } from "./parts/mariadb.js";
 import { mariadbApi } from "@/sql/mariadbApi.js";
 import { sqliteApi } from "@/sql/sqliteApi.js";
 
-export async function insertManager(
+export async function deleteManager(
   selectedChildren,
   {
     childrenData,
@@ -16,14 +16,14 @@ export async function insertManager(
     WEEK_DAY,
   }
 ) {
-  console.log("===== insertManager START =====");
+  console.log("===== deleteManager START =====");
   console.log("選択された児童数:", selectedChildren.length);
   console.log("activeApi:", activeApi);
   console.log("FACILITY_ID:", FACILITY_ID, "STAFF_ID:", STAFF_ID, "WEEK_DAY:", WEEK_DAY);
 
   if (!activeApi) {
     console.warn("⚠️ activeApi が設定されていません");
-    console.log("===== insertManager END (error: no activeApi) =====");
+    console.log("===== deleteManager END (error: no activeApi) =====");
     return;
   }
 
@@ -33,7 +33,7 @@ export async function insertManager(
 
     if (activeApi === sqliteApi) {
       console.log("→ 使用DB: SQLite");
-      await handleSQLiteInsert(child, {
+      await handleSQLiteDelete(child, {
         childrenData,
         managersData,
         FACILITY_ID,
@@ -44,7 +44,7 @@ export async function insertManager(
 
     } else if (activeApi === mariadbApi) {
       console.log("→ 使用DB: MariaDB");
-      await handleMariaDBInsert(child, {
+      await handleMariaDBDelete(child, {
         childrenData,
         managersData,
         FACILITY_ID,
@@ -62,5 +62,5 @@ export async function insertManager(
     console.log("-------------------------------------------");
   }
 
-  console.log("===== insertManager END =====");
+  console.log("===== deleteManager END =====");
 }

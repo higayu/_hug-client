@@ -1,7 +1,7 @@
-// renderer/src/sql/insertManager/parts/sqlite.js
+// renderer/src/sql/useManager/deleteManager/parts/sqlite.js
 
 
-export async function handleSQLiteInsert(
+export async function handleSQLiteDelete(
   child,
   {
     childrenData,
@@ -12,7 +12,7 @@ export async function handleSQLiteInsert(
   }
 ) {
 
-  console.log("====== SQLite: handleSQLiteInsert START ======");
+  console.log("====== SQLite: handleSQLiteDelete START ======");
   console.log("処理する児童:", child);
   console.log("FACILITY_ID:", FACILITY_ID, "STAFF_ID:", STAFF_ID, "WEEK_DAY:", WEEK_DAY);
 
@@ -79,19 +79,19 @@ export async function handleSQLiteInsert(
 
     const dayOfWeekJson = JSON.stringify({ days: [WEEK_DAY] });
 
-    console.log("SQLite: managers_insert 実行 →", {
+    console.log("SQLite: managers_delete 実行 →", {
       children_id: child.children_id,
       staff_id: STAFF_ID,
       day_of_week: dayOfWeekJson,
     });
 
-    const result3 = await window.electronAPI.managers_insert({
+    const result3 = await window.electronAPI.managers_delete({
       children_id: child.children_id,
       staff_id: STAFF_ID,
       day_of_week: dayOfWeekJson,
     });
 
-    console.log("SQLite: managers_insert 完了:", result3);
+    console.log("SQLite: managers_delete 完了:", result3);
 
   } else {
     console.log("SQLite: 既に担当レコードが存在します:", existingManager);
@@ -111,19 +111,19 @@ export async function handleSQLiteInsert(
         const updatedDays = [...daysArray, WEEK_DAY];
         const updatedJson = JSON.stringify({ days: updatedDays });
 
-        console.log("SQLite: managers_update 実行 →", {
+        console.log("SQLite: managers_delete 実行 →", {
           children_id: child.children_id,
           staff_id: STAFF_ID,
           day_of_week: updatedJson,
         });
 
-        const result4 = await window.electronAPI.managers_update({
+        const result4 = await window.electronAPI.managers_delete({
           children_id: child.children_id,
           staff_id: STAFF_ID,
           day_of_week: updatedJson,
         });
 
-        console.log("SQLite: managers_update 完了:", result4);
+        console.log("SQLite: managers_delete 完了:", result4);
       }
     } catch (error) {
       console.error("SQLite: JSON パースエラー:", error);
@@ -131,5 +131,5 @@ export async function handleSQLiteInsert(
     }
   }
 
-  console.log("====== SQLite: handleSQLiteInsert END ======");
+  console.log("====== SQLite: handleSQLiteDelete END ======");
 }
