@@ -1,39 +1,66 @@
-// src/sql/insertManager/insertManager.js
-export const insertManager = {
+// renderer/src/sql/insertManager/insertManager.js
 
-  async insertManager(manager) {
-    try {
-      const uid = Math.random().toString(36).slice(2, 8);
-      console.group(`🧩 [insertManager] insertManager [${uid}]`);
+import { handleSQLiteInsert } from "./parts/sqlite.js";
+import { handleMariaDBInsert } from "./parts/mariadb.js";
+import { mariadbApi } from "@/sql/mariadbApi.js";
+import { sqliteApi } from "@/sql/sqliteApi.js";
 
-      const timerName = `⌛ insertManager 時間_${uid}`;
-      console.time(timerName);
+export async function insertManager(
+  selectedChildren,
+  {
+    childrenData,
+    managersData,
+    activeApi,
+    FACILITY_ID,
+    STAFF_ID,
+    WEEK_DAY,
+  }
+) {
+  console.log("===== insertManager START =====");
+  console.log("選択された児童数:", selectedChildren.length);
+  console.log("activeApi:", activeApi);
+  console.log("FACILITY_ID:", FACILITY_ID, "STAFF_ID:", STAFF_ID, "WEEK_DAY:", WEEK_DAY);
 
-      // ✅ 修正箇所：呼び出し名を "manager_insert" → "managers_insert" に変更
-      const result = await window.electronAPI.managers_insert(manager);
+  if (!activeApi) {
+    console.warn("⚠️ activeApi が設定されていません");
+    console.log("===== insertManager END (error: no activeApi) =====");
+    return;
+  }
 
-      console.timeEnd(timerName);
+  for (const child of selectedChildren) {
+    console.log("-------------------------------------------");
+    console.log("▶ 児童処理開始:", child.children_id, child.children_name);
 
-      console.log("✅ [insertManager] 登録完了:", result);
-
-      console.log("📊 登録件数:", {
-        managers: Array.isArray(manager) ? manager.length : 1,
+    if (activeApi === sqliteApi) {
+      console.log("→ 使用DB: SQLite");
+      await handleSQLiteInsert(child, {
+        childrenData,
+        managersData,
+        FACILITY_ID,
+        STAFF_ID,
+        WEEK_DAY,
       });
+      console.log("✔ SQLite 処理完了:", child.children_id);
 
-      console.log("📋 登録データ:", manager);
+    } else if (activeApi === mariadbApi) {
+      console.log("→ 使用DB: MariaDB");
+      await handleMariaDBInsert(child, {
+        childrenData,
+        managersData,
+        FACILITY_ID,
+        STAFF_ID,
+        WEEK_DAY,
+      });
+      console.log("✔ MariaDB 処理完了:", child.children_id);
 
-      console.groupEnd();
-
-      // Redux などに渡す形式で返す
-      return {
-        managers: manager, // ✅ 複数形で整合
-      };
-    } catch (error) {
-      console.error("❌ [insertManager] insertManager エラー:", error);
-      console.groupEnd();
-      return null;
+    } else {
+      console.warn("⚠️ 不明な activeApi:", activeApi);
+      console.warn("この児童の処理をスキップ:", child.children_id);
     }
-  },
 
-};
+    console.log("▶ 児童処理終了:", child.children_id);
+    console.log("-------------------------------------------");
+  }
 
+  console.log("===== insertManager END =====");
+}

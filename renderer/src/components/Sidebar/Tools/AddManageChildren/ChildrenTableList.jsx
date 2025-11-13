@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import ConfirmModal from "./ConfirmModal.jsx";
 import { useAppState } from '@/contexts/AppStateContext.jsx'
 import {store} from '@/store/store.js'
+import { insertManager } from "@/sql/insertManager/insertManager.js";
 
 /**
  * 出勤データを一覧表示するコンポーネント
@@ -37,108 +38,13 @@ function ChildrenTableList({ childrenList = [] }) {
 
   const handleConfirm = async (selectedChildren) => {
 
-    // ⚠️ activeApiが設定されていない場合は処理をスキップ
-    if (!appState.activeApi) {
-      console.warn("⚠️ [useChildrenList] activeApiが設定されていません。データベース設定の読み込み待ち...");
-      return;
-    }
-
-
-    // ここで登録処理などを実行できる
-    selectedChildren.forEach(async (child) => {
-      console.log("登録:", child.children_name);
-      // まず、選んだ児童のidがすでにchildrenテーブルに存在するか確認する（存在しなければテーブルに追加する必要がある）
-      const existingChild = childrenData.find(
-        (c) => String(c.id) === String(child.children_id)
-      );
-      
-      if (!existingChild) {
-        console.log("児童が存在しません:", child.children_id);
-        let result = null;
-        if(activeApi === mariadbApi) {
-          // result = await window.electronAPI.children_insert({
-          //   id: child.children_id,
-          //   name: child.children_name,
-          //   notes: child.notes,
-          //   pronunciation_id: child.pronunciation_id,
-          //   children_type_id: child.children_type_id,
-          // });
-        }else if(activeApi === sqliteApi) {
-        // 児童が存在しない場合はテーブルに追加する
-        result = await window.electronAPI.children_insert({
-          id: child.children_id,
-          name: child.children_name,
-            notes: child.notes,
-            pronunciation_id: child.pronunciation_id,
-            children_type_id: child.children_type_id,
-          });
-        }
-
-  
-        console.log("児童をテーブルに追加しました:", result);
-      let result2 = null;
-        if(activeApi === mariadbApi) {
-          // const result2 = await window.electronAPI.facility_children_insert({
-          //   children_id: child.children_id,
-          //   facility_id: FACILITY_ID,
-          // });
-          // console.log("児童をファシリティに追加しました:", result2);
-        }else if(activeApi === sqliteApi) {
-          result2 = await window.electronAPI.facility_children_insert({
-            children_id: child.children_id,
-            facility_id: FACILITY_ID,
-          });
-        }
-        console.log("児童をファシリティに追加しました:", result2);
-      }
-
-      const existingManager = managersData.find((m) => {
-        const sameChild = String(m.children_id) === String(child.children_id);
-        const sameStaff = String(m.staff_id) === String(STAFF_ID);
-        return sameChild && sameStaff;
-      });
-      
-      if (!existingManager) {
-        // ✅ ① レコードが存在しない → 新規追加
-        const dayOfWeekJson = JSON.stringify({ days: [WEEK_DAY] });
-      
-        const result3 = await window.electronAPI.managers_insert({
-          children_id: child.children_id,
-          staff_id: STAFF_ID,
-          day_of_week: dayOfWeekJson,
-        });
-      
-        console.log("✅ 新しい担当スタッフを追加しました:", result3);
-      } else {
-        // ✅ 既に同じ児童・スタッフの組み合わせが存在する場合
-        try {
-          // JSON文字列をオブジェクトに変換
-          const parsed = JSON.parse(existingManager.day_of_week);
-          const daysArray = parsed?.days ?? [];
-      
-          if (daysArray.includes(WEEK_DAY)) {
-            // ✅ ③ 今の曜日がすでに登録済み → 何もしない
-            console.log("⏭ すでに同じ曜日が登録されています:", WEEK_DAY);
-          } else {
-            // ✅ ② 今の曜日が未登録 → JSONを更新
-            const updatedDays = [...daysArray, WEEK_DAY];
-            const updatedJson = JSON.stringify({ days: updatedDays });
-      
-            const result4 = await window.electronAPI.managers_update({
-              children_id: child.children_id,
-              staff_id: STAFF_ID,
-              day_of_week: updatedJson,
-            });
-      
-            console.log("🔄 曜日を追加更新しました:", updatedDays);
-          }
-        } catch (error) {
-          console.error("⚠️ day_of_week の JSON 解析に失敗:", error);
-        }
-      }
-      
-
-      
+    await insertManager(selectedChildren, {
+      childrenData,
+      managersData,
+      activeApi: appState.activeApi,
+      FACILITY_ID,
+      STAFF_ID,
+      WEEK_DAY,
     });
 
     setShowConfirmModal(false);
