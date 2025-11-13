@@ -8,9 +8,7 @@ export const mariadbApi = {
     });
   },
 
-  async getStaffAndFacility() {
-    return await window.electronAPI.getStaffAndFacility();
-  },
+
 
   async getAllTables() {
     return await window.electronAPI.fetchTableAll();

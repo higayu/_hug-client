@@ -37,64 +37,6 @@ async function fetchTableAll() {
   return res.data;
 }
 
-/* ------------------------------
-   Staffs
------------------------------- */
-async function fetchStaff() {
-  updateBaseURL();
-  const res = await apiClient.get("/houday/staff_v");
-  return res.data;
-}
-
-async function getStaffAndFacility() {
-  updateBaseURL();
-  const res = await apiClient.get("/houday/staff_facility_v");
-  return res.data;
-}
-
-/* ------------------------------
-   facilitys
------------------------------- */
-async function getFacilitys() {
-  updateBaseURL();
-  const res = await apiClient.get("/houday/facilitys");
-  return res.data;
-}
-
-/* ------------------------------
-   facility_children
------------------------------- */
-async function getFacility_children() {
-  updateBaseURL();
-  const res = await apiClient.get("/houday/facility_children");
-  return res.data;
-}
-
-/* ------------------------------
-   Children
------------------------------- */
-async function fetchChildren() {
-  updateBaseURL();
-  const res = await apiClient.get("/houday/Children");
-  return res.data;
-}
-
-async function fetchChildById(id) {
-  updateBaseURL();
-  const res = await apiClient.get("/houday/Children/search", {
-    params: { pk: "children_id", values: id },
-  });
-  return res.data[0];
-}
-
-/* ------------------------------
-   初回・体験
------------------------------- */
-async function getExperience_children_v() {
-  updateBaseURL();
-  const res = await apiClient.get("/houday/experience_children_v");
-  return res.data;
-}
 
 /* ------------------------------
    Stored Procedures
@@ -128,13 +70,6 @@ async function callProcedure(procname, params = []) {
 ------------------------------ */
 module.exports = {
   fetchTableAll,
-  fetchStaff,
-  getStaffAndFacility,
-  getFacility_children,
-  getFacilitys,
-  fetchChildren,
-  fetchChildById,
-  getExperience_children_v,
   callProcedure,
   updateBaseURL, // ⚠️ 外部からbaseURLを更新できるようにエクスポート
 };

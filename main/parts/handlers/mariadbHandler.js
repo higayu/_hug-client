@@ -46,29 +46,6 @@ function registerMariadbHandlers(ipcMain) {
     return await managerInsertProcedure(data);
   });
 
-  // ⚠️ getStaffAndFacilityはapiHandler.jsで既に定義されているため削除
-
-  // ============================================================
-  // 📘 GetChildrenByStaffAndDay
-  // ============================================================
-  ipcMain.handle("GetChildrenByStaffAndDay", async (event, args) => {
-    return await GetChildrenByStaffAndDay(args);
-  });
-
-    // ============================================================
-  // 📘 getStaffAndFacility
-  // ============================================================
-  ipcMain.handle("getStaffAndFacility", async () => {
-    try {
-        const staffAndFacility = await apiClient.getStaffAndFacility();
-        const staffs = await apiClient.fetchStaff();
-        const facilitys = await apiClient.getFacilitys();
-        return { staffAndFacility, staffs, facilitys };
-    } catch (err) {
-      console.error("❌ getStaffAndFacility失敗:", err.message);
-      throw err;
-    }
-  });
 
   console.log("✅ MariaDB IPCハンドラ登録完了");
 }
