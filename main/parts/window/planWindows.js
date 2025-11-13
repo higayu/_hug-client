@@ -40,39 +40,35 @@ function openPlanWindow(url, childId, label) {
     },
   });
 
-  console.log(`🆕 ${label}ウィンドウを開きます:`, childId);
   win.loadURL(url);
 
   // 🔍 子ウィンドウのログをメインコンソールでも見られるようにする
   win.webContents.on("console-message", (event, level, message) => {
-    console.log(`🧭 [${label}] ${message}`);
+    console.log(`${message}`);
   });
 
   win.webContents.once("did-finish-load", () => {
-    console.log(`✅ did-finish-load（${label}）`);
+    console.log(`did-finish-load`);
 
     // 🕒 DOM生成の遅延対策
     setTimeout(() => {
       win.webContents.executeJavaScript(`
         try {
-          console.log("🚀 ${label} ページ自動処理開始");
-
+        
           const select = document.querySelector('#name_list');
           if (!select) throw new Error("#name_list not found");
           select.value = "${childId}";
           select.dispatchEvent(new Event("change", { bubbles: true }));
-          console.log("✅ #name_list に設定:", select.value);
 
           setTimeout(() => {
             const btn = document.querySelector('button.btn.btn-sm.search');
             if (!btn) throw new Error("search button not found");
             if (btn.disabled) throw new Error("search button is disabled");
             btn.click();
-            console.log("✅ 検索ボタンをクリックしました");
           }, 1500);
 
         } catch (e) {
-          console.error("❌ executeJavaScript failed:", e);
+          console.error("error:", e);
         }
       `);
     }, 2000); // ← DOM構築待ち
@@ -96,16 +92,15 @@ function openSimpleWindow(FACILITY_ID, DATE_STR, label = "今日の利用者") {
     },
   });
 
-  console.log(`🆕 ${label}ウィンドウを開きます → ${url}`);
   win.loadURL(url);
 
   // 子ウィンドウの console.log をメイン側にも表示
   win.webContents.on("console-message", (event, level, message) => {
-    console.log(`📘 [${label}] ${message}`);
+    console.log(`${message}`);
   });
 
   win.webContents.once("did-finish-load", () => {
-    console.log(`✅ did-finish-load（${label}）`);
+    console.log(`did-finish-load`);
   });
 }
 

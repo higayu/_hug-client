@@ -6,7 +6,6 @@ const { initializeDatabase } = require("../utils/initDatabase");
 
 // ✅ デバッグ用ログ
 const dbPath = getDbPath();
-console.log("🗂 SQLite DBパス:", dbPath);
 
 // DBが存在しない場合は作成＆テーブル構築
 initializeDatabase();
@@ -78,7 +77,6 @@ function registerSqliteHandlers(ipcMain) {
       ipcMain.handle(`${table}:delete`, async (_, ...args) => await handler.delete(...args));
   }
 
-  console.log("✅ SQLite CRUD IPCハンドラ登録完了");
 }
 
 module.exports = { registerSqliteHandlers };

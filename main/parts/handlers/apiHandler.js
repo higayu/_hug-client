@@ -19,7 +19,7 @@ function getDatabaseType() {
   try {
     const iniPath = resolveIniPath();
     if (!fs.existsSync(iniPath)) {
-      console.log("⚠️ ini.jsonが見つかりません。デフォルト（SQLite）を使用します");
+      console.log("ini.json not found");
       return "sqlite";
     }
     const iniData = JSON.parse(fs.readFileSync(iniPath, "utf8"));
@@ -36,7 +36,6 @@ function getDatabaseType() {
 // ============================================================
 async function handleApiCalls(ipcMain) {
   const DB_TYPE = getDatabaseType();
-  console.log(`⚙️ 現在のDBモード: ${DB_TYPE}`);
 
   // ============================================================
   // 🔹 getDatabaseType IPCハンドラー
@@ -65,7 +64,6 @@ async function handleApiCalls(ipcMain) {
     registerSqliteHandlers(ipcMain);
   }
 
-  console.log("✅ APIハンドラ登録完了");
 }
 
 module.exports = { handleApiCalls };

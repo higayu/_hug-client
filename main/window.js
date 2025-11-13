@@ -42,7 +42,6 @@ function createMainWindow() {
   if (isDev) {
     // 開発環境: Vite開発サーバー
     mainWindow.loadURL('http://localhost:5173');
-    console.log("🔧 [MAIN] 開発環境: Vite開発サーバーに接続 (http://localhost:5173)");
   } else {
     // 本番環境: ビルド済みファイル
     const hasDistFile = fs.existsSync(rendererDistPath);
@@ -50,10 +49,8 @@ function createMainWindow() {
       console.error("❌ [MAIN] エラー: renderer/dist/index.html が見つかりません。先に 'npm run build:renderer' を実行してください。");
       // フォールバック: 開発サーバーに接続を試みる
       mainWindow.loadURL('http://localhost:5173');
-      console.log("⚠️ [MAIN] フォールバック: Vite開発サーバーに接続を試みます");
     } else {
       mainWindow.loadFile(rendererDistPath);
-      console.log("🔧 [MAIN] 本番環境: ビルド済みファイルを読み込み:", rendererDistPath);
     }
   }
   

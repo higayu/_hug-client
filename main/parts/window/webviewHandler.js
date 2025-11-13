@@ -7,29 +7,28 @@
  */
 async function clickAdditionRadio(webview) {
   try {
-    console.log("🟢 加算登録ラジオボタンをクリック中...");
     
     const success = await webview.executeJavaScript(`
       const radio = document.querySelector('input[type="radio"][name="tableChange"][value="2"]');
       if (radio) {
         radio.click();
-        console.log("✅ 加算登録ラジオボタンをクリックしました");
+        console.log("click addition radio button");
         true;
       } else {
-        console.log("❌ 加算登録ラジオボタンが見つかりません");
+        console.log("addition radio button not found");
         false;
       }
     `);
     
     if (success) {
-      console.log("✅ 加算登録ラジオボタンのクリックが完了しました");
+      console.log("click addition radio button success");
     } else {
-      console.log("⚠️ 加算登録ラジオボタンのクリックに失敗しました");
+      console.log("click addition radio button failed");
     }
     
     return success;
   } catch (error) {
-    console.error("❌ 加算登録ラジオボタンクリック中にエラー:", error);
+    console.error("error:", error);
     return false;
   }
 }
@@ -59,14 +58,14 @@ async function waitForPageReady(webview, maxAttempts = 30, interval = 500) {
  */
 async function extractTableData(webview, selector = "table", pageName = "ページ") {
   return await webview.executeJavaScript(`
-    console.log("🔍 ${pageName}:", document.title);
+    console.log("${pageName}:", document.title);
     let el = document.querySelector("${selector}");
     if (!el) {
-      console.log("⚠️ ${selector}が見つかりません。通常のtableを探します...");
+      console.log("${selector} not found. search table");
       el = document.querySelector("table");
       if (!el) throw new Error("${pageName}にテーブルが見つかりません");
     }
-    console.log("✅ テーブルを取得しました:", el.className);
+    console.log("table found:", el.className);
     el.outerHTML;
   `);
 }

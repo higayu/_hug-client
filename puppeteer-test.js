@@ -23,16 +23,11 @@ async function loginHug() {
     page.click("input.btn-login"),
   ]);
 
-  console.log("✅ ログイン成功 & チェックボックスON");
-
   // 任意のページに遷移
   await page.goto("https://www.hug-ayumu.link/hug/wm/attendance.php?mode=detail&f_id=3&date=2025-10-03", {
     waitUntil: "networkidle2",
   });
-
   const html = await page.content();
-  console.log("✅ ページHTML取得:", html.substring(0, 200));
-
   await browser.close();
 }
 

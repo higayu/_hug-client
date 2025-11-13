@@ -13,14 +13,12 @@ function initializeDatabase() {
   // ディレクトリが存在しなければ作成
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });
-    console.log("📁 data ディレクトリを作成:", dir);
   }
 
   const dbExists = fs.existsSync(dbPath);
   const db = new sqlite3.Database(dbPath);
 
   if (!dbExists) {
-    console.log("🆕 houday.db が存在しないため、新規作成します。");
 
     const initSQL = `
 BEGIN TRANSACTION;
@@ -114,14 +112,14 @@ COMMIT;
 
     db.exec(initSQL, (err) => {
       if (err) {
-        console.error("❌ データベース初期化に失敗しました:", err.message);
+        console.error("error:", err);
       } else {
-        console.log("✅ データベース初期化が完了しました:", dbPath);
+        console.log("database initialized:", dbPath);
       }
       db.close();
     });
   } else {
-    console.log("✅ 既存のデータベースを使用します:", dbPath);
+    console.log("database already exists:", dbPath);
     db.close();
   }
 }

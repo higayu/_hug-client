@@ -1,7 +1,5 @@
 const { contextBridge, ipcRenderer } = require("electron");
 
-console.log("✅ preload.js が読み込まれた");
-
 // デバッグモード判定
 const isDebugMode = process.argv.includes("--dev") || process.argv.includes("--debug");
 
@@ -63,12 +61,9 @@ contextBridge.exposeInMainWorld("electronAPI", {
   // ✅ MariaDB 一括登録（児童＋施設＋スタッフ）
   insert_manager_p: async (data) => {
     try {
-      console.log("📤 [PRELOAD] insert_manager_p 呼び出し:", data);
       const result = await ipcRenderer.invoke("insert_manager_p", data);
-      console.log("✅ [PRELOAD] insert_manager_p 結果:", result);
       return result;
     } catch (err) {
-      console.error("❌ [PRELOAD] insert_manager_p 失敗:", err);
       throw err;
     }
   },
@@ -94,7 +89,6 @@ contextBridge.exposeInMainWorld("electronAPI", {
   open_addition_compare_btn: (facility_id, date_str) => {
     const eventName = "open-addition-compare-btn";
     const args = { facility_id, date_str };
-    console.log("📤 [PRELOAD] IPCイベント送信:", eventName, args);
     ipcRenderer.send(eventName, args);
   },
 

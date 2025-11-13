@@ -5,7 +5,6 @@ async function insert_manager_p(data) {
   let params = []; 
 
   try {
-    console.log("📡 [MAIN] managerInsertProcedure 呼び出しデータ:", data);
 
     params = [
       { name: "p_child_id",            value: data.child_id },
@@ -19,22 +18,9 @@ async function insert_manager_p(data) {
       { name: "p_day_of_week_json",    value: data.day_of_week },
     ];
 
-    console.log("📤 [MAIN] API 送信パラメータ:", params);
-
     const result = await apiClient.callProcedure("insert_manager_p", params);
-
-    console.log("✅ [MAIN] insert_manager_p 成功:", result);
     return result;
-
   } catch (error) {
-    console.error("❌ [MAIN] insert_manager_p API エラー:", {
-      sentParams: params,
-      message: error.message,
-      code: error.code,
-      responseData: error.response?.data,
-      responseStatus: error.response?.status,
-      stack: error.stack,
-    });
     throw error;
   }
 }

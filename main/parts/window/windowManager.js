@@ -39,7 +39,7 @@ function createDoubleWebviewWindow(url1, url2, label, htmlTemplate, facilityId, 
   win.loadURL("data:text/html;charset=utf-8," + encodeURIComponent(html));
   
   win.webContents.once("did-finish-load", () => {
-    console.log(`✅ ${label}ウィンドウ（2ページ＋結果タブ）読み込み完了`);
+    console.log(`${label} window loaded`);
   });
 
   return win;
@@ -55,21 +55,21 @@ function resolvePreloadPath() {
   // ② パッケージ後
   const prodPath = path.join(process.resourcesPath, "data", "preload.js");
 
-  console.log("🔍 preload.js パス確認:");
-  console.log("  - 開発時パス:", devPath);
-  console.log("  - パッケージ後パス:", prodPath);
-  console.log("  - 開発時パス存在:", fs.existsSync(devPath));
-  console.log("  - パッケージ後パス存在:", fs.existsSync(prodPath));
+  console.log("preload path check:");
+  console.log("  - dev path:", devPath);
+  console.log("  - prod path:", prodPath);
+  console.log("  - dev path exists:", fs.existsSync(devPath));
+  console.log("  - prod path exists:", fs.existsSync(prodPath));
 
   if (fs.existsSync(devPath)) {
-    console.log("✅ 開発時パスを使用:", devPath);
+    console.log("dev path used:", devPath);
     return devPath;
   }
   if (fs.existsSync(prodPath)) {
-    console.log("✅ パッケージ後パスを使用:", prodPath);
+    console.log("prod path used:", prodPath);
     return prodPath;
   }
-  console.warn("⚠ preload.js が見つかりません。", devPath, prodPath);
+  console.warn("preload.js not found:", devPath, prodPath);
   return devPath;
 }
 

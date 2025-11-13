@@ -10,7 +10,7 @@ function resolveIniPath() {
   if (app.isPackaged) {
     return path.join(app.getPath("userData"), "data", "ini.json");
   } else {
-    // ⚠️ 開発時はmain/data/ini.jsonを参照
+    // dev path is main/data/ini.json
     return path.join(__dirname, "..", "main", "data", "ini.json");
   }
 }
@@ -37,25 +37,25 @@ function getDefaultIni() {
 function loadIni() {
   try {
     const iniPath = resolveIniPath();
-    console.log("🔍 [iniUtils] ini.jsonパス:", iniPath);
+    console.log("ini.json path:", iniPath);
     
     // ファイルが存在しない場合はデフォルト設定を返す
     if (!fs.existsSync(iniPath)) {
-      console.log("⚠️ ini.json が見つかりません。デフォルト設定を使用します。");
-      console.log("🔍 [iniUtils] ファイル存在確認:", iniPath);
+      console.log("ini.json not found. default settings used.");
+      console.log("file exists check:", iniPath);
       return getDefaultIni();
     }
     
     const raw = fs.readFileSync(iniPath, "utf8");
     const json = JSON.parse(raw);
-    console.log("✅ [iniUtils] ini.json 読み込み成功:", {
+    console.log("ini.json loaded:", {
       baseURL: json?.apiSettings?.baseURL,
       databaseType: json?.apiSettings?.databaseType
     });
     return json;
   } catch (err) {
-    console.error("❌ [iniUtils] ini.json 読み込み失敗:", err);
-    console.log("⚠️ デフォルト設定を使用します。");
+    console.error("error: ini.json load failed:", err);
+    console.log("default settings used.");
     return getDefaultIni();
   }
 }

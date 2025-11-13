@@ -47,20 +47,20 @@ async function fetchTableAll() {
  * @param {object|array} params - パラメータ（オブジェクト or [{name, value}]）
  */
 async function callProcedure(procname, params = []) {
-  console.log("📡 callProcedure:", procname, params);
+  console.log("callProcedure called:", procname, params);
 
   try {
     updateBaseURL();
-    // ✅ name/value配列 → 値だけの配列に変換
+    // convert name/value array to just value array
     const values = params.map(p => p.value);
 
-    // ✅ APIが期待する { params: [1, "土"] } に変換して送信
+    // convert to API expected { params: [1, "土"] } and send
     const res = await apiClient.post(`/houday/procedure/${procname}`, { params: values });
 
-    console.log("📬 API応答:", res.data);
+    console.log("API response:", res.data);
     return res.data;
   } catch (err) {
-    console.error("❌ API呼び出しエラー:", err.response?.data || err.message);
+    console.error("error: API call failed:", err.response?.data || err.message);
     throw err;
   }
 }
@@ -71,5 +71,5 @@ async function callProcedure(procname, params = []) {
 module.exports = {
   fetchTableAll,
   callProcedure,
-  updateBaseURL, // ⚠️ 外部からbaseURLを更新できるようにエクスポート
+  updateBaseURL, // allow baseURL to be updated from outside
 };

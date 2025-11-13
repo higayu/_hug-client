@@ -10,8 +10,6 @@ function handleCustomButtonsAccess(ipcMain) {
   ipcMain.handle("read-custom-buttons", async () => {
     try {
       const filePath = getCustomButtonsPath();
-      console.log("🔍 [CUSTOM_BUTTONS] customButtons.json のパス:", filePath);
-      console.log("🔍 [CUSTOM_BUTTONS] ファイルの存在確認:", fs.existsSync(filePath));
 
       if (!fs.existsSync(filePath)) {
         const defaultCustomButtons = {
@@ -31,7 +29,7 @@ function handleCustomButtonsAccess(ipcMain) {
         const dir = path.dirname(filePath);
         if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
         fs.writeFileSync(filePath, JSON.stringify(defaultCustomButtons, null, 2));
-        console.log("🆕 新しい customButtons.json を作成しました:", filePath);
+  
         return { success: true, data: defaultCustomButtons };
       }
 
@@ -53,10 +51,9 @@ function handleCustomButtonsAccess(ipcMain) {
       if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 
       fs.writeFileSync(filePath, JSON.stringify(data, null, 2), "utf8");
-      console.log("✅ customButtons.json 保存成功:", filePath);
+  
       return { success: true };
     } catch (err) {
-      console.error("❌ customButtons.json 保存失敗:", err);
       return { success: false, error: err.message };
     }
   });
@@ -67,8 +64,6 @@ function handleCustomButtonsAccess(ipcMain) {
   ipcMain.handle("read-available-actions", async () => {
     try {
       const filePath = getAvailableActionsPath();
-      console.log("🔍 [CUSTOM_BUTTONS] availableActions.json のパス:", filePath);
-      console.log("🔍 [CUSTOM_BUTTONS] ファイルの存在確認:", fs.existsSync(filePath));
 
       if (!fs.existsSync(filePath)) {
         const defaultAvailableActions = {
@@ -94,7 +89,6 @@ function handleCustomButtonsAccess(ipcMain) {
         const dir = path.dirname(filePath);
         if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
         fs.writeFileSync(filePath, JSON.stringify(defaultAvailableActions, null, 2));
-        console.log("🆕 新しい availableActions.json を作成しました:", filePath);
         return { success: true, data: defaultAvailableActions };
       }
 

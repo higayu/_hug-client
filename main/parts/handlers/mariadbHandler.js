@@ -9,32 +9,14 @@ function registerMariadbHandlers(ipcMain) {
     try {
       const allTables = await apiClient.fetchTableAll();
       
-      // ⚠️ デバッグ: データ構造を確認
-      console.log("🔍 [mariadbHandler] fetchTableAll レスポンス:", {
-        type: typeof allTables,
-        isArray: Array.isArray(allTables),
-        keys: allTables ? Object.keys(allTables) : null,
-        sample: allTables ? JSON.stringify(allTables).substring(0, 500) : null
-      });
-      
       // ⚠️ データ構造をSQLiteと同じ形式に変換
       // APIが返すデータ構造に応じて変換処理を追加
       // 例: { Children: [...], Staffs: [...] } → { children: [...], staffs: [...] }
       const normalizedTables = normalizeTableData(allTables);
       
-      console.log("✅ [mariadbHandler] 正規化後のデータ:", {
-        children: normalizedTables.children?.length || 0,
-        staffs: normalizedTables.staffs?.length || 0,
-        managers: normalizedTables.managers?.length || 0,
-        pc: normalizedTables.pc?.length || 0,
-        pc_to_children: normalizedTables.pc_to_children?.length || 0,
-        pronunciation: normalizedTables.pronunciation?.length || 0,
-        children_type: normalizedTables.children_type?.length || 0,
-      });
-      
       return normalizedTables;
     } catch (err) {
-      console.error("❌ fetchTableAll失敗:", err.message);
+      console.error("error:", err);
       throw err;
     }
   });
@@ -46,8 +28,6 @@ function registerMariadbHandlers(ipcMain) {
     return await insert_manager_p(data);
   });
 
-
-  console.log("✅ MariaDB IPCハンドラ登録完了");
 }
 
 /**

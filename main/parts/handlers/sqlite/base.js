@@ -7,9 +7,9 @@ const dbPath = getDbPath();
 function connect() {
   return new sqlite3.Database(dbPath, (err) => {
     if (err) {
-      console.error("❌ DB接続エラー:", err.message);
+      console.error("error:", err);
     } else {
-      console.log("✅ DB接続成功:", dbPath);
+      console.log("DB connected:", dbPath);
     }
   });
 }

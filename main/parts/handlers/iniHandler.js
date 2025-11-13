@@ -95,7 +95,6 @@ function handleIniAccess(ipcMain) {
         const dir = path.dirname(filePath);
         if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
         fs.writeFileSync(filePath, JSON.stringify(defaultIni, null, 2));
-        console.log("🆕 新しい ini.json を作成しました:", filePath);
         return { success: true, data: defaultIni };
       }
 
@@ -117,10 +116,10 @@ function handleIniAccess(ipcMain) {
 
       const jsonString = JSON.stringify(data, null, 2);
       fs.writeFileSync(filePath, jsonString, "utf8");
-      console.log("✅ ini.json 保存成功:", filePath);
+
       return { success: true };
     } catch (err) {
-      console.error("❌ ini.json 保存失敗:", err);
+      console.error("error:", err);
       return { success: false, error: err.message };
     }
   });
@@ -164,11 +163,10 @@ ipcMain.handle("update-ini-setting", async (event, settingPath, value) => {
     // 原子的書き込み
     fs.writeFileSync(filePath, JSON.stringify(data, null, 2), "utf8");
 
-    console.log(`✅ 設定更新成功: ${settingPath} = ${JSON.stringify(value)}`);
     return { success: true, data };
 
   } catch (err) {
-    console.error("❌ 設定更新失敗:", err);
+    console.error("error:", err);
     return { success: false, error: err.message };
   }
 });

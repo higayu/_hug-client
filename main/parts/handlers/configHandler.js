@@ -19,7 +19,6 @@ function handleConfigAccess(ipcMain) {
         if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 
         fs.writeFileSync(filePath, JSON.stringify(defaultConfig, null, 2));
-        console.log("🆕 新しい設定ファイルを作成しました:", filePath);
         return { success: true, data: defaultConfig };
       }
 
@@ -43,7 +42,7 @@ function handleConfigAccess(ipcMain) {
       if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 
       fs.writeFileSync(filePath, JSON.stringify(data, null, 2), "utf8");
-      console.log("✅ config.json保存成功:", filePath);
+   
       return { success: true };
     } catch (err) {
       console.error("❌ config.json保存失敗:", err);
@@ -69,10 +68,8 @@ function handleConfigAccess(ipcMain) {
       if (!fs.existsSync(destDir)) fs.mkdirSync(destDir, { recursive: true });
       fs.copyFileSync(selectedFile, destPath);
 
-      console.log(`✅ ${fileName} をコピー:`, destPath);
       return { success: true, destination: destPath, fileName };
     } catch (err) {
-      console.error("❌ 設定コピー失敗:", err);
       return { success: false, message: err.message };
     }
   });
@@ -82,10 +79,8 @@ function handleConfigAccess(ipcMain) {
       const configDir = getDataDir();
       if (!fs.existsSync(configDir)) fs.mkdirSync(configDir, { recursive: true });
       await shell.openPath(configDir);
-      console.log("✅ 設定フォルダーを開きました:", configDir);
       return { success: true, path: configDir };
     } catch (err) {
-      console.error("❌ 設定フォルダーを開く失敗:", err);
       return { success: false, error: err.message };
     }
   });

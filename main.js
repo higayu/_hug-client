@@ -31,7 +31,7 @@ global.updateDebugInfo = updateDebugInfo;
 // 🏁 Electron 起動処理
 // ============================================================
 app.whenReady().then(async () => {
-  console.log("🚀 [MAIN] Electronアプリが起動しました");
+ 
 
   // 5秒後にアップデートチェック
   setTimeout(() => {
@@ -41,7 +41,6 @@ app.whenReady().then(async () => {
       updateDebugInfo.checkCount++;
       autoUpdater.checkForUpdatesAndNotify();
     } catch (err) {
-      console.error("⚠️ [UPDATE] アップデートチェック失敗:", err);
       updateDebugInfo.lastError = err.message;
       updateDebugInfo.isChecking = false;
     }
@@ -115,10 +114,9 @@ autoUpdater.on("update-downloaded", (info) => {
 // 🧹 アプリ終了時の処理
 // ============================================================
 app.on("before-quit", () => {
-  console.log("🔄 [MAIN] アプリケーション終了前の処理開始");
+  console.log("application start");
 });
 
 app.on("window-all-closed", () => {
-  console.log("🪟 [MAIN] すべてのウィンドウが閉じられました");
   if (process.platform !== "darwin") app.quit();
 });

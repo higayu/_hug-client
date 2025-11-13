@@ -23,17 +23,17 @@ function loadConfig() {
     
     // ファイルが存在しない場合はデフォルト設定を返す
     if (!fs.existsSync(configPath)) {
-      console.log("⚠️ config.json が見つかりません。デフォルト設定を使用します。");
+      console.log("config.json not found. default settings used.");
       return getDefaultConfig();
     }
     
     const raw = fs.readFileSync(configPath, "utf8");
     const json = JSON.parse(raw);
-    console.log("✅ config.json 読み込み成功:", json);
+    console.log("config.json loaded:", json);
     return json;
   } catch (err) {
-    console.error("❌ config.json 読み込み失敗:", err);
-    console.log("⚠️ デフォルト設定を使用します。");
+    console.error("error: config.json load failed:", err);
+    console.log("default settings used.");
     return getDefaultConfig();
   }
 }

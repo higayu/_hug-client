@@ -27,15 +27,15 @@ window.attendanceTableAPI = {
   parseAttendanceTable
 };
 
-console.log("✅ mainRenderer.js 読み込み完了");
+console.log("loaded mainRenderer.js");
 
 window.addEventListener("DOMContentLoaded", async () => {
-  console.log("🚀 DOMContentLoaded 発火");
+  console.log("DOMContentLoaded fired");
 
   // ===== 1️⃣ 設定読み込み =====
   const ok = await loadAllReload();
   if (!ok) {
-    if (window.showErrorToast) window.showErrorToast("❌ config.json の読み込みに失敗しました");
+    if (window.showErrorToast) window.showErrorToast("error: config.json not loaded");
     return;
   }
 
@@ -52,13 +52,13 @@ window.addEventListener("DOMContentLoaded", async () => {
       e.stopPropagation();
       e.preventDefault();
       const isOpen = settingsEl.classList.toggle("open");
-      console.log(isOpen ? "📂 サイドバーを開いた" : "📁 サイドバーを閉じた");
+      console.log(isOpen ? "sidebar opened" : "sidebar closed");
     }, true); // captureフェーズで処理
     
     // サイドバーの固定状態変更イベントをリスニング
     window.addEventListener("sidebar-pin-changed", (e) => {
       isSidebarPinned = e.detail?.pinned || false;
-      console.log(isSidebarPinned ? "📌 サイドバー固定状態: ON" : "📍 サイドバー固定状態: OFF");
+      console.log(isSidebarPinned ? "sidebar pinned" : "sidebar unpinned");
     });
     
     // 外側クリックでサイドバーを閉じる処理（固定時は無効化）
@@ -78,11 +78,11 @@ window.addEventListener("DOMContentLoaded", async () => {
         !isWebviewClick
       ) {
         settingsEl.classList.remove("open");
-        console.log("📁 サイドバーを閉じました（外側クリック）");
+        console.log("sidebar closed (outer click)");
       }
     });
     
-    console.log("✅ サイドバーの開閉機能を設定しました");
+    console.log("sidebar open/close function set");
   }
   
   // initTabs は React側の useTabs() フックに移行済み（Tabsコンポーネント内で自動実行）
@@ -96,11 +96,11 @@ window.addEventListener("DOMContentLoaded", async () => {
   // ===== 5️⃣ 設定エディター初期化 =====
   // 少し遅延させて確実に初期化
   setTimeout(async () => {
-    console.log("🔄 設定エディターを初期化中...");
+    console.log("settings editor initializing...");
     
     // 設定が正しく読み込まれているか確認
-    console.log("🔍 [MAIN] IniState確認:", window.IniState);
-    console.log("🔍 [MAIN] AppState確認:", window.AppState);
+    console.log("IniState checked:", window.IniState);
+    console.log("AppState checked:", window.AppState);
     // customButtonsはcustomButtons.jsonに統一されたため、IniStateからの参照は削除
     
     // settingsEditorはReactコンポーネント（SettingsModal）に統合されました
@@ -122,11 +122,11 @@ window.addEventListener("DOMContentLoaded", async () => {
         const reloadOk = await loadAllReload();
         if (reloadOk) {
           updateButtonVisibility(); // ボタン表示を更新
-          console.log("✅ 設定ファイルインポート後の再読み込み完了");
+          console.log("config file imported and reloaded");
         }
       }
     } catch (err) {
-      console.error("❌ 設定ファイルインポート後の再読み込みエラー:", err);
+      console.error("error: config file import and reload failed:", err);
     }
   });
 
@@ -137,10 +137,10 @@ window.addEventListener("DOMContentLoaded", async () => {
       if (reloadOk) {
         updateButtonVisibility(); // ボタン表示を更新
         // カスタムボタンも再読み込み（React側のCustomButtonsPanelが自動的に更新される）
-        console.log("✅ ini.jsonの手動読み込み完了");
+        console.log("ini.json manually loaded");
       }
     } catch (err) {
-      console.error("❌ ini.jsonの手動読み込みエラー:", err);
+      console.error("error: ini.json manually load failed:", err);
     }
   });
 
@@ -160,7 +160,7 @@ window.addEventListener("DOMContentLoaded", async () => {
     }
   });
 
-  console.log("🎉 初期化完了:", window.AppState);
+  console.log("initialization complete:", window.AppState);
 
   // 🔄 アップデートUI機能を初期化
   // updateUI は React側の useUpdateUI() フックに移行済み（自動初期化）
@@ -168,12 +168,12 @@ window.addEventListener("DOMContentLoaded", async () => {
   // React側のuseUpdateUIフックからaddUpdateButtons()を呼び出す
   const isDebugMode = window.electronAPI.isDebugMode();
   if (isDebugMode) {
-    console.log("🔧 デバッグモード: 追加UIボタンはReact側で管理されます");
+    console.log("debug mode: additional UI buttons are managed by React side");
   }
 
   // ===== 9️⃣ カスタムボタンマネージャー初期化 =====
   // カスタムボタンマネージャーはReact側のCustomButtonsPanelコンポーネントで自動初期化される
-  console.log("🔧 カスタムボタンマネージャーはReact側で初期化されます");
+  console.log("custom button manager is initialized by React side");
 
   // ===== 🔟 ボタン表示制御マネージャー初期化 =====
   // buttonVisibilityManager は削除されました（機能が空のため）
@@ -329,7 +329,7 @@ window.addEventListener("DOMContentLoaded", async () => {
 
     // ===== 🧩 SQLite GetChildrenByStaffAndDay テスト呼び出し =====
     try {
-      console.log("🧩 SQLiteデータ取得テスト開始...");
+      console.log("test started...");
   
       // 例: staffId=73, 曜日="土"（ini.jsonにある値に合わせてOK）
       const response = await window.electronAPI.invoke("GetChildrenByStaffAndDay", {
@@ -339,18 +339,12 @@ window.addEventListener("DOMContentLoaded", async () => {
       });
   
       if (response?.success) {
-        console.log(`✅ 取得成功 (${response.week_children.length} 件)`);
-        console.table(response.week_children.map(c => ({
-          id: c.children_id,
-          name: c.children_name,
-          type: c.children_type_name,
-          pc: c.pc_name
-        })));
+        console.log(`get success (${response.week_children.length} items)`);
       } else {
-        console.error("❌ 取得失敗:", response?.error || "不明なエラー");
+        console.error("error: get failed:", response?.error || "unknown error");
       }
     } catch (err) {
-      console.error("❌ IPC呼び出しエラー:", err);
+      console.error("error: IPC call failed:", err);
     }
    // ===== 🧩 SQLite GetChildrenByStaffAndDay テスト呼び出し =====
 

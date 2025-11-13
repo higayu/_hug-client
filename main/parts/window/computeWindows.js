@@ -16,10 +16,6 @@ function open_addition_compare_btn(ipcMain, facility_id, date_str) {
     const received_facility_id = args?.facility_id || facility_id;
     const received_date_str = args?.date_str || date_str;
 
-    
-    
-    console.log("🔍 [MAIN] 受信した引数:", { received_facility_id, received_date_str });
-
     try {
       openDoubleWebviewWithTabs(
         `https://www.hug-ayumu.link/hug/wm/attendance.php?mode=detail&f_id=${received_facility_id}&date=${received_date_str}`,
@@ -36,13 +32,11 @@ function open_addition_compare_btn(ipcMain, facility_id, date_str) {
   // デバッグ用：IPCイベントの監視
   const originalOn = ipcMain.on;
   ipcMain.on = function(channel, listener) {
-    console.log("🔍 [MAIN] IPCハンドラーを登録:", channel);
     return originalOn.call(this, channel, listener);
   };
 }
 
 function openDoubleWebviewWithTabs(url1, url2, label, facilityId, dateStr) {
-  console.log(`🆕 ${label}ウィンドウを開きます (2画面＋タブ)`);
   
   // HTMLテンプレートを読み込み
   const templatePath = path.join(__dirname, "..", "templates", "doubleWebviewTemplate.html");

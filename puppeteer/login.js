@@ -6,7 +6,7 @@ async function loginHug() {
   const password = process.env.HUG_PASSWORD;
 
   if (!username || !password) {
-    throw new Error("HUG_USERNAME or HUG_PASSWORD が .env に設定されていません");
+    throw new Error("HUG_USERNAME or HUG_PASSWORD not set in .env");
   }
 
   const browser = await puppeteer.launch({ headless: false });
@@ -30,7 +30,7 @@ async function loginHug() {
     page.click("input.btn-login"),
   ]);
 
-  console.log("✅ ログイン成功");
+  console.log("login success");
   return page;
 }
 
