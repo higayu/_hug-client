@@ -126,35 +126,53 @@ function handleIniAccess(ipcMain) {
   });
 
   // ini.json の特定設定項目を更新
-  ipcMain.handle("update-ini-setting", async (event, settingPath, value) => {
-    try {
-      const filePath = getIniPath();
+ipcMain.handle("update-ini-setting", async (event, settingPath, value) => {
+  try {
+    const filePath = getIniPath();
 
-      const dir = path.dirname(filePath);
-      if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    const dir = path.dirname(filePath);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 
-      let data = {};
-      if (fs.existsSync(filePath)) {
+    let data = {};
+
+    // JSON 破損対策
+    if (fs.existsSync(filePath)) {
+      try {
         data = JSON.parse(fs.readFileSync(filePath, "utf8"));
+      } catch (e) {
+        console.error("⚠️ ini.json が破損していたため初期化します");
+        data = {};
       }
-
-      // パス（例: "apiSettings.databaseType"）に基づいて値を設定
-      const pathArray = settingPath.split(".");
-      let current = data;
-      for (let i = 0; i < pathArray.length - 1; i++) {
-        if (!current[pathArray[i]]) current[pathArray[i]] = {};
-        current = current[pathArray[i]];
-      }
-      current[pathArray[pathArray.length - 1]] = value;
-
-      fs.writeFileSync(filePath, JSON.stringify(data, null, 2), "utf8");
-      console.log(`✅ 設定更新成功: ${settingPath} = ${JSON.stringify(value)}`);
-      return { success: true, data };
-    } catch (err) {
-      console.error("❌ 設定更新失敗:", err);
-      return { success: false, error: err.message };
     }
-  });
+
+    // 深いパスの作成
+    const keys = settingPath.split(".");
+    let obj = data;
+    for (let i = 0; i < keys.length - 1; i++) {
+      const key = keys[i];
+
+      // オブジェクト以外なら強制的にオブジェクトに変換
+      if (typeof obj[key] !== "object" || obj[key] === null) {
+        obj[key] = {};
+      }
+
+      obj = obj[key];
+    }
+
+    obj[keys[keys.length - 1]] = value;
+
+    // 原子的書き込み
+    fs.writeFileSync(filePath, JSON.stringify(data, null, 2), "utf8");
+
+    console.log(`✅ 設定更新成功: ${settingPath} = ${JSON.stringify(value)}`);
+    return { success: true, data };
+
+  } catch (err) {
+    console.error("❌ 設定更新失敗:", err);
+    return { success: false, error: err.message };
+  }
+});
+
 }
 
 module.exports = { handleIniAccess };
