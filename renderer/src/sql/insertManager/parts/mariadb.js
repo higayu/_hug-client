@@ -83,7 +83,7 @@ export async function handleMariaDBInsert(
   console.log("📡 renderer → main: manager_insert_procedure 呼び出し:", payload);
 
   try {
-    const result = await window.electronAPI.managerInsertProcedure(payload);
+    const result = await window.electronAPI.manager_insert_procedure(payload);
     console.log("✅ MariaDB: manager_insert_procedure 成功:", result);
   } catch (error) {
     console.error("❌ MariaDB: manager_insert_procedure エラー:", error);

@@ -1,9 +1,9 @@
 // main/parts/handlers/mariadb/GetProcedure.js
 const apiClient = require("../../../../src/apiClient");
 
-async function managerInsertProcedure(data) {
+async function manager_insert_procedure(data) {
   try {
-    console.log("📡 [MAIN] managerInsertProcedure 呼び出し:", data);
+    console.log("📡 [MAIN] managerInsertProcedure 呼び出しデータ:", data);
 
     const params = [
       { name: "p_child_id", value: data.child_id },
@@ -18,16 +18,26 @@ async function managerInsertProcedure(data) {
       { name: "p_exists_manager", value: data.exists_manager },
     ];
 
-    const result = await apiClient.callProcedure("manager_insert_procedure", params);
+    console.log("📤 [MAIN] API 送信パラメータ:", params);
+
+    const result = await apiClient.callProcedure("insert_manager_p", params);
 
     console.log("✅ [MAIN] manager_insert_procedure 成功:", result);
     return result;
+
   } catch (error) {
-    console.error("❌ [MAIN] manager_insert_procedure エラー:", error);
+    console.error("❌ [MAIN] manager_insert_procedure API エラー:", {
+      message: error.message,
+      code: error.code,
+      responseData: error.response?.data,
+      responseStatus: error.response?.status,
+      stack: error.stack,
+    });
     throw error;
   }
 }
 
+
 module.exports = {
-  managerInsertProcedure,
+  manager_insert_procedure,
 };

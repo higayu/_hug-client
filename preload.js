@@ -63,12 +63,12 @@ contextBridge.exposeInMainWorld("electronAPI", {
   // ✅ MariaDB 一括登録（児童＋施設＋スタッフ）
   manager_insert_procedure: async (data) => {
     try {
-      console.log("📤 [PRELOAD] managerInsertProcedure 呼び出し:", data);
-      const result = await ipcRenderer.invoke("managerInsertProcedure", data);
-      console.log("✅ [PRELOAD] managerInsertProcedure 結果:", result);
+      console.log("📤 [PRELOAD] manager_insert_procedure 呼び出し:", data);
+      const result = await ipcRenderer.invoke("manager_insert_procedure", data);
+      console.log("✅ [PRELOAD] manager_insert_procedure 結果:", result);
       return result;
     } catch (err) {
-      console.error("❌ [PRELOAD] managerInsertProcedure 失敗:", err);
+      console.error("❌ [PRELOAD] manager_insert_procedure 失敗:", err);
       throw err;
     }
   },
