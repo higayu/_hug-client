@@ -2,38 +2,43 @@
 import { useSelector } from "react-redux";
 import { useEffect, useState } from "react";
 import { managers_v } from "@/sql/useManager/getManager/managers_v.js";
-import DeleteModal from "./Modals/DeleteModal.jsx";
 import EditModal from "./Modals/EditModal.jsx";
-import { useAppState } from '@/contexts/AppStateContext.jsx'
+import DeleteModal from "./Modals/DeleteModal.jsx";
+import { useAppState } from "@/contexts/AppStateContext.jsx";
+
+const MODAL_COMPONENTS = {
+  edit: EditModal,
+  delete: DeleteModal,
+};
 
 export default function ManagerEditTable() {
   const database = useSelector((state) => state.database);
   const [managers, setManagers] = useState([]);
-  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [editModalOpen, setEditModalOpen] = useState(false);
+
+  const [modal, setModal] = useState({
+    open: false,
+    mode: "edit", // "edit" | "delete"
+  });
+
   const [selectedManager, setSelectedManager] = useState(null);
   const { STAFF_ID } = useAppState();
 
-  console.log(STAFF_ID);
-
   const handleDelete = (manager) => {
     setSelectedManager(manager);
-    setDeleteModalOpen(true);
+    setModal({ open: true, mode: "delete" });
   };
 
   const handleEdit = (manager) => {
     setSelectedManager(manager);
-    setEditModalOpen(true);
+    setModal({ open: true, mode: "edit" });
   };
 
-  const handleConfirmDelete = () => {
-    console.log("削除モーダルを閉じます");
-    setDeleteModalOpen(false);
+  const handleConfirm = () => {
+    setModal((prev) => ({ ...prev, open: false }));
   };
 
-  const handleConfirmEdit = () => {
-    console.log("編集モーダルを閉じます");
-    setEditModalOpen(false);
+  const handleClose = () => {
+    setModal((prev) => ({ ...prev, open: false }));
   };
 
   useEffect(() => {
@@ -44,7 +49,6 @@ export default function ManagerEditTable() {
     load();
   }, [database]);
 
-  // --- 曜日パース関数（Managers.jsx と同じ） ---
   const parseDays = (dayStr) => {
     if (!dayStr) return [];
 
@@ -66,7 +70,6 @@ export default function ManagerEditTable() {
     }
   };
 
-  // --- 曜日チップの色（Managers.jsx と同じ） ---
   const dayColor = {
     月: "bg-red-100 text-red-700 border-red-300",
     火: "bg-orange-100 text-orange-700 border-orange-300",
@@ -77,6 +80,9 @@ export default function ManagerEditTable() {
     日: "bg-pink-100 text-pink-700 border-pink-300",
   };
 
+  // ← 動的モーダル
+  const DynamicModal = MODAL_COMPONENTS[modal.mode];
+
   return (
     <div className="p-2 bg-white shadow rounded-xl">
       <h4 className="text-lg font-bold mb-2">児童担当編集</h4>
@@ -85,30 +91,31 @@ export default function ManagerEditTable() {
         <table className="w-full border-collapse">
           <thead>
             <tr>
-              <th className="text-xs">削除ボタン</th>
+              <th className="text-xs">削除</th>
               <th className="border px-4 py-2 text-xs">子どもID</th>
               <th className="border px-4 py-2 text-xs">子ども名</th>
               <th className="border px-4 py-2 text-xs">スタッフ名</th>
               <th className="border px-4 py-2 text-xs">曜日</th>
-              <th className="text-xs">編集ボタン</th>
+              <th className="text-xs">編集</th>
             </tr>
           </thead>
+
           <tbody>
             {managers.map((m, index) => (
               <tr key={index}>
                 <td className="border px-4 py-2">
-                  <button 
-                  className="bg-red-500 text-xs text-white p-2 rounded-md"
-                  onClick={() => handleDelete(m)}
+                  <button
+                    className="bg-red-500 text-xs text-white p-2 rounded-md"
+                    onClick={() => handleDelete(m)}
                   >
-                      削除
+                    削除
                   </button>
                 </td>
+
                 <td className="border px-4 py-2 text-xs">{m.children_id}</td>
                 <td className="border px-4 py-2 text-xs">{m.children_name}</td>
                 <td className="border px-4 py-2 text-xs">{m.staff_name}</td>
 
-                {/* --- 曜日チップ表示部分 --- */}
                 <td className="border px-4 py-2">
                   <div className="flex flex-wrap gap-1">
                     {parseDays(m.day_of_week).map((day, i) => (
@@ -124,11 +131,13 @@ export default function ManagerEditTable() {
                     ))}
                   </div>
                 </td>
+
                 <td className="border px-4 py-2">
-                  <button className="bg-blue-500 text-xs text-white p-2 rounded-md"
-                  onClick={() => handleEdit(m)}
+                  <button
+                    className="bg-blue-500 text-xs text-white p-2 rounded-md"
+                    onClick={() => handleEdit(m)}
                   >
-                      編集
+                    編集
                   </button>
                 </td>
               </tr>
@@ -136,6 +145,17 @@ export default function ManagerEditTable() {
           </tbody>
         </table>
       </div>
+
+      {/* --- 動的モーダル --- */}
+      {modal.open && DynamicModal && (
+<DynamicModal
+  open={modal.open}
+  manager={selectedManager}
+  onClose={handleClose}
+  onConfirm={handleConfirm}
+/>
+
+      )}
     </div>
   );
 }
