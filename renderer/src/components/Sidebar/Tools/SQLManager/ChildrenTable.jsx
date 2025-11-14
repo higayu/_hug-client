@@ -1,142 +1,99 @@
-// renderer/src/components/Sidebar/Tools/SQLManager/ChildrenTable.jsx
 import React, { useEffect, useState } from "react";
-import { useChildrenList } from "@/hooks/useChildrenList";
+import { useSelector } from "react-redux";
 import { useToast } from "@/contexts/ToastContext.jsx";
 
 export default function ChildrenTable() {
-  const { childrenData, loadChildren } = useChildrenList();
-  const { showInfoToast } = useToast(); // ✅ ← コンポーネント内に移動！
+  const database = useSelector((state) => state.database); // 全テーブル
+  const { showInfoToast } = useToast();
 
+  const [selectedTable, setSelectedTable] = useState("children"); // ⭐ 初期選択
   const [editingId, setEditingId] = useState(null);
   const [editedData, setEditedData] = useState({});
 
-  useEffect(() => {
-    loadChildren();
-  }, []);
+  const tableData = database[selectedTable] || []; // ⭐ 選んだテーブルの中身
 
-  const handleEdit = (child) => {
-    setEditingId(child.children_id);
-    setEditedData({ ...child });
-  };
+  // 例：カラムごとの文字制限（なければデフォルト10）
+// ⭐ テーブルごと ＋ カラムごとに制限
+const columnLimit = {
+  children: {
+    children_name: 20,
+    children_type_name: 15,
+    notes: 10,
+  },
+  staffs: {
+    staff_name: 25,
+    memo: 40,
+  },
+  pronunciation: {
+    word: 15,
+    reading: 20,
+  },
+};
 
-  const handleChange = (e) => {
-    setEditedData({
-      ...editedData,
-      [e.target.name]: e.target.value,
-    });
-  };
+// デフォルト制限
+const defaultLimit = 30;
 
-  const handleSave = async () => {
-    try {
-      await window.electronAPI.children_update(editedData.children_id, editedData);
-      setEditingId(null);
-      await loadChildren();
-      showInfoToast(`✅ ${editedData.children_name} を保存しました`);
-    } catch (err) {
-      console.error("❌ 保存エラー:", err);
-      showInfoToast("❌ 保存に失敗しました");
-    }
-  };
-
-  const handleCancel = () => {
-    setEditingId(null);
-    setEditedData({});
-    showInfoToast("キャンセルしました");
-  };
 
   return (
     <div className="p-4 bg-white shadow rounded-xl">
-      <h2 className="text-xl font-bold mb-4">👧 子どもデータ管理</h2>
+      <div className="mb-2">テーブル名</div>
 
-      {childrenData.length === 0 ? (
+      {/* 🔽 テーブル名セレクト */}
+      <select
+        className="border px-2 py-1 w-full mb-4"
+        value={selectedTable}
+        onChange={(e) => setSelectedTable(e.target.value)}
+      >
+        {Object.keys(database).map((tableName) => (
+          <option key={tableName} value={tableName}>
+            {tableName}
+          </option>
+        ))}
+      </select>
+
+      {/* 🔽 表示するテーブル名 */}
+      <h2 className="text-lg font-bold mb-2">
+        {selectedTable} のデータ一覧
+      </h2>
+
+      {/* データが存在しないとき */}
+      {(!Array.isArray(tableData) || tableData.length === 0) ? (
         <p className="text-gray-500">データがありません。</p>
       ) : (
         <table className="w-full border-collapse text-sm">
           <thead className="bg-gray-100">
             <tr>
-              <th className="border p-2">ID</th>
-              <th className="border p-2">名前</th>
-              <th className="border p-2">種類</th>
-              <th className="border p-2">メモ</th>
-              <th className="border p-2 w-32">操作</th>
+              {/* ⭐ 動的にカラムヘッダを生成 */}
+              {Object.keys(tableData[0]).map((key) => (
+                <th key={key} className="border p-2 capitalize">{key}</th>
+              ))}
             </tr>
           </thead>
           <tbody>
-            {childrenData.map((child) => (
-              <tr key={child.children_id}>
-                <td className="border p-2">{child.children_id}</td>
+            {tableData.map((row, index) => (
+              <tr key={index}>
+                {Object.keys(row).map((key) => {
+                  const value = row[key] ?? "";
+                  const text = String(value);
 
-                {/* 名前 */}
-                <td className="border p-2">
-                  {editingId === child.children_id ? (
-                    <input
-                      name="children_name"
-                      value={editedData.children_name || ""}
-                      onChange={handleChange}
-                      className="border px-2 py-1 w-full"
-                    />
-                  ) : (
-                    child.children_name
-                  )}
-                </td>
+                  // ⭐ 選択中テーブルにカラム制限があれば適用
+                  const limit =
+                    columnLimit[selectedTable]?.[key] || defaultLimit;
 
-                {/* 種類 */}
-                <td className="border p-2">
-                  {editingId === child.children_id ? (
-                    <input
-                      name="children_type_name"
-                      value={editedData.children_type_name || ""}
-                      onChange={handleChange}
-                      className="border px-2 py-1 w-full"
-                    />
-                  ) : (
-                    child.children_type_name
-                  )}
-                </td>
+                  const displayText =
+                    text.length > limit ? text.substring(0, limit) + "…" : text;
 
-                {/* メモ */}
-                <td className="border p-2">
-                  {editingId === child.children_id ? (
-                    <input
-                      name="notes"
-                      value={editedData.notes || ""}
-                      onChange={handleChange}
-                      className="border px-2 py-1 w-full"
-                    />
-                  ) : (
-                    child.notes
-                  )}
-                </td>
-
-                {/* 操作ボタン */}
-                <td className="border p-2 text-center">
-                  {editingId === child.children_id ? (
-                    <>
-                      <button
-                        className="px-3 py-1 bg-green-500 text-white rounded mr-2 hover:bg-green-600"
-                        onClick={handleSave}
-                      >
-                        保存
-                      </button>
-                      <button
-                        className="px-3 py-1 bg-gray-400 text-white rounded hover:bg-gray-500"
-                        onClick={handleCancel}
-                      >
-                        キャンセル
-                      </button>
-                    </>
-                  ) : (
-                    <button
-                      className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
-                      onClick={() => handleEdit(child)}
-                    >
-                      編集
-                    </button>
-                  )}
-                </td>
+                  return (
+                    <td key={key} className="border p-2">
+                      {displayText}
+                    </td>
+                  );
+                })}
               </tr>
             ))}
           </tbody>
+
+
         </table>
       )}
     </div>
