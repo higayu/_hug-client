@@ -1,9 +1,9 @@
 // renderer/src/components/Sidebar/TabsContainer.jsx
 import { useState } from 'react'
-import ToolContent from './Tools/SelectChildren/ToolContent.jsx'
-import SQLManager from './Tools/SQLManager/index.jsx'
-import ChildrenTable from './Tools/AddManageChildren/index.jsx'
-import ManagerEditTable from './Tools/ManagerEdit/ManagerEditTable.jsx'
+import ToolContent from '../Tools/SelectChildren/ToolContent.jsx'
+import SQLManager from '../Tools/SQLManager/index.jsx'
+import ChildrenTable from '../Tools/AddManageChildren/index.jsx'
+import ManagerEditTable from '../Tools/ManagerEdit/ManagerEditTable.jsx'
 
 function TabsContainer() {
   // デフォルトでツールタブを開く

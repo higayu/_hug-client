@@ -5,7 +5,6 @@ import {
   selectAttendanceLoading,
   selectAttendanceError,
 } from "@/store/slices/attendanceSlice.js";
-import TableDataGetButon from "./TableDataGetButon.jsx";
 import ChildrenTableList from "./ChildrenTableList.jsx"; // ← 新しく追加
 
 function ChildrenTable() {
@@ -24,8 +23,6 @@ function ChildrenTable() {
       <p className="text-sm text-gray-600 mb-3">
         子どもデータの一覧・編集を管理します。
       </p>
-
-      <TableDataGetButon />
 
       {/* ✅ 新しいテーブルコンポーネントを呼び出す */}
       <ChildrenTableList childrenList={childrenList} />

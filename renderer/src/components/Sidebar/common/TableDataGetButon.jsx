@@ -72,13 +72,12 @@ export default function TableDataGetButton() {
   }, [appState, activateTab, closeTab, dispatch, updateAppState]);
 
   return (
-    <div className="flex flex-col items-center justify-center w-full p-2">
+    <div className="items-center justify-center">
       <button
         onClick={handleOpenAttendance}
-        className="w-full flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white rounded-xl shadow-md py-2"
+        className="items-center justify-center p-3 gap-2 bg-green-600 hover:bg-green-700 text-white rounded-xl shadow-md"
       >
         <FaTable size={18} />
-        <span>勤怠データ取得</span>
       </button>
     </div>
   );

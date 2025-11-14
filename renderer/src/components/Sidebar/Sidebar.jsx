@@ -4,9 +4,8 @@ import { useAppState } from '../../contexts/AppStateContext.jsx'
 import { getWeekdayFromDate, getDateString } from '../../utils/dateUtils.js'
 import { useToast } from '../../contexts/ToastContext.jsx'
 import { ELEMENT_IDS } from '../../utils/constants.js'
-import TabsContainer from './TabsContainer.jsx'  // ← これを追加
-//import { handleFetchAttendanceForChild } from "../../hooks/useToDayWorkList.js"
-import { updateAppState } from "../../store/slices/appStateSlice.js"
+import TabsContainer from './common/TabsContainer.jsx'  // ← これを追加
+import TableDataGetButton from './common/TableDataGetButon.jsx'
 
 function Sidebar() {
   const { showInfoToast } = useToast()
@@ -148,7 +147,7 @@ function Sidebar() {
             {isPinned ? '📌' : '📍'}
           </span>
         </button>
-
+        <TableDataGetButton />
       </div>
 
       {/* スクロール可能なコンテンツ部分 - 横並びレイアウト */}
