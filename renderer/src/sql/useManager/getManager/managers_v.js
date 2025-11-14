@@ -1,5 +1,5 @@
 // renderer/src/sql/useManager/getManager/managers_v.js
-export async function managers_v({ tables }) {
+export async function managers_v({ tables, staffId = null }) {
   if (!tables) return [];
 
   const {
@@ -29,6 +29,13 @@ export async function managers_v({ tables }) {
       return a.staff_id - b.staff_id;
     });
 
+  // --- ✅ 追加：ログインスタッフで抽出 ---
+  if (staffId !== null && staffId !== "" && !isNaN(staffId)) {
+    const idNum = Number(staffId);
+    return joined.filter((r) => Number(r.staff_id) === idNum);
+  }
+
+  // staffId が未指定なら全件返す
   return joined;
 }
 
