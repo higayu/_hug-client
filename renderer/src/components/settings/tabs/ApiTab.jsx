@@ -1,15 +1,29 @@
+import { useState } from 'react'
+
 function ApiTab({ onSaveApiSettings, onReloadApiSettings, onInitializeSelectBoxes }) {
+  const [isSaving, setIsSaving] = useState(false)
+
   // 再読み込みボタンのハンドラー
   const handleReload = async () => {
     if (onReloadApiSettings) {
-      await onReloadApiSettings()
+      setIsSaving(true)
+      try {
+        await onReloadApiSettings()
+      } finally {
+        setIsSaving(false)
+      }
     }
   }
 
   // 保存ボタンのハンドラー
   const handleSave = async () => {
     if (onSaveApiSettings) {
-      await onSaveApiSettings()
+      setIsSaving(true)
+      try {
+        await onSaveApiSettings()
+      } finally {
+        setIsSaving(false)
+      }
     }
   }
 
@@ -42,8 +56,20 @@ function ApiTab({ onSaveApiSettings, onReloadApiSettings, onInitializeSelectBoxe
         </div>
       </div>
       <div className="mb-6 flex gap-2.5">
-        <button id="reload-api-settings" onClick={handleReload} className="bg-gray-600 text-white border-none px-5 py-2.5 rounded-md cursor-pointer font-medium transition-all duration-200 hover:bg-gray-700 hover:-translate-y-0.5">API設定を再読み込み</button>
-        <button id="save-api-settings" onClick={handleSave} className="bg-gradient-to-r from-blue-600 to-blue-700 text-white border-none px-5 py-2.5 rounded-md cursor-pointer font-medium transition-all duration-200 hover:from-blue-700 hover:to-blue-800 hover:-translate-y-0.5 hover:shadow-lg">API設定を保存</button>
+        <button id="reload-api-settings"
+         onClick={handleReload}
+         disabled={isSaving}
+         className="bg-gray-600 text-white border-none px-5 py-2.5 rounded-md cursor-pointer font-medium transition-all duration-200 hover:bg-gray-700 hover:-translate-y-0.5"
+         >
+          {isSaving ? '再読み込み中...' : 'API設定を再読み込み'}
+        </button>
+        <button id="save-api-settings"
+         onClick={handleSave}
+         disabled={isSaving}
+         className="bg-gradient-to-r from-blue-600 to-blue-700 text-white border-none px-5 py-2.5 rounded-md cursor-pointer font-medium transition-all duration-200 hover:from-blue-700 hover:to-blue-800 hover:-translate-y-0.5 hover:shadow-lg"
+         >
+          {isSaving ? '保存中...' : 'API設定を保存'}
+        </button>
       </div>
     </div>
   )

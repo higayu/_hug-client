@@ -1,7 +1,7 @@
 // renderer/src/components/Sidebar/TabsContainer.jsx
 import { useState } from 'react'
 import ToolContent from './Tools/SelectChildren/ToolContent.jsx'
-import SQLiteManager from './Tools/SqliteManager/index.jsx' // ← SQLite Manager を追加
+import SQLManager from './Tools/SQLManager/index.jsx'
 import ChildrenTable from './Tools/AddManageChildren/index.jsx'
 
 function TabsContainer() {
@@ -11,7 +11,7 @@ function TabsContainer() {
   const tabs = [
     { id: 'tools', label: '🧰 ツール' },
     { id: 'addManageChildren', label: '👶 子ども管理' },
-    { id: 'sqlite', label: '🗄️ SQLite管理' },
+    { id: 'sqlManager', label: '🗄️ SQL管理' },
   ]
 
   return (
@@ -41,9 +41,9 @@ function TabsContainer() {
           </div>
         )}
 
-        {activeTab === 'sqlite' && (
+        {activeTab === 'sqlManager' && (
           <div className="h-full flex flex-col">
-            <SQLiteManager />
+            <SQLManager />
           </div>
         )}
 

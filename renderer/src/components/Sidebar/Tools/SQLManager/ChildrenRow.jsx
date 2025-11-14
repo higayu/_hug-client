@@ -1,4 +1,4 @@
-// renderer/src/components/Sidebar/sqlitemanager/ChildrenRow.jsx
+// renderer/src/components/Sidebar/Tools/SQLManager/ChildrenRow.jsx
 import { useState } from 'react'
 
 function ChildrenRow({ child }) {

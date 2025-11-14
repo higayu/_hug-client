@@ -1,3 +1,4 @@
+// renderer/src/components/Sidebar/Tools/SQLManager/ChildrenTable.jsx
 import React, { useEffect, useState } from "react";
 import { useChildrenList } from "@/hooks/useChildrenList";
 import { useToast } from "@/contexts/ToastContext.jsx";

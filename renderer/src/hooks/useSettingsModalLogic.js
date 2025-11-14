@@ -426,6 +426,9 @@ export function useSettingsModalLogic(isOpen) {
       // ini.jsonに保存
       const success = await saveIni(newIniState)
       if (success) {
+        // Reactの状態も更新（これが重要！）
+        setIniState(newIniState)
+        
         // databaseTypeに基づいてactiveApiを更新
         const databaseType = newIniState.apiSettings.databaseType || 'sqlite'
         const newActiveApi = databaseType === 'mariadb' ? mariadbApi : sqliteApi
@@ -445,7 +448,7 @@ export function useSettingsModalLogic(isOpen) {
       showErrorToast('❌ エラーが発生しました: ' + error.message)
       return false
     }
-  }, [iniState, saveIni, showSuccessToast, showErrorToast])
+  }, [iniState, saveIni, setIniState, showSuccessToast, showErrorToast])
 
   return {
     populateForm,

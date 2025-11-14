@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import './SettingsModal.css'
 import { useSettingsModal } from '../../hooks/useSettingsModal.js'
 import { useSettingsModalLogic } from '../../hooks/useSettingsModalLogic.js'
+import { useIniState } from '../../contexts/IniStateContext.jsx'
 import FeaturesTab from './tabs/FeaturesTab'
 import ConfigTab from './tabs/ConfigTab'
 import UITab from './tabs/UITab'
@@ -23,6 +24,7 @@ const TABS = [
 function SettingsModal({ isOpen, onClose }) {
   const [activeTab, setActiveTab] = useState('features')
   const { isLoading } = useSettingsModal(isOpen)
+  const { loadIni } = useIniState()
   const {
     populateForm,
     saveSettings,
@@ -133,7 +135,11 @@ function SettingsModal({ isOpen, onClose }) {
             <ApiTab 
               onSaveApiSettings={saveApiSettingsFromForm}
               onReloadApiSettings={async () => {
+                // ファイルから最新の設定を読み込む
+                await loadIni()
+                // セレクトボックスを初期化
                 await initializeApiSelectBoxes()
+                // フォームに値を設定
                 populateForm()
               }}
               onInitializeSelectBoxes={initializeApiSelectBoxes}
