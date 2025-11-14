@@ -3,6 +3,7 @@ import { useState } from 'react'
 import ToolContent from './Tools/SelectChildren/ToolContent.jsx'
 import SQLManager from './Tools/SQLManager/index.jsx'
 import ChildrenTable from './Tools/AddManageChildren/index.jsx'
+import ManagerEditTable from './Tools/ManagerEdit/ManagerEditTable.jsx'
 
 function TabsContainer() {
   // デフォルトでツールタブを開く
@@ -11,6 +12,7 @@ function TabsContainer() {
   const tabs = [
     { id: 'tools', label: '🧰 ツール' },
     { id: 'addManageChildren', label: '👶 子ども管理' },
+    { id: 'managerEdit', label: '👨‍👧‍👦 児童担当編集' },
     { id: 'sqlManager', label: '🗄️ SQL管理' },
   ]
 
@@ -50,6 +52,12 @@ function TabsContainer() {
         {activeTab === 'addManageChildren' && (
           <div className="h-full flex flex-col">
             <ChildrenTable />
+          </div>
+        )}
+
+        {activeTab === 'managerEdit' && (
+          <div className="h-full flex flex-col">
+            <ManagerEditTable />
           </div>
         )}
 
