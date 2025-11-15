@@ -98,14 +98,17 @@ CREATE TABLE IF NOT EXISTS staffs (
 CREATE TABLE IF NOT EXISTS temp_notes (
   children_id TEXT NOT NULL,
   staff_id TEXT NOT NULL,
-  date_str TEXT NOT NULL,
   week_day TEXT NOT NULL,
-  enter_time TEXT,
-  exit_time TEXT,
   memo TEXT,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (children_id, week_day)
+);
+CREATE TABLE IF NOT EXISTS ai_temp_notes (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  children_id TEXT UNIQUE,
+  memo TEXT,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 COMMIT;
 `;

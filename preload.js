@@ -101,9 +101,15 @@ contextBridge.exposeInMainWorld("electronAPI", {
     ipcRenderer.send(eventName, args);
   },
 
-  // ---- 一時メモ ----
+
+  // ---- ユーザー一時メモ ----
   saveTempNote: (data) => ipcRenderer.invoke("saveTempNote", data),
   getTempNote: (data) => ipcRenderer.invoke("getTempNote", data),
+
+  // ---- AI一時メモ ----
+  saveAiTempNote: (childId, note) => ipcRenderer.invoke("saveAiTempNote", { childId, note }),
+  getAiTempNote: (childId) => ipcRenderer.invoke("getAiTempNote", { childId }),
+
 
   // ---- アップデート関連 ----
   getUpdateDebugInfo: () => ipcRenderer.invoke("get-update-debug-info"),

@@ -78,3 +78,22 @@ body {
 .toggle-switch input:checked + .slider::before {
   transform: translateX(18px);
 }
+
+/* === 共通ボタンスタイル === */
+@layer components {
+  .btn-blue {
+    @apply bg-blue-500 hover:bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded shadow-sm inline-block;
+  }
+
+  .btn-green {
+    @apply bg-green-500 hover:bg-green-600 text-white text-xs font-bold px-3 py-1 rounded shadow-sm inline-block;
+  }
+
+  .btn-red {
+    @apply bg-red-500 hover:bg-red-600 text-white text-xs font-bold px-3 py-1 rounded shadow-sm inline-block;
+  }
+
+  .btn-purple {
+    @apply bg-purple-500 hover:bg-purple-600 text-white text-xs font-bold px-3 py-1 rounded shadow-sm inline-block;
+  }
+}

@@ -4,10 +4,13 @@ import { FaRobot } from "react-icons/fa"
 import { useTabs } from "@/hooks/useTabs";
 import { useAppState } from "@/contexts/AppStateContext.jsx"
 import { createWebview, createTabButton } from "@/hooks/useTabs/common/index.js"
+import { useState } from "react"
+import AiInputBox from '../common/AiInputBox.jsx'
 
-export default function OpenAiButton() {
+export default function OpenAiContent() {
   const { appState } = useAppState()
   const { activateTab, closeTab } = useTabs()
+  const [prompt, setPrompt] = useState('') // テキストを共有する状態
 
   const handleOpenAI = useCallback(() => {
     const tabsContainer = document.getElementById("tabs")
@@ -64,6 +67,7 @@ export default function OpenAiButton() {
 
   return (
     <div className="flex flex-col items-center justify-center w-full p-2">
+      <AiInputBox />
       <button
         onClick={handleOpenAI}
         className="w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-md px-3 py-2 transition-colors"

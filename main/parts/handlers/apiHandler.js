@@ -54,15 +54,8 @@ async function handleApiCalls(ipcMain) {
   // ============================================================
   // 📗 SQLite/MariaDB CRUD IPC登録
   // ============================================================
-  if (DB_TYPE === "sqlite") {
-    registerSqliteHandlers(ipcMain);
-  } else if (DB_TYPE === "mariadb") {
-    // ⚠️ MariaDBハンドラーを登録
-    registerMariadbHandlers(ipcMain);
-  } else {
-    console.warn(`⚠️ 不明なDBモード: ${DB_TYPE}。デフォルト（SQLite）を使用します。`);
-    registerSqliteHandlers(ipcMain);
-  }
+  registerMariadbHandlers(ipcMain);
+  registerSqliteHandlers(ipcMain);
 
 }
 

@@ -23,39 +23,7 @@ function registerIpcHandlers(mainWindow, tempNoteHandler) {
     handlePromptAccess(ipcMain);
     registerPlanWindows(ipcMain);
     open_addition_compare_btn(ipcMain);
-    // 一時メモのIPCハンドラー
-    ipcMain.handle('saveTempNote', async (event, data) => {
-      if (!tempNoteHandler) {
-        return { success: false, error: "tempNoteHandlerが初期化されていません" };
-      }
-      
-      // データベース接続状態を確認
-      if (!tempNoteHandler.isDatabaseConnected()) {
-        const initResult = await tempNoteHandler.initDatabase();
-        if (!initResult.success) {
-          return { success: false, error: "データベースの再初期化に失敗しました: " + initResult.error };
-        }
-      }
-      
-      return await tempNoteHandler.saveTempNote(data);
-    });
-    
-    ipcMain.handle('getTempNote', async (event, data) => {
-      
-      if (!tempNoteHandler) {
-        return { success: false, error: "tempNoteHandlerが初期化されていません" };
-      }
-      
-      // データベース接続状態を確認
-      if (!tempNoteHandler.isDatabaseConnected()) {
-        const initResult = await tempNoteHandler.initDatabase();
-        if (!initResult.success) {
-          return { success: false, error: "データベースの再初期化に失敗しました: " + initResult.error };
-        }
-      }
-      
-      return await tempNoteHandler.getTempNote(data);
-    });
+
     
     // 🔧 アップデートデバッグ情報取得ハンドラー
     ipcMain.handle('get-update-debug-info', async () => {

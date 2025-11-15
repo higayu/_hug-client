@@ -243,17 +243,118 @@ export function useSettingsModalLogic(isOpen) {
     }
   }, [updateIniStateFromForm, saveIni, saveCustomButtonsContext, iniState, showSuccessToast, showErrorToast])
 
-  // 設定をリセット
-  const resetSettings = useCallback(() => {
-    if (confirm('設定をデフォルトにリセットしますか？')) {
+  // 編集前に戻す（元のリセット機能をリネーム）
+  const resetToOriginal = useCallback(() => {
+    if (confirm('編集前の状態に戻しますか？')) {
       // バックアップから復元
       if (originalSettingsRef.current) {
         setIniState(JSON.parse(JSON.stringify(originalSettingsRef.current)))
         populateForm()
-        console.log('✅ [SettingsModal] 設定をリセットしました')
+        console.log('✅ [SettingsModal] 編集前の状態に戻しました')
       }
     }
   }, [populateForm, setIniState])
+
+  // デフォルト値にリセット
+  const resetToDefault = useCallback(async () => {
+    if (confirm('設定をデフォルト値にリセットしますか？\nこの操作は保存しない限り反映されません。')) {
+      try {
+        // デフォルト設定を構築（iniHandler.jsのdefaultIniと同じ構造）
+        const defaultIniState = {
+          version: "1.0.0",
+          appSettings: {
+            autoLogin: {
+              enabled: true,
+              username: "",
+              password: "",
+            },
+            ui: {
+              theme: "light",
+              language: "ja",
+              showCloseButtons: true,
+              confirmOnClose: true,
+              autoRefresh: {
+                enabled: false,
+                interval: 30000,
+              },
+            },
+            features: {
+              individualSupportPlan: {
+                enabled: true,
+                buttonText: "個別支援計画",
+                buttonColor: "#007bff",
+              },
+              specializedSupportPlan: {
+                enabled: true,
+                buttonText: "専門的支援計画",
+                buttonColor: "#28a745",
+              },
+              additionCompare: {
+                enabled: true,
+                buttonText: "加算比較",
+                buttonColor: "#ffc107",
+              },
+              importSetting: {
+                enabled: false,
+                buttonText: "設定ファイル取得",
+                buttonColor: "#6c757d",
+              },
+              getUrl: {
+                enabled: true,
+                buttonText: "URL取得",
+                buttonColor: "#17a2b8",
+              },
+              loadIni: {
+                enabled: true,
+                buttonText: "設定の再読み込み",
+                buttonColor: "#6f42c1",
+              },
+            },
+            window: {
+              width: 1200,
+              height: 800,
+              minWidth: 800,
+              minHeight: 600,
+              maximized: false,
+              alwaysOnTop: false,
+            },
+            notifications: {
+              enabled: true,
+              sound: true,
+              desktop: true,
+            },
+          },
+          userPreferences: {
+            lastLoginDate: "",
+            rememberWindowState: true,
+            showWelcomeMessage: true,
+          },
+          apiSettings: {
+            baseURL: "http://192.168.1.229:3001/api",
+            staffId: "",
+            facilityId: "",
+            databaseType: "mariadb",
+            useAI: "gemini",
+          },
+        }
+
+        // 状態を更新
+        setIniState(defaultIniState)
+        // フォームに値を設定（少し遅延させてDOMが更新されるのを待つ）
+        setTimeout(() => {
+          populateForm()
+          // セレクトボックスも初期化
+          initializeApiSelectBoxes()
+        }, 100)
+        
+        console.log('✅ [SettingsModal] デフォルト値にリセットしました')
+        showSuccessToast('✅ デフォルト値にリセットしました（保存ボタンを押して確定してください）')
+      } catch (error) {
+        console.error('❌ [SettingsModal] リセットエラー:', error)
+        showErrorToast('❌ リセット中にエラーが発生しました')
+      }
+    }
+  }, [populateForm, setIniState, showSuccessToast, showErrorToast])
 
   // パスワード表示切替え
   const togglePasswordVisibility = useCallback(() => {
@@ -469,7 +570,8 @@ export function useSettingsModalLogic(isOpen) {
   return {
     populateForm,
     saveSettings,
-    resetSettings,
+    resetToOriginal,
+    resetToDefault,
     togglePasswordVisibility,
     saveConfigFromForm,
     initializeSelectBoxes,

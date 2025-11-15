@@ -24,6 +24,7 @@ const {
   temp_notes,
   pronunciation,
   children_type,
+  ai_temp_notes,
 } = {
   children: require("./sqlite/children"),
   staffs: require("./sqlite/staffs"),
@@ -37,6 +38,7 @@ const {
   temp_notes: require("./sqlite/temp_notes"),
   pronunciation: require("./sqlite/pronunciation"),
   children_type: require("./sqlite/children_type"),
+  ai_temp_notes: require("./sqlite/ai_temp_notes"),
 };
 
 // ============================================================
@@ -56,6 +58,7 @@ function registerSqliteHandlers(ipcMain) {
     temp_notes,
     pronunciation,
     children_type,
+    ai_temp_notes,
   };
 
   for (const [table, handler] of Object.entries(tables)) {
@@ -76,6 +79,52 @@ function registerSqliteHandlers(ipcMain) {
     if (handler.delete)
       ipcMain.handle(`${table}:delete`, async (_, ...args) => await handler.delete(...args));
   }
+
+  // ============================================================
+  // 🟢 ai_temp_notes 専用 IPC ハンドラー
+  // ============================================================
+
+  ipcMain.handle("saveAiTempNote", async (_, { childId, note }) => {
+    try {
+      return await ai_temp_notes.saveAiTempNote(childId, note);
+    } catch (err) {
+      console.error("❌ SQLite saveAiTempNote エラー:", err);
+      throw err;
+    }
+  });
+
+  ipcMain.handle("getAiTempNote", async (_, { childId }) => {
+    try {
+      return await ai_temp_notes.getAiTempNote(childId);
+    } catch (err) {
+      console.error("❌ SQLite getAiTempNote エラー:", err);
+      throw err;
+    }
+  });
+
+    // ============================================================
+  // 🟢 temp_notes 専用 IPC ハンドラー
+  // ============================================================
+  ipcMain.handle("saveTempNote", async (_, data) => {
+    try {
+      return await temp_notes.upsert(data);
+    } catch (err) {
+      console.error("❌ SQLite saveTempNote エラー:", err);
+      throw err;
+    }
+  });
+
+  ipcMain.handle("getTempNote", async (_, data) => {
+    try {
+      const { children_id, staff_id, week_day } = data;
+      const result = await temp_notes.getTempNote(children_id, staff_id, week_day);
+      return { success: true, data: result };
+    } catch (err) {
+      console.error("❌ SQLite getTempNote エラー:", err);
+      throw err;
+    }
+  });
+
 
 }
 

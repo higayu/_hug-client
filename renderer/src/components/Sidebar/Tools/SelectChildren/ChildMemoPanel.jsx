@@ -1,13 +1,10 @@
 // src/components/Sidebar/ChildMemoPanel.jsx
-// 選択された要素のメモを表示するパネルコンポーネント
-
-import { useEffect, useRef, useState } from 'react'
-import { useAppState } from '../../../../contexts/AppStateContext.jsx'
-import { useChildrenList } from '../../../../hooks/useChildrenList.js'
-import { useTabs } from '../../../../hooks/useTabs/index.js'
-import { MESSAGES } from '../../../../utils/constants.js'
-import { clickEnterButton, clickAbsenceButton, clickExitButton } from '../../../../utils/attendanceButtonClick.js'
+import { useEffect, useState } from 'react'
+import { useAppState } from '@/contexts/AppStateContext.jsx'
+import { useChildrenList } from '@/hooks/useChildrenList.js'
+import { useTabs } from '@/hooks/useTabs/index.js'
 import MemoContainer from './MemoTool/MemoContainer.jsx'
+import { clickEnterButton, clickAbsenceButton, clickExitButton } from '../../../../utils/attendanceButtonClick.js'
 
 function ChildMemoPanel() {
   const { 
@@ -20,21 +17,15 @@ function ChildMemoPanel() {
     SELECTED_CHILD_COLUMN6_HTML,
     setSelectedChildColumns
   } = useAppState()
-  const { childrenData, waitingChildrenData, experienceChildrenData, saveTempNote, loadTempNote } = useChildrenList()
+
+  const { childrenData, waitingChildrenData, experienceChildrenData } = useChildrenList()
   const { addProfessionalSupportNewTab } = useTabs()
+
   const [selectedChildData, setSelectedChildData] = useState(null)
-  const notesInputsRef = useRef({})
-  
-  // storeから値を取得（優先的に使用）
-  const column5 = SELECTED_CHILD_COLUMN5
-  const column5Html = SELECTED_CHILD_COLUMN5_HTML
-  const column6 = SELECTED_CHILD_COLUMN6
-  const column6Html = SELECTED_CHILD_COLUMN6_HTML
-  
-  // SELECT_CHILDまたはattendanceDataが変更されたときに、storeに値を保存
+
+  // store への column5/6 保存
   useEffect(() => {
-    if (!SELECT_CHILD || !attendanceData || !attendanceData.data || !Array.isArray(attendanceData.data)) {
-      // データがない場合はクリア
+    if (!SELECT_CHILD || !attendanceData?.data) {
       setSelectedChildColumns({
         column5: null,
         column5Html: null,
@@ -43,11 +34,11 @@ function ChildMemoPanel() {
       })
       return
     }
-    
-    const attendanceItem = attendanceData.data.find(item => 
-      item.children_id && item.children_id === String(SELECT_CHILD)
+
+    const attendanceItem = attendanceData.data.find(
+      item => item.children_id === String(SELECT_CHILD)
     )
-    
+
     if (attendanceItem) {
       setSelectedChildColumns({
         column5: attendanceItem.column5 || null,
@@ -56,7 +47,6 @@ function ChildMemoPanel() {
         column6Html: attendanceItem.column6Html || null
       })
     } else {
-      // 該当するデータがない場合はクリア
       setSelectedChildColumns({
         column5: null,
         column5Html: null,
@@ -66,67 +56,26 @@ function ChildMemoPanel() {
     }
   }, [SELECT_CHILD, attendanceData, setSelectedChildColumns])
 
-  // column5が時間形式（HH:MM）かどうかをチェック
-  const isTimeFormat = (value) => {
-    if (!value) return false
-    const timePattern = /^\d{2}:\d{2}$/
-    return timePattern.test(value)
-  }
-
-  // column5が"入室"と"欠席"の両方を含む複合値かどうかをチェック
-  const hasBothEnterAndAbsent = (value) => {
-    if (!value) return false
-    const normalizedValue = value.replace(/\s+/g, ' ') // 改行や複数の空白を1つの空白に統一
-    return normalizedValue.includes('入室') && normalizedValue.includes('欠席')
-  }
-
-  // 選択された要素のデータを取得
+  // 子どもデータの取得
   useEffect(() => {
     if (!SELECT_CHILD) {
       setSelectedChildData(null)
       return
     }
 
-    // 通常の子どもリストから検索
-    let child = childrenData.find(c => c.children_id === SELECT_CHILD)
-    
-    // 見つからない場合はキャンセル待ちリストから検索
-    if (!child) {
-      child = waitingChildrenData.find(c => c.children_id === SELECT_CHILD)
-    }
-    
-    // 見つからない場合は体験子どもリストから検索
-    if (!child) {
-      child = experienceChildrenData.find(c => c.children_id === SELECT_CHILD)
-    }
+    let child =
+      childrenData.find(c => c.children_id === SELECT_CHILD) ||
+      waitingChildrenData.find(c => c.children_id === SELECT_CHILD) ||
+      experienceChildrenData.find(c => c.children_id === SELECT_CHILD)
 
     setSelectedChildData(child || null)
+  }, [SELECT_CHILD, childrenData, waitingChildrenData, experienceChildrenData])
 
-    // データが変更されたときに一時メモを読み込む
-    if (child) {
-      setTimeout(() => {
-        const memoTextarea = document.getElementById(`memo-${SELECT_CHILD}`)
-        if (memoTextarea) {
-          notesInputsRef.current[SELECT_CHILD] = { memoTextarea }
-          loadTempNote(SELECT_CHILD, memoTextarea)
-        }
-      }, 100)
-    }
-  }, [SELECT_CHILD, childrenData, waitingChildrenData, experienceChildrenData, loadTempNote])
 
-  // 一時メモの保存ハンドラー
-  const handleSaveTempNote = async () => {
-    if (!SELECT_CHILD) return
-    const inputs = notesInputsRef.current[SELECT_CHILD]
-    if (inputs && inputs.memoTextarea) {
-      await saveTempNote(SELECT_CHILD, inputs.memoTextarea.value)
-    }
-  }
-
-  // 選択されていない場合は何も表示しない
+  // 表示されていない場合
   if (!SELECT_CHILD || !selectedChildData) {
     return (
-      <div className="child-memo-panel flex-1 border-l border-gray-300 bg-gray-50 p-4 overflow-y-auto">
+      <div className="child-memo-panel flex-1 border-l bg-gray-50 p-4 overflow-y-auto">
         <div className="text-sm text-gray-500 text-center mt-8">
           要素を選択してください
         </div>
@@ -134,8 +83,22 @@ function ChildMemoPanel() {
     )
   }
 
+  const column5 = SELECTED_CHILD_COLUMN5
+  const column5Html = SELECTED_CHILD_COLUMN5_HTML
+  const column6 = SELECTED_CHILD_COLUMN6
+  const column6Html = SELECTED_CHILD_COLUMN6_HTML
+
+  const isTimeFormat = (value) => /^\d{2}:\d{2}$/.test(value || "")
+
+  const hasBothEnterAndAbsent = (value) => {
+    const v = (value || "").replace(/\s+/g, " ")
+    return v.includes("入室") && v.includes("欠席")
+  }
+
   return (
     <div className="child-memo-panel flex-1 border-l border-gray-300 bg-gray-50 p-4 overflow-y-auto flex flex-col h-full">
+
+      {/* 子ども情報 */}
       <div className="mb-4">
         <h3 className="text-sm font-bold text-gray-700 mb-2">
           {selectedChildData.children_id}: {selectedChildData.children_name}
@@ -147,193 +110,62 @@ function ChildMemoPanel() {
         )}
       </div>
 
-      <div className="flex-1 flex flex-col">
-        <div className="mb-4 pb-4 border-b border-gray-300">
-          {column5 === "欠席" ? (
-            <div className="flex items-center gap-2 mb-3">
-              <label className="text-xs font-bold text-red-600">欠席</label>
-            </div>
-          ) : hasBothEnterAndAbsent(column5) ? (
+
+      {/* 入退室 UI */}
+      <div className="mb-4 pb-4 border-b border-gray-300">
+
+        {column5 === "欠席" ? (
+          <div className="text-xs font-bold text-red-600 mb-3">欠席</div>
+        ) : hasBothEnterAndAbsent(column5) ? (
           <>
-            {/* 入室と欠席の両方を含む場合 - 入室ボタンと欠席ボタンを表示 */}
-            <div className="flex items-center gap-2 mb-3">
-              <label className="text-xs font-bold text-gray-700 w-12">入室:</label>
-              <button
-                onClick={async (e) => {
-                  e.stopPropagation()
-                  // column5Html が HTML でも、処理には使う（クリック動作は保持）
-                  if (column5Html) {
-                    await clickEnterButton(column5Html)
-                  } else {
-                    console.log('入室ボタンクリック（column5Htmlなし）')
-                  }
-                }}
-                className={`flex-1 px-3 py-1.5 text-xs border-none rounded cursor-pointer transition-colors ${
-                  column5Html 
-                    ? 'bg-blue-600 text-white hover:bg-blue-700' 
-                    : 'bg-gray-400 text-white hover:bg-gray-500'
-                }`}
-                title={column5Html ? "入室情報あり" : "入室ボタン"}
-              >
-                入室
-              </button>
-            </div>
-            
-            <div className="flex items-center gap-2 mb-3">
-              <label className="text-xs font-bold text-gray-700 w-12">欠席:</label>
-              <button
-                onClick={async (e) => {
-                  e.stopPropagation()
-                  if (column5Html) {
-                    await clickAbsenceButton(column5Html)
-                  } else {
-                    console.log('欠席ボタンクリック（column5Htmlなし）')
-                  }
-                }}
-                className="flex-1 px-3 py-1.5 text-xs border-none rounded cursor-pointer transition-colors bg-red-600 text-white hover:bg-red-700"
-                title="欠席ボタン"
-              >
-                欠席
-              </button>
-            </div>
+            {/* 入室 */}
+            <button className="btn-blue" onClick={() => clickEnterButton(column5Html)}>
+              入室
+            </button>
+
+            {/* 欠席 */}
+            <button className="btn-red mt-4" onClick={() => clickAbsenceButton(column5Html)}>
+              欠席
+            </button>
           </>
+        ) : isTimeFormat(column5) ? (
+          <>
+            <div>入室: {column5}</div>
 
-          ) : isTimeFormat(column5) ? (
-            <>
-              {/* 時間形式の場合 - 入室時間をラベルで表示、退室時間または退室ボタンを表示 */}
-              <div className="flex items-center gap-2 mb-3">
-                <label className="text-xs font-bold text-gray-700 w-12">入室:</label>
-                <label className="text-xs font-bold text-gray-700">{column5}</label>
-              </div>
-              
-              {/* 退室時間または退室ボタン - column6が時間形式の場合はラベル、そうでない場合はボタン */}
-              <div className="flex items-center gap-2 mb-3">
-                <label className="text-xs font-bold text-gray-700 w-12">退室:</label>
-                {isTimeFormat(column6) ? (
-                  // column6が時間形式の場合 - 退室時間をラベルで表示
-                  <>
-                    {column6Html ? (
-                      <span 
-                        className="text-xs font-bold text-gray-700"
-                        dangerouslySetInnerHTML={{ __html: column6Html }}
-                      />
-                    ) : (
-                      <label className="text-xs font-bold text-gray-700">{column6}</label>
-                    )}
-                  </>
-                ) : (
-                  // column6が時間形式でない場合 - 退室ボタンを表示
-                  <button
-                  onClick={async (e) => {
-                      e.stopPropagation()
-                      // TODO: column5Htmlの値に応じた機能を実装
-                      // column5Htmlがある場合とない場合で異なる処理を行う
-                      if (column5Html) {
-                        console.log('退室処理（入室情報あり）:', column5Html)
-                        // 入室情報がある場合の退室処理（未実装）
-                        await clickExitButton(column5Html)
-                      }
-                    }}
-                    className={`flex-1 px-3 py-1.5 text-xs border-none rounded cursor-pointer transition-colors ${
-                      column5Html 
-                        ? 'bg-green-600 text-white hover:bg-green-700' 
-                        : 'bg-gray-400 text-white hover:bg-gray-500 disabled:bg-gray-400 disabled:text-white disabled:cursor-not-allowed'
-                    }`}
-                    title={column5Html ? "退室処理（入室情報あり）" : "退室ボタン"}
-                  >
-                    退室
-                  </button>
-                )}
-              </div>
-              
-              {/* 専門的支援計画ページへの自動入力ボタン - column5とcolumn6が両方時間形式の場合のみ表示 */}
-              {isTimeFormat(column5) && isTimeFormat(column6) && (
-                <div className="flex items-center gap-2 mb-3">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      addProfessionalSupportNewTab()
-                    }}
-                    className="flex-1 px-3 py-1.5 text-xs border-none rounded cursor-pointer transition-colors bg-purple-600 text-white hover:bg-purple-700"
-                    title="専門的支援計画ページを開いて自動入力"
-                  >
-                    専門的支援を開く
-                  </button>
-                </div>
-              )}
-            </>
-          ) : (
-            <>
-              {/* 入室ボタン - column5Htmlの値によって機能が変わる */}
-              <div className="flex items-center gap-2 mb-3">
-                <label className="text-xs font-bold text-gray-700 w-12">入室:</label>
-                <button
-                  onClick={async (e) => {
-                    e.stopPropagation()
-                    if (column5Html) {
-                      await clickEnterButton(column5Html)
-                    } else {
-                      console.log('入室ボタンクリック（column5Htmlなし）')
-                    }
-                  }}
-                  className={`flex-1 px-3 py-1.5 text-xs border-none rounded cursor-pointer transition-colors ${
-                    column5Html 
-                      ? 'bg-blue-600 text-white hover:bg-blue-700' 
-                      : 'bg-gray-400 text-white hover:bg-gray-500 disabled:bg-gray-400 disabled:text-white disabled:cursor-not-allowed'
-                  }`}
-                  title={column5 ? "入室情報あり" : "入室ボタン"}
-                >
-                  {/* ← ここを固定 */}
-                  入室
-                </button>
-              </div>
-              
-              {/* 退出ボタン - column5Htmlの値によって機能が変わる */}
-              <div className="flex items-center gap-2 mb-3">
-                <label className="text-xs font-bold text-gray-700 w-12">退出:</label>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    // TODO: column5Htmlの値に応じた機能を実装
-                    // column5Htmlがある場合とない場合で異なる処理を行う
-                    if (column5Html) {
-                      console.log('退出処理（入室情報あり）:', column5Html)
-                      // 入室情報がある場合の退出処理（未実装）
-                    } else {
-                      console.log('退出ボタンクリック')
-                      // 退出ボタンクリック時の処理（未実装）
-                    }
-                  }}
-                  className={`flex-1 px-3 py-1.5 text-xs border-none rounded cursor-pointer transition-colors ${
-                    column5Html 
-                      ? 'bg-green-600 text-white hover:bg-green-700' 
-                      : 'bg-gray-400 text-white hover:bg-gray-500'
-                  }`}
-                  title={column5Html ? "退出処理（入室情報あり）" : "退出ボタン"}
-                >
-                  退出
-                </button>
-              </div>
-            </>
-          )}
-          
-          {/* --- ここにAI入力＋OpenAIボタンUIを埋め込む --- */}
-          <div className="mb-4 border-t border-gray-200 pt-3">
-            <MemoContainer />
-          </div>
-          
+            {isTimeFormat(column6) ? (
+              <div dangerouslySetInnerHTML={{ __html: column6Html }} />
+            ) : (
+              <button className="btn-green mt-4" onClick={() => clickExitButton(column5Html)}>
+                退室
+              </button>
+            )}
+
+            {isTimeFormat(column5) && isTimeFormat(column6) && (
+              <button className="btn-purple" onClick={addProfessionalSupportNewTab}>
+                専門的支援
+              </button>
+            )}
+          </>
+        ) : (
+          <>
+            <button className="btn-blue" onClick={() => clickEnterButton(column5Html)}>
+              入室
+            </button>
+
+            <button className="btn-green" onClick={() => clickExitButton(column5Html)}>
+              退出
+            </button>
+          </>
+        )}
+
+        {/* AI + メモツール */}
+        <div className="mt-4 border-t border-gray-300 pt-3">
+          <MemoContainer />
         </div>
 
-        <div className="flex-1">
-          <h4 className="text-xs font-bold text-gray-700 mb-2">保存済みメモ:</h4>
-          <div className="text-xs leading-relaxed text-black whitespace-pre-wrap break-words p-2 bg-white border border-gray-200 rounded min-h-[100px]">
-            {selectedChildData.notes || 'メモがありません'}
-          </div>
-        </div>
       </div>
     </div>
   )
 }
 
 export default ChildMemoPanel
-

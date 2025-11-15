@@ -28,7 +28,8 @@ function SettingsModal({ isOpen, onClose }) {
   const {
     populateForm,
     saveSettings,
-    resetSettings,
+    resetToOriginal,
+    resetToDefault,
     togglePasswordVisibility,
     saveConfigFromForm,
     initializeSelectBoxes,
@@ -71,9 +72,14 @@ function SettingsModal({ isOpen, onClose }) {
     }
   }
 
-  // リセットボタンのハンドラー
-  const handleReset = () => {
-    resetSettings()
+  // 編集前に戻すボタンのハンドラー
+  const handleResetToOriginal = () => {
+    resetToOriginal()
+  }
+
+  // デフォルトにリセットボタンのハンドラー
+  const handleResetToDefault = () => {
+    resetToDefault()
   }
 
   // モーダル外クリックで閉じる
@@ -179,9 +185,16 @@ function SettingsModal({ isOpen, onClose }) {
             キャンセル
           </button>
           <button 
-            id="reset-settings"
+            id="reset-to-original"
+            className="bg-gradient-to-r from-yellow-600 to-yellow-700 text-white border-none px-3 py-1.5 rounded cursor-pointer font-medium transition-all duration-200 hover:from-yellow-700 hover:to-yellow-800 hover:-translate-y-0.5" 
+            onClick={handleResetToOriginal}
+          >
+            編集前に戻す
+          </button>
+          <button 
+            id="reset-to-default"
             className="bg-gradient-to-r from-red-600 to-red-700 text-white border-none px-3 py-1.5 rounded cursor-pointer font-medium transition-all duration-200 hover:from-red-700 hover:to-red-800 hover:-translate-y-0.5" 
-            onClick={handleReset}
+            onClick={handleResetToDefault}
           >
             リセット
           </button>
