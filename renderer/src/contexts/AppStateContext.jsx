@@ -127,6 +127,10 @@ export function AppStateProvider({ children }) {
           newActiveApi = databaseType === 'mariadb' ? mariadbApi : sqliteApi
           console.log('🔍 [AppStateContext] activeApi設定:', { databaseType, activeApi: newActiveApi === mariadbApi ? 'mariadbApi' : 'sqliteApi' })
           
+          // useAIに基づいてactiveApiを設定（Reduxには保存しない）
+          const useAI = apiSettings.useAI || 'gemini'
+          mergedData.USE_AI = useAI
+          
           // apiSettings.staffId → STAFF_ID にマッピング（複数のキー名に対応）
           const staffIdFromIni = 
             apiSettings.staffId ?? 
@@ -197,6 +201,7 @@ export function AppStateProvider({ children }) {
   // Reduxの状態をwindow.AppStateに同期（activeApiも含める）
   useEffect(() => {
     if (window.AppState && isInitialized) {
+      //Object.assign(window.AppState, { ...appStateRedux, activeApi })
       Object.assign(window.AppState, { ...appStateRedux, activeApi })
     }
   }, [appStateRedux, activeApi, isInitialized])
@@ -304,6 +309,7 @@ export function AppStateProvider({ children }) {
         FACILITY_ID: reduxFacilityId,
         DATE_STR: reduxDateStr,
         WEEK_DAY: reduxWeekDay,
+        USE_AI: appStateRedux.USE_AI,
         SELECT_CHILD: reduxSelectedChild,
         SELECT_CHILD_NAME: reduxSelectedChildName,
         SELECT_PC_NAME: reduxSelectedPcName,

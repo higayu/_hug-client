@@ -25,7 +25,8 @@ function getDefaultIni() {
       baseURL: "http://192.168.1.229:3001/api",
       staffId: "",
       facilityId: "",
-      databaseType: "sqlite"
+      databaseType: "sqlite",
+      useAI: "gemini"
     }
   };
 }
@@ -50,7 +51,8 @@ function loadIni() {
     const json = JSON.parse(raw);
     console.log("ini.json loaded:", {
       baseURL: json?.apiSettings?.baseURL,
-      databaseType: json?.apiSettings?.databaseType
+      databaseType: json?.apiSettings?.databaseType,
+      useAI: json?.apiSettings?.useAI
     });
     return json;
   } catch (err) {

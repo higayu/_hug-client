@@ -89,6 +89,7 @@ function handleIniAccess(ipcMain) {
             staffId: "",
             facilityId: "",
             databaseType: "mariadb",
+            useAI: "gemini",
           },
         };
 

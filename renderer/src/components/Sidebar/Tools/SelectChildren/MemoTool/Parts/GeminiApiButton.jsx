@@ -1,9 +1,9 @@
 // renderer/src/components/Sidebar/Tools/GeminiApiButton.jsx
 import React, { useState } from 'react'
-import { useAppState } from '../../../../../contexts/AppStateContext.jsx'
+import { useAppState } from '@/contexts/AppStateContext.jsx'
 
 export default function GeminiApiButton() {
-  const { GEMINI_API_KEY } = useAppState()
+  const { appState } = useAppState()
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState(null)
   const [error, setError] = useState(null)
@@ -14,7 +14,7 @@ export default function GeminiApiButton() {
 
   // Gemini API 呼び出し関数
   const handleGeminiRequest = async () => {
-    if (!GEMINI_API_KEY) {
+    if (!appState.GEMINI_API_KEY) {
       setError("GEMINI_API_KEY が設定されていません。config.json を確認してください。")
       return
     }
@@ -40,7 +40,7 @@ export default function GeminiApiButton() {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'x-goog-api-key': GEMINI_API_KEY
+            'x-goog-api-key': appState.GEMINI_API_KEY
           },
           body: JSON.stringify(body)
         }

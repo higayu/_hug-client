@@ -35,18 +35,21 @@ function ApiTab({ onSaveApiSettings, onReloadApiSettings, onInitializeSelectBoxe
           <label htmlFor="api-base-url" className="font-medium text-gray-700 min-w-[120px]">APIベースURL:</label>
           <input type="text" id="api-base-url" data-path="apiSettings.baseURL" className="px-3 py-2 border border-gray-300 rounded-md text-sm transition-all flex-1 max-w-[200px] focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-200" />
         </div>
+
         <div className="flex items-center mb-3 py-2">
           <label htmlFor="api-staff-id" className="font-medium text-gray-700 min-w-[120px]">スタッフ:</label>
           <select id="api-staff-id" data-path="apiSettings.staffId" className="px-3 py-2 border border-gray-300 rounded-md text-sm transition-all flex-1 max-w-[200px] focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-200">
             <option value="">選択してください</option>
           </select>
         </div>
+
         <div className="flex items-center mb-3 py-2">
           <label htmlFor="api-facility-id" className="font-medium text-gray-700 min-w-[120px]">施設:</label>
           <select id="api-facility-id" data-path="apiSettings.facilityId" className="px-3 py-2 border border-gray-300 rounded-md text-sm transition-all flex-1 max-w-[200px] focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-200">
             <option value="">選択してください</option>
           </select>
         </div>
+
         <div className="flex items-center mb-3 py-2">
           <label htmlFor="api-database-type" className="font-medium text-gray-700 min-w-[120px]">データベースタイプ:</label>
           <select id="api-database-type" data-path="apiSettings.databaseType" className="px-3 py-2 border border-gray-300 rounded-md text-sm transition-all flex-1 max-w-[200px] focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-200">
@@ -54,7 +57,17 @@ function ApiTab({ onSaveApiSettings, onReloadApiSettings, onInitializeSelectBoxe
             <option value="mariadb">MariaDB</option>
           </select>
         </div>
+
+        {/* 新しい AI 選択項目 */}
+        <div className="flex items-center mb-3 py-2">
+          <label htmlFor="api-ai-type" className="font-medium text-gray-700 min-w-[120px]">AI種別:</label>
+          <select id="api-ai-type" data-path="apiSettings.useAI" className="px-3 py-2 border border-gray-300 rounded-md text-sm transition-all flex-1 max-w-[200px] focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-200">
+            <option value="gemini">gemini</option>
+            <option value="chatGPT">chatGPT</option>
+          </select>
+        </div>
       </div>
+
       <div className="mb-6 flex gap-2.5">
         <button id="reload-api-settings"
          onClick={handleReload}
@@ -63,6 +76,7 @@ function ApiTab({ onSaveApiSettings, onReloadApiSettings, onInitializeSelectBoxe
          >
           {isSaving ? '再読み込み中...' : 'API設定を再読み込み'}
         </button>
+
         <button id="save-api-settings"
          onClick={handleSave}
          disabled={isSaving}
@@ -76,4 +90,3 @@ function ApiTab({ onSaveApiSettings, onReloadApiSettings, onInitializeSelectBoxe
 }
 
 export default ApiTab
-

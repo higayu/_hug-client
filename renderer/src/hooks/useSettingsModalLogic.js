@@ -122,6 +122,10 @@ export function useSettingsModalLogic(isOpen) {
     const apiDatabaseType = document.getElementById('api-database-type')
     if (apiDatabaseType) apiDatabaseType.value = iniState?.apiSettings?.databaseType || 'sqlite'
 
+    const apiAiType = document.getElementById('api-ai-type')
+    if (apiAiType) apiAiType.value = iniState?.apiSettings?.useAI || 'gemini'
+    
+    console.log('🔍 [SettingsModal] apiAiType:', apiAiType.value)
     console.log('✅ [SettingsModal] フォームに値を設定しました')
   }, [appState, iniState])
 
@@ -314,7 +318,7 @@ export function useSettingsModalLogic(isOpen) {
   
       const staffSelect = document.getElementById("api-staff-id");
       const facilitySelect = document.getElementById("api-facility-id");
-  
+      const aiSelect = document.getElementById("api-ai-type");
       console.log("📌 activeApi:", activeApi);
   
       // データ取得
@@ -388,14 +392,15 @@ export function useSettingsModalLogic(isOpen) {
       // 現在値の設定
       const selectedStaffId = iniState?.apiSettings?.staffId || "";
       const selectedFacilityId = iniState?.apiSettings?.facilityId || "";
+      const selectedAiType = iniState?.apiSettings?.useAI || "gemini";
   
       console.log("🎯 iniState.apiSettings:", iniState?.apiSettings);
       console.log("🎯 適用 staffId:", selectedStaffId);
       console.log("🎯 適用 facilityId:", selectedFacilityId);
-  
+      console.log("🎯 適用 AI種別:", selectedAiType);
       if (staffSelect) staffSelect.value = selectedStaffId;
       if (facilitySelect) facilitySelect.value = selectedFacilityId;
-  
+      if (aiSelect) aiSelect.value = selectedAiType;
       console.groupEnd();
     } catch (error) {
       console.error("❌ [SettingsModal] APIセレクトボックス初期化エラー:", error);
@@ -429,6 +434,9 @@ export function useSettingsModalLogic(isOpen) {
       const apiDatabaseType = document.getElementById('api-database-type')
       if (apiDatabaseType) newIniState.apiSettings.databaseType = apiDatabaseType.value || 'sqlite'
 
+      const apiAiType = document.getElementById('api-ai-type')
+      if (apiAiType) newIniState.apiSettings.useAI = apiAiType.value || 'gemini'
+
       // ini.jsonに保存
       const success = await saveIni(newIniState)
       if (success) {
@@ -438,9 +446,11 @@ export function useSettingsModalLogic(isOpen) {
         // databaseTypeに基づいてactiveApiを更新
         const databaseType = newIniState.apiSettings.databaseType || 'sqlite'
         const newActiveApi = databaseType === 'mariadb' ? mariadbApi : sqliteApi
+        const useAI = newIniState.apiSettings.useAI || 'gemini'
         if (window.AppState && window.updateAppState) {
           window.updateAppState({ activeApi: newActiveApi })
           console.log('🔄 [useSettingsModalLogic] activeApi更新:', { databaseType, activeApi: newActiveApi === mariadbApi ? 'mariadbApi' : 'sqliteApi' })
+          console.log('🔄 [useSettingsModalLogic] useAI更新:', { useAI })
         }
         
         showSuccessToast('✅ API設定の保存が完了しました')
