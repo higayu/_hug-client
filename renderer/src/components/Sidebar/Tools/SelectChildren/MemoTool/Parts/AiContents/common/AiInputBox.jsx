@@ -7,9 +7,10 @@ export default function AiInputBox() {
   const { SELECT_CHILD } = useAppState();
   const { childrenData, waitingChildrenData, experienceChildrenData, saveTempNote, loadTempNote } = useChildrenList();
 
-  const [memo, setMemo] = useState("");      // 一時メモ
-  const [aiText, setAiText] = useState("");  // AIに送るテキスト
-  const [dbNote, setDbNote] = useState("");  // DBの保存済みメモ
+  const [memo, setMemo] = useState("");       // 一時メモ1
+  const [memo2, setMemo2] = useState("");     // 一時メモ2
+  const [aiText, setAiText] = useState("");   // AIに送るテキスト
+  const [dbNote, setDbNote] = useState("");   // DBの保存済みメモ
 
 
   // 🔍 SELECT_CHILD 変更→DBメモ読み込み
@@ -28,39 +29,53 @@ export default function AiInputBox() {
   }, [SELECT_CHILD, childrenData, waitingChildrenData, experienceChildrenData]);
 
 
-  // 🔄 一時メモ読込
+  // 🔄 一時メモ読込（memo + memo2）
   useEffect(() => {
     if (!SELECT_CHILD) {
       setMemo("");
+      setMemo2("");
       return;
     }
 
-    // loadTempNote は textarea.value に書き込む仕様 → setter のみ使う
-    const textareaProxy = {
+    const proxy = {
       set value(v) {
-        setMemo(v);
+        // v がオブジェクトなら memo1 と memo2 をセット
+        if (typeof v === "object" && v !== null) {
+          setMemo(v.memo || "");
+          setMemo2(v.memo2 || "");
+        } else {
+          // 旧仕様：string の場合は memo のみに反映
+          setMemo(v);
+        }
       }
     };
 
-    loadTempNote(SELECT_CHILD, textareaProxy);
+    loadTempNote(SELECT_CHILD, proxy);
 
   }, [SELECT_CHILD, loadTempNote]);
 
 
-  // 💾 一時メモ保存
+  // 💾 一時メモ保存（まとめて保存）
   const handleSaveClick = async () => {
     if (!SELECT_CHILD) return;
-    await saveTempNote(SELECT_CHILD, memo);
+
+    // memo1 + memo2 をセットで保存
+    const saveData = {
+      memo,
+      memo2
+    };
+
+    await saveTempNote(SELECT_CHILD, saveData);
   };
 
 
   return (
     <div className="flex flex-col w-full bg-white p-2 shadow-sm">
 
-      {/* --- 一時メモ --- */}
+      {/* --- 一時メモ1 --- */}
       <div>
         <label className="text-xs font-bold text-gray-700 block mb-1">
-          一時メモ（編集可能）
+          一時メモ１（編集可能）
         </label>
 
         <textarea
@@ -69,15 +84,31 @@ export default function AiInputBox() {
           placeholder="メモを入力..."
           value={memo}
           onChange={(e) => setMemo(e.target.value)}
-          rows={5}
+          rows={4}
+        />
+      </div>
+
+      {/* --- 一時メモ2 --- */}
+      <div className="mt-3">
+        <label className="text-xs font-bold text-gray-700 block mb-1">
+          一時メモ２（編集可能）
+        </label>
+
+        <textarea
+          className="w-full p-2 border border-gray-300 rounded text-xs bg-white resize-y min-h-[80px]
+                     text-black focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-200"
+          placeholder="メモを入力..."
+          value={memo2}
+          onChange={(e) => setMemo2(e.target.value)}
+          rows={3}
         />
       </div>
 
       <button
         onClick={handleSaveClick}
-        className="w-full px-3 py-1.5 bg-blue-600 text-white border-none rounded text-xs cursor-pointer hover:bg-blue-700 transition-colors mt-2"
+        className="w-full px-3 py-1.5 bg-blue-600 text-white border-none rounded text-xs cursor-pointer hover:bg-blue-700 transition-colors mt-3"
       >
-        一時メモを保存
+        一時メモを保存（まとめて）
       </button>
 
 

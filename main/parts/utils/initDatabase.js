@@ -100,6 +100,7 @@ CREATE TABLE IF NOT EXISTS temp_notes (
   staff_id TEXT NOT NULL,
   week_day TEXT NOT NULL,
   memo TEXT,
+  memo2 TEXT,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (children_id, week_day)

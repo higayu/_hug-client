@@ -6,10 +6,11 @@ import { MESSAGES } from "./constants.js";
 /**
  * 一時メモを保存する
  */
-export async function saveTempNote(childId, memo, appState) {
+export async function saveTempNote(childId, memo, memo2, appState) {
   console.group("📝 saveTempNote() 呼び出し");
   console.log("📌 childId:", childId);
   console.log("📌 memo:", memo);
+  console.log("📌 memo2:", memo2);
   console.log("📌 appState:", appState);
 
   if (!childId || !appState?.STAFF_ID || !appState?.WEEK_DAY) {
@@ -24,6 +25,7 @@ export async function saveTempNote(childId, memo, appState) {
       staff_id: appState.STAFF_ID,
       week_day: appState.WEEK_DAY,
       memo: memo || "",
+      memo2:memo2 || "",
     };
 
     console.log("📤 送信データ(saveTempNote):", data);

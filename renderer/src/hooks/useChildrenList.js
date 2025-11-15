@@ -104,8 +104,8 @@ export function useChildrenList() {
     waitingChildrenData,
     experienceChildrenData,
     loadChildren,
-    saveTempNote: useCallback(async (childId, memo) => {
-      await saveTempNote(childId, memo, {
+    saveTempNote: useCallback(async (childId, memo,memo2) => {
+      await saveTempNote(childId, memo, memo2, {
         STAFF_ID: appState.STAFF_ID,
         WEEK_DAY: appState.WEEK_DAY,
         DATE_STR: appState.DATE_STR,

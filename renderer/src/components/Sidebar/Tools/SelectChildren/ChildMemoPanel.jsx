@@ -109,7 +109,7 @@ function ChildMemoPanel() {
     <div className="child-memo-panel flex-1 border-l border-gray-300 bg-gray-50 p-4 overflow-y-auto flex flex-col h-full">
 
       {/* 子ども情報 */}
-      <div className="mb-4">
+      <div className="bg-white text-center p-2">
         <h3 className="text-sm font-bold text-gray-700 mb-2">
           {selectedChildData.children_id}: {selectedChildData.children_name}
         </h3>
@@ -122,19 +122,19 @@ function ChildMemoPanel() {
 
       {/* 入退室 UI */}
       <div
-        className="mb-4 pb-4 border-b border-gray-300"
+        className="flex flex-col mt-2 mb-4 pb-4 border-b border-gray-300"
         style={{
           pointerEvents: isUIEnabled ? "auto" : "none",
           opacity: isUIEnabled ? 1 : 0.5,
           transition: "opacity 0.2s"
         }}
       >
-        {column5 === "欠席" ? (
+        {column5 === "欠席" || column5 === "欠席(欠席時対応加算を取らない)" ? (
           <div className="text-xs font-bold text-red-600 mb-3">欠席</div>
         ) : hasBothEnterAndAbsent(column5) ? (
           <>
             <button
-              className="btn-blue"
+              className="btn-blue p-2 w-[80px]"
               onClick={() => clickEnterButton(column5Html)}
               disabled={!isUIEnabled}
             >
@@ -142,7 +142,7 @@ function ChildMemoPanel() {
             </button>
 
             <button
-              className="btn-red mt-4"
+              className="btn-red mt-2 p-2 w-[80px]"
               onClick={() => clickAbsenceButton(column5Html)}
               disabled={!isUIEnabled}
             >
@@ -151,10 +151,10 @@ function ChildMemoPanel() {
           </>
         ) : isTimeFormat(column5) ? (
           <>
-            <div>入室: {column5}</div>
+            <div className="">入室: {column5}</div>
 
             {isTimeFormat(column6) ? (
-              <div dangerouslySetInnerHTML={{ __html: column6Html }} />
+              <div className="mt-2">退室: {column6}</div>
             ) : (
               <button
                 className="btn-green mt-4"
@@ -167,7 +167,7 @@ function ChildMemoPanel() {
 
             {isTimeFormat(column5) && isTimeFormat(column6) && (
               <button
-                className="btn-purple"
+                className="btn-purple mt-4 p-2"
                 onClick={addProfessionalSupportNewTab}
                 disabled={!isUIEnabled}
               >
@@ -178,7 +178,7 @@ function ChildMemoPanel() {
         ) : (
           <>
             <button
-              className="btn-blue"
+              className="btn-blue p-2 w-[80px]"
               onClick={() => clickEnterButton(column5Html)}
               disabled={!isUIEnabled}
             >
@@ -186,7 +186,7 @@ function ChildMemoPanel() {
             </button>
 
             <button
-              className="btn-green"
+              className="btn-green mt-2 p-2 w-[80px]"
               onClick={() => clickExitButton(column5Html)}
               disabled={!isUIEnabled}
             >
