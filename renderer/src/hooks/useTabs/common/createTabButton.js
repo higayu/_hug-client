@@ -1,4 +1,4 @@
-// src/hooks/useTabs/common/createTabButton.js
+// renderer/src/hooks/useTabs/common/createTabButton.js
 // タブボタンを作成する共通関数
 
 /**

@@ -2,10 +2,13 @@
 // タブ管理のフック
 
 import { useEffect, useCallback, useRef } from 'react'
-import { useAppState } from '../../contexts/AppStateContext.jsx'
-import { setActiveWebview } from '../../utils/webviewState.js'
-import { getDateString } from '../../utils/dateUtils.js'
+import { useAppState } from '@/contexts/AppStateContext.jsx'
+import { setActiveWebview } from '@/utils/webviewState.js'
+import { getDateString } from '@/utils/dateUtils.js'
 import { createWebview, createTabButton, activateTab, closeTab } from './common/index.js'
+import { addPersonalRecordTabAction } from './actions/personalRecord.js'
+
+
 
 /**
  * タブ管理のフック
@@ -69,150 +72,9 @@ export function useTabs() {
 
   // 個人記録タブを追加
   const addPersonalRecordTab = useCallback(() => {
-    if (!appState.SELECT_CHILD) {
-      alert('子どもを選択してください')
-      return
-    }
-
-    const tabsContainer = document.getElementById('tabs')
-    const webviewContainer = document.getElementById('webview-container')
-    
-    if (!tabsContainer || !webviewContainer) {
-      console.error('❌ tabsまたはwebview-container要素が見つかりません')
-      return
-    }
-
-    const newId = `hugview-${appState.DATE_STR}-${document.querySelectorAll('webview').length}`
-    const newWebview = createWebview(
-      newId,
-      `https://www.hug-ayumu.link/hug/wm/contact_book.php?id=${appState.SELECT_CHILD}`
-    )
-    
-    webviewContainer.appendChild(newWebview)
-
-    const tabButton = createTabButton(
-      newId,
-      `個人記録 : ${appState.SELECT_CHILD_NAME}`,
-      appState.closeButtonsVisible
-    )
-
-    if (!tabButton) return
-
-    tabsContainer.appendChild(tabButton)
-
-    // タブクリック処理
-    tabButton.addEventListener('click', () => {
-      activateTab(newId)
-    })
-
-    // 閉じる処理
-    const closeBtn = tabButton.querySelector('.close-btn')
-    if (closeBtn) {
-      closeBtn.addEventListener('click', (e) => {
-        e.stopPropagation()
-        if (!confirm('このタブを閉じますか？')) return
-        closeTab(newId)
-      })
-    }
-
-    // contact_book ページの初回ロード時の処理
-    let hasSearched = false
-    let hasClickedEdit = false
-
-    if (appState.DATE_STR === getDateString()) {
-      console.log('当日のため省略', appState.DATE_STR + '　＝＝　' + getDateString())
-    } else {
-      console.log('当日ではない', appState.DATE_STR + '　＝＝　' + getDateString())
-    }
-
-    // did-finish-loadイベント（初回ロード時のみ）
-    newWebview.addEventListener('did-finish-load', async () => {
-      if (hasSearched) return
-      hasSearched = true
-
-      console.log('✅ contact_book ページロード完了 — 日付設定＆検索処理を開始')
-
-      newWebview.executeJavaScript(`
-        try {
-          console.log("🗓️ 日付設定を実行");
-          const dp1 = document.querySelector('input[name="date"]');
-          const dp2 = document.querySelector('input[name="date_end"]');
-          if (dp1 && dp2) {
-            dp1.value = "${appState.DATE_STR}";
-            dp2.value = "${appState.DATE_STR}";
-            dp1.dispatchEvent(new Event("change", { bubbles: true }));
-            dp2.dispatchEvent(new Event("change", { bubbles: true }));
-            console.log("📅 日付を設定:", dp1.value, dp2.value);
-          } else {
-            console.warn("⚠️ 日付入力欄が見つかりません");
-          }
-
-          const searchBtn = document.querySelector('button.btn.btn-sm.search');
-          if (searchBtn) {
-            setTimeout(() => {
-              console.log("🔍 検索ボタンをクリックします");
-              searchBtn.click();
-            }, 800);
-          } else {
-            console.warn("⚠️ 検索ボタンが見つかりません");
-          }
-        } catch (e) {
-          console.error("❌ 自動日付・検索処理エラー:", e);
-        }
-      `)
-    }, { once: true })
-
-    // did-stop-loadingイベント（編集ボタン探索）
-    newWebview.addEventListener('did-stop-loading', async () => {
-      if (hasClickedEdit) return
-
-      const url = await newWebview.getURL()
-      if (!url.includes('contact_book.php')) return
-
-      console.log('✅ 編集ボタン探索開始:', url)
-
-      newWebview.executeJavaScript(`
-        try {
-          const btns = document.querySelectorAll('button.btn.btn-sm.m0.edit');
-          const target = [...btns].find(b => (b.getAttribute('onclick') || '').includes('cal_date=${appState.DATE_STR}'));
-          if (target) {
-            console.log("✅ 編集ボタン発見 — クリック実行");
-            target.click();
-          } else {
-            console.warn("❌ 編集ボタン未検出");
-          }
-        } catch (e) {
-          console.error("❌ 編集ボタン探索エラー:", e);
-        }
-      `)
-
-      hasClickedEdit = true
-    })
-
-    // did-stop-loadingイベント（編集ページでの記録者設定）
-    newWebview.addEventListener('did-stop-loading', async () => {
-      const url = await newWebview.getURL()
-      console.log('🔁 読み込み完了:', url)
-
-      if (url.includes('contact_book.php?mode=edit') || url.includes('record_proceedings.php?mode=edit')) {
-        newWebview.executeJavaScript(`
-          console.log("📝 編集ページ内で record_staff を設定中...");
-          const staffSelect = document.querySelector('select[name="record_staff"]');
-          if (staffSelect) {
-            staffSelect.value = "${appState.STAFF_ID}";
-            staffSelect.dispatchEvent(new Event("change", { bubbles: true }));
-            console.log("✅ record_staff 設定完了:", staffSelect.value);
-          } else {
-            console.warn("⚠️ record_staff が見つかりません");
-          }
-        `)
-      }
-    })
-
-    // すぐにアクティブにする
-    activateTab(newId)
-  }, [appState.SELECT_CHILD, appState.SELECT_CHILD_NAME, appState.DATE_STR, appState.STAFF_ID, appState.closeButtonsVisible])
-
+    addPersonalRecordTabAction(appState)
+  }, [appState])
+  
   // 専門的支援一覧タブを追加
   const addProfessionalSupportListTab = useCallback(() => {
     const tabsContainer = document.getElementById('tabs')

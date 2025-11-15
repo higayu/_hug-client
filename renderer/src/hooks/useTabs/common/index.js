@@ -1,4 +1,4 @@
-// src/hooks/useTabs/common/index.js
+// renderer/src/hooks/useTabs/common/index.js
 // タブの共通機能をエクスポート
 
 export { createWebview } from './createWebview.js'

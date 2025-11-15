@@ -1,7 +1,7 @@
-// src/hooks/useTabs/common/activateTab.js
+// renderer/src/hooks/useTabs/common/activateTab.js
 // タブをアクティブにする共通関数
 
-import { setActiveWebview } from '../../../utils/webviewState.js'
+import { setActiveWebview } from '@/utils/webviewState.js'
 
 /**
  * タブをアクティブにする共通関数

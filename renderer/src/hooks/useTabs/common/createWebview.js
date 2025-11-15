@@ -1,4 +1,4 @@
-// src/hooks/useTabs/common/createWebview.js
+// renderer/src/hooks/useTabs/common/createWebview.js
 // webviewを作成する共通関数
 
 /**

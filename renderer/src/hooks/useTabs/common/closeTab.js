@@ -1,7 +1,7 @@
-// src/hooks/useTabs/common/closeTab.js
+// renderer/src/hooks/useTabs/common/closeTab.js
 // タブを閉じる共通関数
 
-import { getActiveWebview, setActiveWebview } from '../../../utils/webviewState.js'
+import { getActiveWebview, setActiveWebview } from '@/utils/webviewState.js'
 
 /**
  * タブを閉じる共通関数
