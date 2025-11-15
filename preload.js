@@ -39,6 +39,15 @@ contextBridge.exposeInMainWorld("electronAPI", {
   // ---- デバッグ情報 ----
   isDebugMode: () => isDebugMode,
 
+  // ---- AI プロンプト関連 API ----
+  loadPrompts: () => ipcRenderer.invoke("load-prompts"),
+
+  getAiPrompt: (promptKey) =>
+    ipcRenderer.invoke("get-ai-prompt", promptKey),
+
+  buildAiPrompt: (promptKey, userText) =>
+    ipcRenderer.invoke("build-ai-prompt", promptKey, userText),
+
   // ---- ログイン系 ----
   hugLogin: () => ipcRenderer.invoke("hug-login"),
   doAutoLogin: (username, password) =>

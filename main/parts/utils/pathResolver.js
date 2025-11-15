@@ -28,6 +28,15 @@ function getAvailableActionsPath() {
   return path.join(getDataDir(), "availableActions.json");
 }
 
+function getPromptsConfigPath() {
+  return path.join(getDataDir(), "prompts.json");
+}
+
+function getPromptDir() {
+  return path.join(getDataDir(), "prompts");  // フォルダ
+}
+
+
 module.exports = {
   getDataDir,
   getConfigPath,
@@ -35,4 +44,6 @@ module.exports = {
   getDbPath,
   getCustomButtonsPath,
   getAvailableActionsPath,
+  getPromptsConfigPath,
+  getPromptDir,
 };

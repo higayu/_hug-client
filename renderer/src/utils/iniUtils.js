@@ -9,6 +9,9 @@ export async function loadIni() {
   try {
     console.log('🔄 [INI] ini.json読み込み開始')
     const result = await window.electronAPI.readIni()
+    const res = await window.electronAPI.loadPrompts();
+    console.log('🔍 [INI] loadPrompts結果:', res)
+
     console.log('🔍 [INI] readIni結果:', result)
     
     if (!result.success) {

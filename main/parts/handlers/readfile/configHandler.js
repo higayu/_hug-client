@@ -1,8 +1,8 @@
-// main/parts/configHandler.js
+// main/parts/handlers/readfile/configHandler.js
 const fs = require("fs");
 const path = require("path");
 const { app, dialog, shell } = require("electron");
-const { getDataDir, getConfigPath } = require("../utils/pathResolver");
+const { getDataDir, getConfigPath } = require("../../utils/pathResolver");
 
 function handleConfigAccess(ipcMain) {
   ipcMain.handle("read-config", async () => {

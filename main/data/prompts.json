@@ -1,0 +1,11 @@
+{
+    "personalRecord": {
+      "file": "personalRecord.txt",
+      "description": "個人記録用プロンプト"
+    },
+    "professional": {
+      "file": "professional.txt",
+      "description": "専門的支援加算用プロンプト"
+    }
+  }
+  

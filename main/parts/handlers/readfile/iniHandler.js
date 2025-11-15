@@ -1,8 +1,8 @@
-// main/parts/handlers/iniHandler.js
+// main/parts/handlers/readfile/iniHandler.js
 const fs = require("fs");
 const path = require("path");
 const { ipcMain } = require("electron");
-const { getDataDir, getIniPath } = require("../utils/pathResolver");
+const { getDataDir, getIniPath } = require("../../utils/pathResolver");
 
 // もし pathResolver.js に getIniPath() がまだない場合、以下を追加してください:
 // function getIniPath() { return path.join(getDataDir(), "ini.json"); }

@@ -5,12 +5,13 @@ const { pathToFileURL } = require("url");
 const fs = require("fs");
 const { handleLogin } = require("./parts/handlers/loginHandler");
 const { handleApiCalls } = require("./parts/handlers/apiHandler");
-const { handleConfigAccess } = require("./parts/handlers/configHandler");
-const { handleIniAccess } = require("./parts/handlers/iniHandler");
-const { handleCustomButtonsAccess } = require("./parts/handlers/customButtonsHandler");
+const { handleConfigAccess } = require("./parts/handlers/readfile/configHandler");
+const { handleIniAccess } = require("./parts/handlers/readfile/iniHandler");
+const { handleCustomButtonsAccess } = require("./parts/handlers/readfile/customButtonsHandler");
 const { registerPlanWindows } = require("./parts/window/planWindows");
 const { open_addition_compare_btn } = require("./parts/window/computeWindows");
 const { resolvePreloadPath } = require("./parts/window/windowManager");
+const { handlePromptAccess } = require("./parts/handlers/readfile/promptHandler");
 
 function registerIpcHandlers(mainWindow, tempNoteHandler) {
   try {
@@ -19,6 +20,7 @@ function registerIpcHandlers(mainWindow, tempNoteHandler) {
     handleConfigAccess(ipcMain);
     handleIniAccess(ipcMain);
     handleCustomButtonsAccess(ipcMain);
+    handlePromptAccess(ipcMain);
     registerPlanWindows(ipcMain);
     open_addition_compare_btn(ipcMain);
     // 一時メモのIPCハンドラー
