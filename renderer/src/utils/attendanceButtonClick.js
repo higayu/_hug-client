@@ -179,13 +179,33 @@ async function createNewTabAndNavigate() {
   activateTab(newId)
   
   // ページが読み込まれるまで待機
+  // WebView が DOM に付くのを待ってからロード完了を待つ
   await new Promise((resolve) => {
-    if (newWebview.isLoading()) {
-      newWebview.addEventListener('did-finish-load', resolve, { once: true })
-    } else {
-      resolve()
-    }
-  })
+    const waitForDom = () => {
+      if (!newWebview.isConnected) {
+        // DOM へ追加されるのを監視
+        const obs = new MutationObserver(() => {
+          if (newWebview.isConnected) {
+            obs.disconnect();
+            waitForLoad();
+          }
+        });
+        obs.observe(document.body, { childList: true, subtree: true });
+        return;
+      }
+      waitForLoad();
+    };
+
+    const waitForLoad = () => {
+      // dom-ready を待つ
+      newWebview.addEventListener('dom-ready', () => {
+        // ページのロード完了を待つ
+        newWebview.addEventListener('did-finish-load', resolve, { once: true });
+      }, { once: true });
+    };
+
+    waitForDom();
+  });
   
   return newWebview
 }
