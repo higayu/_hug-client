@@ -7,13 +7,12 @@ export default function AiInputBox() {
   const { SELECT_CHILD } = useAppState();
   const { childrenData, waitingChildrenData, experienceChildrenData, saveTempNote, loadTempNote } = useChildrenList();
 
-  const [memo, setMemo] = useState("");        // 一時メモ
-  const [aiText, setAiText] = useState("");    // AI入力
+  const [memo, setMemo] = useState("");      // 一時メモ
+  const [aiText, setAiText] = useState("");  // AIに送るテキスト
+  const [dbNote, setDbNote] = useState("");  // DBの保存済みメモ
 
-  const [dbNote, setDbNote] = useState("");    // DBの保存済みメモ（notes）
 
-
-  // 🔍 SELECT_CHILD から childrenData を検索し、DBメモをセット
+  // 🔍 SELECT_CHILD 変更→DBメモ読み込み
   useEffect(() => {
     if (!SELECT_CHILD) {
       setDbNote("");
@@ -26,7 +25,6 @@ export default function AiInputBox() {
       experienceChildrenData.find((c) => c.children_id === SELECT_CHILD);
 
     setDbNote(child?.notes || "");
-
   }, [SELECT_CHILD, childrenData, waitingChildrenData, experienceChildrenData]);
 
 
@@ -37,9 +35,8 @@ export default function AiInputBox() {
       return;
     }
 
-    // loadTempNote が textarea.value = "..." を書き換える形式なので Proxy で受ける
+    // loadTempNote は textarea.value に書き込む仕様 → setter のみ使う
     const textareaProxy = {
-      value: "",
       set value(v) {
         setMemo(v);
       }
@@ -60,9 +57,12 @@ export default function AiInputBox() {
   return (
     <div className="flex flex-col w-full bg-white p-2 shadow-sm">
 
-      {/* --- 一時メモエリア --- */}
+      {/* --- 一時メモ --- */}
       <div>
-        <label className="text-xs font-bold text-gray-700 block mb-1">一時メモ（編集可能）</label>
+        <label className="text-xs font-bold text-gray-700 block mb-1">
+          一時メモ（編集可能）
+        </label>
+
         <textarea
           className="w-full p-2 border border-gray-300 rounded text-xs bg-white resize-y min-h-[100px]
                      text-black focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-200"
@@ -81,11 +81,12 @@ export default function AiInputBox() {
       </button>
 
 
-      {/* --- AI入力エリア --- */}
+      {/* --- AI入力 --- */}
       <div className="mt-4">
         <label className="text-xs font-bold text-gray-700 block mb-1">
           AIに送信するテキスト
         </label>
+
         <textarea
           className="w-full h-24 p-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
           value={aiText}
@@ -95,9 +96,12 @@ export default function AiInputBox() {
       </div>
 
 
-      {/* --- DB保存済みメモ（専門支援内容） --- */}
+      {/* --- DB保存済みメモ --- */}
       <div className="mt-4">
-        <h4 className="text-xs font-bold text-gray-700 mb-2">保存済みメモ（専門支援内容 / DB）</h4>
+        <h4 className="text-xs font-bold text-gray-700 mb-2">
+          保存済みメモ（専門支援内容 / DB）
+        </h4>
+
         <div className="text-xs leading-relaxed text-black whitespace-pre-wrap break-words p-2 bg-white border border-gray-200 rounded min-h-[100px]">
           {dbNote || "メモがありません"}
         </div>
