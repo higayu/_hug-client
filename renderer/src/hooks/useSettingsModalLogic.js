@@ -1,3 +1,4 @@
+// renderer/src/hooks/useSettingsModalLogic.js
 import { useEffect, useRef, useCallback, useState } from 'react'
 import { useIniState } from '../contexts/IniStateContext.jsx'
 import { useCustomButtons } from '../contexts/CustomButtonsContext.jsx'
@@ -14,6 +15,7 @@ import { getJoinedStaffFacilityData } from "../sql/staff_facility_v/staffDispatc
 import { sqliteApi } from "../sql/sqliteApi.js";
 import { mariadbApi } from "../sql/mariadbApi.js";
 
+// 設定モーダルの初期化と設定の保存
 export function useSettingsModalLogic(isOpen) {
   const { showSuccessToast, showErrorToast } = useToast()
   const { appState, updateAppState } = useAppState()
@@ -103,6 +105,9 @@ export function useSettingsModalLogic(isOpen) {
 
     const configPassword = document.getElementById('config-password')
     if (configPassword) configPassword.value = appState.HUG_PASSWORD || ''
+
+    const configGemini = document.getElementById('config-gemini')
+    if (configGemini) configGemini.value = appState.GEMINI_API_KEY || ''
 
     // API設定 (ini.json)
     const apiBaseUrl = document.getElementById('api-base-url')
@@ -269,7 +274,8 @@ export function useSettingsModalLogic(isOpen) {
     try {
       const configData = {
         HUG_USERNAME: document.getElementById('config-username')?.value || '',
-        HUG_PASSWORD: document.getElementById('config-password')?.value || ''
+        HUG_PASSWORD: document.getElementById('config-password')?.value || '',
+        GEMINI_API_KEY: document.getElementById('config-gemini')?.value || ''
       }
 
       // AppStateを更新（Context APIとwindow.AppStateの両方を更新）

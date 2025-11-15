@@ -55,6 +55,9 @@ const appStateSlice = createSlice({
     setHugPassword: (state, action) => {
       state.HUG_PASSWORD = action.payload || ""
     },
+    setGeminiApiKey: (state, action) => {
+      state.GEMINI_API_KEY = action.payload || ""
+    },
     
     // 施設IDを設定
     setFacilityId: (state, action) => {
@@ -141,6 +144,7 @@ const appStateSlice = createSlice({
       // 認証情報
       if (updates.HUG_USERNAME !== undefined) state.HUG_USERNAME = updates.HUG_USERNAME
       if (updates.HUG_PASSWORD !== undefined) state.HUG_PASSWORD = updates.HUG_PASSWORD
+      if (updates.GEMINI_API_KEY !== undefined) state.GEMINI_API_KEY = updates.GEMINI_API_KEY
       if (updates.VITE_API_BASE_URL !== undefined) state.VITE_API_BASE_URL = updates.VITE_API_BASE_URL
       // ID・日付・選択状態
       if (updates.STAFF_ID !== undefined) {
@@ -192,6 +196,7 @@ const appStateSlice = createSlice({
 export const {
   setHugUsername,
   setHugPassword,
+  setGeminiApiKey,
   setFacilityId,
   setStaffId,
   setDateStr,
@@ -216,6 +221,7 @@ export const {
 export const selectHugUsername = (state) => state.appState.HUG_USERNAME
 export const selectHugPassword = (state) => state.appState.HUG_PASSWORD
 export const selectGeminiApiKey = (state) => state.appState.GEMINI_API_KEY
+export const selectViteApiBaseUrl = (state) => state.appState.VITE_API_BASE_URL
 export const selectStaffId = (state) => state.appState.STAFF_ID
 export const selectFacilityId = (state) => state.appState.FACILITY_ID
 export const selectDateStr = (state) => state.appState.DATE_STR

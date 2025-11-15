@@ -13,6 +13,7 @@ function handleConfigAccess(ipcMain) {
         const defaultConfig = {
           HUG_USERNAME: "",
           HUG_PASSWORD: "",
+          GEMINI_API_KEY: "",
         };
 
         const dir = path.dirname(filePath);

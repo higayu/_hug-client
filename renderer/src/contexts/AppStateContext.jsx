@@ -108,10 +108,10 @@ export function AppStateProvider({ children }) {
           if (configData.HUG_PASSWORD !== undefined) {
             mergedData.HUG_PASSWORD = configData.HUG_PASSWORD
           }
-          // VITE_API_BASE_URLも必要に応じて取得
-          if (configData.VITE_API_BASE_URL !== undefined) {
-            mergedData.VITE_API_BASE_URL = configData.VITE_API_BASE_URL
-          }
+          // // VITE_API_BASE_URLも必要に応じて取得
+          // if (configData.VITE_API_BASE_URL !== undefined) {
+          //   mergedData.VITE_API_BASE_URL = configData.VITE_API_BASE_URL
+          // }
           if (configData.GEMINI_API_KEY !== undefined) {
             mergedData.GEMINI_API_KEY = configData.GEMINI_API_KEY
           }

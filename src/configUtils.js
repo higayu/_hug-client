@@ -9,7 +9,8 @@ const { getDataPath } = require("./fileUtils");
 function getDefaultConfig() {
   return {
     HUG_USERNAME: "",
-    HUG_PASSWORD: ""
+    HUG_PASSWORD: "",
+    GEMINI_API_KEY: ""
   };
 }
 
