@@ -7,7 +7,7 @@ import { setActiveWebview } from '@/utils/webviewState.js'
 import { getDateString } from '@/utils/dateUtils.js'
 import { createWebview, createTabButton, activateTab, closeTab } from './common/index.js'
 import { addNormalTabAction } from './actions/normal.js'
-import { addPersonalRecordTabAction } from './actions/personalRecord.js'
+import { addPersonalRecordTabAction, addPersonalRecordTabAction2 } from './actions/personalRecord.js'
 import { addProfessionalSupportListAction } from './actions/professionalList.js'
 import { addProfessionalSupportNewAction } from './actions/professionalNew.js'
 
@@ -26,7 +26,7 @@ export function useTabs() {
 
     // 個人記録タブ追加
     const addPersonalRecordTab = useCallback(() => {
-      addPersonalRecordTabAction(appState)
+      addPersonalRecordTabAction2(appState)
     }, [appState])
 
     // 専門的支援一覧タブ追加
