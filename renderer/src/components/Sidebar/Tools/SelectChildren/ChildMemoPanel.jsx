@@ -9,7 +9,6 @@ import { clickEnterButton, clickAbsenceButton, clickExitButton } from '../../../
 function ChildMemoPanel() {
   const { 
     SELECT_CHILD, 
-    SELECT_CHILD_NAME, 
     attendanceData,
     SELECTED_CHILD_COLUMN5,
     SELECTED_CHILD_COLUMN5_HTML,
@@ -22,10 +21,18 @@ function ChildMemoPanel() {
   const { addProfessionalSupportNewTab } = useTabs()
 
   const [selectedChildData, setSelectedChildData] = useState(null)
+  const [isUIEnabled, setIsUIEnabled] = useState(false)
 
   // store への column5/6 保存
   useEffect(() => {
+    console.log("---- ChildMemoPanel: attendanceData 更新 ----")
+    console.log("SELECT_CHILD:", SELECT_CHILD)
+    console.log("attendanceData:", attendanceData)
+
+    // データがない
     if (!SELECT_CHILD || !attendanceData?.data) {
+      console.log("⚠ データなし → UI 無効")
+      setIsUIEnabled(false)
       setSelectedChildColumns({
         column5: null,
         column5Html: null,
@@ -38,6 +45,11 @@ function ChildMemoPanel() {
     const attendanceItem = attendanceData.data.find(
       item => item.children_id === String(SELECT_CHILD)
     )
+
+    console.log("attendanceItem:", attendanceItem)
+    console.log("UI 有効？:", !!attendanceItem)
+
+    setIsUIEnabled(!!attendanceItem)
 
     if (attendanceItem) {
       setSelectedChildColumns({
@@ -63,14 +75,13 @@ function ChildMemoPanel() {
       return
     }
 
-    let child =
+    const child =
       childrenData.find(c => c.children_id === SELECT_CHILD) ||
       waitingChildrenData.find(c => c.children_id === SELECT_CHILD) ||
       experienceChildrenData.find(c => c.children_id === SELECT_CHILD)
 
     setSelectedChildData(child || null)
   }, [SELECT_CHILD, childrenData, waitingChildrenData, experienceChildrenData])
-
 
   // 表示されていない場合
   if (!SELECT_CHILD || !selectedChildData) {
@@ -89,7 +100,6 @@ function ChildMemoPanel() {
   const column6Html = SELECTED_CHILD_COLUMN6_HTML
 
   const isTimeFormat = (value) => /^\d{2}:\d{2}$/.test(value || "")
-
   const hasBothEnterAndAbsent = (value) => {
     const v = (value || "").replace(/\s+/g, " ")
     return v.includes("入室") && v.includes("欠席")
@@ -110,21 +120,32 @@ function ChildMemoPanel() {
         )}
       </div>
 
-
       {/* 入退室 UI */}
-      <div className="mb-4 pb-4 border-b border-gray-300">
-
+      <div
+        className="mb-4 pb-4 border-b border-gray-300"
+        style={{
+          pointerEvents: isUIEnabled ? "auto" : "none",
+          opacity: isUIEnabled ? 1 : 0.5,
+          transition: "opacity 0.2s"
+        }}
+      >
         {column5 === "欠席" ? (
           <div className="text-xs font-bold text-red-600 mb-3">欠席</div>
         ) : hasBothEnterAndAbsent(column5) ? (
           <>
-            {/* 入室 */}
-            <button className="btn-blue" onClick={() => clickEnterButton(column5Html)}>
+            <button
+              className="btn-blue"
+              onClick={() => clickEnterButton(column5Html)}
+              disabled={!isUIEnabled}
+            >
               入室
             </button>
 
-            {/* 欠席 */}
-            <button className="btn-red mt-4" onClick={() => clickAbsenceButton(column5Html)}>
+            <button
+              className="btn-red mt-4"
+              onClick={() => clickAbsenceButton(column5Html)}
+              disabled={!isUIEnabled}
+            >
               欠席
             </button>
           </>
@@ -135,24 +156,40 @@ function ChildMemoPanel() {
             {isTimeFormat(column6) ? (
               <div dangerouslySetInnerHTML={{ __html: column6Html }} />
             ) : (
-              <button className="btn-green mt-4" onClick={() => clickExitButton(column5Html)}>
+              <button
+                className="btn-green mt-4"
+                onClick={() => clickExitButton(column5Html)}
+                disabled={!isUIEnabled}
+              >
                 退室
               </button>
             )}
 
             {isTimeFormat(column5) && isTimeFormat(column6) && (
-              <button className="btn-purple" onClick={addProfessionalSupportNewTab}>
+              <button
+                className="btn-purple"
+                onClick={addProfessionalSupportNewTab}
+                disabled={!isUIEnabled}
+              >
                 専門的支援
               </button>
             )}
           </>
         ) : (
           <>
-            <button className="btn-blue" onClick={() => clickEnterButton(column5Html)}>
+            <button
+              className="btn-blue"
+              onClick={() => clickEnterButton(column5Html)}
+              disabled={!isUIEnabled}
+            >
               入室
             </button>
 
-            <button className="btn-green" onClick={() => clickExitButton(column5Html)}>
+            <button
+              className="btn-green"
+              onClick={() => clickExitButton(column5Html)}
+              disabled={!isUIEnabled}
+            >
               退出
             </button>
           </>
@@ -162,8 +199,8 @@ function ChildMemoPanel() {
         <div className="mt-4 border-t border-gray-300 pt-3">
           <MemoContainer />
         </div>
-
       </div>
+
     </div>
   )
 }

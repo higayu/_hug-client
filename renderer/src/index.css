@@ -96,4 +96,13 @@ body {
   .btn-purple {
     @apply bg-purple-500 hover:bg-purple-600 text-white text-xs font-bold px-3 py-1 rounded shadow-sm inline-block;
   }
+
+  button:disabled {
+    background-color: #cccccc !important;
+    color: #666 !important;
+    border-color: #aaa !important;
+    opacity: 1 !important;
+    cursor: not-allowed !important;
+  }
+  
 }
