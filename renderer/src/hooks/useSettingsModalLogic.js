@@ -23,7 +23,6 @@ export function useSettingsModalLogic(isOpen) {
   const { saveCustomButtons: saveCustomButtonsContext } = useCustomButtons()
   const { reloadCustomButtons } = useCustomButtonManager()
   const originalSettingsRef = useRef(null)
-  const [activeApi, setActiveApi] = useState(sqliteApi);
   // モーダルが開かれた時に元の設定をバックアップ
   useEffect(() => {
     if (isOpen && !originalSettingsRef.current) {
@@ -123,9 +122,13 @@ export function useSettingsModalLogic(isOpen) {
     if (apiDatabaseType) apiDatabaseType.value = iniState?.apiSettings?.databaseType || 'sqlite'
 
     const apiAiType = document.getElementById('api-ai-type')
-    if (apiAiType) apiAiType.value = iniState?.apiSettings?.useAI || 'gemini'
+    if (apiAiType) {
+      apiAiType.value = iniState?.apiSettings?.useAI || 'gemini'
+      console.log('🔍 [SettingsModal] apiAiType:', apiAiType.value)
+    } else {
+      console.warn('⚠️ [SettingsModal] api-ai-type 要素が見つかりません')
+    }
     
-    console.log('🔍 [SettingsModal] apiAiType:', apiAiType.value)
     console.log('✅ [SettingsModal] フォームに値を設定しました')
   }, [appState, iniState])
 
@@ -192,6 +195,26 @@ export function useSettingsModalLogic(isOpen) {
 
     const windowAlwaysOnTop = document.getElementById('window-always-on-top')
     if (windowAlwaysOnTop) newIniState.appSettings.window.alwaysOnTop = windowAlwaysOnTop.checked
+    
+    // API設定 (ini.json)
+    if (!newIniState.apiSettings) {
+      newIniState.apiSettings = {}
+    }
+    
+    const apiBaseUrl = document.getElementById('api-base-url')
+    if (apiBaseUrl) newIniState.apiSettings.baseURL = apiBaseUrl.value || ''
+    
+    const apiStaffId = document.getElementById('api-staff-id')
+    if (apiStaffId) newIniState.apiSettings.staffId = apiStaffId.value || ''
+    
+    const apiFacilityId = document.getElementById('api-facility-id')
+    if (apiFacilityId) newIniState.apiSettings.facilityId = apiFacilityId.value || ''
+    
+    const apiDatabaseType = document.getElementById('api-database-type')
+    if (apiDatabaseType) newIniState.apiSettings.databaseType = apiDatabaseType.value || 'sqlite'
+    
+    const apiAiType = document.getElementById('api-ai-type')
+    if (apiAiType) newIniState.apiSettings.useAI = apiAiType.value || 'gemini'
     
     // 状態を更新
     setIniState(newIniState)
@@ -420,12 +443,67 @@ export function useSettingsModalLogic(isOpen) {
       const staffSelect = document.getElementById("api-staff-id");
       const facilitySelect = document.getElementById("api-facility-id");
       const aiSelect = document.getElementById("api-ai-type");
-      console.log("📌 activeApi:", activeApi);
+      
+      // activeApiを取得（appStateから、またはiniStateのdatabaseTypeに基づいて）
+      const apiToUse = appState?.activeApi || (iniState?.apiSettings?.databaseType === 'mariadb' ? mariadbApi : sqliteApi);
+      console.log("📌 activeApi:", apiToUse === mariadbApi ? 'mariadbApi' : 'sqliteApi');
   
-      // データ取得
-      const data = getJoinedStaffFacilityData();
-      console.log("📊 取得データ:", data);
+      // まずReduxストアからデータを取得
+      let data = getJoinedStaffFacilityData();
+      console.log("📊 Reduxストアから取得データ:", data);
   
+      // Reduxストアにデータがない場合は、データベースから直接取得
+      if (!data || !Array.isArray(data) || data.length === 0) {
+        console.log("⚠️ Reduxストアにデータがないため、データベースから直接取得します");
+        
+        try {
+          // activeApiを使ってデータベースから全テーブルを取得
+          const tables = await apiToUse.getAllTables();
+          console.log("📊 データベースから取得したテーブル:", tables);
+          
+          if (tables && (tables.staffs || tables.facility_staff || tables.facilitys)) {
+            // getJoinedStaffFacilityDataと同じ処理を実行
+            const staffs = tables.staffs || [];
+            const facilityStaff = tables.facility_staff || [];
+            const facilitys = tables.facilitys || [];
+            
+            console.log("🧾 データ確認:", { staffs, facilityStaff, facilitys });
+            
+            // スタッフごとの施設情報をまとめる
+            data = staffs
+              .filter((s) => s.id !== -1 && s.is_delete !== 1)
+              .map((s) => {
+                const relatedFs = facilityStaff.filter((fs) => fs.staff_id === s.id);
+                const relatedFacilities = relatedFs
+                  .map((fs) => facilitys.find((f) => f.id === fs.facility_id))
+                  .filter(Boolean);
+                
+                const facility_ids = relatedFacilities.map((f) => f.id).join(",");
+                const facility_names = relatedFacilities.map((f) => f.name).join(", ");
+                
+                return {
+                  staff_id: s.id,
+                  staff_name: s.name,
+                  notes: s.notes,
+                  is_delete: s.is_delete,
+                  facility_ids,
+                  facility_names,
+                };
+              });
+            
+            console.log("✅ データベースから結合結果:", data);
+          } else {
+            console.warn("⚠️ テーブルデータが取得できませんでした");
+            console.groupEnd();
+            return;
+          }
+        } catch (error) {
+          console.error("❌ データベースからの取得エラー:", error);
+          console.groupEnd();
+          return;
+        }
+      }
+      
       if (!data || !Array.isArray(data) || data.length === 0) {
         console.warn("⚠️ データが取得できませんでした");
         console.groupEnd();
@@ -507,7 +585,7 @@ export function useSettingsModalLogic(isOpen) {
       console.error("❌ [SettingsModal] APIセレクトボックス初期化エラー:", error);
       console.groupEnd();
     }
-  }, [iniState, activeApi]);
+  }, [iniState, appState]);
   
 
 

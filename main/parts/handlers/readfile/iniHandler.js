@@ -19,9 +19,7 @@ function handleIniAccess(ipcMain) {
           version: "1.0.0",
           appSettings: {
             autoLogin: {
-              enabled: true,
-              username: "",
-              password: "",
+              enabled: true
             },
             ui: {
               theme: "light",
