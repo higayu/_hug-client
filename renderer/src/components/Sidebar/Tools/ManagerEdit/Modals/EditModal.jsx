@@ -84,8 +84,18 @@ export default function EditModal({ open, onClose, manager, onConfirm }) {
           </div>
 
           <div className="mt-6 flex gap-3 justify-end">
-            <button variant="outline" onClick={onClose}>キャンセル</button>
-            <button onClick={handleSubmit}>保存</button>
+            <button 
+              className="px-4 py-2 rounded-md text-sm text-gray-700 border border-gray-300"
+              onClick={onClose}
+            >
+              キャンセル
+            </button>
+            <button 
+              className="px-4 py-2 rounded-md text-sm text-white bg-blue-500"
+              onClick={handleSubmit}
+            >
+              保存
+            </button>
           </div>
         </div>
       </div>

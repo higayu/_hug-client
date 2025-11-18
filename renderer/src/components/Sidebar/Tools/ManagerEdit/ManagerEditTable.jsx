@@ -5,6 +5,8 @@ import { managers_v } from "@/sql/useManager/getManager/managers_v.js";
 import EditModal from "./Modals/EditModal.jsx";
 import DeleteModal from "./Modals/DeleteModal.jsx";
 import { useAppState } from "@/contexts/AppStateContext.jsx";
+import { insertManager } from "@/sql/useManager/insertManager/insertManager.js";
+import {store} from '@/store/store.js'
 
 const MODAL_COMPONENTS = {
   edit: EditModal,
@@ -21,7 +23,9 @@ export default function ManagerEditTable() {
   });
 
   const [selectedManager, setSelectedManager] = useState(null);
-  const { STAFF_ID } = useAppState();
+  const childrenData = store.getState().database.children;
+  const managersData = store.getState().database.managers;
+  const { STAFF_ID, WEEK_DAY, FACILITY_ID, appState } = useAppState();
 
   const handleDelete = (manager) => {
     setSelectedManager(manager);
@@ -33,9 +37,19 @@ export default function ManagerEditTable() {
     setModal({ open: true, mode: "edit" });
   };
 
-  const handleConfirm = () => {
+  const handleConfirm = async (updatedManager) => {
+    console.log("保存をクリック", updatedManager);
+    await insertManager(updatedManager, {
+        childrenData,
+        managersData,
+        activeApi: appState.activeApi,
+        FACILITY_ID,
+        STAFF_ID,
+        WEEK_DAY,
+      });
     setModal((prev) => ({ ...prev, open: false }));
   };
+  
 
   const handleClose = () => {
     setModal((prev) => ({ ...prev, open: false }));

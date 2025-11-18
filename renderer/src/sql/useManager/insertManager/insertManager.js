@@ -17,7 +17,11 @@ export async function insertManager(
   }
 ) {
   console.log("===== insertManager START =====");
-  console.log("選択された児童数:", selectedChildren.length);
+    // 単一オブジェクトなら配列に変換
+    const childrenList = Array.isArray(selectedChildren)
+    ? selectedChildren
+    : [selectedChildren];
+  console.log("選択された児童数:", childrenList.length);
   console.log("activeApi:", activeApi);
   console.log("FACILITY_ID:", FACILITY_ID, "STAFF_ID:", STAFF_ID, "WEEK_DAY:", WEEK_DAY);
 
@@ -27,7 +31,7 @@ export async function insertManager(
     return;
   }
 
-  for (const child of selectedChildren) {
+  for (const child of childrenList) {
     console.log("-------------------------------------------");
     console.log("▶ 児童処理開始:", child.children_id, child.children_name);
 

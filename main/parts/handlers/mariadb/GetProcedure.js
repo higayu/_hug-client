@@ -28,9 +28,3 @@ async function insert_manager_p(data) {
 module.exports = {
   insert_manager_p,
 };
-
-
-
-module.exports = {
-  insert_manager_p,
-};
