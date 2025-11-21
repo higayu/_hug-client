@@ -1,6 +1,6 @@
 // renderer/src/sql/useManager/insertManager/parts/mariadb.js
 
-export async function handleMariaDBInsert(
+export async function handleMariaDBUpdate(
   child,
   {
     childrenData,
@@ -10,7 +10,7 @@ export async function handleMariaDBInsert(
     WEEK_DAY,
   }
 ) {
-  console.log("====== MariaDB: handleMariaDBInsert START ======");
+  console.log("====== MariaDB: handleMariaDBUpdate START ======");
   console.log("処理する児童:", child);
 
 
@@ -23,5 +23,5 @@ export async function handleMariaDBInsert(
     console.error("❌ MariaDB: insert_manager_p エラー:", error);
   }
 
-  console.log("====== MariaDB: handleMariaDBInsert END ======");
+  console.log("====== MariaDB: handleMariaDBUpdate END ======");
 }

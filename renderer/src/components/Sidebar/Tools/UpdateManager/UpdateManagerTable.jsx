@@ -1,11 +1,11 @@
-// renderer/src/components/Sidebar/Tools/ManagerEdit/ManagerEditTable.jsx
+// renderer/src/components/Sidebar/Tools/UpdateManager/UpdateManagerTable.jsx
 import { useSelector } from "react-redux";
 import { useEffect, useState } from "react";
 import { managers_v } from "@/sql/useManager/getManager/managers_v.js";
 import EditModal from "./Modals/EditModal.jsx";
 import DeleteModal from "./Modals/DeleteModal.jsx";
 import { useAppState } from "@/contexts/AppStateContext.jsx";
-import { insertManager } from "@/sql/useManager/insertManager/insertManager.js";
+import { updateManager } from "@/sql/useManager/updateManager/updateManager.js";
 import {store} from '@/store/store.js'
 
 const MODAL_COMPONENTS = {
@@ -13,7 +13,7 @@ const MODAL_COMPONENTS = {
   delete: DeleteModal,
 };
 
-export default function ManagerEditTable() {
+export default function UpdateManagerTable() {
   const database = useSelector((state) => state.database);
   const [managers, setManagers] = useState([]);
 
@@ -39,7 +39,7 @@ export default function ManagerEditTable() {
 
   const handleConfirm = async (updatedManager) => {
     console.log("保存をクリック", updatedManager);
-    await insertManager(updatedManager, {
+    await updateManager(updatedManager, {
         childrenData,
         managersData,
         activeApi: appState.activeApi,

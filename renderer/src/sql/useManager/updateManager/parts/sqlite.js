@@ -1,7 +1,7 @@
 // renderer/src/sql/useManager/insertManager/parts/sqlite.js
 
 
-export async function handleSQLiteInsert(
+export async function handleSQLiteUpdate(
   child,
   {
     childrenData,
@@ -12,7 +12,7 @@ export async function handleSQLiteInsert(
   }
 ) {
 
-  console.log("====== SQLite: handleSQLiteInsert START ======");
+  console.log("====== SQLite: handleSQLiteUpdate START ======");
   console.log("処理する児童:", child);
   console.log("FACILITY_ID:", FACILITY_ID, "STAFF_ID:", STAFF_ID, "WEEK_DAY:", WEEK_DAY);
 
@@ -131,5 +131,5 @@ export async function handleSQLiteInsert(
     }
   }
 
-  console.log("====== SQLite: handleSQLiteInsert END ======");
+  console.log("====== SQLite: handleSQLiteUpdate END ======");
 }
