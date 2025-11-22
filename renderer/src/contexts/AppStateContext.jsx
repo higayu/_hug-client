@@ -61,6 +61,9 @@ export function AppStateProvider({ children }) {
   const [activeApi, setActiveApi] = useState(null)
   // ⚠️ 初期化が完了したかどうかを追跡
   const [isInitialized, setIsInitialized] = useState(false)
+
+  const [activeSidebarTab, setActiveSidebarTab ] = useState("tools");
+
   
   // 個別のセレクター（後方互換性のため）
   const reduxHugUsername = useSelector(selectHugUsername)
@@ -324,7 +327,10 @@ export function AppStateProvider({ children }) {
         STAFF_DATA: reduxStaffData,
         FACILITY_DATA: reduxFacilityData,
         STAFF_AND_FACILITY_DATA: reduxStaffAndFacilityData,
-        attendanceData: reduxAttendanceData
+        attendanceData: reduxAttendanceData,
+
+        activeSidebarTab, // ★ 追加：Sidebar タブ状態
+        setActiveSidebarTab,
       }}
     >
       {children}

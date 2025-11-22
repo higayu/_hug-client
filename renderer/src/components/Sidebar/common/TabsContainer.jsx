@@ -4,10 +4,12 @@ import ToolContent from '../Tools/SelectChildren/ToolContent.jsx'
 import SQLManager from '../Tools/SQLManager/index.jsx'
 import ChildrenTable from '../Tools/InsertManageChildren/index.jsx'
 import UpdateManager from '../Tools/UpdateManager/index.jsx'
+import { useAppState } from '@/contexts/AppStateContext.jsx'
 
 function TabsContainer() {
   // デフォルトでツールタブを開く
-  const [activeTab, setActiveTab] = useState('tools')
+  const { activeSidebarTab: activeTab, setActiveSidebarTab: setActiveTab } = useAppState();
+
 
   const tabs = [
     { id: 'tools', label: '🧰 ツール' },
