@@ -25,6 +25,25 @@ async function insert_manager_p(data) {
   }
 }
 
+async function update_manager_p(data) {
+  try {
+
+    const params = [
+      data.child_id,
+      data.staff_id,
+      data.day_of_week,   // ← JSON文字列でOK
+    ];
+
+    const result = await apiClient.callProcedure("update_manager", params);
+    return result;
+
+  } catch (error) {
+    throw error;
+  }
+}
+
+
 module.exports = {
   insert_manager_p,
+  update_manager_p,
 };

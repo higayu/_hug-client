@@ -1,11 +1,11 @@
 // renderer/src/sql/useManager/insertManager/insertManager.js
 
-import { handleSQLiteInsert } from "./parts/sqlite.js";
-import { handleMariaDBInsert } from "./parts/mariadb.js";
+import { handleSQLiteUpdate } from "./parts/sqlite.js";
+import { handleMariaDBUpdate } from "./parts/mariadb.js";
 import { mariadbApi } from "@/sql/mariadbApi.js";
 import { sqliteApi } from "@/sql/sqliteApi.js";
 
-export async function insertManager(
+export async function updateManager(
   selectedChildren,
   {
     childrenData,
@@ -16,7 +16,7 @@ export async function insertManager(
     WEEK_DAY,
   }
 ) {
-  console.log("===== insertManager START =====");
+  console.log("===== updateManager START =====");
     // 単一オブジェクトなら配列に変換
     const childrenList = Array.isArray(selectedChildren)
     ? selectedChildren
@@ -27,7 +27,7 @@ export async function insertManager(
 
   if (!activeApi) {
     console.warn("⚠️ activeApi が設定されていません");
-    console.log("===== insertManager END (error: no activeApi) =====");
+    console.log("===== updateManager END (error: no activeApi) =====");
     return;
   }
 
@@ -37,7 +37,7 @@ export async function insertManager(
 
     if (activeApi === sqliteApi) {
       console.log("→ 使用DB: SQLite");
-      await handleSQLiteInsert(child, {
+      await handleSQLiteUpdate(child, {
         childrenData,
         managersData,
         FACILITY_ID,
@@ -48,7 +48,7 @@ export async function insertManager(
 
     } else if (activeApi === mariadbApi) {
       console.log("→ 使用DB: MariaDB");
-      await handleMariaDBInsert(child, {
+      await handleMariaDBUpdate(child, {
         childrenData,
         managersData,
         FACILITY_ID,
@@ -66,5 +66,5 @@ export async function insertManager(
     console.log("-------------------------------------------");
   }
 
-  console.log("===== insertManager END =====");
+  console.log("===== updateManager END =====");
 }
