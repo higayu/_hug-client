@@ -6,7 +6,7 @@ import EditModal from "./Modals/EditModal.jsx";
 import DeleteModal from "./Modals/DeleteModal.jsx";
 import { useAppState } from "@/contexts/AppStateContext.jsx";
 import { updateManager } from "@/sql/useManager/updateManager/updateManager.js";
-import {store} from '@/store/store.js'
+import { store } from "@/store/store.js";
 
 const MODAL_COMPONENTS = {
   edit: EditModal,
@@ -15,16 +15,19 @@ const MODAL_COMPONENTS = {
 
 export default function UpdateManagerTable() {
   const database = useSelector((state) => state.database);
+
+  // 🔥 day_of_week テーブルを取得（label_jp, id, sort_order）
+  const dayOfWeekMaster = useSelector(
+    (state) => state.database?.day_of_week ?? []
+  );
+
   const [managers, setManagers] = useState([]);
-
-  const [modal, setModal] = useState({
-    open: false,
-    mode: "edit", // "edit" | "delete"
-  });
-
+  const [modal, setModal] = useState({ open: false, mode: "edit" });
   const [selectedManager, setSelectedManager] = useState(null);
+
   const childrenData = store.getState().database.children;
   const managersData = store.getState().database.managers;
+
   const { STAFF_ID, WEEK_DAY, FACILITY_ID, appState } = useAppState();
 
   const handleDelete = (manager) => {
@@ -39,51 +42,51 @@ export default function UpdateManagerTable() {
 
   const handleConfirm = async (updatedManager) => {
     console.log("保存をクリック", updatedManager);
+
     await updateManager(updatedManager, {
-        childrenData,
-        managersData,
-        activeApi: appState.activeApi,
-        FACILITY_ID,
-        STAFF_ID,
-        WEEK_DAY,
-      });
+      childrenData,
+      managersData,
+      activeApi: appState.activeApi,
+      FACILITY_ID,
+      STAFF_ID,
+      WEEK_DAY,
+    });
+
     setModal((prev) => ({ ...prev, open: false }));
   };
-  
 
   const handleClose = () => {
     setModal((prev) => ({ ...prev, open: false }));
   };
 
-  useEffect(() => {
-    async function load() {
-      const data = await managers_v({ tables: database, staffId: STAFF_ID });
-      setManagers(data);
-    }
-    load();
-  }, [database]);
-
+  // ------------------------------------------
+  // 🔥 曜日パース（ID配列にして返す）
+  // ------------------------------------------
   const parseDays = (dayStr) => {
     if (!dayStr) return [];
 
     try {
-      const trimmed = String(dayStr).trim();
+      const s = String(dayStr).trim();
 
-      if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
-        const obj = JSON.parse(trimmed);
+      // JSON形式 {"days":[1,3,5]}
+      if (s.startsWith("{") && s.endsWith("}")) {
+        const obj = JSON.parse(s);
         if (obj && Array.isArray(obj.days)) return obj.days;
       }
 
-      return trimmed
+      // 文字列などその他形式 → 数字へ変換
+      return s
         .replace(/[\[\]"'{}]/g, " ")
         .trim()
         .split(/\s+|,/)
-        .filter(Boolean);
+        .map((v) => Number(v))
+        .filter((n) => !Number.isNaN(n));
     } catch {
       return [];
     }
   };
 
+  // 色はそのまま(label_jp 用)
   const dayColor = {
     月: "bg-red-100 text-red-700 border-red-300",
     火: "bg-orange-100 text-orange-700 border-orange-300",
@@ -94,7 +97,14 @@ export default function UpdateManagerTable() {
     日: "bg-pink-100 text-pink-700 border-pink-300",
   };
 
-  // ← 動的モーダル
+  useEffect(() => {
+    async function load() {
+      const data = await managers_v({ tables: database, staffId: STAFF_ID });
+      setManagers(data);
+    }
+    load();
+  }, [database]);
+
   const DynamicModal = MODAL_COMPONENTS[modal.mode];
 
   return (
@@ -115,60 +125,70 @@ export default function UpdateManagerTable() {
           </thead>
 
           <tbody>
-            {managers.map((m, index) => (
-              <tr key={index}>
-                <td className="border px-4 py-2">
-                  <button
-                    className="bg-red-500 text-xs text-white p-2 rounded-md"
-                    onClick={() => handleDelete(m)}
-                  >
-                    削除
-                  </button>
-                </td>
+            {managers.map((m, index) => {
+              // 🔥 m.day_of_week → [1,3,5]（曜日ID）
+              const dayIds = parseDays(m.day_of_week);
 
-                <td className="border px-4 py-2 text-xs">{m.children_id}</td>
-                <td className="border px-4 py-2 text-xs">{m.children_name}</td>
-                <td className="border px-4 py-2 text-xs">{m.staff_name}</td>
+              return (
+                <tr key={index}>
+                  <td className="border px-4 py-2">
+                    <button
+                      className="bg-red-500 text-xs text-white p-2 rounded-md"
+                      onClick={() => handleDelete(m)}
+                    >
+                      削除
+                    </button>
+                  </td>
 
-                <td className="border px-4 py-2">
-                  <div className="flex flex-wrap gap-1">
-                    {parseDays(m.day_of_week).map((day, i) => (
-                      <span
-                        key={i}
-                        className={`p-2 text-xs rounded-xl font-semibold border ${
-                          dayColor[day] ||
-                          "bg-gray-100 text-gray-700 border-gray-300"
-                        }`}
-                      >
-                        {day}
-                      </span>
-                    ))}
-                  </div>
-                </td>
+                  <td className="border px-4 py-2 text-xs">{m.children_id}</td>
+                  <td className="border px-4 py-2 text-xs">{m.children_name}</td>
+                  <td className="border px-4 py-2 text-xs">{m.staff_name}</td>
 
-                <td className="border px-4 py-2">
-                  <button
-                    className="bg-blue-500 text-xs text-white p-2 rounded-md"
-                    onClick={() => handleEdit(m)}
-                  >
-                    編集
-                  </button>
-                </td>
-              </tr>
-            ))}
+                  {/* 🔥 曜日表示（ID → label_jp） */}
+                  <td className="border px-4 py-2">
+                    <div className="flex flex-wrap gap-1">
+                      {dayIds.map((id) => {
+                        const w = dayOfWeekMaster.find((d) => d.id === id);
+                        const label = w?.label_jp || "？";
+
+                        return (
+                          <span
+                            key={id}
+                            className={`p-2 text-xs rounded-xl font-semibold border ${
+                              dayColor[label] ||
+                              "bg-gray-100 text-gray-700 border-gray-300"
+                            }`}
+                          >
+                            {label}
+                          </span>
+                        );
+                      })}
+                    </div>
+                  </td>
+
+                  <td className="border px-4 py-2">
+                    <button
+                      className="bg-blue-500 text-xs text-white p-2 rounded-md"
+                      onClick={() => handleEdit(m)}
+                    >
+                      編集
+                    </button>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
 
       {/* --- 動的モーダル --- */}
       {modal.open && DynamicModal && (
-<DynamicModal
-  open={modal.open}
-  manager={selectedManager}
-  onClose={handleClose}
-  onConfirm={handleConfirm}
-/>
-
+        <DynamicModal
+          open={modal.open}
+          manager={selectedManager}
+          onClose={handleClose}
+          onConfirm={handleConfirm}
+        />
       )}
     </div>
   );

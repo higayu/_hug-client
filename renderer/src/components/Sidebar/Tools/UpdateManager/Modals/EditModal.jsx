@@ -1,30 +1,41 @@
-
+// renderer\src\components\Sidebar\Tools\UpdateManager\Modals\EditModal.jsx
 import { useState, useEffect } from "react";
-
+import { useSelector } from "react-redux";
 
 export default function EditModal({ open, onClose, manager, onConfirm }) {
   const [childrenId, setChildrenId] = useState("");
   const [childrenName, setChildrenName] = useState("");
   const [staffName, setStaffName] = useState("");
-  const [days, setDays] = useState([]);
+  const [days, setDays] = useState([]); // ← ID配列
 
-  const dayOptions = ["月", "火", "水", "木", "金", "土", "日"];
+  // 🔥 DB の曜日マスタ
+  const dayOfWeekMaster = useSelector(
+    (state) => state.database?.day_of_week ?? []
+  );
 
   useEffect(() => {
     if (manager) {
       setChildrenId(manager.children_id || "");
       setChildrenName(manager.children_name || "");
       setStaffName(manager.staff_name || "");
-      setDays(manager.day_of_week ? JSON.parse(manager.day_of_week).days || [] : []);
+
+      try {
+        const parsed = JSON.parse(manager.day_of_week);
+        setDays(Array.isArray(parsed.days) ? parsed.days : []);
+      } catch {
+        setDays([]);
+      }
     }
   }, [manager]);
 
-  const toggleDay = (day) => {
+  // トグル
+  const toggleDay = (id) => {
     setDays((prev) =>
-      prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]
+      prev.includes(id) ? prev.filter((d) => d !== id) : [...prev, id]
     );
   };
 
+  // 保存
   const handleSubmit = () => {
     const updated = {
       ...manager,
@@ -33,6 +44,7 @@ export default function EditModal({ open, onClose, manager, onConfirm }) {
       staff_name: staffName,
       day_of_week: JSON.stringify({ days }),
     };
+
     onConfirm(updated);
   };
 
@@ -66,31 +78,36 @@ export default function EditModal({ open, onClose, manager, onConfirm }) {
 
             <label className="text-sm font-semibold">曜日</label>
             <div className="flex gap-2 flex-wrap">
-              {dayOptions.map((day) => (
-                <button
-                  key={day}
-                  type="button"
-                  onClick={() => toggleDay(day)}
-                  className={`px-3 py-1 text-xs rounded-full border font-semibold ${
-                    days.includes(day)
-                      ? "bg-blue-500 text-white"
-                      : "bg-gray-100"
-                  }`}
-                >
-                  {day}
-                </button>
-              ))}
+
+              {/* 🔥 ここが修正点：sortする前にコピー */}
+              {[...dayOfWeekMaster]
+                .sort((a, b) => a.sort_order - b.sort_order)
+                .map((d) => (
+                  <button
+                    key={d.id}
+                    type="button"
+                    onClick={() => toggleDay(d.id)}
+                    className={`px-3 py-1 text-xs rounded-full border font-semibold ${
+                      days.includes(d.id)
+                        ? "bg-blue-500 text-white"
+                        : "bg-gray-100 text-gray-700"
+                    }`}
+                  >
+                    {d.label_jp}
+                  </button>
+                ))}
             </div>
           </div>
 
           <div className="mt-6 flex gap-3 justify-end">
-            <button 
+            <button
               className="px-4 py-2 rounded-md text-sm text-gray-700 border border-gray-300"
               onClick={onClose}
             >
               キャンセル
             </button>
-            <button 
+
+            <button
               className="px-4 py-2 rounded-md text-sm text-white bg-blue-500"
               onClick={handleSubmit}
             >
@@ -102,3 +119,4 @@ export default function EditModal({ open, onClose, manager, onConfirm }) {
     )
   );
 }
+
