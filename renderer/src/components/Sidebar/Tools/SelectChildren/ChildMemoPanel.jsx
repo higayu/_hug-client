@@ -4,7 +4,7 @@ import { useAppState } from '@/contexts/AppStateContext.jsx'
 import { useChildrenList } from '@/hooks/useChildrenList.js'
 import { useTabs } from '@/hooks/useTabs/index.js'
 import MemoContainer from './MemoTool/MemoContainer.jsx'
-import { clickEnterButton, clickAbsenceButton, clickExitButton } from '../../../../utils/attendanceButtonClick.js'
+import { clickEnterButton, clickAbsenceButton, clickExitButton } from '@/utils/attendanceButtonClick.js'
 
 function ChildMemoPanel() {
   const { 

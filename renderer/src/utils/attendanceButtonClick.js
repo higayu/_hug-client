@@ -3,9 +3,7 @@
 
 import { getActiveWebview, setActiveWebview } from './webviewState.js'
 import store from '../store/store.js'
-import { createWebview } from '../hooks/useTabs/common/createWebview.js'
-import { createTabButton } from '../hooks/useTabs/common/createTabButton.js'
-import { activateTab, closeTab } from '../hooks/useTabs/common/index.js'
+import { activateHugViewFirstButton } from '../hooks/useTabs/common/index.js'
 
 const FIRST_BUTTON_ID = 'hugview-first-button';
 
@@ -115,99 +113,74 @@ function extractExitButtonOnclick(column6Html) {
 }
 
 /**
- * 新しいタブを作成してURLに移動し、WebViewを返す
- * @returns {Promise<HTMLElement>} 作成されたWebView要素
+ * 専用タブ（hugview）を使用してURLに移動し、WebViewを返す
+ * @returns {Promise<HTMLElement>} 専用タブのWebView要素
  */
-async function createNewTabAndNavigate() {
+async function useDedicatedTabAndNavigate() {
   const state = store.getState()
   const facilityId = state.appState.FACILITY_ID
   const dateStr = state.appState.DATE_STR
-  const closeButtonsVisible = state.appState.closeButtonsVisible
   
   if (!facilityId || !dateStr) {
     throw new Error('FACILITY_IDまたはDATE_STRが設定されていません')
   }
   
-  const tabsContainer = document.getElementById('tabs')
-  const webviewContainer = document.getElementById('webview-container')
+  // 専用タブ（hugview-first-button）を強制的にアクティブにする
+  activateHugViewFirstButton()
   
-  if (!tabsContainer || !webviewContainer) {
-    throw new Error('tabsまたはwebview-container要素が見つかりません')
+  // hugviewのwebviewを取得
+  const hugWebview = document.getElementById('hugview')
+  if (!hugWebview) {
+    throw new Error('hugview webviewが見つかりません')
   }
   
-  // 新しいWebViewを作成
-  const newId = `hugview-attendance-${Date.now()}`
   const url = `https://www.hug-ayumu.link/hug/wm/attendance.php?mode=detail&f_id=${facilityId}&date=${dateStr}`
-  const newWebview = createWebview(newId, url)
   
-  webviewContainer.appendChild(newWebview)
+  // 現在のURLを確認
+  const currentSrc = hugWebview.getURL?.() || ""
   
-  // タブボタンを作成
-  const tabButton = createTabButton(
-    newId,
-    `出勤操作-${tabsContainer.querySelectorAll("button[data-target^='hugview']").length + 1}`,
-    closeButtonsVisible
-  )
-  
-  if (!tabButton) {
-    throw new Error('タブボタンの作成に失敗しました')
-  }
-  
-  const addTabBtn = document.getElementById('add-tab-btn')
-  if (addTabBtn) {
-    tabsContainer.insertBefore(tabButton, addTabBtn)
+  // URLが変更される場合のみ再読み込み
+  if (!currentSrc.includes(url)) {
+    hugWebview.src = url
   } else {
-    tabsContainer.appendChild(tabButton)
+    console.log('⚡ 既に同じURLを読み込み中のため再ロードをスキップ:', currentSrc)
   }
   
-  // タブクリック処理
-  tabButton.addEventListener('click', () => {
-    activateTab(newId)
-  })
+  setActiveWebview(hugWebview)
   
-  // 閉じる処理
-  const closeBtn = tabButton.querySelector('.close-btn')
-  if (closeBtn) {
-    closeBtn.addEventListener('click', (e) => {
-      e.stopPropagation()
-      if (!confirm('このタブを閉じますか？')) return
-      closeTab(newId)
-    })
-  }
-  
-  // タブをアクティブにする
-  activateTab(newId)
+  // dom-ready を確実に待つ
+  await waitForWebviewReady(hugWebview)
   
   // ページが読み込まれるまで待機
-  // WebView が DOM に付くのを待ってからロード完了を待つ
   await new Promise((resolve) => {
-    const waitForDom = () => {
-      if (!newWebview.isConnected) {
-        // DOM へ追加されるのを監視
-        const obs = new MutationObserver(() => {
-          if (newWebview.isConnected) {
-            obs.disconnect();
-            waitForLoad();
-          }
-        });
-        obs.observe(document.body, { childList: true, subtree: true });
-        return;
-      }
-      waitForLoad();
-    };
-
     const waitForLoad = () => {
-      // dom-ready を待つ
-      newWebview.addEventListener('dom-ready', () => {
-        // ページのロード完了を待つ
-        newWebview.addEventListener('did-finish-load', resolve, { once: true });
-      }, { once: true });
-    };
-
-    waitForDom();
-  });
+      // ページのロード完了を待つ
+      hugWebview.addEventListener('did-finish-load', () => {
+        // URLが一致する場合のみ解決
+        const loadedUrl = hugWebview.getURL?.() || ""
+        if (loadedUrl.includes(url)) {
+          resolve()
+        } else {
+          // URLが異なる場合は再度待機
+          waitForLoad()
+        }
+      }, { once: true })
+    }
+    
+    if (hugWebview.isLoading()) {
+      waitForLoad()
+    } else {
+      // 既に読み込み済みの場合も確認
+      const loadedUrl = hugWebview.getURL?.() || ""
+      if (loadedUrl.includes(url)) {
+        resolve()
+      } else {
+        waitForLoad()
+      }
+    }
+  })
   
-  return newWebview
+  return hugWebview
 }
 
 /**
@@ -219,12 +192,8 @@ export async function clickEnterButton(column5Html) {
   let webview = null;
 
   try {
-    console.log('🔘 [ATTENDANCE] 新しいタブを作成して入室ボタンをクリックします');
-    webview = await createNewTabAndNavigate();
-    setActiveWebview(webview);
-
-    // dom-ready を確実に待つ
-    await waitForWebviewReady(webview);
+    console.log('🔘 [ATTENDANCE] 専用タブで入室ボタンをクリックします');
+    webview = await useDedicatedTabAndNavigate();
 
     // 入室ボタンの onclick 抽出
     const onclickCode = extractEnterButtonOnclick(column5Html);
@@ -388,12 +357,8 @@ export async function clickExitButton(column6Html) {
   let webview = null;
 
   try {
-    console.log('🔘 [ATTENDANCE] 新しいタブを作成して退室ボタンをクリックします');
-    webview = await createNewTabAndNavigate();
-    setActiveWebview(webview);
-
-    // dom-ready を確実に待つ
-    await waitForWebviewReady(webview);
+    console.log('🔘 [ATTENDANCE] 専用タブで退室ボタンをクリックします');
+    webview = await useDedicatedTabAndNavigate();
 
     const onclickCode = extractExitButtonOnclick(column6Html);
 
