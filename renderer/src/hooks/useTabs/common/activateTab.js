@@ -36,3 +36,26 @@ export function activateTab(targetId) {
     }
   }
 }
+
+/**
+ * id="hugview-first-button"を持つタブボタンを強制的にアクティブにする関数
+ */
+export function activateHugViewFirstButton() {
+  const hugButton = document.getElementById('hugview-first-button')
+  
+  if (!hugButton) {
+    console.warn('⚠️ hugview-first-button が見つかりません')
+    return
+  }
+
+  // data-target属性からtargetIdを取得
+  const targetId = hugButton.getAttribute('data-target')
+  
+  if (!targetId) {
+    console.warn('⚠️ hugview-first-button に data-target 属性が見つかりません')
+    return
+  }
+
+  // activateTab関数を使用してタブをアクティブにする
+  activateTab(targetId)
+}

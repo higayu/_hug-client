@@ -26,7 +26,7 @@ function Tabs() {
         data-target="hugview" 
         className="active-tab mr-1 px-2.5 py-1 border-none cursor-pointer bg-[#777] text-black rounded font-bold shadow-sm"
       >
-        Hug
+        今日の利用者
       </button>
       {/* 追加ボタンはuseTabsフック内で動的に追加される */}
     </div>

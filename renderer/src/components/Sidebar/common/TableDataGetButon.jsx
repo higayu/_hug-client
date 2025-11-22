@@ -1,10 +1,8 @@
 import React, { useCallback } from "react";
 import { FaTable } from "react-icons/fa";
 import { useDispatch } from "react-redux";
-import { useTabs } from "@/hooks/useTabs";
 import { useAppState } from "@/contexts/AppStateContext.jsx";
-import { createWebview, createTabButton } from "@/hooks/useTabs/common/index.js";
-import { fetchAndExtractAttendanceData } from "@/store/slices/attendanceSlice.js";
+import { activateHugViewFirstButton } from "@/hooks/useTabs/common/index.js";
 import { useToast } from "@/contexts/ToastContext.jsx";
 import { handleAttendancePageLoad } from "@/utils/ToDayChildrenList/attendancePageHandler.js";
 
@@ -14,62 +12,66 @@ import { handleAttendancePageLoad } from "@/utils/ToDayChildrenList/attendancePa
 export default function TableDataGetButton() {
   const dispatch = useDispatch();
   const { appState, updateAppState } = useAppState();
-  const { activateTab, closeTab } = useTabs();
   const { showInfoToast } = useToast();
 
   const handleOpenAttendance = useCallback(async () => {
-    const tabsContainer = document.getElementById("tabs");
-    const webviewContainer = document.getElementById("webview-container");
+    // 専用タブ（hugview-first-button）を強制的にアクティブにする
+    activateHugViewFirstButton();
 
-    if (!tabsContainer || !webviewContainer) {
-      console.error("❌ tabs または webview-container が見つかりません");
-      showInfoToast("タブ領域が見つかりません。");
+    // hugviewのwebviewを取得
+    const hugWebview = document.getElementById("hugview");
+    if (!hugWebview) {
+      console.error("❌ hugview webviewが見つかりません");
+      showInfoToast("専用タブが見つかりません。");
       return;
     }
 
     const facility_id = appState.SELECT_FACILITY_ID || appState.FACILITY_ID || "1";
     const date_str = appState.DATE_STR || new Date().toISOString().slice(0, 10);
 
-    const newId = `attendance-${Date.now()}`;
     const targetUrl = `https://www.hug-ayumu.link/hug/wm/attendance.php?mode=detail&f_id=${facility_id}&date=${date_str}`;
-    console.log("📅 勤怠タブ作成:", targetUrl);
+    console.log("📅 勤怠データ取得:", targetUrl);
 
-    const newWebview = createWebview(newId, targetUrl);
-    webviewContainer.appendChild(newWebview);
-
-    const tabButton = createTabButton(newId, `勤怠表(${date_str})`, appState.closeButtonsVisible);
-    if (!tabButton) return;
-    tabsContainer.appendChild(tabButton);
-
-    tabButton.addEventListener("click", () => activateTab(newId));
-
-    const closeBtn = tabButton.querySelector(".close-btn");
-    if (closeBtn) {
-      closeBtn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        if (!confirm("このタブを閉じますか？")) return;
-        closeTab(newId);
+    // URLが変更される場合のみ再読み込み
+    const currentSrc = hugWebview.getURL?.() || "";
+    if (!currentSrc.includes(targetUrl)) {
+      hugWebview.src = targetUrl;
+    } else {
+      console.log("⚡ 既に同じURLを読み込み中のため再ロードをスキップ:", currentSrc);
+      // 既に同じURLの場合は、すぐにデータ取得処理を実行
+      handleAttendancePageLoad({
+        newWebview: hugWebview,
+        targetUrl,
+        facility_id,
+        date_str,
+        dispatch,
+        updateAppState,
+        showInfoToast,
       });
+      return;
     }
 
-    // ✅ 関数を呼び出すだけで処理がスッキリ！
-    newWebview.addEventListener(
+    // ページが読み込まれたらデータ取得処理を実行
+    hugWebview.addEventListener(
       "did-finish-load",
-      () =>
-        handleAttendancePageLoad({
-          newWebview,
-          targetUrl,
-          facility_id,
-          date_str,
-          dispatch,
-          updateAppState,
-          showInfoToast,
-        }),
+      () => {
+        // URLが一致する場合のみ処理を実行
+        const loadedUrl = hugWebview.getURL?.() || "";
+        if (loadedUrl.includes(targetUrl)) {
+          handleAttendancePageLoad({
+            newWebview: hugWebview,
+            targetUrl,
+            facility_id,
+            date_str,
+            dispatch,
+            updateAppState,
+            showInfoToast,
+          });
+        }
+      },
       { once: true }
     );
-
-    activateTab(newId);
-  }, [appState, activateTab, closeTab, dispatch, updateAppState]);
+  }, [appState, dispatch, updateAppState, showInfoToast]);
 
   return (
     <div className="items-center justify-center">

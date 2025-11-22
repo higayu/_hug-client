@@ -3,5 +3,5 @@
 
 export { createWebview } from './createWebview.js'
 export { createTabButton } from './createTabButton.js'
-export { activateTab } from './activateTab.js'
+export { activateTab, activateHugViewFirstButton } from './activateTab.js'
 export { closeTab } from './closeTab.js'
