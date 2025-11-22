@@ -1,7 +1,7 @@
 // renderer/src/components/Sidebar/ToolContent.jsx
 
 import { useEffect, useState } from 'react'
-import SidebarContent from './SidebarContent.jsx'
+import TodayChildrenList from './TodayChildrenList.jsx'
 import ChildMemoPanel from './ChildMemoPanel.jsx'
 
 function ToolContent() {
@@ -15,7 +15,7 @@ function ToolContent() {
     <div>
       <div className="tool-content flex flex-1 min-h-0 overflow-hidden">
         {/* SidebarContent と ChildMemoPanel を横並びに配置 */}
-        <SidebarContent />
+        <TodayChildrenList />
         <ChildMemoPanel />
       </div>
     </div>

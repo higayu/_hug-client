@@ -1,12 +1,12 @@
-// src/components/Sidebar/SidebarContent.jsx
+// src/components/Sidebar/SelectChildrenList/TodayChildrenList.jsx
 // 子どもリストを表示するコンポーネント
 
 import { useState } from 'react'
-import { useChildrenList } from '../../../../hooks/useChildrenList.js'
-import { useAppState } from '../../../../contexts/AppStateContext.jsx'
-import { ELEMENT_IDS, MESSAGES, EVENTS } from '../../../../utils/constants.js'
+import { useChildrenList } from '@/hooks/useChildrenList.js'
+import { useAppState } from '@/contexts/AppStateContext.jsx'
+import { ELEMENT_IDS, MESSAGES, EVENTS } from '@/utils/constants.js'
 
-function SidebarContent() {
+function TodayChildrenList() {
   const { childrenData, waitingChildrenData, experienceChildrenData, handleFetchAttendanceForChild, SELECT_CHILD } = useChildrenList()
   const { setSelectedChild, setSelectedPcName, attendanceData } = useAppState()
   const [childrenCollapsed, setChildrenCollapsed] = useState(false)
@@ -185,5 +185,5 @@ function SidebarContent() {
   )
 }
 
-export default SidebarContent
+export default TodayChildrenList
 

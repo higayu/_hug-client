@@ -1,6 +1,6 @@
-// src/contexts/ToastContext.jsx
+// src/components/common/ToastContext.jsx
 import { createContext, useContext, useState, useCallback, useEffect } from 'react'
-import Toast from '../components/Toast.jsx'
+import Toast from '@/components/common/Toast.jsx'
 
 const ToastContext = createContext(null)
 

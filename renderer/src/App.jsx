@@ -2,18 +2,18 @@ import {
   fetchAttendanceTableData, 
   fetchAttendanceData, 
   parseAttendanceTable 
-} from './utils/ToDayChildrenList/attendanceTable.js'
-import { usePreloadPath } from './hooks/usePreloadPath.js'
-import { useAppInitialization } from './hooks/useAppInitialization.js'
+} from '@/utils/ToDayChildrenList/attendanceTable.js'
+import { usePreloadPath } from '@/hooks/usePreloadPath.js'
+import { useAppInitialization } from '@/hooks/useAppInitialization.js'
 import { Provider } from 'react-redux'
-import { store } from './store/store.js'
-import { ToastProvider } from './contexts/ToastContext.jsx'
-import { AppStateProvider } from './contexts/AppStateContext.jsx'
-import { IniStateProvider } from './contexts/IniStateContext.jsx'
-import { CustomButtonsProvider } from './contexts/CustomButtonsContext.jsx'
-import Toolbar from './components/Toolbar.jsx'
-import Tabs from './components/Tabs.jsx'
-import ContentArea from './components/ContentArea.jsx'
+import { store } from '@/store/store.js'
+import { ToastProvider } from '@/components/common/ToastContext.jsx'
+import { AppStateProvider } from '@/contexts/AppStateContext.jsx'
+import { IniStateProvider } from '@/contexts/IniStateContext.jsx'
+import { CustomButtonsProvider } from '@/components/common/CustomButtonsContext.jsx'
+import Toolbar from '@/components/Header/Toolbar.jsx'
+import Tabs from '@/components/Header/Tabs.jsx'
+import ContentArea from '@/components/ContentArea.jsx'
 
 // グローバルにエクスポート（デバッグ・開発用）
 window.attendanceTableAPI = {

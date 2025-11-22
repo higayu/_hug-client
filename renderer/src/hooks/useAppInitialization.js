@@ -9,7 +9,7 @@ import { useUpdateUI } from './useUpdateUI.js'
 import { useCustomButtonManager } from './useCustomButtonManager.js'
 // buttonVisibilityManager は削除されました（機能が空のため）
 import { getActiveWebview } from '../utils/webviewState.js'
-import { useToast } from '../contexts/ToastContext.jsx'
+import { useToast } from  '@/components/common/ToastContext.jsx'
 
 export function useAppInitialization() {
   const { showErrorToast } = useToast()

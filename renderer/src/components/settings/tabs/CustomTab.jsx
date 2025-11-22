@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
-import { useCustomButtons } from '../../../contexts/CustomButtonsContext.jsx'
-import { useToast } from '../../../contexts/ToastContext.jsx'
+import { useCustomButtons } from '@/components/common/CustomButtonsContext.jsx'
+import { useToast } from  '@/components/common/ToastContext.jsx'
 
 function CustomTab() {
   const { showSuccessToast, showErrorToast } = useToast()

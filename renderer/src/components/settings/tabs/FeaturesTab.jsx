@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
-import { getActiveWebview } from '../../../utils/webviewState.js'
-import { useIniState } from '../../../contexts/IniStateContext.jsx'
-import { useToast } from '../../../contexts/ToastContext.jsx'
+import { getActiveWebview } from '@/utils/webviewState.js'
+import { useIniState } from '@/contexts/IniStateContext.jsx'
+import { useToast } from  '@/components/common/ToastContext.jsx'
 
 function FeaturesTab() {
   const [currentUrl, setCurrentUrl] = useState('')

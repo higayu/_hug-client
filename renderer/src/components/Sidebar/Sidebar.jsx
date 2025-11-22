@@ -1,9 +1,9 @@
 import { useDispatch } from "react-redux"
 import { useEffect, useRef, useState } from 'react'
-import { useAppState } from '../../contexts/AppStateContext.jsx'
-import { getWeekdayFromDate, getDateString } from '../../utils/dateUtils.js'
-import { useToast } from '../../contexts/ToastContext.jsx'
-import { ELEMENT_IDS } from '../../utils/constants.js'
+import { useAppState } from '@/contexts/AppStateContext.jsx'
+import { getWeekdayFromDate, getDateString } from '@/utils/dateUtils.js'
+import { useToast } from  '@/components/common/ToastContext.jsx'
+import { ELEMENT_IDS } from '@/utils/constants.js'
 import TabsContainer from './common/TabsContainer.jsx'  // ← これを追加
 import TableDataGetButton from './common/TableDataGetButon.jsx'
 

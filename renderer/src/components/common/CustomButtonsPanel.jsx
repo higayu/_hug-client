@@ -2,9 +2,9 @@
 // カスタムボタンのパネルコンポーネント
 
 import { useEffect, useState } from 'react'
-import { useCustomButtons } from '../contexts/CustomButtonsContext.jsx'
-import { useAppState } from '../contexts/AppStateContext.jsx'
-import { getActiveWebview, setActiveWebview } from '../utils/webviewState.js'
+import { useCustomButtons } from '@/components/common/CustomButtonsContext.jsx'
+import { useAppState } from '@/contexts/AppStateContext.jsx'
+import { getActiveWebview, setActiveWebview } from '@/utils/webviewState.js'
 
 function CustomButtonsPanel() {
   const { customButtons, getCustomButtons } = useCustomButtons()

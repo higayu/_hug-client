@@ -1,12 +1,12 @@
 // renderer/src/hooks/useSettingsModalLogic.js
 import { useEffect, useRef, useCallback, useState } from 'react'
-import { useIniState } from '../contexts/IniStateContext.jsx'
-import { useCustomButtons } from '../contexts/CustomButtonsContext.jsx'
+import { useIniState } from '@/contexts/IniStateContext.jsx'
+import { useCustomButtons } from '@/components/common/CustomButtonsContext.jsx'
 // AppState は window.AppState または useAppState() フック経由でアクセス可能
-import { saveConfig } from '../utils/configUtils.js'
-import { useToast } from '../contexts/ToastContext.jsx'
-import { useAppState } from '../contexts/AppStateContext.jsx'
-import { loadAllReload } from '../utils/reloadSettings.js'
+import { saveConfig } from '@/utils/configUtils.js'
+import { useToast } from  '@/components/common/ToastContext.jsx'
+import { useAppState } from '@/contexts/AppStateContext.jsx'
+import { loadAllReload } from '@/utils/reloadSettings.js'
 import { updateButtonVisibility } from '../utils/buttonVisibility.js'
 import { useCustomButtonManager } from './useCustomButtonManager.js'
 // buttonVisibilityManager は削除されました（機能が空のため）

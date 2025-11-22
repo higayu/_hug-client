@@ -3,7 +3,7 @@
 
 import { getActiveWebview, setActiveWebview } from './webviewState.js'
 import store from '../store/store.js'
-import { activateHugViewFirstButton } from '../hooks/useTabs/common/index.js'
+import { activateHugViewFirstButton } from '@/hooks/useTabs/common/index.js'
 
 const FIRST_BUTTON_ID = 'hugview-first-button';
 

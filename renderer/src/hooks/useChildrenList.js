@@ -1,15 +1,15 @@
 // src/hooks/useChildrenList.js
 import { useEffect, useState, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useAppState } from "../contexts/AppStateContext.jsx";
-import { ELEMENT_IDS } from "../utils/constants.js";
+import { useAppState } from "@/contexts/AppStateContext.jsx";
+import { ELEMENT_IDS } from "@/utils/constants.js";
 
-import { mariadbApi } from "../sql/mariadbApi.js";
-import { sqliteApi } from "../sql/sqliteApi.js";
-import { joinChildrenData } from "../sql/getChildren/childrenJoinProcessor.js";
-import { fetchAllTables } from "../store/slices/databaseSlice.js";
-import { selectExtractedData, selectAttendanceError } from "../store/slices/attendanceSlice.js";
-import { saveTempNote, loadTempNote } from "../utils/noteUtils.js";
+import { mariadbApi } from "@/sql/mariadbApi.js";
+import { sqliteApi } from "@/sql/sqliteApi.js";
+import { joinChildrenData } from "@/sql/getChildren/childrenJoinProcessor.js";
+import { fetchAllTables } from "@/store/slices/databaseSlice.js";
+import { selectExtractedData, selectAttendanceError } from "@/store/slices/attendanceSlice.js";
+import { saveTempNote, loadTempNote } from "@/utils/noteUtils.js";
 
 export function useChildrenList() {
   const { appState, setSelectedChild, setSelectedPcName, setChildrenData, updateAppState, SELECT_CHILD } = useAppState();

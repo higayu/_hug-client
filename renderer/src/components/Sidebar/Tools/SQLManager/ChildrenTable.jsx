@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
-import { useToast } from "@/contexts/ToastContext.jsx";
+import { useToast } from  '@/components/common/ToastContext.jsx'
 
 export default function ChildrenTable() {
   const database = useSelector((state) => state.database); // 全テーブル

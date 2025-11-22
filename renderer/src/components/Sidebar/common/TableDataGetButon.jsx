@@ -3,7 +3,7 @@ import { FaTable } from "react-icons/fa";
 import { useDispatch } from "react-redux";
 import { useAppState } from "@/contexts/AppStateContext.jsx";
 import { activateHugViewFirstButton } from "@/hooks/useTabs/common/index.js";
-import { useToast } from "@/contexts/ToastContext.jsx";
+import { useToast } from  '@/components/common/ToastContext.jsx'
 import { handleAttendancePageLoad } from "@/utils/ToDayChildrenList/attendancePageHandler.js";
 
 /**

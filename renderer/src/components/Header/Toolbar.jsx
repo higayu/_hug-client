@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react'
-import SettingsModal from './settings/SettingsModal.jsx'
-import CustomButtonsPanel from './CustomButtonsPanel.jsx'
-import { useToast } from '../contexts/ToastContext.jsx'
-import { useAppState } from '../contexts/AppStateContext.jsx'
-import { useTabs } from '../hooks/useTabs'
-import { useHugActions } from '../hooks/useHugActions'
+import SettingsModal from '@/components/settings/SettingsModal.jsx'
+import CustomButtonsPanel from '@/components/common/CustomButtonsPanel.jsx'
+import { useToast } from  '@/components/common/ToastContext.jsx'
+import { useAppState } from '@/contexts/AppStateContext.jsx'
+import { useTabs } from '@/hooks/useTabs'
+import { useHugActions } from '@/hooks/useHugActions'
 
 function Toolbar() {
   const { showInfoToast } = useToast()

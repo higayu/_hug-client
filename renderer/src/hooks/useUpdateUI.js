@@ -2,7 +2,7 @@
 // アップデートUI管理のフック
 
 import { useEffect, useRef } from 'react'
-import { getUpdateInfo, checkForUpdates, displayUpdateInfo } from '../utils/updateManager.js'
+import { getUpdateInfo, checkForUpdates, displayUpdateInfo } from '@/utils/updateManager.js'
 
 /**
  * アップデートUI管理のフック

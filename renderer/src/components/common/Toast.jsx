@@ -1,6 +1,6 @@
-// src/components/Toast.jsx
+// src/components/common/Toast.jsx
 import { useEffect, useState } from 'react'
-import { COLORS } from '../utils/constants.js'
+import { COLORS } from '@/utils/constants.js'
 
 const TOAST_COLORS = {
   success: COLORS.SUCCESS,

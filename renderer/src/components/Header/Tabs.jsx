@@ -2,7 +2,7 @@
 // タブコンポーネント
 
 import { useEffect } from 'react'
-import { useTabs } from '../hooks/useTabs'
+import { useTabs } from '@/hooks/useTabs'
 
 function Tabs() {
   useTabs() // タブ機能の初期化

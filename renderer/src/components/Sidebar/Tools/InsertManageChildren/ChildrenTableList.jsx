@@ -3,7 +3,7 @@ import ConfirmModal from "./ConfirmModal.jsx";
 import { useAppState } from '@/contexts/AppStateContext.jsx'
 import {store} from '@/store/store.js'
 import { insertManager } from "@/sql/useManager/insertManager/insertManager.js";
-import { useToast } from "@/contexts/ToastContext.jsx";
+import { useToast } from  '@/components/common/ToastContext.jsx'
 
 /**
  * 出勤データを一覧表示するコンポーネント
@@ -110,7 +110,16 @@ function ChildrenTableList({ childrenList = [] }) {
               </td>
               <td className="border px-2 py-1">{child.children_id}</td>
               <td className="border px-2 py-1">{child.children_name}</td>
-              <td className="border px-2 py-1 text-green-700 font-semibold">
+              <td
+                className={`border px-2 py-1 font-semibold ${
+                  child.column5.includes("入室") && child.column5.includes("欠席")
+                    ? "text-black"
+                    : child.column5 === "欠席" ||
+                      child.column5 === "欠席(欠席時対応加算を取らない)"
+                    ? "text-red-600"
+                    : "text-green-700"
+                }`}
+              >
                 {child.column5}
               </td>
               <td className="border px-2 py-1 text-blue-700 font-semibold">
