@@ -3,6 +3,7 @@ import ConfirmModal from "./ConfirmModal.jsx";
 import { useAppState } from '@/contexts/AppStateContext.jsx'
 import {store} from '@/store/store.js'
 import { insertManager } from "@/sql/useManager/insertManager/insertManager.js";
+import { useToast } from "@/contexts/ToastContext.jsx";
 
 /**
  * 出勤データを一覧表示するコンポーネント
@@ -14,6 +15,7 @@ function ChildrenTableList({ childrenList = [] }) {
   const childrenData = store.getState().database.children;
   const managersData = store.getState().database.managers;
   const { STAFF_ID, WEEK_DAY, FACILITY_ID, appState } = useAppState();
+  const { showInfoToast } = useToast();
 
 
   if (!childrenList || childrenList.length === 0) {
@@ -38,7 +40,7 @@ function ChildrenTableList({ childrenList = [] }) {
 
   const handleConfirm = async (selectedChildren) => {
 
-    await insertManager(selectedChildren, {
+   const result = await insertManager(selectedChildren, {
       childrenData,
       managersData,
       activeApi: appState.activeApi,
@@ -46,6 +48,12 @@ function ChildrenTableList({ childrenList = [] }) {
       STAFF_ID,
       WEEK_DAY,
     });
+
+    if(result){
+      showSuccessToast("追加完了しました");
+    }else{
+      showErrorToast("失敗しました");
+    }
 
     setShowConfirmModal(false);
   };
