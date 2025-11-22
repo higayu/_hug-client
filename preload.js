@@ -4,22 +4,22 @@ const { contextBridge, ipcRenderer } = require("electron");
 const isDebugMode = process.argv.includes("--dev") || process.argv.includes("--debug");
 
 // ============================================
-// 🔹 SQLite テーブルAPI 一括登録
+// 🔹 SQLite / MariaDB 共通テーブル一覧
 // ============================================
 const tables = [
   "children",
-  "staffs",
+  "children_type",
+  "day_of_week",          // ← 曜日マスタ
+  "facility_children",
+  "facility_staff",
   "facilitys",
+  "individual_support",
   "managers",
   "pc",
   "pc_to_children",
   "pronunciation",
-  "children_type",
-  "individual_support",
+  "staffs",
   "temp_notes",
-  "facility_children",
-  "facility_staff",
-  "facilitys",
 ];
 
 const tableAPIs = {};
@@ -76,6 +76,18 @@ contextBridge.exposeInMainWorld("electronAPI", {
       throw err;
     }
   },
+
+    // ✅ 児童担当の更新（MariaDB）
+    update_manager_p: async (data) => {
+      try {
+        const result = await ipcRenderer.invoke("update_manager_p", data);
+        return result;
+      } catch (err) {
+        console.error("❌ [preload] update_manager_p 失敗:", err);
+        throw err;
+      }
+    },
+  
 
   getDatabaseType: () => ipcRenderer.invoke("get-database-type"),
 

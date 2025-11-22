@@ -83,7 +83,13 @@ CREATE TABLE IF NOT EXISTS "pc_to_children" (
   "id"  BIGINT,
   "pc_id" BIGINT,
   "children_id" BIGINT,
-  "day_of_week" TEXT
+  "day_of_week" INTEGER
+);
+CREATE TABLE day_of_week (
+  id INTEGER PRIMARY KEY,
+  children_id INTEGER NOT NULL,
+  staff_id INTEGER NOT NULL,
+  days TEXT NOT NULL
 );
 CREATE TABLE IF NOT EXISTS pronunciation (
   id BIGINT, 

@@ -3,16 +3,34 @@
 
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 
-// 引数を受け取りstoreに保存するだけのアクション
+// --- 共通処理：payload → state へのマッピング ---
+const tableKeys = [
+  'children',
+  'staffs',
+  'managers',
+  'facility_children',
+  'facility_staff',
+  'facilitys',          // ← facilitys を正式名称へ
+  'pc',
+  'pc_to_children',
+  'pronunciation',
+  'children_type',
+  'day_of_week'
+]
+
+const applyPayloadToState = (state, payload = {}) => {
+  tableKeys.forEach((key) => {
+    state[key] = payload[key] ?? []
+  })
+}
+
+// asyncThunk（単に payload を返すだけ）
 export const fetchAllTables = createAsyncThunk(
   'sqlite/fetchAllTables',
-  async (payload) => {
-    // 受け取ったデータをそのまま返す
-    return payload
-  }
+  async (payload) => payload
 )
 
-// 初期状態
+// --- 初期状態 ---
 const initialState = {
   children: [],
   staffs: [],
@@ -24,6 +42,7 @@ const initialState = {
   pc_to_children: [],
   pronunciation: [],
   children_type: [],
+  day_of_week: [],
   loading: false,
   error: null,
   metadata: {
@@ -38,40 +57,14 @@ const databaseSlice = createSlice({
   initialState,
   reducers: {
     setAllTables: (state, action) => {
-      const {
-        children = [],
-        staffs = [],
-        managers = [],
-        pc = [],
-        pc_to_children = [],
-        pronunciation = [],
-        children_type = [],
-        facility_children = [],
-        facility_staff = [],
-        facilitys = [],
-      } = action.payload || {}
-
-      state.children = children
-      state.staffs = staffs
-      state.managers = managers
-      state.pc = pc
-      state.pc_to_children = pc_to_children
-      state.pronunciation = pronunciation
-      state.children_type = children_type
-      state.facility_children = facility_children
-      state.facility_staff = facility_staff
-      state.facilitys = facilitys
-      state.metadata.lastFetched = new Date().toISOString()
+      applyPayloadToState(state, action.payload)
+      const now = new Date().toISOString()
+      state.metadata.lastFetched = now
+      state.metadata.fetchedAt = now
       state.error = null
     },
     clearSqliteData: (state) => {
-      state.children = []
-      state.staffs = []
-      state.managers = []
-      state.pc = []
-      state.pc_to_children = []
-      state.pronunciation = []
-      state.children_type = []
+      tableKeys.forEach((key) => (state[key] = []))
       state.error = null
       state.metadata = { lastFetched: null, fetchedAt: null }
     },
@@ -81,33 +74,15 @@ const databaseSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
+      .addCase(fetchAllTables.pending, (state) => {
+        state.loading = true
+      })
       .addCase(fetchAllTables.fulfilled, (state, action) => {
         state.loading = false
-        const {
-          children = [],
-          staffs = [],
-          managers = [],
-          pc = [],
-          pc_to_children = [],
-          pronunciation = [],
-          children_type = [],
-          facility_children = [],
-          facility_staff = [],
-          facilitys = [],
-        } = action.payload || {}
-      
-        state.children = children
-        state.staffs = staffs
-        state.managers = managers
-        state.pc = pc
-        state.pc_to_children = pc_to_children
-        state.pronunciation = pronunciation
-        state.children_type = children_type
-        state.facility_children = facility_children
-        state.facility_staff = facility_staff
-        state.facilitys = facilitys
-        state.metadata.lastFetched = new Date().toISOString()
-        state.metadata.fetchedAt = new Date().toISOString()
+        applyPayloadToState(state, action.payload)
+        const now = new Date().toISOString()
+        state.metadata.lastFetched = now
+        state.metadata.fetchedAt = now
         state.error = null
       })
       .addCase(fetchAllTables.rejected, (state, action) => {

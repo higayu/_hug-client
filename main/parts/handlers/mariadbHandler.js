@@ -43,7 +43,6 @@ function registerMariadbHandlers(ipcMain) {
  * @returns {Object} 正規化されたテーブルデータ
  */
 function normalizeTableData(data) {
-  // ⚠️ データが配列の場合は空オブジェクトを返す
   if (!data || typeof data !== 'object' || Array.isArray(data)) {
     console.warn("⚠️ [mariadbHandler] 予期しないデータ構造:", data);
     return {
@@ -57,12 +56,12 @@ function normalizeTableData(data) {
       pc_to_children: [],
       pronunciation: [],
       children_type: [],
+      day_of_week: [],  // ← 必ず返す
     };
   }
-  
-  // ⚠️ テーブル名のマッピング（大文字小文字や命名規則の違いに対応）
+
   const tableMapping = {
-    // 大文字始まりの場合
+    // 大文字始まり
     'Children': 'children',
     'Staffs': 'staffs',
     'Managers': 'managers',
@@ -73,7 +72,9 @@ function normalizeTableData(data) {
     'Pc_to_children': 'pc_to_children',
     'Pronunciation': 'pronunciation',
     'Children_type': 'children_type',
-    // 小文字の場合（そのまま）
+    'Day_of_week': 'day_of_week',     // ★ 追加
+
+    // 小文字
     'children': 'children',
     'staffs': 'staffs',
     'managers': 'managers',
@@ -84,8 +85,9 @@ function normalizeTableData(data) {
     'pc_to_children': 'pc_to_children',
     'pronunciation': 'pronunciation',
     'children_type': 'children_type',
+    'day_of_week': 'day_of_week',     // ★ 追加
   };
-  
+
   const normalized = {
     children: [],
     staffs: [],
@@ -97,20 +99,21 @@ function normalizeTableData(data) {
     pc_to_children: [],
     pronunciation: [],
     children_type: [],
+    day_of_week: [],                  // ★ 最初から用意
   };
-  
-  // ⚠️ データを正規化
+
   for (const [key, value] of Object.entries(data)) {
     const normalizedKey = tableMapping[key] || key.toLowerCase();
+
     if (normalized[normalizedKey] !== undefined) {
-      // ⚠️ 配列でない場合は配列に変換
       normalized[normalizedKey] = Array.isArray(value) ? value : (value ? [value] : []);
     } else {
       console.warn(`⚠️ [mariadbHandler] 未知のテーブル名: ${key}`);
     }
   }
-  
+
   return normalized;
 }
+
 
 module.exports = { registerMariadbHandlers };
