@@ -43,14 +43,7 @@ export default function UpdateManagerTable() {
   const handleConfirm = async (updatedManager) => {
     console.log("保存をクリック", updatedManager);
 
-    await updateManager(updatedManager, {
-      childrenData,
-      managersData,
-      activeApi: appState.activeApi,
-      FACILITY_ID,
-      STAFF_ID,
-      WEEK_DAY,
-    });
+    await updateManager(updatedManager, appState.activeApi);
 
     setModal((prev) => ({ ...prev, open: false }));
   };

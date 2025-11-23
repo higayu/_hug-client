@@ -35,31 +35,15 @@ async function update_manager_p(data) {
   try {
     console.log("📨 main: update_manager_p SEND:", data);
 
-    const NUM_TO_WDAY = {
-      1:"月", 2:"火", 3:"水",
-      4:"木", 5:"金", 6:"土", 7:"日"
-    };
+    // 🔽 day_of_week はそのまま DB へ送る
+    const dayOfWeekJson = data.day_of_week;
 
-    let parsed;
-    try {
-      parsed = JSON.parse(data.day_of_week);
-    } catch (e) {
-      console.error("day_of_week parse error:", data.day_of_week);
-      parsed = { days: [] };
-    }
-
-    const jpDays = parsed.days
-      .map(n => NUM_TO_WDAY[n])
-      .filter(Boolean);
-
-    const jpJson = JSON.stringify({ days: jpDays });
-
-    console.log("📝 DB に保存する JSON:", jpJson);
+    console.log("📝 DB に保存する JSON:", dayOfWeekJson);
 
     const params = [
       { value: data.children_id },
       { value: data.staff_id },
-      { value: jpJson },  // ← DB には日本語で保存
+      { value: dayOfWeekJson },  // ← 変換せずそのまま保存
     ];
 
     const result = await apiClient.callProcedure("update_manager", params);
@@ -70,6 +54,7 @@ async function update_manager_p(data) {
     throw error;
   }
 }
+
 
 
 module.exports = {
