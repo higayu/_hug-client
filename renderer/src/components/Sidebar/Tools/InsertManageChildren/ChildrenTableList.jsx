@@ -165,6 +165,11 @@ function ChildrenTableList({ childrenList = [] }) {
                 {/* チェックボックス */}
                 <td className="border px-2 py-1 text-center">
                   <input
+                    className={`${
+                     isReadonly
+                      ? "hidden"
+                      : ""
+                    }`}
                     type="checkbox"
                     checked={selectedIds.includes(cid)}
                     onChange={() => {
