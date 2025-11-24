@@ -6,6 +6,7 @@ import EditModal from "./Modals/EditModal.jsx";
 import DeleteModal from "./Modals/DeleteModal.jsx";
 import { useAppState } from "@/contexts/AppStateContext.jsx";
 import { updateManager } from "@/sql/useManager/updateManager/updateManager.js";
+import { deleteManager } from "@/sql/useManager/deleteManager/deleteManager.js";
 import { store } from "@/store/store.js";
 import { useToast } from  '@/components/common/ToastContext.jsx'
 import { useChildrenList } from "@/hooks/useChildrenList.js";
@@ -44,15 +45,27 @@ export default function UpdateManagerTable() {
     setModal({ open: true, mode: "edit" });
   };
 
-  const handleConfirm = async (updatedManager) => {
-    console.log("保存をクリック", updatedManager);
+  const handleConfirm = async (managerOrUpdated, mode) => {
+    if (mode === "edit") {
+      const result = await updateManager(managerOrUpdated, appState.activeApi);
+      if (result) {
+        showInfoToast("更新完了");
+        await loadChildren();
+      } else {
+        showErrorToast("エラー");
+      }
+    }
 
-    const result =  await updateManager(updatedManager, appState.activeApi);
-    if(result){
-      showInfoToast("更新完了");
-      await loadChildren();
-    }else{
-      showErrorToast("エラー");
+    if (mode === "delete") {
+      const { children_id, staff_id } = managerOrUpdated;
+      const result = await deleteManager({ children_id, staff_id }, appState.activeApi);
+
+      if (result) {
+        showInfoToast("更新完了");
+        await loadChildren();
+      } else {
+        showErrorToast("エラー");
+      }
     }
 
     setModal((prev) => ({ ...prev, open: false }));
@@ -186,12 +199,13 @@ export default function UpdateManagerTable() {
 
       {/* --- 動的モーダル --- */}
       {modal.open && DynamicModal && (
-        <DynamicModal
-          open={modal.open}
-          manager={selectedManager}
-          onClose={handleClose}
-          onConfirm={handleConfirm}
-        />
+      <DynamicModal
+        open={modal.open}
+        mode={modal.mode}   // ← 追加
+        manager={selectedManager}
+        onClose={handleClose}
+        onConfirm={handleConfirm}
+      />
       )}
     </div>
   );

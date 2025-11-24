@@ -3,13 +3,6 @@
 
 export async function handleSQLiteDelete(
   child,
-  {
-    childrenData,
-    managersData,
-    FACILITY_ID,
-    STAFF_ID,
-    WEEK_DAY,
-  }
 ) {
 
   console.log("====== SQLite: handleSQLiteDelete START ======");

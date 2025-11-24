@@ -26,7 +26,7 @@ export default function DeleteModal({ open, onClose, onConfirm, manager }) {
 
           <button
             className="px-4 py-2 rounded-md text-sm text-white bg-red-500"
-            onClick={() => onConfirm(manager)}
+            onClick={() => onConfirm(manager, "delete")}
           >
             削除
           </button>

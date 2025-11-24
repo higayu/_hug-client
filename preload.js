@@ -77,16 +77,27 @@ contextBridge.exposeInMainWorld("electronAPI", {
     }
   },
 
-    // ✅ 児童担当の更新（MariaDB）
-    update_manager_p: async (data) => {
-      try {
-        const result = await ipcRenderer.invoke("update_manager_p", data);
-        return result;
-      } catch (err) {
-        console.error("❌ [preload] update_manager_p 失敗:", err);
-        throw err;
-      }
-    },
+  // ✅ 児童担当の更新（MariaDB）
+  update_manager_p: async (data) => {
+    try {
+      const result = await ipcRenderer.invoke("update_manager_p", data);
+      return result;
+    } catch (err) {
+      console.error("❌ [preload] update_manager_p 失敗:", err);
+      throw err;
+    }
+  },
+
+    // ✅ 児童担当の削除（MariaDB）
+  delete_manager: async (data) => {
+    try {
+      const result = await ipcRenderer.invoke("delete_manager", data);
+      return result;
+    } catch (err) {
+      console.error("❌ [preload] delete 失敗:", err);
+      throw err;
+    }
+  },
   
 
   getDatabaseType: () => ipcRenderer.invoke("get-database-type"),

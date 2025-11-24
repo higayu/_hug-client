@@ -45,7 +45,7 @@ export default function EditModal({ open, onClose, manager, onConfirm }) {
       day_of_week: JSON.stringify({ days }),
     };
 
-    onConfirm(updated);
+   onConfirm(updated, "edit");
   };
 
   return (
