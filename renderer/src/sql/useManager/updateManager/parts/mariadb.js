@@ -17,10 +17,11 @@ export async function handleMariaDBUpdate(
   try {
     const result = await window.electronAPI.update_manager_p(payload);
     console.log("✅ update success", result);
-
+    return true;
   } catch (err) {
     console.error("❌ update failed", err);
   }
 
   console.log("====== MariaDB Update END ======");
+  return false;
 }

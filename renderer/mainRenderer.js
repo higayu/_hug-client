@@ -1,17 +1,8 @@
 // ===== モジュール読み込み =====
-// initTabs は React側の useTabs() フックに移行済み
-// AppState は window.AppState 経由でアクセス可能（AppStateProviderが設定）
-// setupSidebar機能はApp.jsxに統合されました
 import { updateButtonVisibility } from "./src/utils/buttonVisibility.js";
-// initHugActions は React側の useHugActions() フックに移行済み
-// initChildrenList は React側の useChildrenList() フックに移行済み
-// initSettingsEditorはReactコンポーネント（SettingsModal）に統合されました
-// import { initSettingsEditor } from "./modules/ui/settingsEditor.js";
+
 import { loadAllReload } from "./src/utils/reloadSettings.js";
-// updateUI は React側の useUpdateUI() フックに移行済み
-// customButtonManager は React側の useCustomButtonManager() フックと CustomButtonsPanel コンポーネントに移行済み
-// buttonVisibilityManager は削除されました（機能が空のため）
-// IniState は React Context経由で window.IniState としてアクセス可能
+
 import { getActiveWebview } from "./src/utils/webviewState.js";
 import { 
   fetchAttendanceTableData, 
@@ -85,13 +76,6 @@ window.addEventListener("DOMContentLoaded", async () => {
     console.log("sidebar open/close function set");
   }
   
-  // initTabs は React側の useTabs() フックに移行済み（Tabsコンポーネント内で自動実行）
-
-  // ===== 3️⃣ 子ども一覧と曜日選択を初期化 =====
-  // initChildrenList は React側の useChildrenList() フックに移行済み（SidebarContent内で自動実行）
-
-  // ===== 4️⃣ 各種ボタン（ログイン・計画）を設定 =====
-  // initHugActions() は React側の useHugActions() フックに移行済み
 
   // ===== 5️⃣ 設定エディター初期化 =====
   // 少し遅延させて確実に初期化

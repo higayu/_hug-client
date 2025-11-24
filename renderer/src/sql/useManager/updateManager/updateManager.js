@@ -16,18 +16,20 @@ export async function updateManager(
   if (!activeApi) {
     console.warn("⚠️ activeApi が設定されていません");
     console.log("===== updateManager END (error: no activeApi) =====");
-    return;
+    return false;
   }
 
     if (activeApi === sqliteApi) {
       return false;
     } else if (activeApi === mariadbApi) {
       console.log("→ 使用DB: MariaDB");
-      await handleMariaDBUpdate(selectedChildren);
-      return true;
+      const result =  await handleMariaDBUpdate(selectedChildren);
+      if(result){
+          return true;
+      }
     } else {
       console.warn("⚠️ 不明な activeApi:", activeApi);
     }
-
   console.log("===== updateManager END =====");
+  return false;
 }

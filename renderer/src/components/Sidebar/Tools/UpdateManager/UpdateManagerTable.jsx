@@ -7,6 +7,8 @@ import DeleteModal from "./Modals/DeleteModal.jsx";
 import { useAppState } from "@/contexts/AppStateContext.jsx";
 import { updateManager } from "@/sql/useManager/updateManager/updateManager.js";
 import { store } from "@/store/store.js";
+import { useToast } from  '@/components/common/ToastContext.jsx'
+import { useChildrenList } from "@/hooks/useChildrenList.js";
 
 const MODAL_COMPONENTS = {
   edit: EditModal,
@@ -15,6 +17,8 @@ const MODAL_COMPONENTS = {
 
 export default function UpdateManagerTable() {
   const database = useSelector((state) => state.database);
+  const { showInfoToast,showErrorToast } = useToast();
+  const { loadChildren } = useChildrenList();
 
   // 🔥 day_of_week テーブルを取得（label_jp, id, sort_order）
   const dayOfWeekMaster = useSelector(
@@ -43,7 +47,13 @@ export default function UpdateManagerTable() {
   const handleConfirm = async (updatedManager) => {
     console.log("保存をクリック", updatedManager);
 
-    await updateManager(updatedManager, appState.activeApi);
+    const result =  await updateManager(updatedManager, appState.activeApi);
+    if(result){
+      showInfoToast("更新完了");
+      await loadChildren();
+    }else{
+      showErrorToast("エラー");
+    }
 
     setModal((prev) => ({ ...prev, open: false }));
   };

@@ -9,9 +9,6 @@ function registerMariadbHandlers(ipcMain) {
     try {
       const allTables = await apiClient.fetchTableAll();
       
-      // ⚠️ データ構造をSQLiteと同じ形式に変換
-      // APIが返すデータ構造に応じて変換処理を追加
-      // 例: { Children: [...], Staffs: [...] } → { children: [...], staffs: [...] }
       const normalizedTables = normalizeTableData(allTables);
       
       return normalizedTables;
