@@ -1,6 +1,7 @@
 // renderer\src\components\Sidebar\Tools\UpdateManager\Modals\EditModal.jsx
 import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
+import SelectableWeekDayButton from "@/components/common/SelectableWeekDayButton.jsx";
 
 export default function EditModal({ open, onClose, manager, onConfirm }) {
   const [childrenId, setChildrenId] = useState("");
@@ -77,26 +78,19 @@ export default function EditModal({ open, onClose, manager, onConfirm }) {
             />
 
             <label className="text-sm font-semibold">曜日</label>
-            <div className="flex gap-2 flex-wrap">
-
-              {/* 🔥 ここが修正点：sortする前にコピー */}
-              {[...dayOfWeekMaster]
-                .sort((a, b) => a.sort_order - b.sort_order)
-                .map((d) => (
-                  <button
-                    key={d.id}
-                    type="button"
-                    onClick={() => toggleDay(d.id)}
-                    className={`px-3 py-1 text-xs rounded-full border font-semibold ${
-                      days.includes(d.id)
-                        ? "bg-blue-500 text-white"
-                        : "bg-gray-100 text-gray-700"
-                    }`}
-                  >
-                    {d.label_jp}
-                  </button>
-                ))}
-            </div>
+              <div className="flex gap-2 flex-wrap">
+                {[...dayOfWeekMaster]
+                  .sort((a, b) => a.sort_order - b.sort_order)
+                  .map((d) => (
+                    <SelectableWeekDayButton
+                      key={d.id}
+                      dayId={d.id}
+                      label={d.label_jp}
+                      active={days.includes(d.id)} // ← 現在選択状態
+                      onClick={() => toggleDay(d.id)} // ← 切り替え
+                    />
+                  ))}
+              </div>
           </div>
 
           <div className="mt-6 flex gap-3 justify-end">

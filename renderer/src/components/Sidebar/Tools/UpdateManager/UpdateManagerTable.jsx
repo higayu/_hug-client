@@ -10,6 +10,7 @@ import { deleteManager } from "@/sql/useManager/deleteManager/deleteManager.js";
 import { store } from "@/store/store.js";
 import { useToast } from  '@/components/common/ToastContext.jsx'
 import { useChildrenList } from "@/hooks/useChildrenList.js";
+import WeekDayButton from "@/components/common/WeekDayButton.jsx";
 
 const MODAL_COMPONENTS = {
   edit: EditModal,
@@ -102,16 +103,6 @@ export default function UpdateManagerTable() {
     }
   };
 
-  // 色はそのまま(label_jp 用)
-  const dayColor = {
-    月: "bg-red-100 text-red-700 border-red-300",
-    火: "bg-orange-100 text-orange-700 border-orange-300",
-    水: "bg-yellow-100 text-yellow-700 border-yellow-300",
-    木: "bg-green-100 text-green-700 border-green-300",
-    金: "bg-blue-100 text-blue-700 border-blue-300",
-    土: "bg-purple-100 text-purple-700 border-purple-300",
-    日: "bg-pink-100 text-pink-700 border-pink-300",
-  };
 
   useEffect(() => {
     async function load() {
@@ -165,22 +156,19 @@ export default function UpdateManagerTable() {
                     <div className="flex flex-wrap gap-1">
                       {dayIds.map((id) => {
                         const w = dayOfWeekMaster.find((d) => d.id === id);
-                        const label = w?.label_jp || "？";
+                        const label = w?.label_jp ?? "？";
 
                         return (
-                          <span
+                          <WeekDayButton 
                             key={id}
-                            className={`p-2 text-xs rounded-xl font-semibold border ${
-                              dayColor[label] ||
-                              "bg-gray-100 text-gray-700 border-gray-300"
-                            }`}
-                          >
-                            {label}
-                          </span>
+                            dayId={id}
+                            label={label}
+                          />
                         );
                       })}
                     </div>
                   </td>
+
 
                   <td className="border px-4 py-2">
                     <button
