@@ -15,7 +15,7 @@ function TabsContainer() {
     { id: 'tools', label: '🧰 ツール' },
     { id: 'insertManageChildren', label: '👶 子ども管理' },
     { id: 'updateManager', label: '👨‍👧‍👦 児童担当編集' },
-    { id: 'sqlManager', label: '🗄️ SQL管理' },
+   // { id: 'sqlManager', label: '🗄️ SQL管理' },
   ]
 
   return (

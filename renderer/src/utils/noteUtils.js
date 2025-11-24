@@ -1,15 +1,12 @@
 // renderer/src/utils/noteUtils.js
-// 一時メモの保存・読み込みユーティリティ
-
-import { MESSAGES } from "./constants.js";
 
 /**
  * 一時メモを保存する
  */
-export async function saveTempNote(childId, memo, memo2, appState) {
+export async function saveTempNote(childId, memo1, memo2, appState) {
   console.group("📝 saveTempNote() 呼び出し");
   console.log("📌 childId:", childId);
-  console.log("📌 memo:", memo);
+  console.log("📌 memo1:", memo1);
   console.log("📌 memo2:", memo2);
   console.log("📌 appState:", appState);
 
@@ -24,8 +21,8 @@ export async function saveTempNote(childId, memo, memo2, appState) {
       children_id: childId,
       staff_id: appState.STAFF_ID,
       week_day: appState.WEEK_DAY,
-      memo: memo || "",
-      memo2:memo2 || "",
+      memo1: memo1 || "",
+      memo2: memo2 || "",
     };
 
     console.log("📤 送信データ(saveTempNote):", data);
@@ -35,9 +32,9 @@ export async function saveTempNote(childId, memo, memo2, appState) {
     console.log("📥 受信結果(saveTempNote):", result);
 
     if (result?.success) {
-      console.log("✅", MESSAGES.SUCCESS.TEMP_NOTE_SAVED);
+      console.log("✅ TEMP_NOTE 保存成功");
     } else {
-      console.error("❌", MESSAGES.ERROR.TEMP_NOTE_SAVE, result?.error);
+      console.error("❌ TEMP_NOTE 保存失敗", result?.error);
     }
   } catch (error) {
     console.error("❌ 一時メモ保存エラー(saveTempNote):", error);
@@ -46,23 +43,18 @@ export async function saveTempNote(childId, memo, memo2, appState) {
   console.groupEnd();
 }
 
+
 /**
  * 一時メモを読み込む
  */
-export function loadTempNote(childId, memoTextarea, appState) {
+export function loadTempNote(childId, proxy, appState) {
   console.group("📄 loadTempNote() 呼び出し");
   console.log("📌 childId:", childId);
+  console.log("📌 proxy:", proxy);
   console.log("📌 appState:", appState);
-  console.log("📌 memoTextarea:", memoTextarea);
 
   if (!childId || !appState?.STAFF_ID || !appState?.WEEK_DAY) {
-    console.error("❌ [noteUtils] 必須パラメータが不足しています");
-    console.groupEnd();
-    return;
-  }
-
-  if (!memoTextarea) {
-    console.error("❌ [noteUtils] 入力要素が取得できません");
+    console.error("❌ [noteUtils] 必須パラメータ不足");
     console.groupEnd();
     return;
   }
@@ -82,16 +74,22 @@ export function loadTempNote(childId, memoTextarea, appState) {
 
       if (result?.success && result?.data) {
         const note = result.data;
-        memoTextarea.value = note.memo || "";
-        console.log("✅", MESSAGES.SUCCESS.TEMP_NOTE_LOADED);
+
+        // 🔥 ここを修正！！ note.memo は存在しない
+        proxy.value = {
+          memo1: note.memo1 || "",
+          memo2: note.memo2 || "",
+        };
+
+        console.log("✅ TEMP_NOTE 読込成功");
       } else {
-        memoTextarea.value = "";
-        console.log("ℹ️", MESSAGES.INFO.TEMP_NOTE_NONE);
+        proxy.value = { memo1: "", memo2: "" };
+        console.log("ℹ️ TEMP_NOTE なし");
       }
     })
     .catch((error) => {
-      console.error("❌ 一時メモ読み込みエラー(loadTempNote):", error);
-      memoTextarea.value = "";
+      console.error("❌ TEMP_NOTE 読込失敗:", error);
+      proxy.value = { memo1: "", memo2: "" };
     });
 
   console.groupEnd();

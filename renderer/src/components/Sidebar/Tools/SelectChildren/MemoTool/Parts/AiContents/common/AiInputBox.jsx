@@ -7,7 +7,7 @@ export default function AiInputBox() {
   const { SELECT_CHILD } = useAppState();
   const { childrenData, waitingChildrenData, experienceChildrenData, saveTempNote, loadTempNote } = useChildrenList();
 
-  const [memo, setMemo] = useState("");       // 一時メモ1
+  const [memo1, setMemo1] = useState("");       // 一時メモ1
   const [memo2, setMemo2] = useState("");     // 一時メモ2
   const [aiText, setAiText] = useState("");   // AIに送るテキスト
   const [dbNote, setDbNote] = useState("");   // DBの保存済みメモ
@@ -32,7 +32,7 @@ export default function AiInputBox() {
   // 🔄 一時メモ読込（memo + memo2）
   useEffect(() => {
     if (!SELECT_CHILD) {
-      setMemo("");
+      setMemo1("");
       setMemo2("");
       return;
     }
@@ -41,11 +41,11 @@ export default function AiInputBox() {
       set value(v) {
         // v がオブジェクトなら memo1 と memo2 をセット
         if (typeof v === "object" && v !== null) {
-          setMemo(v.memo || "");
+          setMemo1(v.memo1 || "");
           setMemo2(v.memo2 || "");
         } else {
           // 旧仕様：string の場合は memo のみに反映
-          setMemo(v);
+          setMemo1(v);
         }
       }
     };
@@ -58,14 +58,9 @@ export default function AiInputBox() {
   // 💾 一時メモ保存（まとめて保存）
   const handleSaveClick = async () => {
     if (!SELECT_CHILD) return;
-
-    // memo1 + memo2 をセットで保存
-    const saveData = {
-      memo,
+      memo1,
       memo2
-    };
-
-    await saveTempNote(SELECT_CHILD, saveData);
+    await saveTempNote(SELECT_CHILD, memo1,memo2);
   };
 
 
@@ -82,8 +77,8 @@ export default function AiInputBox() {
           className="w-full p-2 border border-gray-300 rounded text-xs bg-white resize-y min-h-[100px]
                      text-black focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-200"
           placeholder="メモを入力..."
-          value={memo}
-          onChange={(e) => setMemo(e.target.value)}
+          value={memo1}
+          onChange={(e) => setMemo1(e.target.value)}
           rows={4}
         />
       </div>

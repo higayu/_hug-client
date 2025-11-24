@@ -39,23 +39,24 @@ module.exports = {
   // 出勤データ向け upsert（修正）
   // =====================================
   upsert(data) {
-    const { children_id, staff_id, week_day, memo } = data;
+    const { children_id, staff_id, week_day, memo1,memo2 } = data;
 
     return new Promise((resolve, reject) => {
       const db = connect();
 
       const sql = `
-          INSERT INTO temp_notes (children_id, staff_id, week_day, memo)
-          VALUES (?, ?, ?, ?)
+          INSERT INTO temp_notes (children_id, staff_id, week_day, memo1,memo2)
+          VALUES (?, ?, ?, ?, ?)
           ON CONFLICT(children_id, week_day) DO UPDATE SET
             staff_id = excluded.staff_id,
-            memo = excluded.memo,
+            memo1 = excluded.memo1,
+            memo2 = excluded.memo2,
             updated_at = CURRENT_TIMESTAMP
       `;
 
       db.run(
         sql,
-        [children_id, staff_id, week_day, memo || ""],
+        [children_id, staff_id, week_day, memo1 || "",memo2 || ""],
         function (err) {
           db.close();
           if (err) return reject(err);
