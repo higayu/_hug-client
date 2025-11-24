@@ -1,6 +1,9 @@
-import React, { useState } from "react";
+import React, { useState,useEffect } from "react";
 import { useAppState } from "@/contexts/AppStateContext.jsx";
 import { store } from "@/store/store.js";
+import { getDayOfWeekId } from '@/utils/dateUtils.js';
+import { useSelector } from "react-redux";
+import { updateManager,getManagerRecord } from '@/utils/managersUtils.js';
 
 /**
  * 確認モーダルコンポーネント
@@ -11,15 +14,26 @@ import { store } from "@/store/store.js";
  * @param {function} onCancel - 「いいえ」クリック時
  */
 function ConfirmModal({ show, message, list = [], onConfirm, onCancel }) {
-  if (!show) return null;
 
+  const database = useSelector((state) => state.database);
   const pronunciation = store.getState().database.pronunciation;
   const childrenType = store.getState().database.children_type;
   const childrenData = store.getState().database.children;
   const { STAFF_ID, WEEK_DAY, FACILITY_ID } = useAppState();
 
-  // ✅ 各児童の選択内容を管理
   const [selectedValues, setSelectedValues] = useState({});
+
+  useEffect(() => {
+    console.log("選択日付",WEEK_DAY);
+    console.log("職員ID",STAFF_ID);
+
+    console.log("曜日のID",getDayOfWeekId(WEEK_DAY, database["day_of_week"]));
+    console.log("初期化ログ: day_of_weekのデータ", database["day_of_week"]);
+    console.log("初期化ログ: managersのデータ", database["managers"]);
+  }, [database]);
+
+  // 🟦 フックが全て終わったあとで条件分岐
+  if (!show) return null;
 
   const handleSelectChange = (children_id, key, value) => {
     setSelectedValues((prev) => ({
@@ -29,11 +43,29 @@ function ConfirmModal({ show, message, list = [], onConfirm, onCancel }) {
   };
 
   const handleConfirm = () => {
-    // ✅ 選択結果を list にマージ
+    console.log("day_of_weekのデータ", database["day_of_week"]);
+    console.log("Managersのデータ", database["managers"]);
+
+    const managersList = database["managers"];
+    const weekID = getDayOfWeekId(WEEK_DAY, database["day_of_week"]);
+    console.log('今の曜日のID',weekID);
+
+
     const updatedList = list.map((child) => {
       const existingChild = childrenData.find(
         (c) => String(c.id) === String(child.children_id)
       );
+
+      // ① 既存の manager レコード取得
+      const managerRecord = getManagerRecord(
+        child.children_id,
+        STAFF_ID,
+        managersList
+      );
+
+      // ② day_of_week を更新（新しい曜日IDを追加）
+      const updatedDayJson = updateManager(managerRecord.day_of_week, weekID);
+      console.log("保存曜日",updatedDayJson);
 
       return {
         ...child,
@@ -41,15 +73,22 @@ function ConfirmModal({ show, message, list = [], onConfirm, onCancel }) {
           existingChild?.pronunciation_id ??
           selectedValues[child.children_id]?.pronunciation_id ??
           null,
+
         children_type_id:
           existingChild?.children_type_id ??
           selectedValues[child.children_id]?.children_type_id ??
           null,
+
+        // ★ 追加：更新後の day_of_week JSON を付与
+        day_of_week: updatedDayJson,
       };
     });
 
+    console.log("送信データ(updatedList):", updatedList);
+
     onConfirm(updatedList);
   };
+
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">

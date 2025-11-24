@@ -36,32 +36,19 @@ export async function handleMariaDBInsert(
   console.log("MariaDB: existsManager =", existsManager);
 
   // -----------------------------
-  // ③ 曜日の追加または初回設定
+  // ③ 曜日はフロント側で形成済みの値をそのまま使う
   // -----------------------------
   let dayOfWeekJson = null;
 
-  if (!existsManager) {
-    console.log("MariaDB: 新規担当 → 曜日は初期値");
-    dayOfWeekJson = JSON.stringify({ days: [WEEK_DAY] });
+  if (child.day_of_week) {
+    // ConfirmModal + updateManager() で計算済みの JSON を使用
+    dayOfWeekJson = child.day_of_week;
+    console.log("MariaDB: フロント側 day_of_week を使用:", dayOfWeekJson);
 
   } else {
-    try {
-      const parsed = JSON.parse(existingManager.day_of_week);
-      const daysArray = parsed?.days ?? [];
-
-      if (daysArray.includes(WEEK_DAY)) {
-        console.log("MariaDB: 同じ曜日が既に登録済み:", WEEK_DAY);
-        dayOfWeekJson = existingManager.day_of_week; // 変更なし
-      } else {
-        console.log("MariaDB: 曜日追加:", WEEK_DAY);
-        const updatedDays = [...daysArray, WEEK_DAY];
-        dayOfWeekJson = JSON.stringify({ days: updatedDays });
-      }
-
-    } catch (err) {
-      console.error("MariaDB: day_of_week JSON パースに失敗:", err);
-      dayOfWeekJson = JSON.stringify({ days: [WEEK_DAY] }); // フォールバック
-    }
+    // フロント側が渡していない場合のフォールバック
+    console.warn("MariaDB: child.day_of_week が未設定 → fallback");
+    dayOfWeekJson = JSON.stringify({ days: [WEEK_DAY] });
   }
 
   // -----------------------------

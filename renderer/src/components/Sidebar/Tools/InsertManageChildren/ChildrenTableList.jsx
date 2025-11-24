@@ -5,7 +5,6 @@ import { insertManager } from "@/sql/useManager/insertManager/insertManager.js";
 import { useToast } from "@/components/common/ToastContext.jsx";
 import { useChildrenList } from "@/hooks/useChildrenList.js";
 import { useAppState } from "@/contexts/AppStateContext.jsx";
-
 /**
  * 出勤データを一覧表示するコンポーネント
  * @param {Array} childrenList - 抽出された児童データ配列
@@ -79,6 +78,8 @@ function ChildrenTableList({ childrenList = [] }) {
   // 登録（確認モーダルからの実行）
   // =============================================================
   const handleConfirm = async (selectedChildren) => {
+    console.log('新規登録の送信データ',selectedChildren);
+
     const result = await insertManager(selectedChildren, {
       childrenData: childrenTableData,
       managersData,

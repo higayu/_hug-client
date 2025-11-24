@@ -38,3 +38,21 @@ export function getTodayWeekday(offset = 0) {
   return WEEKDAYS[date.getDay()]
 }
 
+/**
+ * 曜日名から day_of_week テーブルの ID を取得
+ * @param {string} weekDay - 曜日名 ("月", "火", "Mon", "Tue" など)
+ * @param {Array} dayOfWeekList - Redux 等から取得した day_of_week の配列
+ * @returns {number|null} 対応する曜日 ID / 見つからない場合 null
+ */
+export function getDayOfWeekId(weekDay, dayOfWeekList) {
+  if (!weekDay || !Array.isArray(dayOfWeekList)) return null;
+
+  const match = dayOfWeekList.find((d) => {
+    return (
+      d.label_jp === weekDay ||
+      (d.label_en && d.label_en.toLowerCase() === weekDay.toLowerCase())
+    );
+  });
+
+  return match?.id ?? null;
+}

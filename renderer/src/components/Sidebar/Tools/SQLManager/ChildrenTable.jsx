@@ -1,3 +1,4 @@
+// src/components/Tools/SQLManager/ChildrenTable.jsx
 import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { useToast } from  '@/components/common/ToastContext.jsx'
