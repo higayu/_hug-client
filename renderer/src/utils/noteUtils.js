@@ -33,14 +33,19 @@ export async function saveTempNote(childId, memo1, memo2, appState) {
 
     if (result?.success) {
       console.log("✅ TEMP_NOTE 保存成功");
+      return true;
     } else {
       console.error("❌ TEMP_NOTE 保存失敗", result?.error);
+      return false;
     }
   } catch (error) {
     console.error("❌ 一時メモ保存エラー(saveTempNote):", error);
+    return false;
+  } finally {
+    console.groupEnd();
+    return false;
   }
 
-  console.groupEnd();
 }
 
 
@@ -56,7 +61,7 @@ export function loadTempNote(childId, proxy, appState) {
   if (!childId || !appState?.STAFF_ID || !appState?.WEEK_DAY) {
     console.error("❌ [noteUtils] 必須パラメータ不足");
     console.groupEnd();
-    return;
+    return false;
   }
 
   const data = {

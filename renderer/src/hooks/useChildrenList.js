@@ -9,7 +9,6 @@ import { sqliteApi } from "@/sql/sqliteApi.js";
 import { joinChildrenData } from "@/sql/getChildren/childrenJoinProcessor.js";
 import { fetchAllTables } from "@/store/slices/databaseSlice.js";
 import { selectExtractedData, selectAttendanceError } from "@/store/slices/attendanceSlice.js";
-import { saveTempNote, loadTempNote } from "@/utils/noteUtils.js";
 
 export function useChildrenList() {
   const { appState, setSelectedChild, setSelectedPcName, setChildrenData, updateAppState, SELECT_CHILD } = useAppState();
@@ -104,19 +103,7 @@ export function useChildrenList() {
     waitingChildrenData,
     experienceChildrenData,
     loadChildren,
-    saveTempNote: useCallback(async (childId, memo,memo2) => {
-      await saveTempNote(childId, memo, memo2, {
-        STAFF_ID: appState.STAFF_ID,
-        WEEK_DAY: appState.WEEK_DAY,
-        DATE_STR: appState.DATE_STR,
-      });
-    }, [appState.STAFF_ID, appState.WEEK_DAY, appState.DATE_STR]),
-    loadTempNote: useCallback((childId, memoTextarea) => {
-      loadTempNote(childId, memoTextarea, {
-        STAFF_ID: appState.STAFF_ID,
-        WEEK_DAY: appState.WEEK_DAY,
-      });
-    }, [appState.STAFF_ID, appState.WEEK_DAY]),
+
     SELECT_CHILD: appState.SELECT_CHILD,
     extractedData,
     attendanceError,

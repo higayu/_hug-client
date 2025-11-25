@@ -2,11 +2,14 @@
 import React, { useState, useEffect } from "react";
 import { useAppState } from "@/contexts/AppStateContext.jsx";
 import { useChildrenList } from "@/hooks/useChildrenList.js";
+import { useToast } from  '@/components/common/ToastContext.jsx'
+import { useNote } from "@/hooks/useNote.js";
 
 export default function AiInputBox() {
   const { SELECT_CHILD } = useAppState();
-  const { childrenData, waitingChildrenData, experienceChildrenData, saveTempNote, loadTempNote } = useChildrenList();
-
+  const { childrenData, waitingChildrenData, experienceChildrenData} = useChildrenList();
+  const { saveTemp, loadTemp } = useNote();
+  const { showSuccessToast, showErrorToast } = useToast();
   const [memo1, setMemo1] = useState("");       // 一時メモ1
   const [memo2, setMemo2] = useState("");     // 一時メモ2
   const [aiText, setAiText] = useState("");   // AIに送るテキスト
@@ -50,9 +53,9 @@ export default function AiInputBox() {
       }
     };
 
-    loadTempNote(SELECT_CHILD, proxy);
+    loadTemp(SELECT_CHILD, proxy);
 
-  }, [SELECT_CHILD, loadTempNote]);
+  }, [SELECT_CHILD, loadTemp]);
 
 
   // 💾 一時メモ保存（まとめて保存）
@@ -60,7 +63,20 @@ export default function AiInputBox() {
     if (!SELECT_CHILD) return;
       memo1,
       memo2
-    await saveTempNote(SELECT_CHILD, memo1,memo2);
+    try {
+      const result = await saveTemp(SELECT_CHILD, memo1,memo2);
+      if (result) {
+        console.log("✅ 一時メモ保存成功");
+        showSuccessToast("一時メモ保存成功");
+      } else {
+        console.error("❌ 一時メモ保存失敗");
+        showErrorToast("一時メモ保存失敗");
+      }
+    } catch (error) {
+
+      console.error("❌ 一時メモ保存エラー:", error);
+      showErrorToast("一時メモ保存エラー");
+    }
   };
 
 
