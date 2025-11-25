@@ -9,8 +9,6 @@ export async function loadIni() {
   try {
     console.log('🔄 [INI] ini.json読み込み開始')
     const result = await window.electronAPI.readIni()
-    const res = await window.electronAPI.loadPrompts();
-    console.log('🔍 [INI] loadPrompts結果:', res)
 
     console.log('🔍 [INI] readIni結果:', result)
     
@@ -29,3 +27,17 @@ export async function loadIni() {
   }
 }
 
+/**
+ * ini.jsonを読み込み
+ * @returns {Promise<Object|null>} 読み込んだ設定データ、失敗時はnull
+ */
+export async function loadPrompt() {
+  try {
+
+    const res = await window.electronAPI.loadPrompts();
+    return res
+  } catch (err) {
+    console.error('❌ [INI] ini.json読み込みエラー:', err)
+    return null
+  }
+}

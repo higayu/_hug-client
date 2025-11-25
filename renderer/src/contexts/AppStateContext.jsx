@@ -2,7 +2,7 @@
 import { createContext, useContext, useCallback, useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { loadConfig as loadConfigFromUtils } from '../utils/configUtils.js'
-import { loadIni as loadIniFromUtils } from '../utils/iniUtils.js'
+import { loadIni as loadIniFromUtils, loadPrompt as loadPromptFromUtils } from '../utils/iniUtils.js'
 import { sqliteApi } from '../sql/sqliteApi.js'
 import { mariadbApi } from '../sql/mariadbApi.js'
 import {
@@ -23,6 +23,7 @@ import {
   setStaffAndFacilityData,
   setAttendanceData as setAttendanceDataRedux,
   setSelectedChildColumns,
+  setPrompts,
   updateAppState as updateAppStateRedux,
   selectHugUsername,
   selectHugPassword,
@@ -46,7 +47,8 @@ import {
   selectFacilityData,
   selectStaffAndFacilityData,
   selectAttendanceData,
-  selectAppState
+  selectAppState,
+  selectPrompts
 } from '../store/slices/appStateSlice.js'
 
 const AppStateContext = createContext(null)
@@ -80,6 +82,7 @@ export function AppStateProvider({ children }) {
   const reduxSelectedChildColumn5Html = useSelector(selectSelectedChildColumn5Html)
   const reduxSelectedChildColumn6 = useSelector(selectSelectedChildColumn6)
   const reduxSelectedChildColumn6Html = useSelector(selectSelectedChildColumn6Html)
+  const reduxPrompts = useSelector(selectPrompts)
   const reduxChildrenData = useSelector(selectChildrenData)
   const reduxWaitingChildrenData = useSelector(selectWaitingChildrenData)
   const reduxExperienceChildrenData = useSelector(selectExperienceChildrenData)
@@ -100,6 +103,10 @@ export function AppStateProvider({ children }) {
         // ini.jsonを読み込み（apiSettings.staffId, apiSettings.facilityIdなど）
         const iniData = await loadIniFromUtils()
         console.log('🧩 [AppStateContext] iniData 読み込み結果:', iniData)
+        
+        // プロンプトデータを読み込み
+        const promptData = await loadPromptFromUtils()
+        console.log('🧩 [AppStateContext] promptData 読み込み結果:', promptData)
         
         // マージ用のオブジェクトを作成（config.jsonからはHUG_USERNAMEとHUG_PASSWORDのみ）
         const mergedData = {}
@@ -187,6 +194,13 @@ export function AppStateProvider({ children }) {
           dispatch(updateAppStateRedux(mergedData))
           
           console.log('✅ [AppStateContext] 初期設定の読み込み完了:', mergedData)
+        }
+
+        // プロンプトデータをReduxに保存
+        if (promptData) {
+          dispatch(setPrompts(promptData))
+        } else {
+          dispatch(setPrompts({}))
         }
       } catch (error) {
         console.error('❌ 初期設定の読み込みエラー:', error)
@@ -320,6 +334,7 @@ export function AppStateProvider({ children }) {
         SELECTED_CHILD_COLUMN5_HTML: reduxSelectedChildColumn5Html,
         SELECTED_CHILD_COLUMN6: reduxSelectedChildColumn6,
         SELECTED_CHILD_COLUMN6_HTML: reduxSelectedChildColumn6Html,
+        prompts: reduxPrompts,
         childrenData: reduxChildrenData,
         waiting_childrenData: reduxWaitingChildrenData,
         Experience_childrenData: reduxExperienceChildrenData,

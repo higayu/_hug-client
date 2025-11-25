@@ -1,20 +1,29 @@
 // renderer/src/components/Sidebar/Tools/MemoTool/Parts/OpenAiButton.jsx
-import React, { useCallback } from "react"
+import React, { useCallback, useEffect, useState } from "react"
 import { FaRobot } from "react-icons/fa"
 import { useTabs } from "@/hooks/useTabs";
 import { useAppState } from "@/contexts/AppStateContext.jsx"
 import { createWebview, createTabButton } from "@/hooks/useTabs/common/index.js"
-import { useState } from "react"
 import AiInputBox from '../common/AiInputBox.jsx'
 
 export default function OpenAiContent() {
   const { appState } = useAppState()
   const { activateTab, closeTab } = useTabs()
-  const [prompt, setPrompt] = useState('') // テキストを共有する状態
+  const { prompts } = useAppState()
+
+
+  // 🔥 初期化処理ログ追加（コンポーネントマウント時）
+  useEffect(() => {
+    console.log("🟦 OpenAiContent コンポーネント初期化（マウント）")
+    console.log(" appState:", appState)
+    console.log("promptsのデータ",prompts);
+  }, []) // ← 初回のみ実行
 
   const handleOpenAI = useCallback(() => {
     const tabsContainer = document.getElementById("tabs")
     const webviewContainer = document.getElementById("webview-container")
+
+    console.log("▶ handleOpenAI 実行開始")
 
     if (!tabsContainer || !webviewContainer) {
       console.error("❌ tabs または webview-container が見つかりません")
@@ -22,16 +31,14 @@ export default function OpenAiContent() {
       return
     }
 
-    // === 新規IDとURL設定 ===
     const newId = `openai-${Date.now()}-${document.querySelectorAll("webview").length}`
-    const openAiUrl = "https://chat.openai.com/" // ChatGPT公式ページ or 社内AIポータルなどに変更可
-    console.log("🧠 OpenAIタブを作成:", newId, openAiUrl)
+    const openAiUrl = "https://chat.openai.com/"
 
-    // === webview作成 ===
+    console.log("🧠 OpenAIタブ作成:", newId, openAiUrl)
+
     const newWebview = createWebview(newId, openAiUrl)
     webviewContainer.appendChild(newWebview)
 
-    // === タブボタン作成 ===
     const tabButton = createTabButton(
       newId,
       "OpenAI ChatGPT",
@@ -41,27 +48,25 @@ export default function OpenAiContent() {
     if (!tabButton) return
     tabsContainer.appendChild(tabButton)
 
-    // === タブクリックイベント ===
     tabButton.addEventListener("click", () => {
+      console.log("🟩 タブアクティブ切り替え:", newId)
       activateTab(newId)
     })
 
-    // === タブ閉じるボタンイベント ===
     const closeBtn = tabButton.querySelector(".close-btn")
     if (closeBtn) {
       closeBtn.addEventListener("click", (e) => {
         e.stopPropagation()
+        console.log("🟥 タブ閉じるクリック:", newId)
         if (!confirm("このタブを閉じますか？")) return
         closeTab(newId)
       })
     }
 
-    // === 初回ロードログ ===
     newWebview.addEventListener("did-finish-load", () => {
       console.log("✅ OpenAIページロード完了:", openAiUrl)
     })
 
-    // === タブをアクティブ化 ===
     activateTab(newId)
   }, [appState.closeButtonsVisible, activateTab, closeTab])
 

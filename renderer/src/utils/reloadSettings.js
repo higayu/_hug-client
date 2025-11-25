@@ -2,7 +2,7 @@
 // config.json と ini.json の両方を再読み込みしてUIに反映
 
 import { loadConfig } from './configUtils.js'
-import { loadIni as loadIniFromUtils } from './iniUtils.js'
+import { loadIni as loadIniFromUtils,loadPrompt } from './iniUtils.js'
 import { sqliteApi } from '../sql/sqliteApi.js'
 import { mariadbApi } from '../sql/mariadbApi.js'
 
@@ -16,6 +16,9 @@ export async function loadAllReload() {
 
     // ✅ config.json の読み込み
     const configData = await loadConfig()
+    const prompt = await loadPrompt()
+    console.log("AIのprompt",prompt)
+
     if (!configData) {
       console.warn("⚠️ config.json の読み込みに失敗しました")
       return false
@@ -39,6 +42,7 @@ export async function loadAllReload() {
     // ✅ databaseTypeに基づいてactiveApiを更新
     try {
       const iniData = await loadIniFromUtils()
+
       if (iniData?.apiSettings?.databaseType) {
         const databaseType = iniData.apiSettings.databaseType
         const newActiveApi = databaseType === 'mariadb' ? mariadbApi : sqliteApi
