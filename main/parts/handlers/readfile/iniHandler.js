@@ -83,7 +83,7 @@ function handleIniAccess(ipcMain) {
             showWelcomeMessage: true,
           },
           apiSettings: {
-            baseURL: "http://192.168.1.229:3001/api",
+            baseURL: "http://192.168.1.229",
             staffId: "",
             facilityId: "",
             databaseType: "mariadb",

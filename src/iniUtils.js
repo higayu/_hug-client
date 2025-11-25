@@ -22,10 +22,10 @@ function resolveIniPath() {
 function getDefaultIni() {
   return {
     apiSettings: {
-      baseURL: "http://192.168.1.229:3001/api",
+      baseURL: "http://192.168.1.229",
       staffId: "",
       facilityId: "",
-      databaseType: "sqlite",
+      databaseType: "mariadb",
       useAI: "gemini"
     }
   };

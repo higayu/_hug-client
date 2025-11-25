@@ -7,18 +7,20 @@ const apiClient = axios.create({
   headers: { "Content-Type": "application/json" },
 });
 
+const PORT = ":3001/api";
+
 /**
  * ini.json から baseURL を更新
  */
 function updateBaseURL() {
   try {
     const ini = loadIni();
-    const baseURL = ini?.apiSettings?.baseURL || "http://192.168.1.229:3001/api";
-    apiClient.defaults.baseURL = baseURL;
+    const baseURL = ini?.apiSettings?.baseURL  || "http://192.168.1.229";
+    apiClient.defaults.baseURL = baseURL + PORT;
     console.log("🔧 [apiClient] baseURL 更新:", baseURL);
     return baseURL;
   } catch (err) {
-    apiClient.defaults.baseURL = "http://192.168.1.229:3001/api";
+    apiClient.defaults.baseURL = "http://192.168.1.229" + PORT;
     console.error("❌ [apiClient] baseURL更新エラー:", err);
     return apiClient.defaults.baseURL;
   }
