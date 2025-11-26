@@ -1,13 +1,12 @@
-// renderer/src/hooks/useTabs/actions/professionalNew.js
+// renderer/src/hooks/useTabs/actions/WebManager.js
 
 import { createWebview, createTabButton, activateTab, closeTab } from '../common/index.js'
-import { useIniState } from '@/contexts/IniStateContext.jsx'
 
-export function addWebManagerAction(appState) {
+// ★ iniState を引数で受け取るように変更
+export function addWebManagerAction(appState, iniState) {
 
   const tabsContainer = document.getElementById('tabs')
   const webviewContainer = document.getElementById('webview-container')
-  const { iniState, saveIni, setIniState } = useIniState()
 
   if (!tabsContainer || !webviewContainer) {
     console.error('❌ tabs または webview-container が見つかりません')
@@ -16,6 +15,7 @@ export function addWebManagerAction(appState) {
 
   const newId = `hugview-${appState.DATE_STR}-${document.querySelectorAll('webview').length}`
 
+  // ★ Hook をここで使わないので、iniState は外から渡された値を使う
   const newWebview = createWebview(
     newId,
     `${iniState?.apiSettings?.baseURL}/houday/build-file/`
@@ -55,7 +55,6 @@ export function addWebManagerAction(appState) {
     const parts = appState.DATE_STR.split('-')
     const jpDate = `${parts[0]}年${parseInt(parts[1])}月${parseInt(parts[2])}日`
 
-    // 開始終了時刻のパース
     const parseTime = (s) => {
       if (!s) return null
       const m = s.match(/^(\d{2}):(\d{2})$/)
