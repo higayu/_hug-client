@@ -334,7 +334,7 @@ export function AppStateProvider({ children }) {
         SELECTED_CHILD_COLUMN5_HTML: reduxSelectedChildColumn5Html,
         SELECTED_CHILD_COLUMN6: reduxSelectedChildColumn6,
         SELECTED_CHILD_COLUMN6_HTML: reduxSelectedChildColumn6Html,
-        prompts: reduxPrompts,
+        PROMPTS: reduxPrompts,
         childrenData: reduxChildrenData,
         waiting_childrenData: reduxWaitingChildrenData,
         Experience_childrenData: reduxExperienceChildrenData,

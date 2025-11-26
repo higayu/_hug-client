@@ -5,7 +5,7 @@ import AiInputBox from '../common/AiInputBox.jsx'
 
 export default function GeminiContent() {
   const { appState } = useAppState()
-  const [prompt, setPrompt] = useState('') // テキストを共有する状態
+  const { PROMPTS } = useAppState() // テキストを共有する状態
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState(null)
   const [error, setError] = useState(null)

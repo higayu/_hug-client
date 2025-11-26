@@ -43,7 +43,7 @@ const initialState = {
   attendanceData: [],
 
   // ★ 追加：プロンプトデータ
-  prompts: {}
+  PROMPTS: {}
 }
 
 // Sliceの作成
@@ -148,7 +148,7 @@ const appStateSlice = createSlice({
 
         // ★ プロンプトデータ設定
     setPrompts: (state, action) => {
-      state.prompts = action.payload || {}
+      state.PROMPTS = action.payload || {}
     },
     
     // 複数の状態を一度に更新
@@ -262,8 +262,8 @@ export const selectStaffAndFacilityData = (state) => state.appState.STAFF_AND_FA
 export const selectAttendanceData = (state) => state.appState.attendanceData
 export const selectAppState = (state) => state.appState
 
-// ★ prompts セレクター追加
-export const selectPrompts = (state) => state.appState.prompts
+// ★ PROMPTS セレクター追加
+export const selectPrompts = (state) => state.appState.PROMPTS
 
 // リデューサーのエクスポート
 export default appStateSlice.reducer

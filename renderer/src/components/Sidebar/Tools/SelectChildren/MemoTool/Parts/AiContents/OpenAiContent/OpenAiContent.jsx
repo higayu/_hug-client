@@ -5,18 +5,19 @@ import { useTabs } from "@/hooks/useTabs";
 import { useAppState } from "@/contexts/AppStateContext.jsx"
 import { createWebview, createTabButton } from "@/hooks/useTabs/common/index.js"
 import AiInputBox from '../common/AiInputBox.jsx'
+import PromptBox from "../common/PromptBox.jsx";
 
 export default function OpenAiContent() {
   const { appState } = useAppState()
   const { activateTab, closeTab } = useTabs()
-  const { prompts } = useAppState()
+  const { PROMPTS } = useAppState()
 
 
   // 🔥 初期化処理ログ追加（コンポーネントマウント時）
   useEffect(() => {
     console.log("🟦 OpenAiContent コンポーネント初期化（マウント）")
     console.log(" appState:", appState)
-    console.log("promptsのデータ",prompts);
+    console.log("PROMPTSのデータ",PROMPTS);
   }, []) // ← 初回のみ実行
 
   const handleOpenAI = useCallback(() => {
@@ -80,6 +81,8 @@ export default function OpenAiContent() {
         <FaRobot size={18} />
         <span>OpenAIを起動（新しいタブ）</span>
       </button>
+
+      <PromptBox />
     </div>
   )
 }
