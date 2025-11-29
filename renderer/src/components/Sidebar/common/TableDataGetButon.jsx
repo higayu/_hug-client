@@ -17,47 +17,31 @@ export default function TableDataGetButton() {
   const handleOpenAttendance = useCallback(async () => {
     // 専用タブ（hugview-first-button）を強制的にアクティブにする
     activateHugViewFirstButton();
-
-    // hugviewのwebviewを取得
+  
     const hugWebview = document.getElementById("hugview");
     if (!hugWebview) {
       console.error("❌ hugview webviewが見つかりません");
       showInfoToast("専用タブが見つかりません。");
       return;
     }
-
+  
     const facility_id = appState.SELECT_FACILITY_ID || appState.FACILITY_ID || "1";
     const date_str = appState.DATE_STR || new Date().toISOString().slice(0, 10);
-
+  
     const targetUrl = `https://www.hug-ayumu.link/hug/wm/attendance.php?mode=detail&f_id=${facility_id}&date=${date_str}`;
     console.log("📅 勤怠データ取得:", targetUrl);
-
-    // URLが変更される場合のみ再読み込み
+  
     const currentSrc = hugWebview.getURL?.() || "";
-    if (!currentSrc.includes(targetUrl)) {
-      hugWebview.src = targetUrl;
-    } else {
-      console.log("⚡ 既に同じURLを読み込み中のため再ロードをスキップ:", currentSrc);
-      // 既に同じURLの場合は、すぐにデータ取得処理を実行
-      handleAttendancePageLoad({
-        newWebview: hugWebview,
-        targetUrl,
-        facility_id,
-        date_str,
-        dispatch,
-        updateAppState,
-        showInfoToast,
-      });
-      return;
-    }
-
-    // ページが読み込まれたらデータ取得処理を実行
-    hugWebview.addEventListener(
-      "did-finish-load",
-      () => {
-        // URLが一致する場合のみ処理を実行
-        const loadedUrl = hugWebview.getURL?.() || "";
-        if (loadedUrl.includes(targetUrl)) {
+  
+    // ▼ URL が既に同じ → 最新化してすぐ取得
+    if (currentSrc.includes(targetUrl)) {
+      console.log("⚡ 既に同じURLを読み込み中 → 最新化して再取得");
+  
+      hugWebview.reloadIgnoringCache();
+  
+      hugWebview.addEventListener(
+        "did-finish-load",
+        () => {
           handleAttendancePageLoad({
             newWebview: hugWebview,
             targetUrl,
@@ -67,11 +51,50 @@ export default function TableDataGetButton() {
             updateAppState,
             showInfoToast,
           });
-        }
+        },
+        { once: true }
+      );
+  
+      return;
+    }
+  
+    // ▼ URL を新しく設定
+    hugWebview.src = targetUrl;
+  
+    // ▼ 1回目のロード完了 → 最新化のため再リロード
+    hugWebview.addEventListener(
+      "did-finish-load",
+      () => {
+        const loadedUrl = hugWebview.getURL?.() || "";
+        if (!loadedUrl.includes(targetUrl)) return;
+  
+        console.log("♻️ 一度目のロード完了 → キャッシュ無視で強制再読み込み");
+  
+        hugWebview.reloadIgnoringCache();
+  
+        // ▼ 最新化（2回目のロード）完了後に本処理
+        hugWebview.addEventListener(
+          "did-finish-load",
+          () => {
+            console.log("🔄 最新ページロード完了 → データ取得を実行");
+  
+            handleAttendancePageLoad({
+              newWebview: hugWebview,
+              targetUrl,
+              facility_id,
+              date_str,
+              dispatch,
+              updateAppState,
+              showInfoToast,
+            });
+          },
+          { once: true }
+        );
       },
       { once: true }
     );
   }, [appState, dispatch, updateAppState, showInfoToast]);
+  
 
   return (
     <div className="items-center justify-center">
