@@ -7,7 +7,7 @@ const apiClient = axios.create({
   headers: { "Content-Type": "application/json" },
 });
 
-const PORT = ":3001/api";
+const PORT = ":3001/api/sql";
 
 /**
  * ini.json から baseURL を更新
