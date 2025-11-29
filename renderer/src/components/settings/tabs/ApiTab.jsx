@@ -33,7 +33,7 @@ function ApiTab({ onSaveApiSettings, onReloadApiSettings, onInitializeSelectBoxe
       <div className="mb-6">
         <div className="flex items-center mb-3 py-2">
           <label htmlFor="api-base-url" className="font-medium text-gray-700 min-w-[120px]">APIベースURL:</label>
-          <input type="text" id="api-base-url" data-path="apiSettings.baseURL" className="px-3 py-2 border border-gray-300 rounded-md text-sm transition-all flex-1 max-w-[200px] focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-200" />
+          <input type="text" id="api-base-url" data-path="apiSettings." className="px-3 py-2 border border-gray-300 rounded-md text-sm transition-all flex-1 max-w-[200px] focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-200" />
         </div>
 
         <div className="flex items-center mb-3 py-2">

@@ -10,6 +10,8 @@ import { addNormalTabAction } from './actions/normal.js'
 import { addPersonalRecordTabAction, addPersonalRecordTabAction2 } from './actions/personalRecord.js'
 import { addProfessionalSupportListAction } from './actions/professionalList.js'
 import { addProfessionalSupportNewAction } from './actions/professionalNew.js'
+import { addWebManagerAction } from './actions/WebManager.js'
+import { useIniState } from '@/contexts/IniStateContext.jsx'
 
 /**
  * タブ管理のフック
@@ -17,6 +19,7 @@ import { addProfessionalSupportNewAction } from './actions/professionalNew.js'
 export function useTabs() {
   const { appState } = useAppState()
   const tabsInitializedRef = useRef(false)
+  const { iniState } = useIniState()   // ← ★ これを追加
 
     // ラッパーとして最小限にする
     // 通常タブ追加
@@ -38,6 +41,11 @@ export function useTabs() {
     const addProfessionalSupportNewTab = useCallback(() => {
       addProfessionalSupportNewAction(appState)
     }, [appState])
+
+    // 管理webアプリ
+    const addWebManagerActionTab = useCallback(() => {
+      addWebManagerAction(appState, iniState) // ← ✔ 引数で渡す
+    }, [appState, iniState])
 
   // タブ切り替えイベントの設定
   useEffect(() => {
@@ -156,13 +164,14 @@ export function useTabs() {
         professionalSupportBtn.removeEventListener('click', addProfessionalSupportListTab)
       }
     }
-  }, [addNormalTab, addPersonalRecordTab, addProfessionalSupportListTab, appState.FACILITY_ID, appState.DATE_STR])
+  }, [addNormalTab, addPersonalRecordTab, addProfessionalSupportListTab, addWebManagerActionTab, appState.FACILITY_ID, appState.DATE_STR])
 
   return {
     addNormalTab,
     addPersonalRecordTab,
     addProfessionalSupportListTab,
     addProfessionalSupportNewTab,
+    addWebManagerAction: addWebManagerActionTab,
     activateTab,
     closeTab
   }
