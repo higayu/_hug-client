@@ -8,6 +8,7 @@ export default function PromptBox() {
   // "personalRecord" と "professional" のプロンプトを2つの textarea に対応
   const [text1, setText1] = useState("");
   const [text2, setText2] = useState("");
+  const [aiText, setAiText] = useState("");   // AIに送るテキスト
 
   // 🔥 初期化時ログ & 初期値セット
   useEffect(() => {
@@ -24,6 +25,26 @@ export default function PromptBox() {
 
   return (
     <div className="flex flex-col gap-4 p-3 w-full">
+
+      {/* --- AI入力 --- */}
+      <div className="mt-4">
+        <label className="text-xs font-bold text-gray-700 block mb-1">
+          AIに送信するテキスト
+        </label>
+
+        <textarea
+          className="w-full h-24 p-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
+          value={aiText}
+          placeholder="AIに送信する内容を入力..."
+          onChange={(e) => setAiText(e.target.value)}
+        />
+        <button
+        className=""
+        >
+          実行
+        </button>
+      </div>
+
       {/* ===== Textarea 1 ===== */}
       <div className="flex flex-col gap-1">
         <label className="font-semibold">個人記録用プロンプト</label>

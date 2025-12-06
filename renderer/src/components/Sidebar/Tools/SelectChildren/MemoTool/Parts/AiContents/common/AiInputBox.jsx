@@ -12,7 +12,6 @@ export default function AiInputBox() {
   const { showSuccessToast, showErrorToast } = useToast();
   const [memo1, setMemo1] = useState("");       // 一時メモ1
   const [memo2, setMemo2] = useState("");     // 一時メモ2
-  const [aiText, setAiText] = useState("");   // AIに送るテキスト
   const [dbNote, setDbNote] = useState("");   // DBの保存済みメモ
 
 
@@ -121,22 +120,6 @@ export default function AiInputBox() {
       >
         一時メモを保存（まとめて）
       </button>
-
-
-      {/* --- AI入力 --- */}
-      <div className="mt-4">
-        <label className="text-xs font-bold text-gray-700 block mb-1">
-          AIに送信するテキスト
-        </label>
-
-        <textarea
-          className="w-full h-24 p-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
-          value={aiText}
-          placeholder="AIに送信する内容を入力..."
-          onChange={(e) => setAiText(e.target.value)}
-        />
-      </div>
-
 
       {/* --- DB保存済みメモ --- */}
       <div className="mt-4">
