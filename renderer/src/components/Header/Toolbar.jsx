@@ -377,6 +377,15 @@ function Toolbar() {
                 onClick={handleImportSetting}
                 className="block w-full text-left text-black border-none bg-transparent px-4 py-2 text-sm cursor-pointer transition-all hover:bg-[#e3f2fd]"
               >
+                WebViewのキャッシュクリア
+              </button>
+            </li>
+            <li className="m-0 p-0">
+              <button 
+                id="Import-Setting"
+                onClick={handleImportSetting}
+                className="block w-full text-left text-black border-none bg-transparent px-4 py-2 text-sm cursor-pointer transition-all hover:bg-[#e3f2fd]"
+              >
                 📁 設定ファイルのインポート
               </button>
             </li>

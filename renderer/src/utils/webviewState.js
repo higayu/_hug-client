@@ -35,3 +35,13 @@ export function getActiveId() {
   return activeWebview ? activeWebview.id : '(none)'
 }
 
+/**
+ * WebContents ID を取得（キャッシュ削除に必須）
+ */
+export function getActiveWebContentsId() {
+  if (!activeWebview) return null;
+  if (typeof activeWebview.getWebContentsId === "function") {
+    return activeWebview.getWebContentsId();
+  }
+  return null;
+}

@@ -1,11 +1,10 @@
 //renderer\src\hooks\useTabs\index.js
 // タブ管理のフック
-
 import { useEffect, useCallback, useRef } from 'react'
 import { useAppState } from '@/contexts/AppStateContext.jsx'
 import { setActiveWebview } from '@/utils/webviewState.js'
 import { getDateString } from '@/utils/dateUtils.js'
-import { createWebview, createTabButton, activateTab, closeTab } from './common/index.js'
+import { createWebview, createTabButton, activateTab, closeTab,clearActiveWebviewCache } from './common/index.js'
 import { addNormalTabAction } from './actions/normal.js'
 import { addPersonalRecordTabAction, addPersonalRecordTabAction2 } from './actions/personalRecord.js'
 import { addProfessionalSupportListAction } from './actions/professionalList.js'
@@ -173,6 +172,7 @@ export function useTabs() {
     addProfessionalSupportNewTab,
     addWebManagerAction: addWebManagerActionTab,
     activateTab,
-    closeTab
+    closeTab,
+    clearActiveWebviewCache
   }
 }
