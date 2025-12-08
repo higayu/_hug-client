@@ -351,6 +351,15 @@ function Toolbar() {
             </li>
             <li className="m-0 p-0">
               <button 
+                id="cash-Clear"
+                onClick={handleClearWebviewCache}
+                className="block w-full text-left text-black border-none bg-transparent px-4 py-2 text-sm cursor-pointer transition-all hover:bg-[#e3f2fd]"
+              >
+                WebViewのキャッシュクリア
+              </button>
+            </li>
+            <li className="m-0 p-0">
+              <button 
                 id="refreshBtn"
                 onClick={handleRefresh}
                 className="block w-full text-left text-black border-none bg-transparent px-4 py-2 text-sm cursor-pointer transition-all hover:bg-[#e3f2fd]"
@@ -383,15 +392,6 @@ function Toolbar() {
                 className="block w-full text-left text-black border-none bg-transparent px-4 py-2 text-sm cursor-pointer transition-all hover:bg-[#e3f2fd]"
               >
                 🔄 設定の再読み込み
-              </button>
-            </li>
-            <li className="m-0 p-0">
-              <button 
-                id="Import-Setting"
-                onClick={handleClearWebviewCache}
-                className="block w-full text-left text-black border-none bg-transparent px-4 py-2 text-sm cursor-pointer transition-all hover:bg-[#e3f2fd]"
-              >
-                WebViewのキャッシュクリア
               </button>
             </li>
             <li className="m-0 p-0">
