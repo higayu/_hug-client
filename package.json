@@ -36,7 +36,8 @@
     "appId": "com.example.hugclient",
     "productName": "Hug Client",
     "directories": {
-      "output": "dist"
+      "output": "dist",
+      "buildResources": "assets"
     },
     "files": [
       "main.js",
@@ -47,12 +48,18 @@
       "src/**/*",
       "package.json"
     ],
+    "icon": "assets/win/icon.ico",
     "win": {
       "target": "nsis",
-      "icon": "assets/favicon.ico",
-      "signAndEditExecutable": false,
-      "forceCodeSigning": false,
-      "requestedExecutionLevel": "asInvoker"
+      "icon": "assets/win/icon_win.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+  
+      "installerIcon": "assets/win/icon_win.ico",
+      "uninstallerIcon": "assets/win/icon_win.ico",
+      "installerHeaderIcon": "assets/win/icon_win.ico"
     },
     "mac": {},
     "linux": {},
