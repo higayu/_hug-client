@@ -1,5 +1,7 @@
 {
   "HUG_USERNAME": "",
   "HUG_PASSWORD": "",
-  "GEMINI_API_KEY": ""
+  "GEMINI_API_KEY": "",
+  "OPENAI_MAIL": "",
+  "OPENAI_PASSWORD": ""
 }
