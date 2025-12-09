@@ -4,6 +4,7 @@ const path = require("path");
 
 const { createMainWindow } = require("./main/window");
 const { registerIpcHandlers } = require("./main/ipcHandlers");
+const { setAppMenu } = require("./main/menu");   // ← 追加
 // ✅ 修正版（1階層深く）
 const { registerSqliteHandlers } = require("./main/parts/handlers/sqliteHandler");
 
@@ -31,7 +32,7 @@ global.updateDebugInfo = updateDebugInfo;
 // 🏁 Electron 起動処理
 // ============================================================
 app.whenReady().then(async () => {
- 
+  setAppMenu();         // ← メニュー適用
 
   // 5秒後にアップデートチェック
   setTimeout(() => {
