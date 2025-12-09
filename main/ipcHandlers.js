@@ -25,7 +25,32 @@ function registerIpcHandlers(mainWindow, tempNoteHandler) {
     open_addition_compare_btn(ipcMain);
 
     
-    // 🔧 アップデートデバッグ情報取得ハンドラー
+     // =======================================
+    // 🧹 WebView のキャッシュ削除 IPC ハンドラ
+    // =======================================
+    ipcMain.handle("clear-webview-cache", async (event, wcId) => {
+      try {
+        const { webContents } = require("electron");
+        const wc = webContents.fromId(wcId);
+
+        if (!wc) {
+          console.warn("⚠ WebContents が見つかりません:", wcId);
+          return false;
+        }
+
+        await wc.session.clearCache();
+
+        console.log(`🧹 WebView cache cleared (wcId=${wcId})`);
+        return true;
+      } catch (err) {
+        console.error("❌ clear-webview-cache error:", err);
+        return false;
+      }
+    });
+
+     // =======================================
+    //  🔧 アップデートデバッグ情報取得ハンドラー
+    // =======================================
     ipcMain.handle('get-update-debug-info', async () => {
       return {
         success: true,

@@ -48,6 +48,9 @@ contextBridge.exposeInMainWorld("electronAPI", {
   buildAiPrompt: (promptKey, userText) =>
     ipcRenderer.invoke("build-ai-prompt", promptKey, userText),
 
+  clearWebviewCache: (wcId) => ipcRenderer.invoke("clear-webview-cache", wcId),
+
+
   // ---- ログイン系 ----
   hugLogin: () => ipcRenderer.invoke("hug-login"),
   doAutoLogin: (username, password) =>

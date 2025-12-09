@@ -1,4 +1,4 @@
-// clearCacheTab.js
+// renderer\src\hooks\useTabs\common\clearCacheTab.js
 // アクティブな WebView のキャッシュを削除する共通関数
 
 import { getActiveWebview } from "@/utils/webviewState.js";
@@ -11,7 +11,7 @@ export async function clearActiveWebviewCache() {
     return false;
   }
 
-  const wcId = activeView.getWebContentsId(); // ← WebContents ID を取得
+  const wcId = activeView.getWebContentsId();
 
   if (!wcId) {
     console.warn("⚠ WebContents ID が取得できませんでした");
@@ -19,8 +19,7 @@ export async function clearActiveWebviewCache() {
   }
 
   try {
-    // メインプロセスへキャッシュ削除を依頼
-    const result = await window.api.clearWebviewCache(wcId);
+    const result = await window.electronAPI.clearWebviewCache(wcId);
 
     if (result) {
       console.log("🧹 WebView cache cleared:", activeView.id);
@@ -29,7 +28,6 @@ export async function clearActiveWebviewCache() {
       console.warn("⚠ キャッシュ削除に失敗しました");
       return false;
     }
-
   } catch (err) {
     console.error("❌ clearActiveWebviewCache error:", err);
     return false;
