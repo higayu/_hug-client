@@ -15,6 +15,17 @@ const template = [
     label: "Window",
     submenu: [
       {
+        label: "DeveTool開く",
+        accelerator: process.platform === "darwin" ? "Cmd+D" : "Ctrl+D",
+         click: () => {
+          const win = BrowserWindow.getFocusedWindow();
+          if (win) {
+            win.webContents.openDevTools();
+          }
+        },
+      },
+
+      {
         label: "最小化",
         accelerator: process.platform === "darwin" ? "Cmd+M" : "Ctrl+M",
         click: () => BrowserWindow.getFocusedWindow()?.minimize(),
