@@ -3,7 +3,13 @@
 import { useEffect, useCallback, useRef } from 'react'
 import { useAppState } from '@/contexts/AppStateContext.jsx'
 import { setActiveWebview } from '@/utils/webviewState.js'
-import { TabsManager } from './TabsManager.js'
+import { getDateString } from '@/utils/dateUtils.js'
+import { createWebview, createTabButton, activateTab, closeTab,clearActiveWebviewCache } from './common/index.js'
+import { addNormalTabAction } from './actions/normal.js'
+import { addPersonalRecordTabAction, addPersonalRecordTabAction2 } from './actions/personalRecord.js'
+import { addProfessionalSupportListAction } from './actions/professionalList.js'
+import { addProfessionalSupportNewAction } from './actions/professionalNew.js'
+import { addWebManagerAction } from './actions/WebManager.js'
 import { useIniState } from '@/contexts/IniStateContext.jsx'
 
 /**
@@ -13,42 +19,32 @@ export function useTabs() {
   const { appState } = useAppState()
   const tabsInitializedRef = useRef(false)
   const { iniState } = useIniState()   // ← ★ これを追加
-  const tabsManagerRef = useRef(null)
-
-  if (!tabsManagerRef.current) {
-    tabsManagerRef.current = new TabsManager({
-      getAppState: () => appState,
-      getIniState: () => iniState,
-    })
-  }
-
-  const tabsManager = tabsManagerRef.current
 
     // ラッパーとして最小限にする
     // 通常タブ追加
     const addNormalTab = useCallback(() => {
-      tabsManager.addNormalTab()
-    }, [tabsManager])
+      addNormalTabAction(appState)
+    }, [appState])
 
     // 個人記録タブ追加
     const addPersonalRecordTab = useCallback(() => {
-      tabsManager.addPersonalRecordTab()
-    }, [tabsManager])
+      addPersonalRecordTabAction2(appState)
+    }, [appState])
 
     // 専門的支援一覧タブ追加
     const addProfessionalSupportListTab = useCallback(() => {
-      tabsManager.addProfessionalSupportListTab()
-    }, [tabsManager])
+      addProfessionalSupportListAction(appState)
+    }, [appState])
 
     // 専門的支援-新規タブ追加
     const addProfessionalSupportNewTab = useCallback(() => {
-      tabsManager.addProfessionalSupportNewTab()
-    }, [tabsManager])
+      addProfessionalSupportNewAction(appState)
+    }, [appState])
 
     // 管理webアプリ
     const addWebManagerActionTab = useCallback(() => {
-      tabsManager.addWebManagerTab()
-    }, [tabsManager])
+      addWebManagerAction(appState, iniState) // ← ✔ 引数で渡す
+    }, [appState, iniState])
 
   // タブ切り替えイベントの設定
   useEffect(() => {
@@ -69,7 +65,7 @@ export function useTabs() {
       
       console.log('🎯 data-target:', targetId)
     
-      tabsManager.activateTab(targetId)
+      activateTab(targetId)
     }
     
 
@@ -167,7 +163,7 @@ export function useTabs() {
         professionalSupportBtn.removeEventListener('click', addProfessionalSupportListTab)
       }
     }
-  }, [addNormalTab, addPersonalRecordTab, addProfessionalSupportListTab, appState.FACILITY_ID, appState.DATE_STR])
+  }, [addNormalTab, addPersonalRecordTab, addProfessionalSupportListTab, addWebManagerActionTab, appState.FACILITY_ID, appState.DATE_STR])
 
   return {
     addNormalTab,
@@ -175,8 +171,8 @@ export function useTabs() {
     addProfessionalSupportListTab,
     addProfessionalSupportNewTab,
     addWebManagerAction: addWebManagerActionTab,
-    activateTab: tabsManager.activateTab,
-    closeTab: tabsManager.closeTab,
-    clearActiveWebviewCache: tabsManager.clearActiveWebviewCache
+    activateTab,
+    closeTab,
+    clearActiveWebviewCache
   }
 }
