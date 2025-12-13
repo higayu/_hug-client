@@ -3,7 +3,7 @@
 
 import { TabsCommon } from './common/index.js'
 import { addNormalTabAction } from './actions/normal.js'
-import { addPersonalRecordTabAction2 } from './actions/personalRecord.js'
+import { addPersonalRecordTabAction3 } from './actions/personalRecord.js'
 import { addProfessionalSupportListAction } from './actions/professionalList.js'
 import { addProfessionalSupportNewAction } from './actions/professionalNew.js'
 import { addWebManagerAction } from './actions/WebManager.js'
@@ -35,7 +35,7 @@ export class TabsManager {
 
   addPersonalRecordTab = () => {
     if (!this.appState) return
-    addPersonalRecordTabAction2(this.appState)
+    addPersonalRecordTabAction3(this.appState)
   }
 
   addProfessionalSupportListTab = () => {
