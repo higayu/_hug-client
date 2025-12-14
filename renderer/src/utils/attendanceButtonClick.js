@@ -197,6 +197,10 @@ function buildWebviewClickExecutor({ onclickCode, buttonText, extraSelector }) {
  * ========================================================= */
 export async function clickEnterButton(column5Html) {
   let webview = null;
+  
+  if(!false){
+    return;//一旦使用停止
+  }
 
   try {
     console.log("🔘 [ATTENDANCE] 入室ボタン処理開始");
@@ -233,6 +237,10 @@ export async function clickAbsenceButton(column5Html) {
   const webview = getActiveWebview();
   if (!webview) return { success: false, error: "アクティブWebViewがありません" };
 
+  if(!false){
+    return;//一旦使用停止
+  }
+
   try {
     console.log("🔘 [ATTENDANCE] 欠席ボタン処理開始");
 
@@ -263,6 +271,10 @@ export async function clickAbsenceButton(column5Html) {
  * ========================================================= */
 export async function clickExitButton(column6Html) {
   let webview = null;
+
+  if(!false){
+    return;//一旦使用停止
+  }
 
   try {
     console.log("🔘 [ATTENDANCE] 退室ボタン処理開始");

@@ -8,6 +8,7 @@ export default function PromptBox() {
   // "personalRecord" と "professional" のプロンプトを2つの textarea に対応
   const [text1, setText1] = useState("");
   const [text2, setText2] = useState("");
+  const [text3, setText3] = useState("");
   const [aiText, setAiText] = useState("");   // AIに送るテキスト
 
   // 🔥 初期化時ログ & 初期値セット
@@ -19,7 +20,8 @@ export default function PromptBox() {
     // プロンプトの初期値反映
     if (PROMPTS) {
       setText1(PROMPTS.personalRecord?.content ?? "");
-      setText2(PROMPTS.professional?.content ?? "");
+      setText2(PROMPTS.professional1?.content ?? "");
+      setText3(PROMPTS.professional2?.content ?? "");
     }
   }, []);
 
@@ -58,12 +60,23 @@ export default function PromptBox() {
 
       {/* ===== Textarea 2 ===== */}
       <div className="flex flex-col gap-1">
-        <label className="font-semibold">専門的支援加算用プロンプト</label>
+        <label className="font-semibold">専門的支援加算用プロンプト1</label>
         <textarea
           className="w-full h-32 border border-gray-300 rounded-lg p-2 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
           value={text2}
           onChange={(e) => setText2(e.target.value)}
-          placeholder="professional.content の編集..."
+          placeholder="professional.content1 の編集..."
+        />
+      </div>
+
+      {/* ===== Textarea 3 ===== */}
+      <div className="flex flex-col gap-1">
+        <label className="font-semibold">専門的支援加算用プロンプト2</label>
+        <textarea
+          className="w-full h-32 border border-gray-300 rounded-lg p-2 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+          value={text3}
+          onChange={(e) => setText3(e.target.value)}
+          placeholder="professional.content2 の編集..."
         />
       </div>
     </div>
