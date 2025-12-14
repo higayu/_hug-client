@@ -1,84 +1,41 @@
-// renderer/src/components/Sidebar/Tools/MemoTool/Parts/AiContents/common/PromptBox.jsx
-import React, { useState, useEffect } from "react";
-import { useAppState } from "@/contexts/AppStateContext.jsx";
+import React, { useState } from "react";
+import PersonalRecordPrompt from "./PersonalRecordPrompt";
+import ProfessionalPrompt from "./ProfessionalPrompt";
 
 export default function PromptBox() {
-  const { appState, PROMPTS } = useAppState();
-
-  // "personalRecord" と "professional" のプロンプトを2つの textarea に対応
-  const [text1, setText1] = useState("");
-  const [text2, setText2] = useState("");
-  const [text3, setText3] = useState("");
-  const [aiText, setAiText] = useState("");   // AIに送るテキスト
-
-  // 🔥 初期化時ログ & 初期値セット
-  useEffect(() => {
-    console.log("🟦 PromptBox 初期化（マウント）");
-    console.log(" appState:", appState);
-    console.log(" PROMPTS:", PROMPTS);
-
-    // プロンプトの初期値反映
-    if (PROMPTS) {
-      setText1(PROMPTS.personalRecord?.content ?? "");
-      setText2(PROMPTS.professional1?.content ?? "");
-      setText3(PROMPTS.professional2?.content ?? "");
-    }
-  }, []);
+  const [active, setActive] = useState("personal"); // personal | professional
 
   return (
     <div className="flex flex-col gap-4 p-3 w-full">
 
-      {/* --- AI入力 --- */}
-      <div className="mt-4">
-        <label className="font-bold text-gray-700 block mb-1">
-          AIに送信するテキスト
-        </label>
-
-        <textarea
-          className="w-full h-24 p-2 border text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
-          value={aiText}
-          placeholder="AIに送信する内容を入力..."
-          onChange={(e) => setAiText(e.target.value)}
-        />
+      {/* 切替ボタン */}
+      <div className="flex gap-2">
         <button
-        className=""
+          className={`px-3 py-1 rounded ${
+            active === "personal"
+              ? "bg-sky-400 text-white"
+              : "bg-gray-200"
+          }`}
+          onClick={() => setActive("personal")}
         >
-          実行
+          個人
+        </button>
+
+        <button
+          className={`px-3 py-1 rounded ${
+            active === "professional"
+              ? "bg-indigo-600 text-white"
+              : "bg-gray-200"
+          }`}
+          onClick={() => setActive("professional")}
+        >
+          専門的支援
         </button>
       </div>
 
-      {/* ===== Textarea 1 ===== */}
-      <div className="flex flex-col gap-1">
-        <label className="font-semibold">個人記録用プロンプト</label>
-        <textarea
-          className="w-full h-32 border border-gray-300 rounded-lg p-2 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-          value={text1}
-          onChange={(e) => setText1(e.target.value)}
-          placeholder="personalRecord.content の編集..."
-        />
-      </div>
-
-      {/* ===== Textarea 2 ===== */}
-      <div className="flex flex-col gap-1">
-        <label className="font-semibold">専門的支援加算用プロンプト1</label>
-        <textarea
-          className="w-full h-32 border border-gray-300 rounded-lg p-2 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-          value={text2}
-          onChange={(e) => setText2(e.target.value)}
-          placeholder="professional.content1 の編集..."
-        />
-      </div>
-
-      {/* ===== Textarea 3 ===== */}
-      <div className="flex flex-col gap-1">
-        <label className="font-semibold">専門的支援加算用プロンプト2</label>
-        <textarea
-          className="w-full h-32 border border-gray-300 rounded-lg p-2 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-          value={text3}
-          onChange={(e) => setText3(e.target.value)}
-          placeholder="professional.content2 の編集..."
-        />
-      </div>
+      {/* 表示切替 */}
+      {active === "personal" && <PersonalRecordPrompt />}
+      {active === "professional" && <ProfessionalPrompt />}
     </div>
   );
 }
