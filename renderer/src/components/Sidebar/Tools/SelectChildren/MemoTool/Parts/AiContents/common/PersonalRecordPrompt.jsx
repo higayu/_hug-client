@@ -46,6 +46,7 @@ export default function PersonalRecordPrompt() {
       console.warn("❌ webview が取得できない");
       return;
     }
+    const url = vw && typeof vw.getURL === "function" ? vw.getURL() : "";
     if(!isChatGPT(url)){
       console.warn("❌ ChartGPT のドメインが取得できない");
       return;
@@ -57,64 +58,77 @@ export default function PersonalRecordPrompt() {
 
 
     // WebView ready 待ち
-  await vw.executeJavaScript(`
-  (() => {
-    const SELECTORS = [
-      '[contenteditable="true"][role="textbox"]',
-      '[data-testid="prompt-textarea"][contenteditable="true"]',
-      'div[contenteditable="true"]'
-    ];
+    await vw.executeJavaScript(`
+      (() => {
+        const SELECTORS = [
+          '[contenteditable="true"][role="textbox"]',
+          '[data-testid="prompt-textarea"][contenteditable="true"]',
+          'div[contenteditable="true"]'
+        ];
 
-    const findEditor = () => {
-      for (const sel of SELECTORS) {
-        const el = document.querySelector(sel);
-        if (el) return el;
-      }
-      return null;
-    };
+        const findEditor = () => {
+          for (const sel of SELECTORS) {
+            const el = document.querySelector(sel);
+            if (el) return el;
+          }
+          return null;
+        };
 
-    const inject = (editor) => {
-      editor.focus();
-      editor.innerHTML = "";
+        const findButton = () =>
+          document.querySelector('#composer-submit-button')
+          || document.querySelector('[data-testid="send-button"]');
 
-      const text = ${JSON.stringify(TextValue)};
-      document.execCommand("insertText", false, text);
+        const injectAndSend = (editor) => {
+          editor.focus();
+          editor.innerHTML = "";
 
-      editor.dispatchEvent(new Event("input", { bubbles: true }));
-      console.log("✅ editor input injected");
-    };
+          const text = ${JSON.stringify(TextValue)};
+          document.execCommand("insertText", false, text);
 
-    return new Promise((resolve) => {
-      const editor = findEditor();
-      if (editor) {
-        inject(editor);
-        return resolve(true);
-      }
+          editor.dispatchEvent(new Event("input", { bubbles: true }));
 
-      console.log("⏳ editor not found, waiting...");
+          // 少し待ってから送信（重要）
+          setTimeout(() => {
+            const btn = findButton();
+            if (btn && !btn.disabled) {
+              btn.click();
+              console.log("🚀 send button clicked");
+            } else {
+              console.warn("❌ send button not ready");
+            }
+          }, 100);
+        };
 
-      const observer = new MutationObserver(() => {
-        const ed = findEditor();
-        if (ed) {
-          observer.disconnect();
-          inject(ed);
-          resolve(true);
-        }
-      });
+        return new Promise((resolve) => {
+          const editor = findEditor();
+          if (editor) {
+            injectAndSend(editor);
+            return resolve(true);
+          }
 
-      observer.observe(document.body, {
-        childList: true,
-        subtree: true
-      });
+          const observer = new MutationObserver(() => {
+            const ed = findEditor();
+            if (ed) {
+              observer.disconnect();
+              injectAndSend(ed);
+              resolve(true);
+            }
+          });
 
-      setTimeout(() => {
-        observer.disconnect();
-        console.warn("❌ editor still not found (timeout)");
-        resolve(false);
-      }, 7000);
-    });
-  })();
-  `);
+          observer.observe(document.body, {
+            childList: true,
+            subtree: true
+          });
+
+          setTimeout(() => {
+            observer.disconnect();
+            console.warn("❌ editor not found (timeout)");
+            resolve(false);
+          }, 7000);
+        });
+      })();
+    `);
+
 
 
     console.log("⑥ executeJavaScript 呼び出し直前");
