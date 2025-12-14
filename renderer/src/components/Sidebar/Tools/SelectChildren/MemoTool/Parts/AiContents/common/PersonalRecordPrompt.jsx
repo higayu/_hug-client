@@ -46,8 +46,15 @@ export default function PersonalRecordPrompt() {
       console.warn("❌ webview が取得できない");
       return;
     }
+    if(!isChatGPT(url)){
+      console.warn("❌ ChartGPT のドメインが取得できない");
+      return;
+    }
 
     console.log("③ webview isLoading:", vw.isLoading?.());
+
+    const TextValue = `${text1}\n\n${aiText}`;
+
 
     // WebView ready 待ち
   await vw.executeJavaScript(`
@@ -70,7 +77,7 @@ export default function PersonalRecordPrompt() {
       editor.focus();
       editor.innerHTML = "";
 
-      const text = ${JSON.stringify(aiText)};
+      const text = ${JSON.stringify(TextValue)};
       document.execCommand("insertText", false, text);
 
       editor.dispatchEvent(new Event("input", { bubbles: true }));
@@ -149,7 +156,7 @@ export default function PersonalRecordPrompt() {
         />
         <button
         className="bg-green-700 p-2 rounded text-white"
-        onClick={() => clickEnterButton(text1)}
+        onClick={() => clickEnterButton()}
         >
           実行
         </button>
