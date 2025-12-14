@@ -106,11 +106,11 @@ function ChildMemoPanel() {
   }
 
   return (
-    <div className="child-memo-panel flex-1 border-l border-gray-300 bg-gray-50 p-4 overflow-y-auto flex flex-col h-full">
+    <div className="child-memo-panel flex-1 border-l border-gray-300 bg-gray-50 overflow-y-auto flex flex-col h-full">
 
       {/* 子ども情報 */}
-      <div className="bg-white text-center p-2 mb-2">
-        <h3 className="text-sm font-bold text-gray-700 mb-2">
+      <div className="bg-white text-center rounded p-2 mb-2">
+        <h3 className="text-sm font-bold text-gray-700 m-2">
           {selectedChildData.children_id}: {selectedChildData.children_name}
         </h3>
         {selectedChildData.pc_name && (
@@ -197,7 +197,7 @@ function ChildMemoPanel() {
       </div>
 
       {/* AI + メモツール */}
-      <div className="mt-4 border-t rounded bg-gray-300 border-gray-300 pt-3">
+      <div className="mt-4 border-t rounded bg-gray-200 border-gray-300 pt-3">
           <MemoContainer />
       </div>
 

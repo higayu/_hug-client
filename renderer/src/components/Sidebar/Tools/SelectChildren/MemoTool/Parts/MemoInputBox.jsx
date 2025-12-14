@@ -1,35 +1,15 @@
 // renderer/src/components/Sidebar/Tools/MemoTool/Parts/AiInputBox.jsx
 import React, { useState, useEffect } from "react";
 import { useAppState } from "@/contexts/AppStateContext.jsx";
-import { useChildrenList } from "@/hooks/useChildrenList.js";
 import { useToast } from  '@/components/common/ToastContext.jsx'
 import { useNote } from "@/hooks/useNote.js";
 
-export default function AiInputBox() {
+export default function MemoInputBox() {
   const { SELECT_CHILD } = useAppState();
-  const { childrenData, waitingChildrenData, experienceChildrenData} = useChildrenList();
   const { saveTemp, loadTemp } = useNote();
   const { showSuccessToast, showErrorToast } = useToast();
   const [memo1, setMemo1] = useState("");       // 一時メモ1
   const [memo2, setMemo2] = useState("");     // 一時メモ2
-  const [dbNote, setDbNote] = useState("");   // DBの保存済みメモ
-
-
-  // 🔍 SELECT_CHILD 変更→DBメモ読み込み
-  useEffect(() => {
-    if (!SELECT_CHILD) {
-      setDbNote("");
-      return;
-    }
-
-    let child =
-      childrenData.find((c) => c.children_id === SELECT_CHILD) ||
-      waitingChildrenData.find((c) => c.children_id === SELECT_CHILD) ||
-      experienceChildrenData.find((c) => c.children_id === SELECT_CHILD);
-
-    setDbNote(child?.notes || "");
-  }, [SELECT_CHILD, childrenData, waitingChildrenData, experienceChildrenData]);
-
 
   // 🔄 一時メモ読込（memo + memo2）
   useEffect(() => {
@@ -121,16 +101,6 @@ export default function AiInputBox() {
         一時メモを保存（まとめて）
       </button>
 
-      {/* --- DB保存済みメモ --- */}
-      <div className="mt-4">
-        <h4 className="text-xs font-bold text-gray-700 mb-2">
-          保存済みメモ（専門支援内容 / DB）
-        </h4>
-
-        <div className="text-xs leading-relaxed bg-gray-400 text-white whitespace-pre-wrap break-words p-2 border border-gray-200 rounded min-h-[100px]">
-          {dbNote || "メモがありません"}
-        </div>
-      </div>
 
     </div>
   );

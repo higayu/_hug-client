@@ -1,41 +1,50 @@
+// renderer\src\components\Sidebar\Tools\SelectChildren\MemoTool\Parts\AiContents\common\PromptBox.jsx
 import React, { useState } from "react";
 import PersonalRecordPrompt from "./PersonalRecordPrompt";
-import ProfessionalPrompt from "./ProfessionalPrompt";
+import ProfessionalPrompt1 from "./ProfessionalPrompt1";
+import ProfessionalPrompt2 from "./ProfessionalPrompt2";
+
+const COMPONENT_MAP = {
+  personal: {
+    label: "個人",
+    component: PersonalRecordPrompt,
+  },
+  professional1: {
+    label: "専門的支援①",
+    component: ProfessionalPrompt1,
+  },
+  professional2: {
+    label: "専門的支援②",
+    component: ProfessionalPrompt2,
+  },
+};
 
 export default function PromptBox() {
-  const [active, setActive] = useState("personal"); // personal | professional
+  const [activeKey, setActiveKey] = useState("personal");
+
+  const ActiveComponent = COMPONENT_MAP[activeKey].component;
 
   return (
-    <div className="flex flex-col gap-4 p-3 w-full">
-
-      {/* 切替ボタン */}
-      <div className="flex gap-2">
-        <button
-          className={`px-3 py-1 rounded ${
-            active === "personal"
-              ? "bg-sky-400 text-white"
-              : "bg-gray-200"
-          }`}
-          onClick={() => setActive("personal")}
-        >
-          個人
-        </button>
-
-        <button
-          className={`px-3 py-1 rounded ${
-            active === "professional"
-              ? "bg-indigo-600 text-white"
-              : "bg-gray-200"
-          }`}
-          onClick={() => setActive("professional")}
-        >
-          専門的支援
-        </button>
+    <div className="flex flex-col bg-gray-400 gap-4 p-3 w-full">
+      {/* ===== タブ ===== */}
+      <div className="flex gap-2 flex-wrap">
+        {Object.entries(COMPONENT_MAP).map(([key, { label }]) => (
+          <button
+            key={key}
+            className={`px-3 py-1 rounded text-sm ${
+              activeKey === key
+                ? "bg-sky-400 text-white"
+                : "bg-gray-200"
+            }`}
+            onClick={() => setActiveKey(key)}
+          >
+            {label}
+          </button>
+        ))}
       </div>
 
-      {/* 表示切替 */}
-      {active === "personal" && <PersonalRecordPrompt />}
-      {active === "professional" && <ProfessionalPrompt />}
+      {/* ===== 表示 ===== */}
+      <ActiveComponent />
     </div>
   );
 }

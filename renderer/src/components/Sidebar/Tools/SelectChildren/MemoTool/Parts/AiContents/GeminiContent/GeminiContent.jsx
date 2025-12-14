@@ -1,7 +1,6 @@
 // renderer/src/components/Sidebar/Tools/SelectChildren/MemoTool/Parts/AiContents/GeminiContent/GeminiContent.jsx
 import React, { useState } from 'react'
 import { useAppState } from '@/contexts/AppStateContext.jsx'
-import AiInputBox from '../common/AiInputBox.jsx'
 
 export default function GeminiContent() {
   const { appState } = useAppState()
@@ -75,7 +74,6 @@ export default function GeminiContent() {
   return (
     <div className="p-3 border rounded-lg shadow-sm bg-white space-y-2">
       <h3 className="font-semibold text-gray-700">Gemini API テスト</h3>
-      <AiInputBox />
       <button
         onClick={handleGeminiRequest}
         disabled={loading}

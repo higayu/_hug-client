@@ -4,7 +4,6 @@ import { FaRobot } from "react-icons/fa"
 import { useTabs } from "@/hooks/useTabs";
 import { useAppState } from "@/contexts/AppStateContext.jsx"
 import { createWebview, createTabButton } from "@/hooks/useTabs/common/index.js"
-import AiInputBox from '../common/AiInputBox.jsx'
 import PromptBox from "../common/PromptBox.jsx";
 
 export default function OpenAiContent() {
@@ -73,7 +72,6 @@ export default function OpenAiContent() {
 
   return (
     <div className="flex flex-col items-center justify-center w-full p-2">
-      <AiInputBox />
       <button
         onClick={handleOpenAI}
         className="w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-md px-3 py-2 transition-colors"
