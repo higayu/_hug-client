@@ -80,7 +80,7 @@ export default function AiInputBox() {
 
 
   return (
-    <div className="flex flex-col w-full bg-white p-2 shadow-sm">
+    <div className="flex flex-col w-full rounded mb-2 p-2 shadow-sm">
 
       {/* --- 一時メモ1 --- */}
       <div>
@@ -127,7 +127,7 @@ export default function AiInputBox() {
           保存済みメモ（専門支援内容 / DB）
         </h4>
 
-        <div className="text-xs leading-relaxed text-black whitespace-pre-wrap break-words p-2 bg-white border border-gray-200 rounded min-h-[100px]">
+        <div className="text-xs leading-relaxed bg-gray-400 text-white whitespace-pre-wrap break-words p-2 border border-gray-200 rounded min-h-[100px]">
           {dbNote || "メモがありません"}
         </div>
       </div>

@@ -30,12 +30,12 @@ export default function PromptBox() {
 
       {/* --- AI入力 --- */}
       <div className="mt-4">
-        <label className="text-xs font-bold text-gray-700 block mb-1">
+        <label className="font-bold text-gray-700 block mb-1">
           AIに送信するテキスト
         </label>
 
         <textarea
-          className="w-full h-24 p-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
+          className="w-full h-24 p-2 border text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
           value={aiText}
           placeholder="AIに送信する内容を入力..."
           onChange={(e) => setAiText(e.target.value)}
