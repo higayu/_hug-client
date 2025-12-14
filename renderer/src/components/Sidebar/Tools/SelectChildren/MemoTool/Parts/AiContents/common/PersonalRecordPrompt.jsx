@@ -36,57 +36,92 @@ export default function PersonalRecordPrompt() {
     }
   }, []);
 
+  const clickEnterButton = async () => {
+    console.log("① clickEnterButton 開始");
 
-const clickEnterButton = async (promptText) => {
-  if (!promptText.trim()) {
-    showWarningToast("プロンプトが空です");
-    return;
-  }
+    const vw = getActiveWebview();
+    console.log("② webview取得", vw);
 
-  if (!aiText.trim()) {
-    showWarningToast("AIに送信するテキストが空です");
-    return;
-  }
+    if (!vw) {
+      console.warn("❌ webview が取得できない");
+      return;
+    }
 
-  const vw = getActiveWebview();
-  const url = typeof vw?.getURL === "function" ? vw.getURL() : "";
+    console.log("③ webview isLoading:", vw.isLoading?.());
 
-  if (!isChatGPT(url)) {
-    showWarningToast("OpenAIとは違うドメインです");
-    return;
-  }
+    // WebView ready 待ち
+  await vw.executeJavaScript(`
+  (() => {
+    const SELECTORS = [
+      '[contenteditable="true"][role="textbox"]',
+      '[data-testid="prompt-textarea"][contenteditable="true"]',
+      'div[contenteditable="true"]'
+    ];
 
-  const success = await vw.executeJavaScript(`
-    (() => {
-      const textarea = document.querySelector(
-        'textarea[name="prompt-textarea"]'
-      );
-      if (!textarea) return false;
+    const findEditor = () => {
+      for (const sel of SELECTORS) {
+        const el = document.querySelector(sel);
+        if (el) return el;
+      }
+      return null;
+    };
 
-      const originalDisplay = textarea.style.display;
-      textarea.style.display = "block";
-      textarea.focus();
-      textarea.value = ${JSON.stringify(aiText)};
+    const inject = (editor) => {
+      editor.focus();
+      editor.innerHTML = "";
 
-      textarea.dispatchEvent(
-        new InputEvent("input", {
-          bubbles: true,
-          inputType: "insertText",
-          data: ${JSON.stringify(aiText)},
-        })
-      );
+      const text = ${JSON.stringify(aiText)};
+      document.execCommand("insertText", false, text);
 
-      textarea.style.display = originalDisplay;
-      return true;
-    })()
+      editor.dispatchEvent(new Event("input", { bubbles: true }));
+      console.log("✅ editor input injected");
+    };
+
+    return new Promise((resolve) => {
+      const editor = findEditor();
+      if (editor) {
+        inject(editor);
+        return resolve(true);
+      }
+
+      console.log("⏳ editor not found, waiting...");
+
+      const observer = new MutationObserver(() => {
+        const ed = findEditor();
+        if (ed) {
+          observer.disconnect();
+          inject(ed);
+          resolve(true);
+        }
+      });
+
+      observer.observe(document.body, {
+        childList: true,
+        subtree: true
+      });
+
+      setTimeout(() => {
+        observer.disconnect();
+        console.warn("❌ editor still not found (timeout)");
+        resolve(false);
+      }, 7000);
+    });
+  })();
   `);
 
-  if (!success) {
-    showErrorToast("入力欄が見つかりません");
-  }
-};
 
+    console.log("⑥ executeJavaScript 呼び出し直前");
 
+    let success;
+    try {
+      success = await vw.executeJavaScript(`/* 後述 */`);
+    } catch (e) {
+      console.error("❌ executeJavaScript 例外", e);
+      return;
+    }
+
+    console.log("⑦ executeJavaScript 完了:", success);
+  };
 
   return (
     <div className="flex flex-col gap-4 p-3 w-full">
