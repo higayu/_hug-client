@@ -1,6 +1,8 @@
 // renderer/src/components/Sidebar/Tools/MemoTool/Parts/AiContents/common/PromptBox.jsx
 import React, { useState, useEffect } from "react";
+import { getActiveWebview } from '@/utils/webviewState.js'
 import { useAppState } from "@/contexts/AppStateContext.jsx";
+import { useToast } from '@/components/common/ToastContext.jsx'
 
 export default function PersonalRecordPrompt() {
   const { appState, PROMPTS } = useAppState();
@@ -8,6 +10,19 @@ export default function PersonalRecordPrompt() {
   // "personalRecord" と "professional" のプロンプトを2つの textarea に対応
   const [text1, setText1] = useState("");
   const [aiText, setAiText] = useState("");   // AIに送るテキスト
+  const {
+    showSuccessToast,
+    showErrorToast,
+    showWarningToast,
+    showInfoToast,
+  } = useToast()
+
+  const OPEN_AI_DOMAIN = "chatgpt.com";
+
+  const isChatGPT = (url) => {
+    const result = typeof url === "string" && url.includes(OPEN_AI_DOMAIN);
+    return result;
+  };
 
   // 🔥 初期化時ログ & 初期値セット
   useEffect(() => {
@@ -22,25 +37,55 @@ export default function PersonalRecordPrompt() {
   }, []);
 
 
-  const clickEnterButton = (promptText) => {
-      if (!promptText.trim()) {
-        console.warn("プロンプトが空です");
-        return;
-      }
+const clickEnterButton = async (promptText) => {
+  if (!promptText.trim()) {
+    showWarningToast("プロンプトが空です");
+    return;
+  }
 
-      if (!aiText.trim()) {
-        console.warn("AIに送信するテキストが空です");
-        return;
-      }
+  if (!aiText.trim()) {
+    showWarningToast("AIに送信するテキストが空です");
+    return;
+  }
 
-      const payload = {
-        prompt: promptText,
-        input: aiText,
-        type: "personalRecord",
-      };
+  const vw = getActiveWebview();
+  const url = typeof vw?.getURL === "function" ? vw.getURL() : "";
 
-      console.log("🟩 AI実行 payload:", payload);
-    };
+  if (!isChatGPT(url)) {
+    showWarningToast("OpenAIとは違うドメインです");
+    return;
+  }
+
+  const success = await vw.executeJavaScript(`
+    (() => {
+      const textarea = document.querySelector(
+        'textarea[name="prompt-textarea"]'
+      );
+      if (!textarea) return false;
+
+      const originalDisplay = textarea.style.display;
+      textarea.style.display = "block";
+      textarea.focus();
+      textarea.value = ${JSON.stringify(aiText)};
+
+      textarea.dispatchEvent(
+        new InputEvent("input", {
+          bubbles: true,
+          inputType: "insertText",
+          data: ${JSON.stringify(aiText)},
+        })
+      );
+
+      textarea.style.display = originalDisplay;
+      return true;
+    })()
+  `);
+
+  if (!success) {
+    showErrorToast("入力欄が見つかりません");
+  }
+};
+
 
 
   return (
