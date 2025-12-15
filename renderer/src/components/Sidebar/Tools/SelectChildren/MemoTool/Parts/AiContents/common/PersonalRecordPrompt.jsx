@@ -179,7 +179,14 @@ export default function PersonalRecordPrompt() {
           className="w-full h-24 p-2 border text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
           placeholder="AIに送信する内容を入力..."
           value={aiText}
-          onChange={(e) => setAiText(e.target.value)}
+          onChange={(e) =>
+            dispatch(
+              setAiText({
+                key: PROMPT_KEY,
+                text: e.target.value,
+              })
+            )
+          }
         />
         <button
         className="bg-green-700 p-2 rounded text-white"
