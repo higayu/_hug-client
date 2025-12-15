@@ -25,6 +25,11 @@ function TodayChildrenList() {
 
   // 子どもを選択
   const handleChildSelect = (childId, childName, pcName = '') => {
+     console.log('🖱 [TodayChildrenList] child click', {
+        childId,
+        childName,
+        pcName,
+      })
     setSelectedChild(childId, childName)
     if (pcName) {
       setSelectedPcName(pcName)

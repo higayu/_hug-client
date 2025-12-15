@@ -9,7 +9,7 @@ import { clickEnterButton, clickAbsenceButton, clickExitButton } from '@/utils/a
 
 function ChildMemoPanel() {
   const { 
-    SELECT_CHILD, 
+    appState,
     attendanceData,
     SELECTED_CHILD_COLUMN5,
     SELECTED_CHILD_COLUMN5_HTML,
@@ -18,11 +18,27 @@ function ChildMemoPanel() {
     setSelectedChildColumns
   } = useAppState()
 
+  const SELECT_CHILD = appState.SELECT_CHILD
+
   const { childrenData, waitingChildrenData, experienceChildrenData } = useChildrenList()
   const { addProfessionalSupportNewTab } = useTabs()
 
   const [selectedChildData, setSelectedChildData] = useState(null)
   const [isUIEnabled, setIsUIEnabled] = useState(false)
+
+  useEffect(() => {
+    console.group("📦 [ChildMemoPanel] Redux snapshot");
+    console.log("attendanceData raw:", attendanceData);
+    console.log("attendanceData keys:", attendanceData && Object.keys(attendanceData));
+    console.log("SELECTED columns:", {
+      c5: SELECTED_CHILD_COLUMN5,
+      c5h: SELECTED_CHILD_COLUMN5_HTML,
+      c6: SELECTED_CHILD_COLUMN6,
+      c6h: SELECTED_CHILD_COLUMN6_HTML,
+    });
+    console.groupEnd();
+  }, [attendanceData]);
+
 
   // store への column5/6 保存
   useEffect(() => {
@@ -43,9 +59,48 @@ function ChildMemoPanel() {
       return
     }
 
-    const attendanceItem = attendanceData.data.find(
-      item => item.children_id === String(SELECT_CHILD)
+    console.group("🧩 [ChildMemoPanel] attendance 判定");
+
+    console.log("SELECT_CHILD:", SELECT_CHILD, typeof SELECT_CHILD);
+    console.log("attendanceData:", attendanceData);
+    console.log("attendanceData type:", typeof attendanceData);
+    console.log("Array.isArray(attendanceData):", Array.isArray(attendanceData));
+    console.log("attendanceData?.data:", attendanceData?.data);
+
+    if (!SELECT_CHILD) {
+      console.warn("❌ SELECT_CHILD が未設定");
+      console.groupEnd();
+      return;
+    }
+    console.log('👶 [ChildMemoPanel] SELECT_CHILD:', SELECT_CHILD)
+
+    if (!attendanceData) {
+      console.warn("❌ attendanceData が null / undefined");
+      console.groupEnd();
+      return;
+    }
+
+    // ★ ここで data / 直配列のどちらかを判定
+    const list = Array.isArray(attendanceData)
+      ? attendanceData
+      : attendanceData?.data;
+
+    console.log("attendance list 判定結果:", list);
+
+    if (!Array.isArray(list)) {
+      console.warn("❌ attendance list が配列ではない");
+      console.groupEnd();
+      return;
+    }
+
+
+    // const attendanceItem = attendanceData.data.find(
+    //   item => item.children_id === String(SELECT_CHILD)
+    // )
+    const attendanceItem = list.find(
+      item => String(item.children_id) === String(SELECT_CHILD)
     )
+
 
     console.log("attendanceItem:", attendanceItem)
     console.log("UI 有効？:", !!attendanceItem)
@@ -71,18 +126,30 @@ function ChildMemoPanel() {
 
   // 子どもデータの取得
   useEffect(() => {
+    console.group("👶 [ChildMemoPanel] 選択児童解決");
+
+    console.log("SELECT_CHILD:", SELECT_CHILD, typeof SELECT_CHILD);
+    console.log("childrenData:", childrenData);
+    console.log("waitingChildrenData:", waitingChildrenData);
+    console.log("experienceChildrenData:", experienceChildrenData);
+
     if (!SELECT_CHILD) {
-      setSelectedChildData(null)
-      return
+      console.warn("❌ SELECT_CHILD 未設定");
+      setSelectedChildData(null);
+      console.groupEnd();
+      return;
     }
 
     const child =
-      childrenData.find(c => c.children_id === SELECT_CHILD) ||
-      waitingChildrenData.find(c => c.children_id === SELECT_CHILD) ||
-      experienceChildrenData.find(c => c.children_id === SELECT_CHILD)
+      childrenData.find(c => String(c.children_id) === String(SELECT_CHILD)) ||
+      waitingChildrenData.find(c => String(c.children_id) === String(SELECT_CHILD)) ||
+      experienceChildrenData.find(c => String(c.children_id) === String(SELECT_CHILD));
 
-    setSelectedChildData(child || null)
-  }, [SELECT_CHILD, childrenData, waitingChildrenData, experienceChildrenData])
+    console.log("resolved child:", child);
+
+    setSelectedChildData(child || null);
+    console.groupEnd();
+  }, [SELECT_CHILD, childrenData, waitingChildrenData, experienceChildrenData]);
 
   // 表示されていない場合
   if (!SELECT_CHILD || !selectedChildData) {

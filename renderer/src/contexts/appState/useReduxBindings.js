@@ -10,6 +10,9 @@ export function useReduxBindings() {
     HUG_PASSWORD: useSelector(s.selectHugPassword),
     GEMINI_API_KEY: useSelector(s.selectGeminiApiKey),
 
+    USE_AI: useSelector(s.selectUseAI),
+    SELECT_CHILD: useSelector(s.selectSelectedChild),
+
     STAFF_ID: useSelector(s.selectStaffId),
     FACILITY_ID: useSelector(s.selectFacilityId),
 

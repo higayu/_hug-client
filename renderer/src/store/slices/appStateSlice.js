@@ -261,7 +261,6 @@ export const selectFacilityData = (state) => state.appState.FACILITY_DATA
 export const selectStaffAndFacilityData = (state) => state.appState.STAFF_AND_FACILITY_DATA
 export const selectAttendanceData = (state) => state.appState.attendanceData
 export const selectAppState = (state) => state.appState
-
 // ★ PROMPTS セレクター追加
 export const selectPrompts = (state) => state.appState.PROMPTS
 

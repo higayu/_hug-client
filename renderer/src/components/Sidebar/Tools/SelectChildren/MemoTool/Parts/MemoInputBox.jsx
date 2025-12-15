@@ -40,24 +40,41 @@ export default function MemoInputBox() {
 
   // 💾 一時メモ保存（まとめて保存）
   const handleSaveClick = async () => {
-    if (!SELECT_CHILD) return;
-      memo1,
-      memo2
+    console.group("💾 [MemoInputBox] handleSaveClick");
+
+    console.log("① click detected");
+
+    console.log("② SELECT_CHILD:", SELECT_CHILD);
+    if (!SELECT_CHILD) {
+      console.warn("⛔ SELECT_CHILD が未設定のため中断");
+      console.groupEnd();
+      return;
+    }
+
+    console.log("③ memo1:", memo1);
+    console.log("④ memo2:", memo2);
+    console.log("⑤ saveTemp:", saveTemp);
+
     try {
-      const result = await saveTemp(SELECT_CHILD, memo1,memo2);
+      console.log("⑥ saveTemp 呼び出し開始");
+      const result = await saveTemp(SELECT_CHILD, memo1, memo2);
+      console.log("⑦ saveTemp 戻り値:", result);
+
       if (result) {
         console.log("✅ 一時メモ保存成功");
         showSuccessToast("一時メモ保存成功");
       } else {
-        console.error("❌ 一時メモ保存失敗");
+        console.error("❌ 一時メモ保存失敗（result falsy）");
         showErrorToast("一時メモ保存失敗");
       }
     } catch (error) {
-
-      console.error("❌ 一時メモ保存エラー:", error);
+      console.error("❌ 一時メモ保存例外:", error);
       showErrorToast("一時メモ保存エラー");
     }
+
+    console.groupEnd();
   };
+
 
 
   return (

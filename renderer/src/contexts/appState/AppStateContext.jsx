@@ -36,6 +36,7 @@ export function AppStateProvider({ children }) {
   const [iniState, setIniState] = useState({
     appSettings: {},
     userPreferences: {},
+    apiSettings: {},
   })
 
   // ===== ini 操作系を先に定義 =====
@@ -45,6 +46,7 @@ export function AppStateProvider({ children }) {
     setIniState({
       appSettings: iniData.appSettings ?? {},
       userPreferences: iniData.userPreferences ?? {},
+      apiSettings: iniData.apiSettings ?? {},
     })
 
     return iniData
@@ -122,6 +124,7 @@ export function AppStateProvider({ children }) {
       ...iniState,
 
       // methods（IniStateContext互換）
+      apiSettings: iniState.apiSettings,
       loadIni,
       saveIni,
       updateIniSetting,

@@ -2,7 +2,9 @@
 import React, { useCallback, useEffect, useState } from "react"
 import { FaRobot } from "react-icons/fa"
 import { useTabs } from "@/hooks/useTabs";
-import { useAppState } from "@/contexts/AppStateContext.jsx"
+//import { useAppState } from "@/contexts/AppStateContext.jsx";
+import { useAppState } from '@/contexts/appState';
+
 import { createWebview, createTabButton } from "@/hooks/useTabs/common/index.js"
 import PromptBox from "../common/PromptBox.jsx";
 
