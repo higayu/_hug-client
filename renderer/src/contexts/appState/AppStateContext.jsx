@@ -64,10 +64,12 @@ export function AppStateProvider({ children }) {
   const saveIni = useCallback(
     async (override) => {
       const source = override ?? iniState
+      // apiSettings も含めて丸ごと保存する
       return window.electronAPI.saveIni({
         version: '1.0.0',
-        appSettings: source.appSettings,
-        userPreferences: source.userPreferences,
+        appSettings: source.appSettings ?? {},
+        userPreferences: source.userPreferences ?? {},
+        apiSettings: source.apiSettings ?? {},
       })
     },
     [iniState]
@@ -237,6 +239,11 @@ export function AppStateProvider({ children }) {
     [dispatch]
   )
 
+  // iniState を直接更新したい場合のヘルパー（設定画面などから使用）
+  const setIniStateDirect = useCallback((next) => {
+    setIniState(next)
+  }, [])
+
   // ===== window bridge =====
   useWindowBridge({
     isInitialized,
@@ -249,6 +256,7 @@ export function AppStateProvider({ children }) {
       setSelectedPcName: setSelectedPcNameCallback,
       setAttendanceData,
       setActiveSidebarTab,
+      setIniState: setIniStateDirect,
     },
   })
 
@@ -262,6 +270,7 @@ export function AppStateProvider({ children }) {
         loadIni,
         saveIni,
         updateIniSetting,
+        setIniState: setIniStateDirect,
         isFeatureEnabled,
         getUISettings,
         getWindowSettings,

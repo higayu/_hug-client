@@ -14,6 +14,31 @@ function ApiTab({ onSaveApiSettings, onReloadApiSettings, onInitializeSelectBoxe
   const FACILITY_ID = useSelector(selectFacilityId)
   const USE_AI = useSelector(selectUseAI)
 
+  // 追加：画面の入力値を集める関数
+  const collectSavePayload = () => {
+    const baseUrl = document.getElementById('api-base-url')?.value ?? ''
+    const staffId = document.getElementById('api-staff-id')?.value ?? ''
+    const facilityId = document.getElementById('api-facility-id')?.value ?? ''
+    const databaseType = document.getElementById('api-database-type')?.value ?? ''
+    const useAI = document.getElementById('api-ai-type')?.value ?? ''
+
+    return {
+      apiSettings: {
+        baseUrl,
+        staffId,
+        facilityId,
+        databaseType,
+        useAI,
+      },
+      redux: {
+        STAFF_ID,
+        FACILITY_ID,
+        USE_AI,
+      },
+      at: new Date().toISOString(),
+    }
+  }
+
   useEffect(() => {
     console.log('🧩 [ApiTab] mounted')
     console.log('🗂 [ApiTab] Redux store values', {
@@ -38,7 +63,11 @@ function ApiTab({ onSaveApiSettings, onReloadApiSettings, onInitializeSelectBoxe
       onReloadApiSettings,
       onInitializeSelectBoxes,
     })
-  }, [])
+    // 初期表示時に select/input を現在の iniState で初期化
+    if (onInitializeSelectBoxes) {
+      onInitializeSelectBoxes()
+    }
+  }, [onInitializeSelectBoxes, onReloadApiSettings, onSaveApiSettings])
 
   // 再読み込みボタンのハンドラー
   const handleReload = async () => {
@@ -72,11 +101,17 @@ function ApiTab({ onSaveApiSettings, onReloadApiSettings, onInitializeSelectBoxe
       return
     }
 
+    // ✅ 追加：送信データをログ出力
+    const payload = collectSavePayload()
+    console.log('📤 [ApiTab] save payload', payload)
+
     setIsSaving(true)
     console.log('[ApiTab] save start')
 
     try {
-      await onSaveApiSettings()
+      // ✅ payload を渡しても、受け側が使わなければ無視されるので基本安全
+      const res = await onSaveApiSettings(payload)
+      console.log('📥 [ApiTab] save response', res)
       console.log('[ApiTab] save success')
     } catch (error) {
       console.error('[ApiTab] save error', error)

@@ -455,6 +455,7 @@ export function useSettingsModalLogic(isOpen) {
       const staffSelect = document.getElementById("api-staff-id");
       const facilitySelect = document.getElementById("api-facility-id");
       const aiSelect = document.getElementById("api-ai-type");
+    const baseUrlInput = document.getElementById("api-base-url");
       
       // activeApiを取得（appStateから、またはiniStateのdatabaseTypeに基づいて）
       const apiToUse = appState?.activeApi || (iniState?.apiSettings?.databaseType === 'mariadb' ? mariadbApi : sqliteApi);
@@ -584,6 +585,7 @@ export function useSettingsModalLogic(isOpen) {
       const selectedStaffId = iniState?.apiSettings?.staffId || "";
       const selectedFacilityId = iniState?.apiSettings?.facilityId || "";
       const selectedAiType = iniState?.apiSettings?.useAI || "gemini";
+    const selectedBaseUrl = iniState?.apiSettings?.baseURL || "";
   
       console.log("🎯 iniState.apiSettings:", iniState?.apiSettings);
       console.log("🎯 適用 staffId:", selectedStaffId);
@@ -592,6 +594,7 @@ export function useSettingsModalLogic(isOpen) {
       if (staffSelect) staffSelect.value = selectedStaffId;
       if (facilitySelect) facilitySelect.value = selectedFacilityId;
       if (aiSelect) aiSelect.value = selectedAiType;
+    if (baseUrlInput) baseUrlInput.value = selectedBaseUrl;
       console.groupEnd();
     } catch (error) {
       console.error("❌ [SettingsModal] APIセレクトボックス初期化エラー:", error);
@@ -634,15 +637,23 @@ export function useSettingsModalLogic(isOpen) {
         // Reactの状態も更新（これが重要！）
         setIniState(newIniState)
         
-        // databaseTypeに基づいてactiveApiを更新
+        // databaseType に基づく activeApi は非シリアライズのため Redux には流さない
         const databaseType = newIniState.apiSettings.databaseType || 'sqlite'
         const newActiveApi = databaseType === 'mariadb' ? mariadbApi : sqliteApi
         const useAI = newIniState.apiSettings.useAI || 'gemini'
-        if (window.AppState && window.updateAppState) {
-          window.updateAppState({ activeApi: newActiveApi })
-          console.log('🔄 [useSettingsModalLogic] activeApi更新:', { databaseType, activeApi: newActiveApi === mariadbApi ? 'mariadbApi' : 'sqliteApi' })
-          console.log('🔄 [useSettingsModalLogic] useAI更新:', { useAI })
+
+        // window.AppState 上で直接更新（Reduxには関数を流さない）
+        if (window.AppState) {
+          window.AppState.activeApi = newActiveApi
+          window.AppState.USE_AI = useAI
+          window.AppState.DATABASE_TYPE = databaseType
         }
+        if (window.updateAppState) {
+          window.updateAppState({ USE_AI: useAI, DATABASE_TYPE: databaseType })
+        }
+
+        console.log('🔄 [useSettingsModalLogic] activeApi更新:', { databaseType, activeApi: newActiveApi === mariadbApi ? 'mariadbApi' : 'sqliteApi' })
+        console.log('🔄 [useSettingsModalLogic] useAI更新:', { useAI })
         
         showSuccessToast('✅ API設定の保存が完了しました')
         return true
