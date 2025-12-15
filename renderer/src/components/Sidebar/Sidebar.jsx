@@ -1,6 +1,6 @@
 import { useDispatch, useSelector } from "react-redux"
 import { useEffect, useRef, useState } from 'react'
-//import { useAppState } from '@/contexts/AppStateContext.jsx'
+import { useChildrenList } from '@/hooks/useChildrenList.js'
 import { useAppState } from '@/contexts/appState'
 import { getWeekdayFromDate, getDateString } from '@/utils/dateUtils.js'
 import { useToast } from '@/components/common/ToastContext.jsx'
@@ -10,6 +10,8 @@ import TableDataGetButton from './common/TableDataGetButon.jsx'
 function Sidebar() {
   const { showInfoToast } = useToast()
   const { setDate, setWeekday, DATE_STR, WEEK_DAY } = useAppState()
+  // 再取得: useChildrenList の loadChildren を呼び出す
+  const { loadChildren } = useChildrenList()
   const dispatch = useDispatch()
 
   // 🔥 DB(day_of_week)から曜日データを取得（label_jpを使用）
@@ -134,7 +136,15 @@ function Sidebar() {
           {isPinned ? '📌' : '📍'}
         </button>
 
-        <TableDataGetButton />
+        <div className="flex flex-col gap-1 items-start">
+          <TableDataGetButton />
+          <button
+            className="mt-1 px-2 py-1 text-xs rounded bg-blue-500 text-white"
+            onClick={loadChildren}
+          >
+            再取得
+          </button>
+        </div>
       </div>
 
       {/* メインコンテンツ */}

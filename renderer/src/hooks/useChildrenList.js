@@ -1,7 +1,6 @@
 // src/hooks/useChildrenList.js
 import { useEffect, useState, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
-//import { useAppState } from "@/contexts/AppStateContext.jsx";
 import { useAppState } from '@/contexts/appState';
 import { ELEMENT_IDS } from "@/utils/constants.js";
 
@@ -12,18 +11,16 @@ import { fetchAllTables } from "@/store/slices/databaseSlice.js";
 import { selectExtractedData, selectAttendanceError } from "@/store/slices/attendanceSlice.js";
 
 export function useChildrenList() {
- const {
+  const {
     appState,
-    activeApi,        // ★ 追加
-    isInitialized,    // ★ 追加（公開している前提）
+    activeApi,
+    isInitialized,
     setSelectedChild,
     setSelectedPcName,
     setChildrenData,
     updateAppState,
     SELECT_CHILD,
   } = useAppState();
-
- // const { appState, setSelectedChild, setSelectedPcName, setChildrenData, updateAppState, SELECT_CHILD } = useAppState();
   const dispatch = useDispatch();
   const extractedData = useSelector(selectExtractedData);
   const attendanceError = useSelector(selectAttendanceError);
@@ -34,42 +31,36 @@ export function useChildrenList() {
 
   // 🔹 子どもデータ取得
   const loadChildren = useCallback(async () => {
-    if (!appState.STAFF_ID || !appState.WEEK_DAY) {
-      return;
-    }
-
-    // ⚠️ activeApiが設定されていない場合は処理をスキップ
+    // 依存条件が揃わない場合は即 return
     if (!isInitialized) {
       console.warn("⏳ [useChildrenList] 初期化待ち");
       return;
     }
-
     if (!activeApi) {
       console.warn("⏳ [useChildrenList] activeApi未設定");
       return;
     }
-
+    if (!appState.STAFF_ID || !appState.WEEK_DAY) {
+      console.warn("⏳ [useChildrenList] STAFF_ID / WEEK_DAY 未設定");
+      return;
+    }
 
     try {
       const facilitySelect = document.getElementById(ELEMENT_IDS.FACILITY_SELECT);
       const facility_id = facilitySelect ? facilitySelect.value : null;
 
-      // ⚠️ activeApiを直接使用
       const api = activeApi;
       console.log('🔍 [useChildrenList] 使用するAPI:', api === mariadbApi ? 'mariadbApi' : (api === sqliteApi ? 'sqliteApi' : '不明'));
       
       const tables = await api.getAllTables();
       console.log("🔍 [useChildrenList] テーブルデータ:", tables);
-      // ⚠️ tablesがnullの場合はエラー
       if (!tables) {
         console.error("❌ [useChildrenList] テーブルデータの取得に失敗しました");
         return;
       }
 
-      // Reduxストアに全テーブルデータを保存（awaitで待機）
       await dispatch(fetchAllTables(tables));
 
-      // joinChildrenData呼び出し（SQLite/MariaDB共通化）
       const data = await joinChildrenData({
         tables,
         staffId: appState.STAFF_ID,
@@ -77,7 +68,6 @@ export function useChildrenList() {
         ...(facility_id && { facility_id }),
       });
 
-      // 取得データを反映（Context経由で一元管理）
       setChildrenData(data.week_children || []);
       updateAppState({
         waiting_childrenData: data.waiting_children || [],
@@ -90,7 +80,7 @@ export function useChildrenList() {
     } catch (error) {
       console.error("❌ 子どもデータ読み込みエラー:", error);
     }
-  }, [appState.STAFF_ID, appState.WEEK_DAY, activeApi, dispatch, setChildrenData, updateAppState]);
+  }, [isInitialized, activeApi, appState.STAFF_ID, appState.WEEK_DAY, dispatch, setChildrenData, updateAppState]);
 
   // 🔹 曜日変更イベント
   useEffect(() => {
@@ -102,10 +92,13 @@ export function useChildrenList() {
     return () => window.removeEventListener("weekday-changed", handleWeekdayChanged);
   }, [loadChildren, setSelectedChild]);
 
-  // 🔹 STAFF_ID or WEEK_DAY が変更されたときに再読込
+  // 🔹 初期化・依存が揃ったら発火（かつ STAFF_ID / WEEK_DAY 変化にも追従）
   useEffect(() => {
-    if (appState.STAFF_ID && appState.WEEK_DAY) loadChildren();
-  }, [appState.STAFF_ID, appState.WEEK_DAY, loadChildren]);
+    if (!isInitialized) return;
+    if (!activeApi) return;
+    if (!appState.STAFF_ID || !appState.WEEK_DAY) return;
+    loadChildren();
+  }, [isInitialized, activeApi, appState.STAFF_ID, appState.WEEK_DAY, loadChildren]);
 
   // 🔹 最初の子どもを自動選択
   useEffect(() => {

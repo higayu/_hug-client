@@ -11,3 +11,4 @@ export function useActiveApi() {
 
   return { activeApi, setActiveApi, resolveApiByDatabaseType }
 }
+

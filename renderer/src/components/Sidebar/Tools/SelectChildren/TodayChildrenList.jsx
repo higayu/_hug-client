@@ -8,7 +8,14 @@ import { useAppState } from '@/contexts/appState'
 import { ELEMENT_IDS, MESSAGES, EVENTS } from '@/utils/constants.js'
 
 function TodayChildrenList() {
-  const { childrenData, waitingChildrenData, experienceChildrenData, handleFetchAttendanceForChild, SELECT_CHILD } = useChildrenList()
+  const {
+    childrenData,
+    waitingChildrenData,
+    experienceChildrenData,
+    handleFetchAttendanceForChild,
+    SELECT_CHILD,
+    loadChildren, // 手動再取得用
+  } = useChildrenList()
   const { setSelectedChild, setSelectedPcName, attendanceData } = useAppState()
   const [childrenCollapsed, setChildrenCollapsed] = useState(false)
   const [waitingCollapsed, setWaitingCollapsed] = useState(true)

@@ -10,7 +10,8 @@ export function useWindowBridge({ isInitialized, appState, activeApi, actions })
 
     return () => {
       delete window.AppState
-      Object.keys(actions).forEach(k => delete window[k])
+      Object.keys(actions).forEach((k) => delete window[k])
     }
   }, [isInitialized, appState, activeApi, actions])
 }
+

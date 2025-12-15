@@ -20,14 +20,56 @@ function resolveIniPath() {
  * @returns {object} デフォルト設定オブジェクト
  */
 function getDefaultIni() {
+  // ini.json.example を優先して読み込む
+  try {
+    const examplePath = path.join(__dirname, "..", "main", "data", "ini.json.example");
+    if (fs.existsSync(examplePath)) {
+      return JSON.parse(fs.readFileSync(examplePath, "utf8"));
+    }
+  } catch (e) {
+    console.error("ini.json.example load failed, fallback defaults used", e);
+  }
+
   return {
+    version: "1.0.0",
+    appSettings: {
+      autoLogin: { enabled: true },
+      ui: {
+        theme: "light",
+        language: "ja",
+        showCloseButtons: true,
+        confirmOnClose: true,
+        autoRefresh: { enabled: false, interval: 30000 },
+      },
+      features: {
+        individualSupportPlan: { enabled: true, buttonText: "個別支援計画", buttonColor: "#007bff" },
+        specializedSupportPlan: { enabled: true, buttonText: "専門的支援計画", buttonColor: "#28a745" },
+        importSetting: { enabled: false, buttonText: "設定ファイル取得", buttonColor: "#6c757d" },
+        getUrl: { enabled: false, buttonText: "URL取得", buttonColor: "#17a2b8" },
+        loadIni: { enabled: true, buttonText: "設定の再読み込み", buttonColor: "#e5d7fe" },
+      },
+      window: {
+        width: 1200,
+        height: 800,
+        minWidth: 800,
+        minHeight: 600,
+        maximized: false,
+        alwaysOnTop: false,
+      },
+      notifications: { enabled: true, sound: true, desktop: true },
+    },
+    userPreferences: {
+      lastLoginDate: "",
+      rememberWindowState: true,
+      showWelcomeMessage: true,
+    },
     apiSettings: {
       baseURL: "http://192.168.1.229",
-      staffId: "",
-      facilityId: "",
+      staffId: "73",
+      facilityId: "3",
       databaseType: "mariadb",
-      useAI: "gemini"
-    }
+      useAI: "gemini",
+    },
   };
 }
 
@@ -40,11 +82,13 @@ function loadIni() {
     const iniPath = resolveIniPath();
     console.log("ini.json path:", iniPath);
     
-    // ファイルが存在しない場合はデフォルト設定を返す
     if (!fs.existsSync(iniPath)) {
-      console.log("ini.json not found. default settings used.");
-      console.log("file exists check:", iniPath);
-      return getDefaultIni();
+      console.log("ini.json not found. writing defaults.");
+      const def = getDefaultIni();
+      const dir = path.dirname(iniPath);
+      if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+      fs.writeFileSync(iniPath, JSON.stringify(def, null, 2));
+      return def;
     }
     
     const raw = fs.readFileSync(iniPath, "utf8");
@@ -58,7 +102,14 @@ function loadIni() {
   } catch (err) {
     console.error("error: ini.json load failed:", err);
     console.log("default settings used.");
-    return getDefaultIni();
+    const def = getDefaultIni();
+    try {
+      const iniPath = resolveIniPath();
+      const dir = path.dirname(iniPath);
+      if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+      fs.writeFileSync(iniPath, JSON.stringify(def, null, 2));
+    } catch (_) {}
+    return def;
   }
 }
 

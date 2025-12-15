@@ -1,11 +1,19 @@
 // contexts/appState/AppStateContext.jsx
-import { createContext, useContext, useEffect, useState, useCallback } from 'react'
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useCallback,
+  useRef,
+} from 'react'
 import { useDispatch } from 'react-redux'
 
 import { useActiveApi } from './useActiveApi'
 import { useReduxBindings } from './useReduxBindings'
 import { useWindowBridge } from './useWindowBridge'
 import { initializeAppState } from './useAppInitializer'
+
 import {
   setDateStr,
   setWeekDay,
@@ -16,32 +24,33 @@ import {
   setSelectedChildColumns,
   updateAppState as updateAppStateRedux,
 } from '@/store/slices/appStateSlice'
+
 import { loadIni as loadIniFromUtils } from '@/utils/iniUtils'
-
-
 
 const AppStateContext = createContext(null)
 
 export function AppStateProvider({ children }) {
   const dispatch = useDispatch()
 
-  // Redux state束
-  const redux = useReduxBindings()
+  // 🔒 初期化ガード（最重要）
+  const didInitRef = useRef(false)
 
-  // 実体系 state
+  const redux = useReduxBindings()
   const { activeApi, setActiveApi, resolveApiByDatabaseType } = useActiveApi()
 
   const [isInitialized, setIsInitialized] = useState(false)
   const [activeSidebarTab, setActiveSidebarTab] = useState('tools')
+
   const [iniState, setIniState] = useState({
     appSettings: {},
     userPreferences: {},
     apiSettings: {},
   })
 
-  // ===== ini 操作系を先に定義 =====
+  // ===== ini 操作（内部専用）=====
   const loadIni = useCallback(async () => {
     const iniData = await loadIniFromUtils()
+    if (!iniData) return null
 
     setIniState({
       appSettings: iniData.appSettings ?? {},
@@ -52,26 +61,25 @@ export function AppStateProvider({ children }) {
     return iniData
   }, [])
 
-  const saveIni = useCallback(async (override) => {
-    const source = override ?? iniState
-
-    return window.electronAPI.saveIni({
-      version: '1.0.0',
-      appSettings: source.appSettings,
-      userPreferences: source.userPreferences,
-    })
-  }, [iniState])
+  const saveIni = useCallback(
+    async (override) => {
+      const source = override ?? iniState
+      return window.electronAPI.saveIni({
+        version: '1.0.0',
+        appSettings: source.appSettings,
+        userPreferences: source.userPreferences,
+      })
+    },
+    [iniState]
+  )
 
   const updateIniSetting = useCallback(async (path, value) => {
     await window.electronAPI.updateIniSetting(path, value)
-
-    setIniState(prev => {
+    setIniState((prev) => {
       const next = structuredClone(prev)
       const keys = path.split('.')
       let cur = next
-      for (let i = 0; i < keys.length - 1; i++) {
-        cur = cur[keys[i]]
-      }
+      for (let i = 0; i < keys.length - 1; i++) cur = cur[keys[i]]
       cur[keys.at(-1)] = value
       return next
     })
@@ -92,40 +100,80 @@ export function AppStateProvider({ children }) {
     [iniState]
   )
 
-
-  /** 初期化は「1回だけ」 */
+  // ===== 初期化（完全に1回だけ）=====
   useEffect(() => {
+    if (didInitRef.current) return
+    didInitRef.current = true
+
     const init = async () => {
-      await initializeAppState({
+      console.log('🚀 AppState 初期化開始')
+
+      const { ini } = await initializeAppState({
         dispatch,
         resolveApiByDatabaseType,
         setActiveApi,
         setIsInitialized,
       })
 
-      // ★ ini.json をここで読む
-      const iniData = await loadIniFromUtils()
+      // initializeAppState が読んだ ini をそのまま使う（再読込しない）
+      const iniData = ini ?? (await loadIniFromUtils())
+      if (iniData) {
+        setIniState({
+          appSettings: iniData.appSettings ?? {},
+          userPreferences: iniData.userPreferences ?? {},
+          apiSettings: iniData.apiSettings ?? {},
+        })
+      }
 
-      setIniState({
-        appSettings: iniData.appSettings ?? {},
-        userPreferences: iniData.userPreferences ?? {},
-      })
+      console.log('🎉 AppState 初期化完了')
     }
 
     init()
-  }, [dispatch])
+  }, [dispatch, resolveApiByDatabaseType, setActiveApi])
 
-  // IniStateContext 互換レイヤー（後方互換）
+  // ===== ini からスタッフ関連・DB種別を後追い反映 =====
   useEffect(() => {
-    if (!iniState || !iniState.appSettings) return
+    const apiSettings = iniState?.apiSettings
+    if (!apiSettings) return
+
+    const updates = {}
+
+    // STAFF_ID / FACILITY_ID は未設定の場合だけ上書き
+    if (!redux.STAFF_ID && apiSettings.staffId != null) {
+      updates.STAFF_ID = String(apiSettings.staffId)
+    }
+    if (!redux.FACILITY_ID && apiSettings.facilityId != null) {
+      updates.FACILITY_ID = String(apiSettings.facilityId)
+    }
+
+    // DB種別に応じて activeApi を後追いセット
+    if (!activeApi) {
+      const dbType = apiSettings.databaseType ?? 'sqlite'
+      const api = resolveApiByDatabaseType(dbType)
+      setActiveApi(api)
+      updates.DATABASE_TYPE = dbType
+    }
+
+    if (Object.keys(updates).length > 0) {
+      dispatch(updateAppStateRedux(updates))
+    }
+  }, [
+    iniState?.apiSettings,
+    redux.STAFF_ID,
+    redux.FACILITY_ID,
+    activeApi,
+    resolveApiByDatabaseType,
+    setActiveApi,
+    dispatch,
+  ])
+
+  // ===== window.IniState（loadIniは絶対に出さない）=====
+  useEffect(() => {
+    if (!iniState?.appSettings) return
 
     window.IniState = {
-      // state
       ...iniState,
-
-      // methods（IniStateContext互換）
       apiSettings: iniState.apiSettings,
-      loadIni,
       saveIni,
       updateIniSetting,
       isFeatureEnabled,
@@ -140,7 +188,6 @@ export function AppStateProvider({ children }) {
     }
   }, [
     iniState,
-    loadIni,
     saveIni,
     updateIniSetting,
     isFeatureEnabled,
@@ -148,12 +195,9 @@ export function AppStateProvider({ children }) {
     getWindowSettings,
   ])
 
-
-
+  // ===== Redux wrappers =====
   const updateAppState = useCallback(
-    (updates) => {
-      dispatch(updateAppStateRedux(updates))
-    },
+    (updates) => dispatch(updateAppStateRedux(updates)),
     [dispatch]
   )
 
@@ -168,9 +212,8 @@ export function AppStateProvider({ children }) {
   )
 
   const setSelectedChildCallback = useCallback(
-    (childId, childName) => {
-      dispatch(setSelectedChild({ childId, childName }))
-    },
+    (childId, childName) =>
+      dispatch(setSelectedChild({ childId, childName })),
     [dispatch]
   )
 
@@ -194,12 +237,7 @@ export function AppStateProvider({ children }) {
     [dispatch]
   )
 
-  const setIniStateDirect = useCallback((nextState) => {
-    setIniState(nextState)
-  }, [])
-
-
-  /** window 連携 */
+  // ===== window bridge =====
   useWindowBridge({
     isInitialized,
     appState: redux.appState,
@@ -214,28 +252,20 @@ export function AppStateProvider({ children }) {
     },
   })
 
-
   return (
     <AppStateContext.Provider
       value={{
-        // Redux state（useReduxBindings 由来）
         ...redux,
-
-         // ini state（★ 追加）
+        isInitialized,
+        setIsInitialized,
         iniState,
         loadIni,
-        isInitialized,
         saveIni,
         updateIniSetting,
-        setIniState: setIniStateDirect,
         isFeatureEnabled,
         getUISettings,
         getWindowSettings,
-
-        // app state
         activeApi,
-
-        // ===== action 系（★ 追加）=====
         updateAppState,
         setDate,
         setWeekday,
@@ -244,8 +274,6 @@ export function AppStateProvider({ children }) {
         setSelectedPcName: setSelectedPcNameCallback,
         setAttendanceData,
         setSelectedChildColumns: setSelectedChildColumnsCallback,
-
-        // UI state
         activeSidebarTab,
         setActiveSidebarTab,
       }}
@@ -262,3 +290,4 @@ export function useAppState() {
   }
   return ctx
 }
+
