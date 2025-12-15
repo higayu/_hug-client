@@ -2,6 +2,7 @@
 import React, { useState } from 'react'
 //import { useAppState } from '@/contexts/AppStateContext.jsx'
 import { useAppState } from '@/contexts/appState'
+import { useToast } from  '@/components/common/ToastContext.jsx'
 
 export default function GeminiContent() {
   const { appState } = useAppState()
@@ -9,6 +10,7 @@ export default function GeminiContent() {
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState(null)
   const [error, setError] = useState(null)
+  const { showSuccessToast, showErrorToast } = useToast()
 
   // 固定プロンプトと引数
   const FIXED_PROMPT = "以下の内容を要約して、簡潔な文章で返してください。"
@@ -16,6 +18,11 @@ export default function GeminiContent() {
 
   // Gemini API 呼び出し関数
   const handleGeminiRequest = async () => {
+    if(true){
+      showErrorToast("まだ機能が実装されていません。実装までお待ちください。")
+      return;
+    }
+    console.log("appState.GEMINI_API_KEY", appState.GEMINI_API_KEY)
     if (!appState.GEMINI_API_KEY) {
       setError("GEMINI_API_KEY が設定されていません。config.json を確認してください。")
       return
@@ -77,7 +84,7 @@ export default function GeminiContent() {
       <h3 className="font-semibold text-gray-700">Gemini API テスト</h3>
       <button
         onClick={handleGeminiRequest}
-        disabled={loading}
+        disabled={loading ||!appState.GEMINI_API_KEY}
         className={`px-4 py-2 rounded-lg text-white ${
           loading ? 'bg-gray-400' : 'bg-blue-600 hover:bg-blue-700'
         }`}

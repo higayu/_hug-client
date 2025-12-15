@@ -49,7 +49,7 @@ export default function UpdateManagerTable() {
 
   const handleConfirm = async (managerOrUpdated, mode) => {
     if (mode === "edit") {
-      const result = await updateManager(managerOrUpdated, appState.activeApi);
+      const result = await updateManager(managerOrUpdated, appState.DATABASE_TYPE);
       if (result) {
         showInfoToast("更新完了");
         await loadChildren();
@@ -60,7 +60,7 @@ export default function UpdateManagerTable() {
 
     if (mode === "delete") {
       const { children_id, staff_id } = managerOrUpdated;
-      const result = await deleteManager({ children_id, staff_id }, appState.activeApi);
+      const result = await deleteManager({ children_id, staff_id }, appState.DATABASE_TYPE);
 
       if (result) {
         showInfoToast("更新完了");

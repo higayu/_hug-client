@@ -3,7 +3,6 @@ import { useEffect, useState } from 'react'
 import { useAppState } from '@/contexts/appState'
 import { useChildrenList } from '@/hooks/useChildrenList.js'
 import { useTabs } from '@/hooks/useTabs/index.js'
-import MemoContainer from './MemoTool/MemoContainer.jsx'
 import {
   clickEnterButton,
   clickAbsenceButton,
@@ -193,11 +192,6 @@ function ChildMemoPanel() {
             </button>
           </>
         )}
-      </div>
-
-      {/* AI + メモツール */}
-      <div className="mt-4 border-t rounded bg-gray-200 border-gray-300 pt-3">
-        <MemoContainer />
       </div>
     </div>
   )

@@ -2,7 +2,7 @@
 // アップデートタブコンポーネント
 
 import { useEffect, useState, useRef } from 'react'
-import { getUpdateInfo, checkForUpdates, displayUpdateInfo } from '../../../utils/updateManager.js'
+import { getUpdateInfo, checkForUpdates, displayUpdateInfo } from '@/utils/updateManager.js'
 
 function UpdateTab() {
   const [updateInfo, setUpdateInfo] = useState(null)

@@ -12,6 +12,7 @@ const initialState = {
   GEMINI_API_KEY: "",
   VITE_API_BASE_URL: "",
   USE_AI: "gemini",
+  DATABASE_TYPE: "sqlite",
   // ID・日付・選択状態
   STAFF_ID: "",
   FACILITY_ID: "",
@@ -137,6 +138,11 @@ const appStateSlice = createSlice({
       state.USE_AI = action.payload || "gemini"
     },
 
+      // DB種別を設定
+      setDatabaseType: (state, action) => {
+        state.DATABASE_TYPE = action.payload || "sqlite"
+      },
+
     // 選択中の児童のcolumn5とcolumn6を設定
     setSelectedChildColumns: (state, action) => {
       const { column5, column5Html, column6, column6Html } = action.payload
@@ -187,8 +193,9 @@ const appStateSlice = createSlice({
       if (updates.STAFF_AND_FACILITY_DATA !== undefined) state.STAFF_AND_FACILITY_DATA = updates.STAFF_AND_FACILITY_DATA
       // 出勤データ
       if (updates.attendanceData !== undefined) state.attendanceData = updates.attendanceData
-      // AI種別
+      // AI種別 / DB種別
       if (updates.USE_AI !== undefined) state.USE_AI = updates.USE_AI
+      if (updates.DATABASE_TYPE !== undefined) state.DATABASE_TYPE = updates.DATABASE_TYPE
     },
     
     // 選択状態をクリア
@@ -227,12 +234,13 @@ export const {
   setStaffAndFacilityData,
   setAttendanceData,
   setUseAI,
+  setDatabaseType,
   setSelectedChildColumns,
   updateAppState,
   clearSelection,
   resetAppState,
-    // ★ 追加
-  setPrompts
+  // ★ 追加
+  setPrompts,
 } = appStateSlice.actions
 
 // セレクターのエクスポート
@@ -241,6 +249,7 @@ export const selectHugPassword = (state) => state.appState.HUG_PASSWORD
 export const selectGeminiApiKey = (state) => state.appState.GEMINI_API_KEY
 export const selectViteApiBaseUrl = (state) => state.appState.VITE_API_BASE_URL
 export const selectUseAI = (state) => state.appState.USE_AI
+export const selectDatabaseType = (state) => state.appState.DATABASE_TYPE
 export const selectStaffId = (state) => state.appState.STAFF_ID
 export const selectFacilityId = (state) => state.appState.FACILITY_ID
 export const selectDateStr = (state) => state.appState.DATE_STR

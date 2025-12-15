@@ -164,7 +164,7 @@ export default function PersonalRecordPrompt() {
       <div className="mt-4">
         <label className="font-semibold">個人記録用プロンプト</label>
         <textarea
-          className="w-full h-32 border border-gray-300 rounded-lg p-2 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+          className="w-full h-20 border border-gray-300 rounded-lg p-2 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
           value={text1}
           readOnly
         />
@@ -176,7 +176,7 @@ export default function PersonalRecordPrompt() {
           AIに送信するテキスト
         </label>
         <textarea
-          className="w-full h-24 p-2 border text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
+          className="w-full h-40 p-2 border text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
           placeholder="AIに送信する内容を入力..."
           value={aiText}
           onChange={(e) =>

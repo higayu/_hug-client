@@ -2,15 +2,13 @@
 
 import { handleSQLiteInsert } from "./parts/sqlite.js";
 import { handleMariaDBInsert } from "./parts/mariadb.js";
-import { mariadbApi } from "@/sql/mariadbApi.js";
-import { sqliteApi } from "@/sql/sqliteApi.js";
 
 export async function insertManager(
   selectedChildren,
   {
     childrenData,
     managersData,
-    activeApi,
+    databaseType,
     FACILITY_ID,
     STAFF_ID,
     WEEK_DAY,
@@ -25,11 +23,11 @@ export async function insertManager(
       : [selectedChildren];
 
     console.log("選択された児童数:", childrenList.length);
-    console.log("activeApi:", activeApi);
+    console.log("databaseType:", databaseType);
     console.log("FACILITY_ID:", FACILITY_ID, "STAFF_ID:", STAFF_ID, "WEEK_DAY:", WEEK_DAY);
 
     // activeApi がない場合は false
-    if (!activeApi) {
+    if (!databaseType) {
       console.warn("⚠️ activeApi が設定されていません");
       console.log("===== insertManager END (error: no activeApi) =====");
       return false;
@@ -39,7 +37,7 @@ export async function insertManager(
       console.log("-------------------------------------------");
       console.log("▶ 児童処理開始:", child.children_id, child.children_name);
 
-      if (activeApi === sqliteApi) {
+      if (databaseType === 'sqlite') {
         console.log("→ 使用DB: SQLite");
 
         await handleSQLiteInsert(child, {
@@ -52,7 +50,7 @@ export async function insertManager(
 
         console.log("✔ SQLite 処理完了:", child.children_id);
 
-      } else if (activeApi === mariadbApi) {
+      } else if (databaseType === 'mariadb') {
         console.log("→ 使用DB: MariaDB");
 
         await handleMariaDBInsert(child, {
@@ -66,7 +64,7 @@ export async function insertManager(
         console.log("✔ MariaDB 処理完了:", child.children_id);
 
       } else {
-        console.warn("⚠️ 不明な activeApi:", activeApi);
+        console.warn("⚠️ 不明な databaseType:", databaseType);
         console.warn("この児童の処理をスキップ:", child.children_id);
       }
 

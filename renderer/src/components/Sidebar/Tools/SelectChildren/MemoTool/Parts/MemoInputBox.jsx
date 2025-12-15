@@ -79,6 +79,12 @@ export default function MemoInputBox() {
 
   return (
     <div className="flex flex-col w-full rounded mb-2 p-2 shadow-sm">
+      <button
+        onClick={handleSaveClick}
+        className="w-full px-3 py-3 bg-blue-600 text-white border-none rounded text-xs cursor-pointer hover:bg-blue-700 transition-colors mt-3"
+      >
+        一時メモを保存（まとめて）
+      </button>
 
       {/* --- 一時メモ1 --- */}
       <div>
@@ -87,7 +93,7 @@ export default function MemoInputBox() {
         </label>
 
         <textarea
-          className="w-full p-2 border border-gray-300 rounded text-xs bg-white resize-y min-h-[100px]
+          className="w-full h-32 p-2 border border-gray-300 rounded text-xs bg-white resize-y min-h-[100px]
                      text-black focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-200"
           placeholder="メモを入力..."
           value={memo1}
@@ -103,7 +109,7 @@ export default function MemoInputBox() {
         </label>
 
         <textarea
-          className="w-full p-2 border border-gray-300 rounded text-xs bg-white resize-y min-h-[80px]
+          className="w-full h-32 p-2 border border-gray-300 rounded text-xs bg-white resize-y min-h-[80px]
                      text-black focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-200"
           placeholder="メモを入力..."
           value={memo2}
@@ -111,14 +117,6 @@ export default function MemoInputBox() {
           rows={3}
         />
       </div>
-
-      <button
-        onClick={handleSaveClick}
-        className="w-full px-3 py-1.5 bg-blue-600 text-white border-none rounded text-xs cursor-pointer hover:bg-blue-700 transition-colors mt-3"
-      >
-        一時メモを保存（まとめて）
-      </button>
-
 
     </div>
   );

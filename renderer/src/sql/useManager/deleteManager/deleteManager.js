@@ -2,33 +2,31 @@
 
 import { handleSQLiteDelete } from "./parts/sqlite.js";
 import { handleMariaDBDelete } from "./parts/mariadb.js";
-import { mariadbApi } from "@/sql/mariadbApi.js";
-import { sqliteApi } from "@/sql/sqliteApi.js";
 
 export async function deleteManager(
   selectedChildren,
-  activeApi
+  databaseType
 ) {
   console.log("===== 削除Manager START =====");
 
-  console.log("activeApi:", activeApi);
+  console.log("databaseType:", databaseType);
 
-  if (!activeApi) {
-    console.warn("⚠️ activeApi が設定されていません");
-    console.log("===== 削除停止Manager END (error: no activeApi) =====");
+  if (!databaseType) {
+    console.warn("⚠️ databaseType が設定されていません");
+    console.log("===== 削除停止Manager END (error: no databaseType) =====");
     return false;
   }
 
-    if (activeApi === sqliteApi) {
+    if (databaseType === 'sqlite') {
       return false;
-    } else if (activeApi === mariadbApi) {
+    } else if (databaseType === 'mariadb') {
       console.log("→ 使用DB: MariaDB");
       const result =  await handleMariaDBDelete(selectedChildren);
       if(result){
           return true;
       }
     } else {
-      console.warn("⚠️ 不明な activeApi:", activeApi);
+      console.warn("⚠️ 不明な databaseType:", databaseType);
     }
   console.log("===== 削除Manager END =====");
   return false;

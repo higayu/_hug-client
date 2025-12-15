@@ -164,7 +164,7 @@ export default function ProfessionalPrompt1() {
           保存済みメモ（専門支援内容 / DB）
         </h4>
 
-        <div className="text-xs leading-relaxed bg-gray-400 text-white whitespace-pre-wrap break-words p-2 border border-gray-200 rounded min-h-[100px]">
+        <div className="text-xs leading-relaxed bg-gray-700 text-white whitespace-pre-wrap break-words p-2 border border-gray-200 rounded min-h-[100px]">
           {dbNote || "メモがありません"}
         </div>
       </div>
@@ -173,7 +173,7 @@ export default function ProfessionalPrompt1() {
       <div className="flex flex-col gap-1">
         <label className="font-semibold">専門的支援加算用プロンプト1</label>
         <textarea
-          className="w-full h-32 border border-gray-300 rounded-lg p-2 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+          className="w-full h-20 border border-gray-300 rounded-lg p-2 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
           value={text1}
           readOnly
         />
@@ -185,7 +185,7 @@ export default function ProfessionalPrompt1() {
           AIに送信するテキスト
         </label>
         <textarea
-          className="w-full h-24 p-2 border text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
+          className="w-full h-40 p-2 border text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
           value={aiText}
           placeholder="AIに送信する内容を入力..."
           onChange={(e) => setAiText(e.target.value)}

@@ -12,6 +12,7 @@ export function useReduxBindings() {
   const GEMINI_API_KEY = useSelector(s.selectGeminiApiKey)
 
   const USE_AI = useSelector(s.selectUseAI)
+  const DATABASE_TYPE = useSelector(s.selectDatabaseType)
   const SELECT_CHILD = useSelector(s.selectSelectedChild)
 
   const STAFF_ID = useSelector(s.selectStaffId)
@@ -32,6 +33,7 @@ export function useReduxBindings() {
     GEMINI_API_KEY,
 
     USE_AI,
+    DATABASE_TYPE,
     SELECT_CHILD,
 
     STAFF_ID,

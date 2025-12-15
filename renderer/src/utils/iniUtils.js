@@ -9,7 +9,7 @@ const DEFAULT_API_SETTINGS = {
   baseURL: 'http://192.168.1.229',
   staffId: '',
   facilityId: '',
-  databaseType: 'sqlite',
+  databaseType: 'mariadb',
   useAI: 'gemini',
 }
 

@@ -48,7 +48,7 @@ export function useChildrenList() {
     try {
       const facilitySelect = document.getElementById(ELEMENT_IDS.FACILITY_SELECT);
       const facility_id = facilitySelect ? facilitySelect.value : null;
-
+      console.log('🔍 [useChildrenList] appState:',appState);
       const api = activeApi;
       console.log('🔍 [useChildrenList] 使用するAPI:', api === mariadbApi ? 'mariadbApi' : (api === sqliteApi ? 'sqliteApi' : '不明'));
       

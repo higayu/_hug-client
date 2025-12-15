@@ -4,8 +4,8 @@ import { store } from "@/store/store.js";
 import { insertManager } from "@/sql/useManager/insertManager/insertManager.js";
 import { useToast } from "@/components/common/ToastContext.jsx";
 import { useChildrenList } from "@/hooks/useChildrenList.js";
-//import { useAppState } from "@/contexts/AppStateContext.jsx";
-import { useAppState } from '@/contexts/appState';
+import { useAppState } from "@/contexts/appState";
+
 /**
  * 出勤データを一覧表示するコンポーネント
  * @param {Array} childrenList - 抽出された児童データ配列
@@ -17,11 +17,17 @@ function ChildrenTableList({ childrenList = [] }) {
   const childrenTableData = store.getState().database.children;
   const managersData = store.getState().database.managers;
 
-  const { STAFF_ID, WEEK_DAY, FACILITY_ID, appState } = useAppState();
-  const { showErrorToast, showSuccessToast } = useToast();
+  // ✅ useAppState は1回だけ呼ぶ（activeApi が undefined になりやすい問題の対策）
+  const {
+    STAFF_ID,
+    WEEK_DAY,
+    FACILITY_ID,
+    appState,
+    activeSidebarTab: activeTab,
+    setActiveSidebarTab: setActiveTab,
+  } = useAppState();
 
-  // ← サイドバーのタブ切り替え
-  const { activeSidebarTab: activeTab, setActiveSidebarTab: setActiveTab } = useAppState();
+  const { showErrorToast, showSuccessToast } = useToast();
 
   // 当日の対応児童（＝既に追加されている児童）
   const { childrenData } = useChildrenList();
@@ -36,7 +42,10 @@ function ChildrenTableList({ childrenList = [] }) {
     console.log("▶ props.childrenList:", childrenList);
     console.log("▶ 対応児童 childrenData:", childrenData);
     console.log("▶ childrenTableData:", childrenTableData);
-  }, [childrenData]);
+    console.log("▶ appState:", appState);
+    console.log("▶ appState.USE_AI:", appState?.USE_AI);
+    console.log("▶ appState.GEMINI_API_KEY:", appState?.GEMINI_API_KEY);
+  }, [childrenData, childrenList, appState, childrenTableData]);
 
   // =============================================================
   // UI：データなし表示
@@ -79,27 +88,64 @@ function ChildrenTableList({ childrenList = [] }) {
   // 登録（確認モーダルからの実行）
   // =============================================================
   const handleConfirm = async (selectedChildren) => {
-    console.log('新規登録の送信データ',selectedChildren);
+    console.groupCollapsed("[ChildrenTableList] 保存処理 START");
+    console.log("selectedChildren:", selectedChildren);
 
-    const result = await insertManager(selectedChildren, {
-      childrenData: childrenTableData,
-      managersData,
-      activeApi: appState.activeApi,
+    const databaseType = appState?.DATABASE_TYPE;
+
+    console.log("context:", {
+      databaseType,
       FACILITY_ID,
       STAFF_ID,
       WEEK_DAY,
+      childrenTableDataCount: childrenTableData?.length ?? 0,
+      managersDataCount: managersData?.length ?? 0,
     });
 
-    if (result) {
-      showSuccessToast("追加完了しました");
-
-      // ★ 保存完了後タブ切り替え
-      setActiveTab("tools");
-    } else {
-      showErrorToast("失敗しました");
+    // ✅ activeApi 未設定ならここで止める（insertManager に行かせない）
+    if (!databaseType) {
+      console.error("[ChildrenTableList] activeApi が未設定のため中断", { appState });
+      showErrorToast("API設定が未選択です（activeApi）");
+      console.groupEnd();
+      setShowConfirmModal(false);
+      return false;
     }
 
-    setShowConfirmModal(false);
+    console.time("[ChildrenTableList] insertManager duration");
+
+    try {
+      const result = await insertManager(selectedChildren, {
+        childrenData: childrenTableData,
+        managersData,
+        databaseType,
+        FACILITY_ID,
+        STAFF_ID,
+        WEEK_DAY,
+      });
+
+      console.timeEnd("[ChildrenTableList] insertManager duration");
+      console.log("insertManager result:", result);
+
+      if (result) {
+        console.log("[ChildrenTableList] 保存成功 → タブを tools に切替");
+        showSuccessToast("追加完了しました");
+        setActiveTab("tools");
+      } else {
+        console.warn("[ChildrenTableList] 保存失敗（result が falsy）");
+        showErrorToast("失敗しました");
+      }
+
+      return result;
+    } catch (err) {
+      console.timeEnd("[ChildrenTableList] insertManager duration");
+      console.error("[ChildrenTableList] 保存処理で例外発生:", err);
+      showErrorToast("失敗しました");
+      return false;
+    } finally {
+      console.groupEnd();
+      setShowConfirmModal(false);
+      console.log("[ChildrenTableList] 保存処理 END（モーダル close）");
+    }
   };
 
   // =============================================================
@@ -133,11 +179,7 @@ function ChildrenTableList({ childrenList = [] }) {
         <thead className="bg-gray-100 text-gray-700">
           <tr>
             <th className="border px-2 py-1">
-              <input
-                id="select-all"
-                type="checkbox"
-                onChange={handleSelectAll}
-              />
+              <input id="select-all" type="checkbox" onChange={handleSelectAll} />
             </th>
             <th className="border px-2 py-1">児童ID</th>
             <th className="border px-2 py-1">児童名</th>
@@ -159,19 +201,13 @@ function ChildrenTableList({ childrenList = [] }) {
               <tr
                 key={cid}
                 className={`transition-colors ${
-                  isReadonly
-                    ? "bg-blue-200 cursor-not-allowed"
-                    : "hover:bg-blue-50"
+                  isReadonly ? "bg-blue-200 cursor-not-allowed" : "hover:bg-blue-50"
                 }`}
               >
                 {/* チェックボックス */}
                 <td className="border px-2 py-1 text-center">
                   <input
-                    className={`${
-                     isReadonly
-                      ? "hidden"
-                      : ""
-                    }`}
+                    className={`${isReadonly ? "hidden" : ""}`}
                     type="checkbox"
                     checked={selectedIds.includes(cid)}
                     onChange={() => {
@@ -187,8 +223,7 @@ function ChildrenTableList({ childrenList = [] }) {
                 {/* 入室（色分け） */}
                 <td
                   className={`border px-2 py-1 font-semibold ${
-                    child.column5.includes("入室") &&
-                    child.column5.includes("欠席")
+                    child.column5.includes("入室") && child.column5.includes("欠席")
                       ? "text-black"
                       : child.column5 === "欠席" ||
                         child.column5 === "欠席(欠席時対応加算を取らない)"
