@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react'
-import { useIniState } from '@/contexts/IniStateContext.jsx'
+//import { useIniState } from '@/contexts/IniStateContext.jsx'
+//import { useAppState } from '@/contexts/AppStateContext.jsx'
+import { useAppState } from '@/contexts/appState'
 import { useCustomButtons } from '@/components/common/CustomButtonsContext.jsx'
 import { loadConfig } from '@/utils/configUtils.js'
 
 export function useSettingsModal(isOpen) {
   const [isLoading, setIsLoading] = useState(false)
-  const { loadIni } = useIniState()
+  const { loadIni } = useAppState()
   const { loadCustomButtons, loadAvailableActions } = useCustomButtons()
 
   // モーダルが開かれた時に設定を再読み込み

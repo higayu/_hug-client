@@ -3,7 +3,8 @@
 
 import { useState } from 'react'
 import { useChildrenList } from '@/hooks/useChildrenList.js'
-import { useAppState } from '@/contexts/AppStateContext.jsx'
+//import { useAppState } from '@/contexts/AppStateContext.jsx'
+import { useAppState } from '@/contexts/appState'
 import { ELEMENT_IDS, MESSAGES, EVENTS } from '@/utils/constants.js'
 
 function TodayChildrenList() {

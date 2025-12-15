@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react'
 import { getActiveWebview } from '@/utils/webviewState.js'
-import { useIniState } from '@/contexts/IniStateContext.jsx'
+//import { useIniState } from '@/contexts/IniStateContext.jsx'
+//import { useAppState } from '@/contexts/AppStateContext.jsx'
+import { useAppState } from '@/contexts/appState'
 import { useToast } from  '@/components/common/ToastContext.jsx'
 
 function FeaturesTab() {
   const [currentUrl, setCurrentUrl] = useState('')
-  const { iniState } = useIniState()
+  const { iniState } = useAppState()
 
   // URL stateの変更を監視
   useEffect(() => {

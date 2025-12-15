@@ -1,10 +1,10 @@
 // src/contexts/AppStateContext.jsx
 import { createContext, useContext, useCallback, useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { loadConfig as loadConfigFromUtils } from '../utils/configUtils.js'
+import { loadConfig as loadConfigFromUtils } from '@/utils/configUtils.js'
 import { loadIni as loadIniFromUtils, loadPrompt as loadPromptFromUtils } from '../utils/iniUtils.js'
-import { sqliteApi } from '../sql/sqliteApi.js'
-import { mariadbApi } from '../sql/mariadbApi.js'
+import { sqliteApi } from '@/sql/sqliteApi.js'
+import { mariadbApi } from '@/sql/mariadbApi.js'
 import {
   setHugUsername,
   setHugPassword,

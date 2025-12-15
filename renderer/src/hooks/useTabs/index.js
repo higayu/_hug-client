@@ -1,7 +1,9 @@
 //renderer\src\hooks\useTabs\index.js
 // タブ管理のフック
 import { useEffect, useCallback, useRef } from 'react'
-import { useAppState } from '@/contexts/AppStateContext.jsx'
+//import { useIniState } from '@/contexts/IniStateContext.jsx'
+//import { useAppState } from '@/contexts/AppStateContext.jsx'
+import { useAppState } from '@/contexts/appState'
 import { setActiveWebview } from '@/utils/webviewState.js'
 import { getDateString } from '@/utils/dateUtils.js'
 import { createWebview, createTabButton, activateTab, closeTab,clearActiveWebviewCache } from './common/index.js'
@@ -10,15 +12,16 @@ import { addPersonalRecordTabAction3 } from './actions/personalRecord.js'
 import { addProfessionalSupportListAction } from './actions/professionalList.js'
 import { addProfessionalSupportNewAction } from './actions/professionalNew.js'
 import { addWebManagerAction } from './actions/WebManager.js'
-import { useIniState } from '@/contexts/IniStateContext.jsx'
+
 
 /**
  * タブ管理のフック
  */
 export function useTabs() {
-  const { appState } = useAppState()
+  // const { appState } = useAppState()
+  // const { iniState } = useIniState()   // ← ★ これを追加
+  const { appState, iniState } = useAppState()
   const tabsInitializedRef = useRef(false)
-  const { iniState } = useIniState()   // ← ★ これを追加
 
     // ラッパーとして最小限にする
     // 通常タブ追加

@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react'
 import './SettingsModal.css'
-import { useSettingsModal } from '../../hooks/useSettingsModal.js'
-import { useSettingsModalLogic } from '../../hooks/useSettingsModalLogic.js'
-import { useIniState } from '../../contexts/IniStateContext.jsx'
+import { useSettingsModal } from '@/hooks/useSettingsModal.js'
+import { useSettingsModalLogic } from '@/hooks/useSettingsModalLogic.js'
+//import { useIniState } from '@/contexts/IniStateContext.jsx'
+//import { useAppState } from '@/contexts/AppStateContext.jsx'
+import { useAppState } from '@/contexts/appState'
 import FeaturesTab from './tabs/FeaturesTab'
 import ConfigTab from './tabs/ConfigTab'
 import UITab from './tabs/UITab'
@@ -24,7 +26,7 @@ const TABS = [
 function SettingsModal({ isOpen, onClose }) {
   const [activeTab, setActiveTab] = useState('features')
   const { isLoading } = useSettingsModal(isOpen)
-  const { loadIni } = useIniState()
+  const { loadIni } = useAppState()
   const {
     populateForm,
     saveSettings,

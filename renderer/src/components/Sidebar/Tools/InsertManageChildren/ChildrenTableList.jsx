@@ -4,7 +4,8 @@ import { store } from "@/store/store.js";
 import { insertManager } from "@/sql/useManager/insertManager/insertManager.js";
 import { useToast } from "@/components/common/ToastContext.jsx";
 import { useChildrenList } from "@/hooks/useChildrenList.js";
-import { useAppState } from "@/contexts/AppStateContext.jsx";
+//import { useAppState } from "@/contexts/AppStateContext.jsx";
+import { useAppState } from '@/contexts/appState';
 /**
  * 出勤データを一覧表示するコンポーネント
  * @param {Array} childrenList - 抽出された児童データ配列

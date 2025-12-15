@@ -1,6 +1,7 @@
 // renderer/src/components/Sidebar/Tools/SelectChildren/MemoTool/Parts/AiContents/GeminiContent/GeminiContent.jsx
 import React, { useState } from 'react'
-import { useAppState } from '@/contexts/AppStateContext.jsx'
+//import { useAppState } from '@/contexts/AppStateContext.jsx'
+import { useAppState } from '@/contexts/appState'
 
 export default function GeminiContent() {
   const { appState } = useAppState()

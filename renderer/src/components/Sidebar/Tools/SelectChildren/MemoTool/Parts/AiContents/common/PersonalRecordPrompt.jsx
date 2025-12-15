@@ -1,15 +1,28 @@
 // renderer/src/components/Sidebar/Tools/MemoTool/Parts/AiContents/common/PromptBox.jsx
 import React, { useState, useEffect } from "react";
 import { getActiveWebview } from '@/utils/webviewState.js'
-import { useAppState } from "@/contexts/AppStateContext.jsx";
+//import { useAppState } from "@/contexts/AppStateContext.jsx";
+import { useAppState } from '@/contexts/appState';
+
 import { useToast } from '@/components/common/ToastContext.jsx'
+import { useDispatch, useSelector } from 'react-redux'
+import {
+  setAiText,
+  sendStart,
+  sendSuccess,
+  sendError
+} from '@/store/slices/sendTextSlice'
 
 export default function PersonalRecordPrompt() {
   const { appState, PROMPTS } = useAppState();
 
   // "personalRecord" と "professional" のプロンプトを2つの textarea に対応
   const [text1, setText1] = useState("");
-  const [aiText, setAiText] = useState("");   // AIに送るテキスト
+  const dispatch = useDispatch()
+  const PROMPT_KEY = 'personalRecord'
+  const aiText = useSelector(
+    state => state.sendText[PROMPT_KEY].aiText
+  )
   const {
     showSuccessToast,
     showErrorToast,
@@ -164,8 +177,8 @@ export default function PersonalRecordPrompt() {
         </label>
         <textarea
           className="w-full h-24 p-2 border text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
-          value={aiText}
           placeholder="AIに送信する内容を入力..."
+          value={aiText}
           onChange={(e) => setAiText(e.target.value)}
         />
         <button

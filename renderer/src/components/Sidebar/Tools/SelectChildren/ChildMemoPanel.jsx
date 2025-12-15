@@ -1,6 +1,7 @@
 // src/components/Sidebar/ChildMemoPanel.jsx
 import { useEffect, useState } from 'react'
-import { useAppState } from '@/contexts/AppStateContext.jsx'
+//import { useAppState } from '@/contexts/AppStateContext.jsx'
+import { useAppState } from '@/contexts/appState'
 import { useChildrenList } from '@/hooks/useChildrenList.js'
 import { useTabs } from '@/hooks/useTabs/index.js'
 import MemoContainer from './MemoTool/MemoContainer.jsx'

@@ -1,6 +1,7 @@
 // renderer/src/components/Sidebar/Tools/SelectChildren/MemoTool/MemoContainer.jsx
 import React, { useState } from "react";
-import { useAppState } from "@/contexts/AppStateContext.jsx";
+//import { useAppState } from "@/contexts/AppStateContext.jsx";
+import { useAppState } from '@/contexts/appState';
 
 import MemoInputBox from "./Parts/MemoInputBox.jsx";
 import OpenAiContent from "./Parts/AiContents/OpenAiContent/OpenAiContent.jsx";

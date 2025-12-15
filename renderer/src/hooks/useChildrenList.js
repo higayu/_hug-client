@@ -1,7 +1,8 @@
 // src/hooks/useChildrenList.js
 import { useEffect, useState, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useAppState } from "@/contexts/AppStateContext.jsx";
+//import { useAppState } from "@/contexts/AppStateContext.jsx";
+import { useAppState } from '@/contexts/appState';
 import { ELEMENT_IDS } from "@/utils/constants.js";
 
 import { mariadbApi } from "@/sql/mariadbApi.js";
@@ -11,7 +12,18 @@ import { fetchAllTables } from "@/store/slices/databaseSlice.js";
 import { selectExtractedData, selectAttendanceError } from "@/store/slices/attendanceSlice.js";
 
 export function useChildrenList() {
-  const { appState, setSelectedChild, setSelectedPcName, setChildrenData, updateAppState, SELECT_CHILD } = useAppState();
+ const {
+    appState,
+    activeApi,        // ★ 追加
+    isInitialized,    // ★ 追加（公開している前提）
+    setSelectedChild,
+    setSelectedPcName,
+    setChildrenData,
+    updateAppState,
+    SELECT_CHILD,
+  } = useAppState();
+
+ // const { appState, setSelectedChild, setSelectedPcName, setChildrenData, updateAppState, SELECT_CHILD } = useAppState();
   const dispatch = useDispatch();
   const extractedData = useSelector(selectExtractedData);
   const attendanceError = useSelector(selectAttendanceError);
@@ -27,17 +39,23 @@ export function useChildrenList() {
     }
 
     // ⚠️ activeApiが設定されていない場合は処理をスキップ
-    if (!appState.activeApi) {
-      console.warn("⚠️ [useChildrenList] activeApiが設定されていません。データベース設定の読み込み待ち...");
+    if (!isInitialized) {
+      console.warn("⏳ [useChildrenList] 初期化待ち");
       return;
     }
+
+    if (!activeApi) {
+      console.warn("⏳ [useChildrenList] activeApi未設定");
+      return;
+    }
+
 
     try {
       const facilitySelect = document.getElementById(ELEMENT_IDS.FACILITY_SELECT);
       const facility_id = facilitySelect ? facilitySelect.value : null;
 
       // ⚠️ activeApiを直接使用
-      const api = appState.activeApi;
+      const api = activeApi;
       console.log('🔍 [useChildrenList] 使用するAPI:', api === mariadbApi ? 'mariadbApi' : (api === sqliteApi ? 'sqliteApi' : '不明'));
       
       const tables = await api.getAllTables();
@@ -72,7 +90,7 @@ export function useChildrenList() {
     } catch (error) {
       console.error("❌ 子どもデータ読み込みエラー:", error);
     }
-  }, [appState.STAFF_ID, appState.WEEK_DAY, appState.activeApi, dispatch, setChildrenData, updateAppState]);
+  }, [appState.STAFF_ID, appState.WEEK_DAY, activeApi, dispatch, setChildrenData, updateAppState]);
 
   // 🔹 曜日変更イベント
   useEffect(() => {

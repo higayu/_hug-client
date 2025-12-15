@@ -3,7 +3,8 @@
 
 import { useEffect, useState } from 'react'
 import { useCustomButtons } from '@/components/common/CustomButtonsContext.jsx'
-import { useAppState } from '@/contexts/AppStateContext.jsx'
+//import { useAppState } from '@/contexts/AppStateContext.jsx'
+import { useAppState } from '@/contexts/appState'
 import { getActiveWebview, setActiveWebview } from '@/utils/webviewState.js'
 
 function CustomButtonsPanel() {

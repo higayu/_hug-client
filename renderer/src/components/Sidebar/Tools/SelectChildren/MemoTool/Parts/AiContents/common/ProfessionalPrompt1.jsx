@@ -1,6 +1,7 @@
 // renderer/src/components/Sidebar/Tools/MemoTool/Parts/AiContents/common/PromptBox.jsx
 import React, { useState, useEffect } from "react";
-import { useAppState } from "@/contexts/AppStateContext.jsx";
+//import { useAppState } from "@/contexts/AppStateContext.jsx";
+import { useAppState } from '@/contexts/appState';
 import { useChildrenList } from "@/hooks/useChildrenList.js";
 
 export default function ProfessionalPrompt1() {

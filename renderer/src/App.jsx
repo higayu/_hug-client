@@ -8,8 +8,9 @@ import { useAppInitialization } from '@/hooks/useAppInitialization.js'
 import { Provider } from 'react-redux'
 import { store } from '@/store/store.js'
 import { ToastProvider } from '@/components/common/ToastContext.jsx'
-import { AppStateProvider } from '@/contexts/AppStateContext.jsx'
-import { IniStateProvider } from '@/contexts/IniStateContext.jsx'
+//import { AppStateProvider } from '@/contexts/AppStateContext.jsx'
+import { AppStateProvider } from '@/contexts/appState'
+//import { IniStateProvider } from '@/contexts/IniStateContext.jsx'
 import { CustomButtonsProvider } from '@/components/common/CustomButtonsContext.jsx'
 import Toolbar from '@/components/Header/Toolbar.jsx'
 import Tabs from '@/components/Header/Tabs.jsx'
@@ -42,13 +43,11 @@ function App() {
   return (
     <Provider store={store}>
       <AppStateProvider>
-        <IniStateProvider>
           <CustomButtonsProvider>
             <ToastProvider>
               <AppContent preloadPath={preloadPath} />
             </ToastProvider>
           </CustomButtonsProvider>
-        </IniStateProvider>
       </AppStateProvider>
     </Provider>
   )
