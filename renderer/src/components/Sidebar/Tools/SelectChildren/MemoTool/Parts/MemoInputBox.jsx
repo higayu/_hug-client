@@ -8,9 +8,9 @@ import { useNote } from "@/hooks/useNote.js";
 export default function MemoInputBox() {
   const { SELECT_CHILD } = useAppState();
   const { saveTemp, loadTemp } = useNote();
-  const { showSuccessToast, showErrorToast } = useToast();
   const [memo1, setMemo1] = useState("");       // 一時メモ1
   const [memo2, setMemo2] = useState("");     // 一時メモ2
+  const { showErrorToast, showSuccessToast,showWarningToast } = useToast();
 
   // 🔄 一時メモ読込（memo + memo2）
   useEffect(() => {
@@ -47,6 +47,7 @@ export default function MemoInputBox() {
     console.log("② SELECT_CHILD:", SELECT_CHILD);
     if (!SELECT_CHILD) {
       console.warn("⛔ SELECT_CHILD が未設定のため中断");
+      showWarningToast("⛔ SELECT_CHILD が未設定のため中断");
       console.groupEnd();
       return;
     }
@@ -81,6 +82,7 @@ export default function MemoInputBox() {
     <div className="flex flex-col w-full rounded mb-2 p-2 shadow-sm">
       <button
         onClick={handleSaveClick}
+        disabled={!SELECT_CHILD || SELECT_CHILD==""}
         className="w-full px-3 py-3 bg-blue-600 text-white border-none rounded text-xs cursor-pointer hover:bg-blue-700 transition-colors mt-3"
       >
         一時メモを保存（まとめて）

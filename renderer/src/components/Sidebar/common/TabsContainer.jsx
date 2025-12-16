@@ -5,6 +5,7 @@ import SQLManager from '../Tools/SQLManager/index.jsx'
 import ChildrenTable from '../Tools/InsertManageChildren/index.jsx'
 import UpdateManager from '../Tools/UpdateManager/index.jsx'
 //import { useAppState } from '@/contexts/AppStateContext.jsx'
+import SendRoomTable from '@/components/Sidebar/Tools/TestTool/SendRoomTable.jsx';
 import { useAppState } from '@/contexts/appState'
 
 function TabsContainer() {
@@ -16,7 +17,7 @@ function TabsContainer() {
     { id: 'tools', label: '🧰 ツール' },
     { id: 'insertManageChildren', label: '👶 子ども管理' },
     { id: 'updateManager', label: '👨‍👧‍👦 児童担当編集' },
-   // { id: 'sqlManager', label: '🗄️ SQL管理' },
+    { id: 'SendRoomTable', label: '入室・退室テスト' },
   ]
 
   return (
@@ -61,6 +62,12 @@ function TabsContainer() {
         {activeTab === 'updateManager' && (
           <div className="h-full flex flex-col">
             <UpdateManager />
+          </div>
+        )}
+
+        {activeTab === 'SendRoomTable' && (
+          <div className="h-full flex flex-col">
+            <SendRoomTable />
           </div>
         )}
 
