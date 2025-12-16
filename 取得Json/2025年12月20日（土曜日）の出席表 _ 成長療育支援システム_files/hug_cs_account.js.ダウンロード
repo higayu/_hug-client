@@ -1,0 +1,188 @@
+/**
+ * CSアカウント制御用JS (リファクタリング版 - クラス化およびオブジェクト指向設計)
+ * Created by makino on 2024/08/29.
+ */
+
+class CSAccountControl {
+    constructor() {
+        this._headerText = this._getHeaderText();
+        this._currentUrl = this._getCurrentPage();
+        this._pageHandlers = this._getPageHandlers();
+
+        if (this._isSpecialAccount()) {
+            this._initializeControls();
+        }
+    }
+
+    /**
+     * ヘッダーテキストを取得する
+     * @returns {string} ヘッダーテキスト
+     */
+    _getHeaderText() {
+        return $('.headerMenu b').text().trim() || $(parent.document).find('.headerMenu b').text().trim();
+    }
+
+    /**
+     * 現在のページ名を取得する
+     * @returns {string} 現在のページ名
+     */
+    _getCurrentPage() {
+        return window.location.pathname.split('/').pop();
+    }
+
+    /**
+     * 特定のアカウントかどうかを判定する
+     * @returns {boolean} 特定のアカウントであるかどうか
+     */
+    _isSpecialAccount() {
+        return this._headerText === 'ネットアーツサポート用';
+    }
+
+    /**
+     * コントロールの初期化を行う
+     */
+    _initializeControls() {
+        this._disableSaveAndDeleteButtons();
+        this._disableEnterKey();
+        this._handlePageSpecificControls();
+    }
+
+    /**
+     * 保存や削除ボタンを無効化する
+     */
+    _disableSaveAndDeleteButtons() {
+        this._disableElements(['.save', '.delete']);
+    }
+
+    /**
+     * エンターキーの押下を無効化する
+     */
+    _disableEnterKey() {
+        $(document).on('keydown', event => {
+            if (event.key === 'Enter' || event.keyCode === 13) {
+                event.preventDefault();
+                return false;
+            }
+        });
+    }
+
+    /**
+     * ページ固有の制御を行う
+     */
+    _handlePageSpecificControls() {
+        const handler = this._pageHandlers[this._currentUrl];
+        if (handler) handler();
+        this._handleEditPageControls();
+    }
+
+    /**
+     * ページ固有のハンドラを定義する
+     * @returns {Object} ページハンドラのマップ
+     */
+    _getPageHandlers() {
+        return {
+            'user_invoice.php': this._disablePrinting.bind(this),
+            'user_receipt.php': this._disablePrinting.bind(this),
+            'user_substitute.php': this._disablePrinting.bind(this),
+            'attendance.php': this._handleAttendancePageControls.bind(this),
+            'pickup.php': this._handlePickupPageControls.bind(this),
+            'article.php': () => this._disableElements(['.releaseBtn a']),
+            'staff-attendance.php': this._handleStaffAttendancePageControls.bind(this),
+            'reserve_manage.php': () => this._disableElements(['.reserveManageConfirm']),
+            'mypage-contact.php': () => this._disableElements(['.send_btn_contact']),
+            'payment_all_bank.php': () => this._replaceClass('.submit', 'output', 'disable'),
+            'payment.php': () => {
+                this._disableElements(['.iconCSV']);
+                this._disableElements(['.edit']);
+                this._handleInvoiceTopPageControls();  // 追加した処理
+            },
+            'payment_upper_limit_result.php': () => this._replaceClass('.submit', 'addjs', 'disable'),
+            'backup.php': () => this._replaceClass('.download', 'download', 'disable'),
+            'contract_report.php': () => this._replaceClass('.submit', 'submit', 'disable'),
+            'facility_agreement.php': () => this._replaceClass('.modalFacilityAgreement', 'modalFacilityAgreement', 'disable'),
+            'facility_other_agreement.php': () => this._replaceClass('.modalOtherFacility', 'modalOtherFacility', 'disable'),
+            'get_users_excel.php': () => {
+                this._replaceClass('.js_agree', 'js_agree', 'disable');
+                this._replaceClass('.csv_save', 'csv_save', 'disable');
+            },
+            'users.php':() => this._replaceClass('.save', 'save', 'disable'),
+            'upper_limit_result.php': () => this._replaceClass('.save', 'save', 'disable'),
+            'municipality_grant_amount.php': () => this._replaceClass('.save', 'save', 'disable'),
+            'system_status.php': () => this._replaceClass('.save', 'save', 'disable'),
+        }
+    }
+
+    /**
+     * 印刷ボタンを無効化する
+     */
+    _disablePrinting() {
+        this._disableElements(['.printing']);
+    }
+
+    /**
+     * 今日の利用者ページの制御を行う
+     */
+    _handleAttendancePageControls() {
+        if ($('input[name="mode"]').val() === 'search_detail') {
+            this._disableElements(['.enter button', '.leave button', '.providing button', '.cost button', '.alunch button', '.waitbtn', '.js_add']);
+        }
+    }
+
+    /**
+     * 送迎ページの制御を行う
+     */
+    _handlePickupPageControls() {
+        if ($('input[name="mode"]').val() === 'search_detail') {
+            this._disableElements(['.greet_time_start button', '.send_time_end button']);
+        }
+    }
+
+    /**
+     * スタッフ出勤ページの制御を行う
+     */
+    _handleStaffAttendancePageControls() {
+        if ($('input[name="mode"]').val() === 'search') {
+            this._disableElements(['.first_arrival', '.first_leave', '.second_arrival', '.second_leave', '.kinmu_two']);
+        }
+    }
+
+    //請求情報トップのボタン制御を行う
+    _handleInvoiceTopPageControls() {
+        // .confirm クラスを持つ要素を取得
+        $('.confirm').removeClass('confirm').addClass('disable');
+    }
+
+    /**
+     * 編集ページの保存ボタンを無効化する
+     */
+    _handleEditPageControls() {
+        const modeTokenValue = $('input[name="mode_token"]').val();
+        if (modeTokenValue === 'edit' || modeTokenValue === 'modal' || modeTokenValue === 'nomode') {
+            this._disableElements(['.save', '.draft']);
+        }
+    }
+
+    /**
+     * 指定された要素を無効化する
+     * @param {string[]} selectors 無効化する要素のセレクタ
+     */
+    _disableElements(selectors) {
+        selectors.forEach(selector => {
+            $(selector).addClass('disable');
+        });
+    }
+
+    /**
+     * 要素のクラスを置き換える
+     * @param {string} selector 要素のセレクタ
+     * @param {string} oldClass 置き換えるクラス名
+     * @param {string} newClass 新しく追加するクラス名
+     */
+    _replaceClass(selector, oldClass, newClass) {
+        $(selector).removeClass(oldClass).addClass(newClass);
+    }
+}
+
+$(document).ready(function() {
+    new CSAccountControl();
+});

@@ -1,0 +1,32 @@
+!function () {
+  window.TechtouchObject = {
+    startTechtouch: function() {
+      // iframe内で動作させる場合は以下の1行を削除もしくはコメントアウトしてください
+      try { if (window.top !== window.self) return; } catch(e) { return; }
+      if ('TechtouchObject' in window && document.querySelector('script#techtouch-snippet')) return;
+      if ('TechtouchAddon' in window) return;
+      window.TechtouchObject = {
+        organizationUuid: "orga-66a9f279-2760-4973-2549-2f3848b12a38"
+      };
+      var e = document.createElement("script"); e.async = 1, e.src = "https://apps.techtouch.jp/script/orga-66a9f279-2760-4973-2549-2f3848b12a38/main.js?projectUuid=proj-66b95194-75a1-208f-bc14-47c0f8d62e20"; e.id = "techtouch-snippet";
+      var t = document.getElementsByTagName("script")[0];
+      t.parentNode.insertBefore(e, t);
+    }
+  };
+
+  // カスタムプロパティを使用する場合に設定してください
+  window.TechtouchAdmin={customProperty:{_data:{},get:function(t){return this._data[t]},set:function(t,e){this._data[t]=e},delete:function(t){delete this._data[t]},keys:function(){return Object.keys(this._data)}}};
+
+  //カスタムプロパティのデータの取得
+  const domain = $('.domain').html();
+  const supportCode = $('.supportCode').html();
+  const lastest_login_date = $('.lastest_login_date').html();
+
+  // 以下で各カスタムプロパティのデータを設定してください
+  TechtouchAdmin.customProperty.set("67e0f7e3-2dfe-4fff-b377-cbe4328cdb6f", domain) // ラベル「domain」に対応
+  TechtouchAdmin.customProperty.set("f9db4a11-5977-4805-962d-12365e472606", supportCode) // ラベル「supportcode」に対応
+  TechtouchAdmin.customProperty.set("e4dd4b4c-e471-455a-8239-43169b68b9c4", lastest_login_date) // ラベル「lastest_login_date」に対応
+
+  // 以下はカスタムプロパティのデータをセットしてから実行してください
+    window.TechtouchObject.startTechtouch();
+}()

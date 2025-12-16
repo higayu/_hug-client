@@ -1,0 +1,115 @@
+// ツールチップ用JS
+$(window).on('load', function() {
+    var windowW = window.innerWidth;
+
+    //送迎組の住所だけは横に表示する
+    $(document).on("mouseover", ".smallipop_right", (function() {
+        $('.smallipop_right').smallipop({
+            preferredPosition: 'right',
+            hideDelay: 400,
+            popupDelay: 0,
+            popupAnimationSpeed: 100,
+            theme: 'white',
+            popupOffset: 0,
+        });
+    }));
+    //下
+    $(document).on("mouseover", ".smallipop_bottom", (function() {
+        $('.smallipop_bottom').smallipop({
+            preferredPosition: 'bottom',
+            hideDelay: 400,
+            popupDelay: 0,
+            popupAnimationSpeed: 100,
+            theme: 'white',
+            popupOffset: 0,
+        });
+    }));
+    $(document).on("mouseover", ".smallipop", (function() {
+        $('.smallipop').smallipop({
+            hideDelay: 400,
+            preferredPosition: 'top',
+            popupDelay: 0,
+            popupAnimationSpeed: 100,
+            theme: 'white',
+            popupYOffset: 10,
+            invertAnimation: true
+        });
+    }));
+
+    if (windowW >= 769) {
+        $(function(){
+
+            //送迎組の住所
+            $(document).on("mouseover", ".smallipop_right", (function() {
+                $('.smallipop_right').smallipop({
+                    hideDelay: 400,
+                    preferredPosition: 'right',
+                    popupDelay: 0,
+                    popupAnimationSpeed: 100,
+                    theme: 'white',
+                    popupYOffset: 10,
+                    invertAnimation: true
+                });
+            }));
+            //下
+            $(document).on("mouseover", ".smallipop_bottom", (function() {
+                $('.smallipop_bottom').smallipop({
+                    hideDelay: 400,
+                    preferredPosition: 'bottom',
+                    popupDelay: 0,
+                    popupAnimationSpeed: 100,
+                    theme: 'white',
+                    popupYOffset: 10,
+                    invertAnimation: true
+                });
+            }));
+
+
+            $(document).on("mouseover", ".smallipop", (function() {
+                $('.smallipop').smallipop({
+                    hideDelay: 400,
+                    preferredPosition: 'top',
+                    popupDelay: 0,
+                    popupAnimationSpeed: 100,
+                    theme: 'white',
+                    popupYOffset: 10,
+                    invertAnimation: true
+                });
+            }));
+        });
+    } else {
+        $(function(){
+
+            //送迎組の住所
+            $(document).on("mouseover", ".smallipop_right", (function() {
+                $('.smallipop_right').smallipop({
+                    hideDelay: 400,
+                    preferredPosition: 'right',
+                    popupDelay: 0,
+                    popupAnimationSpeed: 100,
+                    theme: 'white',
+                    popupYOffset: 10,
+                    invertAnimation: true,
+                    hideOnPopupClick: false,
+                    hideOnTriggerClick: false,
+                    triggerOnClick: true
+                });
+            }));
+
+            $(document).on("click", ".smallipop", (function() {
+                $('.smallipop').smallipop({
+                    hideDelay: 400,
+                    preferredPosition: 'top',
+                    popupDelay: 0,
+                    popupAnimationSpeed: 100,
+                    theme: 'white',
+                    popupYOffset: 10,
+                    invertAnimation: true,
+                    hideOnPopupClick: false,
+                    hideOnTriggerClick: false,
+                    triggerOnClick: true
+                });
+            }));
+        });
+    }
+});

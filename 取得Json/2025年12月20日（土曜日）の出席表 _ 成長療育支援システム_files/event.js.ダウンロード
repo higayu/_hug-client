@@ -1,0 +1,248 @@
+/**
+ * イベント管理
+ * Created by Nozue on 2015/07/22.
+ */
+
+$(function(){
+    $(document).on("change", "[name=event_color]", function () {
+        const color = $(this).val();
+        $("#color_layout").removeClass().addClass(color);
+    });
+    // 活動内容クリック
+    $('#select1').on('click',function(){
+        if ($(this).prop('checked')){
+            $("#select2").removeAttr('disabled');
+            $("#select2").prop("checked",true);
+            $("#select_lbl2").css("color","black");
+        }else{
+            $("#select2").attr('disabled', 'disabled').prop("checked",false);
+            $("#select_lbl2").css("color","#bbbbbb");
+        }
+    });
+    // お弁当クリック
+    $('#select3').on('click',function(){
+        if ($(this).prop('checked')){
+            $("#select4").removeAttr('disabled');
+            $("#select_lbl4").css("color","black");
+        }else{
+            $("#select4").attr('disabled', 'disabled').prop("checked",false);
+            $("#select_lbl4").css("color","#bbbbbb");
+        }
+    });
+    // 迎えクリック
+    $('#select5').on('click',function(){
+        if ($(this).prop('checked')){
+            $("#select8").removeAttr('disabled');
+            $("#select7").removeAttr('disabled');
+            $("#select_lbl8").css("color","black");
+            $("#select_lbl7").css("color","black");
+        }else{
+            $("#select8").attr('disabled', 'disabled').prop("checked",false);
+            $("#select_lbl8").css("color","#bbbbbb");
+
+            if($("#select6").prop("checked")){
+                $("#select7").removeAttr('disabled');
+                $("#select_lbl7").css("color","black");
+            } else {
+                $("#select7").attr('disabled', 'disabled').prop("checked",false);
+                $("#select_lbl7").css("color","#bbbbbb");
+            }
+        }
+    });
+    // 活動内容クリック
+    $('#select7').on('click',function(){
+        if ($(this).prop('checked')){
+            $("#selectSetting01").removeClass('disabled');
+            $("#selectSetting01").find('input').removeAttr('disabled');
+        }else{
+            $("#selectSetting01").addClass('disabled');
+            $("#selectSetting01").find('input').attr('disabled', 'disabled');
+        }
+    });
+    // 送りクリック
+    $('#select6').on('click',function(){
+        if ($(this).prop('checked')){
+            $("#select9").removeAttr('disabled');
+            $("#select7").removeAttr('disabled');
+            $("#select_lbl9").css("color","black");
+            $("#select_lbl7").css("color","black");
+        }else{
+            $("#select9").attr('disabled', 'disabled').prop("checked",false);
+            $("#select_lbl9").css("color","#bbbbbb");
+
+            if($("#select5").prop("checked")){
+                $("#select7").removeAttr('disabled');
+                $("#select_lbl7").css("color","black");
+            } else {
+                $("#select7").attr('disabled', 'disabled').prop("checked",false);
+                $("#select_lbl7").css("color","#bbbbbb");
+            }
+        }
+    });
+    // 活動管理にチェックがついていたら、下部に活動内容選択注釈にチェックをつける
+    if($("#select1").prop("checked")){
+        $("#select2").removeAttr('disabled');
+        $("#select_lbl2").css("color","black");
+    }else{
+        $("#select2").attr('disabled', 'disabled').prop("checked",false);
+        $("#select_lbl2").css("color","#bbbbbb");
+    }
+    // お弁当
+    if($("#select3").prop("checked")){
+        $("#select4").removeAttr('disabled');
+        $("#select_lbl4").css("color","black");
+    }else{
+        $("#select4").attr('disabled', 'disabled').prop("checked",false);
+        $("#select_lbl4").css("color","#bbbbbb");
+    }
+    // 迎え
+    if($("#select5").prop("checked")){
+        $("#select8").removeAttr('disabled');
+        $("#select_lbl8").css("color","black");
+    }else{
+        $("#select8").attr('disabled', 'disabled').prop("checked",false);
+        $("#select_lbl8").css("color","#bbbbbb");
+    }
+    // 送り
+    if($("#select6").prop("checked")){
+        $("#select9").removeAttr('disabled');
+        $("#select_lbl9").css("color","black");
+    }else{
+        $("#select9").attr('disabled', 'disabled').prop("checked",false);
+        $("#select_lbl9").css("color","#bbbbbb");
+    }
+    // 送迎場所
+    if($("#select5").prop("checked") || $("#select6").prop("checked")){
+        $("#select7").removeAttr('disabled');
+        $("#select_lbl7").css("color","black");
+    }else{
+        $("#select7").attr('disabled', 'disabled').prop("checked",false);
+        $("#select_lbl7").css("color","#bbbbbb");
+    }
+    if($("#select7").prop("checked")){
+        $("#selectSetting01").removeClass('disabled');
+        $("#selectSetting01").find('input').removeAttr('disabled');
+    }else{
+        $("#selectSetting01").addClass('disabled');
+        $("#selectSetting01").find('input').attr('disabled', 'disabled');
+    }
+});
+
+
+/**
+ * ふりがなから名前リストを生成
+ * @param url
+ * @param date
+ */
+function redirectEdit(url, date) {
+    var f_id = $("#f_select").val();
+
+    location.href=url+'?mode=edit&f_id='+f_id+'&date='+date;
+}
+
+
+/**
+ * セレクトボックスの値をテキストボックスに書き出す
+ * @param date
+ */
+function putSelectValue(date) {
+    var str = $("#e_id_"+date+ " option:selected").text();
+
+    //初期値の場合は空にする
+    if(str == "--------------------"){
+        str = "";
+    }
+
+    $("#event_"+date).val(str);
+}
+
+
+/**
+ * イベントカテゴリからイベントリストを返す
+ * @param key
+ */
+function comboBoxEventList(date, key) {
+
+    var url = "./ajax/ajax_event_list.php?key=" + key + "&date=" + date;
+
+    $.ajax({
+        type: 'get',
+        url: url,
+        timeout: 3000,
+        dataType: 'jsonp',
+        jsonpCallback: 'nameList',
+        success: function (json) {
+
+            //一度プルダウン内を全削除
+            $('#e_id_'+date+' > option').remove();
+            $('#e_id_'+date).append($('<option>').html('----').val(0));
+
+            //新しい値をセット
+            if (json) {
+                Object.keys(json).forEach(function (key) {
+                    var val = this[key];
+                    $('#e_id_'+date).append($('<option>').html(val).val(key));
+                }, json);
+            }
+
+        },
+        error: function () {
+            alert("通信に失敗しました。");
+        }
+    });
+}
+
+function disableSearch() {
+    var cnt = $("input:checkbox:checked").size();
+
+    if(cnt == 0) {
+        $("#search_button").prop('disabled', true);
+
+    } else {
+        $("#search_button").prop('disabled', false);
+    }
+
+
+    checked_id = $('input:checkbox:checked').map(function(){
+        return $(this).val();
+    }).get();
+
+    var key = $.inArray('1', checked_id);
+
+    if (key != -1) {
+        $("#note").css("display","");
+    }else{
+        $("#note").css("display","none");
+    }
+}
+/**
+ * 日付・施設IDからイベント名を返す
+ * @param f_id  施設ID
+ * @param date  yyyy-dd-mm
+ */
+function getEventName(f_id, date) {
+    var url = "./ajax/ajax_get_event.php";
+        $.ajax({
+            url: url,
+            data: { "f_id": f_id, "date": date },
+            timeout: 3000,
+            dataType: 'json',
+            success: function (data) {
+                var event_name = data.title;
+                if (date !== '' && f_id !== 0) {
+                    if (date.includes("/")) {
+                        date = date.split('/').join('-');
+                    }
+                    if (event_name !== "none") {
+                        $('#event_title').html(event_name);
+                    } else {
+                        $('#event_title').html('(登録なし)');
+                    }
+                }
+            },
+            error: function(xhr, status, error) {
+                $('#event_title').html('(エラーが発生しました)');
+            }
+        });
+        return false;
+}

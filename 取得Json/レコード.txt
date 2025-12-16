@@ -1,0 +1,8 @@
+{
+    "rowIndex": 3,
+    "children_id": "90",
+    "children_name": "荻野 春陽 さん",
+    "column1Html": "<a href=\"profile_children.php?mode=profile&amp;id=90\" class=\"tdn\">\n                                            <div class=\"nameBox\">\n                                                <span class=\"furigana\">おぎの　はる</span>\n                                                <p>荻野　春陽\n                                                    さん</p>\n                                            </div>\n                                        </a>\n                                                                                                                                                                                                                                                    <span class=\"icon male\"><i class=\"fa fa-male\"></i></span>",
+    "column5": "入室\n                                            欠席",
+    "column5Html": "<button class=\"btn btn-sm \" onclick=\"sendEnterMail('29534',0,90,3,1,0,'2025-12-20',0,0,0);\">入室</button>\n                                            <button class=\"btn btn-sm jqeryui-absence \" id=\"absence_29534_90_3_2025-12-20_0_0\" name=\"absence_29534\">欠席</button>"
+}

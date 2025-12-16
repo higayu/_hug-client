@@ -1,0 +1,99 @@
+/**
+ * Created by nozue on 2015/07/24.
+ */
+
+
+/**
+ * 休日切り替え
+ * @param date
+ * @param f_id
+ */
+function changeHolidayStatus(date, f_id, status) {
+
+    var url = "./ajax/ajax_change_holiday.php?date="+date+"&f_id="+f_id+"&status="+status;
+
+    $.ajax({
+        type: 'get',
+        url: url,
+        timeout: 3000,
+        dataType:'jsonp',
+        jsonpCallback: 'changeStatus',
+        success: function (json) {
+
+            if(!json.result) {
+
+                if(window.confirm("予約情報が存在します。\n削除してよろしいですか？")) {
+                    location.href='./holiday_delete_reserve.php?date='+date+'&f_id='+f_id;
+                }
+
+            } else {
+                if (json.result.holiday_flg) {
+                    $('#bizday_' + date).removeClass('bizday1')
+                        .html("<span>休日</span>")
+                        .attr('onclick', "changeHolidayStatus(" + "'" + date + "', " + f_id + ", " + json.result.holiday_flg + ")");
+                    $('#td_' + date).addClass('holiday');
+
+                } else {
+                    $('#bizday_' + date).addClass('bizday1')
+                        .html("<span>営業</span>")
+                        .attr('onclick', "changeHolidayStatus(" + "'" + date + "', " + f_id + ", " + json.result.holiday_flg + ")");
+                    $('#td_' + date).removeClass('holiday');
+                }
+            }
+
+        },
+        error: function () {
+            alert("通信に失敗しました。");
+        }
+    });
+}
+
+
+/**
+ * 弁当切り替え
+ * @param date
+ * @param f_id
+ */
+function changeLunchStatus(date, f_id, status) {
+
+    var url = "./ajax/ajax_change_lunch.php?date="+date+"&f_id="+f_id+"&status="+status;
+
+    $.ajax({
+        type: 'get',
+        url: url,
+        timeout: 3000,
+        dataType:'jsonp',
+        jsonpCallback: 'changeStatus',
+        success: function (json) {
+
+            if(json.lunch_flg) {
+                $('#lunch_'+date).addClass('lunch1')
+                    .html("<span>弁当<br>あり</span>")
+                    .attr('onclick', "changeLunchStatus("+"'"+date+"', "+f_id+", "+json.lunch_flg+")");
+
+            } else {
+                $('#lunch_'+date).removeClass('lunch1')
+                    .html("<span>弁当<br>なし</span>")
+                    .attr('onclick', "changeLunchStatus("+"'"+date+"', "+f_id+", "+json.lunch_flg+")");
+            }
+
+        },
+        error: function () {
+            alert("通信に失敗しました。");
+        }
+    });
+}
+
+function clickConfirm(elem, delete_flg){
+    $('[name="delete_flg"]').val(delete_flg);
+
+    var text = $(elem).text();
+    text = "「"+text + "」を実行します\r\n本当によろしいですか？";
+
+    if(!confirm(text)){
+
+        return false;
+    }else{
+        $('#confirm_ok').submit();
+    }
+}

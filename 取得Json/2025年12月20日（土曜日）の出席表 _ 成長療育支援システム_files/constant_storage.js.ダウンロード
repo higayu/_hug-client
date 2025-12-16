@@ -1,0 +1,21 @@
+/**
+ * 定数置き場
+ * ここではHUG上で使われている共通の定数を定義しています。
+ * 
+ * 2024/09/26
+ * @author Netartz
+ */
+
+
+// 利用サービス
+const AFTER_SCHOOL_DAY_CARE = 1;
+const CHILD_DEVELOPMENT_SUPPORT = 2;
+
+// 提供形態
+const PROVIDING_AFTER_SCHOOL = 1;
+const PROVIDING_SCHOOL_HOLIDAYS = 2;
+const PROVIDING_NO_BASIC_REWARD = 9;
+
+// 基本報酬における算定時間数の設定フラグ
+const USE_ATTEND_TIME = 1;
+const USE_PLAN_TIME = 2;
