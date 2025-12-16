@@ -10,11 +10,9 @@ import { useToast } from "@/components/common/ToastContext.jsx";
 import { useChildrenList } from "@/hooks/useChildrenList.js";
 import { useAppState } from "@/contexts/appState";
 
-import {
-  clickEnterButton,
-  clickAbsenceButton,
-  clickExitButton,
-} from "@/utils/attendanceButtonClick.js";
+import { clickEnterButton, clickAbsenceButton, clickExitButton }
+  from "@/utils/attendance/index.js"; // or "@/utils/attendance"
+
 
 function SendRoomTable() {
   /* ===============================
@@ -43,7 +41,7 @@ function SendRoomTable() {
   if (error) return <p>エラー: {error}</p>;
 
   /* ===============================
-   * 共通判定関数
+   * 共通判定関数（元に戻す）
    * =============================== */
   const isTimeFormat = (v) => /^\d{2}:\d{2}$/.test(v || "");
 
@@ -59,26 +57,30 @@ function SendRoomTable() {
             <th className="border px-2 py-1">児童名</th>
             <th className="border px-2 py-1">入退室操作</th>
             <th className="border px-2 py-1">退室時刻</th>
+            <th className="border px-2 py-1">column5Html</th>
+            <th className="border px-2 py-1">column6Html</th>
           </tr>
         </thead>
 
         <tbody>
           {childrenList.map((child) => {
             const cid = String(child.children_id);
+            const targetChildrenId = Number(cid); // ✅ 欠席クリック用
 
             /* ===============================
              * attendanceItem 解決（行単位）
              * =============================== */
-            const attendanceItem = attendanceList.find(
-              (i) => String(i.children_id) === cid
-            ) || null;
+            const attendanceItem =
+              attendanceList.find((i) => String(i.children_id) === cid) || null;
 
             const isUIEnabled = !!attendanceItem;
 
             const column5 = attendanceItem?.column5 ?? null;
             const column5Html = attendanceItem?.column5Html ?? null;
             const column6 = attendanceItem?.column6 ?? null;
+            const column6Html = attendanceItem?.column6Html ?? null;
 
+            // ✅ 表示判定は元のまま
             const isAbsent = column5 === "欠席";
             const hasEntered = isTimeFormat(column5);
             const hasExited = isTimeFormat(column6);
@@ -108,7 +110,7 @@ function SendRoomTable() {
                         ) : (
                           <button
                             className="btn-green"
-                            onClick={() => clickExitButton(column5Html)}
+                            onClick={() => clickExitButton(column6Html, Number(cid))}
                             disabled={!isUIEnabled}
                           >
                             退室
@@ -119,7 +121,7 @@ function SendRoomTable() {
                       <>
                         <button
                           className="btn-blue"
-                          onClick={() => clickEnterButton(column5Html)}
+                          onClick={() => clickEnterButton(column5Html, Number(cid))}
                           disabled={!isUIEnabled}
                         >
                           入室
@@ -127,7 +129,8 @@ function SendRoomTable() {
 
                         <button
                           className="btn-red"
-                          onClick={() => clickAbsenceButton(column5Html)}
+                          // ✅ 欠席は安全チェック用に児童IDを渡す
+                          onClick={() => clickAbsenceButton(column5Html, targetChildrenId)}
                           disabled={!isUIEnabled}
                         >
                           欠席
@@ -141,6 +144,9 @@ function SendRoomTable() {
                 <td className="border px-2 py-1 text-blue-700 font-semibold">
                   {column6 || "-"}
                 </td>
+
+                <td className="border px-2 py-1">{column5Html}</td>
+                <td className="border px-2 py-1">{column6Html || "-"}</td>
               </tr>
             );
           })}

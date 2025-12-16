@@ -185,7 +185,7 @@ function ChildMemoPanel() {
 
             <button
               className="btn-red mt-2 p-2 w-[80px]"
-              onClick={() => clickAbsenceButton(column5Html)}
+              onClick={() => clickAbsenceButton(column6Html)}
               disabled={!isUIEnabled}
             >
               欠席
