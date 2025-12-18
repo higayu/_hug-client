@@ -10,6 +10,8 @@ export function useReduxBindings() {
   const HUG_USERNAME = useSelector(s.selectHugUsername)
   const HUG_PASSWORD = useSelector(s.selectHugPassword)
   const GEMINI_API_KEY = useSelector(s.selectGeminiApiKey)
+  const OPENAI_MAIL = useSelector(s.selectOpenaiMail)
+  const OPENAI_PASSWORD = useSelector(s.selectOpenaiPassword)
 
   const USE_AI = useSelector(s.selectUseAI)
   const DATABASE_TYPE = useSelector(s.selectDatabaseType)
@@ -31,6 +33,8 @@ export function useReduxBindings() {
     HUG_USERNAME,
     HUG_PASSWORD,
     GEMINI_API_KEY,
+    OPENAI_MAIL,
+    OPENAI_PASSWORD,
 
     USE_AI,
     DATABASE_TYPE,

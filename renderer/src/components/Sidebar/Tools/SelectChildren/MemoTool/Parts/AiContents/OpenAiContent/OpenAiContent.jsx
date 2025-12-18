@@ -73,7 +73,7 @@ export default function OpenAiContent() {
   }, [appState.closeButtonsVisible, activateTab, closeTab])
 
   return (
-    <div className="flex flex-col items-center justify-center w-full p-2">
+    <div className="flex flex-col items-center justify-center w-full p-2 space-y-3">
       <button
         onClick={handleOpenAI}
         className="w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-md px-3 py-2 transition-colors"
@@ -81,6 +81,19 @@ export default function OpenAiContent() {
         <FaRobot size={18} />
         <span>OpenAIを起動（新しいタブ）</span>
       </button>
+
+      {/* OpenAI 認証情報の表示（config.json 経由で appState に載っている想定） */}
+      <div className="w-full text-xs text-left bg-gray-50 border border-gray-200 rounded-lg p-2 space-y-1">
+        <p className="font-semibold text-gray-700">OpenAI アカウント情報（config.json）</p>
+        <p className="text-gray-700">
+          <span className="font-semibold">MAIL:</span>{' '}
+          <span>{appState.OPENAI_MAIL || '（未設定）'}</span>
+        </p>
+        <p className="text-gray-700">
+          <span className="font-semibold">PASSWORD:</span>{' '}
+          <span>{appState.OPENAI_PASSWORD || '（未設定）'}</span>
+        </p>
+      </div>
 
       <PromptBox />
     </div>

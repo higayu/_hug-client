@@ -10,6 +10,9 @@ const initialState = {
   HUG_USERNAME: "",
   HUG_PASSWORD: "",
   GEMINI_API_KEY: "",
+  // OpenAI 用の認証情報（config.json から読み込み）
+  OPENAI_MAIL: "",
+  OPENAI_PASSWORD: "",
   VITE_API_BASE_URL: "",
   USE_AI: "gemini",
   DATABASE_TYPE: "sqlite",
@@ -61,6 +64,13 @@ const appStateSlice = createSlice({
     },
     setGeminiApiKey: (state, action) => {
       state.GEMINI_API_KEY = action.payload || ""
+    },
+    // OpenAI メール / パスワードを設定
+    setOpenaiMail: (state, action) => {
+      state.OPENAI_MAIL = action.payload || ""
+    },
+    setOpenaiPassword: (state, action) => {
+      state.OPENAI_PASSWORD = action.payload || ""
     },
     
     // 施設IDを設定
@@ -164,6 +174,8 @@ const appStateSlice = createSlice({
       if (updates.HUG_USERNAME !== undefined) state.HUG_USERNAME = updates.HUG_USERNAME
       if (updates.HUG_PASSWORD !== undefined) state.HUG_PASSWORD = updates.HUG_PASSWORD
       if (updates.GEMINI_API_KEY !== undefined) state.GEMINI_API_KEY = updates.GEMINI_API_KEY
+      if (updates.OPENAI_MAIL !== undefined) state.OPENAI_MAIL = updates.OPENAI_MAIL
+      if (updates.OPENAI_PASSWORD !== undefined) state.OPENAI_PASSWORD = updates.OPENAI_PASSWORD
       if (updates.VITE_API_BASE_URL !== undefined) state.VITE_API_BASE_URL = updates.VITE_API_BASE_URL
       // ID・日付・選択状態
       if (updates.STAFF_ID !== undefined) {
@@ -219,6 +231,8 @@ export const {
   setHugUsername,
   setHugPassword,
   setGeminiApiKey,
+  setOpenaiMail,
+  setOpenaiPassword,
   setFacilityId,
   setStaffId,
   setDateStr,
@@ -247,6 +261,8 @@ export const {
 export const selectHugUsername = (state) => state.appState.HUG_USERNAME
 export const selectHugPassword = (state) => state.appState.HUG_PASSWORD
 export const selectGeminiApiKey = (state) => state.appState.GEMINI_API_KEY
+export const selectOpenaiMail = (state) => state.appState.OPENAI_MAIL
+export const selectOpenaiPassword = (state) => state.appState.OPENAI_PASSWORD
 export const selectViteApiBaseUrl = (state) => state.appState.VITE_API_BASE_URL
 export const selectUseAI = (state) => state.appState.USE_AI
 export const selectDatabaseType = (state) => state.appState.DATABASE_TYPE
