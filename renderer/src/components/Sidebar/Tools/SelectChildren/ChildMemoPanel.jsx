@@ -7,7 +7,7 @@ import {
   clickEnterButton,
   clickAbsenceButton,
   clickExitButton
-} from '@/utils/attendanceButtonClick.js'
+} from '@/utils/attendanceButtonClick.js';
 
 function ChildMemoPanel() {
   const {
@@ -193,6 +193,7 @@ function ChildMemoPanel() {
           </>
         )}
       </div>
+
     </div>
   )
 }

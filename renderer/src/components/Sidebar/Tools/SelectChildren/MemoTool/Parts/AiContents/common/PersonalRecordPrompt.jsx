@@ -12,6 +12,7 @@ import {
   sendSuccess,
   sendError
 } from '@/store/slices/sendTextSlice'
+import PersonalInjectButton from './PersonalInput/PersonalInjectButton';
 
 export default function PersonalRecordPrompt() {
   const { appState, PROMPTS } = useAppState();
@@ -158,13 +159,17 @@ export default function PersonalRecordPrompt() {
   };
 
   return (
-    <div className="flex flex-col gap-4 p-3 w-full">
+    <div className="flex flex-col gap-2 p-3 w-full">
+
+      <div className="flex flex-row justify-end">
+        <PersonalInjectButton />
+      </div>
 
       {/* --- AI入力 --- */}
-      <div className="mt-4">
+      <div className="mt-1">
         <label className="font-semibold">個人記録用プロンプト</label>
         <textarea
-          className="w-full h-20 border border-gray-300 rounded-lg p-2 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+          className="w-full h-20 border bg-black-500 text-white border-gray-300 rounded-lg p-2 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
           value={text1}
           readOnly
         />
@@ -176,7 +181,7 @@ export default function PersonalRecordPrompt() {
           AIに送信するテキスト
         </label>
         <textarea
-          className="w-full h-40 p-2 border text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
+          className="w-full h-40 p-2 border bg-gray-700 text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
           placeholder="AIに送信する内容を入力..."
           value={aiText}
           onChange={(e) =>
