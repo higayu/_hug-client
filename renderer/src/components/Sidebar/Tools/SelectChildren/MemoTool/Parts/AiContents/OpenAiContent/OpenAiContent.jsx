@@ -7,6 +7,7 @@ import { useAppState } from '@/contexts/appState';
 
 import { createWebview, createTabButton } from "@/hooks/useTabs/common/index.js"
 import PromptBox from "../common/PromptBox.jsx";
+import AccountInfoPanel from "./common/AccountInfoPanel";
 
 export default function OpenAiContent() {
   const { appState } = useAppState()
@@ -82,20 +83,15 @@ export default function OpenAiContent() {
         <span>OpenAIを起動（新しいタブ）</span>
       </button>
 
-      {/* OpenAI 認証情報の表示（config.json 経由で appState に載っている想定） */}
-      <div className="w-full text-xs text-left bg-gray-50 border border-gray-200 rounded-lg p-2 space-y-1">
-        <p className="font-semibold text-gray-700">OpenAI アカウント情報（config.json）</p>
-        <p className="text-gray-700">
-          <span className="font-semibold">MAIL:</span>{' '}
-          <span>{appState.OPENAI_MAIL || '（未設定）'}</span>
-        </p>
-        <p className="text-gray-700">
-          <span className="font-semibold">PASSWORD:</span>{' '}
-          <span>{appState.OPENAI_PASSWORD || '（未設定）'}</span>
-        </p>
-      </div>
-
       <PromptBox />
+      {/* OpenAI 認証情報の表示（config.json 経由で appState に載っている想定） */}
+      <AccountInfoPanel
+        title="OpenAI アカウント情報"
+        items={[
+          { label: "MAIL", value: appState.OPENAI_MAIL },
+          { label: "PASSWORD", value: appState.OPENAI_PASSWORD },
+        ]}
+      />
     </div>
   )
 }
