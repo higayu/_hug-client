@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { getActiveWebview } from '@/utils/webviewState.js'
 //import { useAppState } from "@/contexts/AppStateContext.jsx";
 import { useAppState } from '@/contexts/appState';
+import ProfessionalInjectButton from './ProfessionalInput/ProfessionalInjectButton';
 
 export default function ProfessionalPrompt2() {
   const { appState, PROMPTS } = useAppState();
@@ -140,6 +141,9 @@ export default function ProfessionalPrompt2() {
 
   return (
     <div className="flex flex-col gap-4 p-3 w-full">
+      <div className="flex flex-row justify-end">
+        <ProfessionalInjectButton />
+      </div>
       {/* ===== Textarea 2 ===== */}
       <div className="flex flex-col gap-1">
         <label className="font-semibold">専門的支援加算用プロンプト2</label>
