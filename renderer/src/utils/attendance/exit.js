@@ -47,6 +47,7 @@ export async function clickExitButton(column6Html, targetChildrenId) {
     const webview = await useDedicatedTabAndNavigate();
 
     const callStr = extractSendLeaveMailCall(column6Html);
+    
     if (!callStr) throw new Error("sendLeaveMail を抽出できませんでした");
 
     // ✅ 第3引数（c_id）が一致するか確認

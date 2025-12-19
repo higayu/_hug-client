@@ -156,7 +156,7 @@ function ChildMemoPanel() {
             ) : (
               <button
                 className="btn-green mt-4"
-                onClick={() => clickExitButton(column5Html)}
+                onClick={() => clickExitButton(column6Html)}
                 disabled={!isUIEnabled}
               >
                 退室
@@ -185,7 +185,7 @@ function ChildMemoPanel() {
 
             <button
               className="btn-red mt-2 p-2 w-[80px]"
-              onClick={() => clickAbsenceButton(column6Html)}
+              onClick={() => clickAbsenceButton(column5Html)}
               disabled={!isUIEnabled}
             >
               欠席

@@ -13,13 +13,14 @@ import { useAppState } from "@/contexts/appState";
 import { clickEnterButton, clickAbsenceButton, clickExitButton }
   from "@/utils/attendance/index.js"; // or "@/utils/attendance"
 
+import { useToast } from '@/components/common/ToastContext.jsx'
+
 
 function SendRoomTable() {
   /* ===============================
    * Hooks（順序固定）
    * =============================== */
   const { appState, attendanceData } = useAppState();
-  const { showErrorToast, showSuccessToast } = useToast();
   const { childrenData } = useChildrenList();
 
   const extractedData = useSelector(selectExtractedData);
@@ -28,6 +29,12 @@ function SendRoomTable() {
 
   const childrenList = extractedData?.data || [];
   const attendanceList = attendanceData?.data || [];
+  const {
+    showSuccessToast,
+    showErrorToast,
+    showWarningToast,
+    showInfoToast,
+  } = useToast()
 
   /* ===============================
    * 初期ログ
@@ -48,6 +55,30 @@ function SendRoomTable() {
   /* ===============================
    * JSX
    * =============================== */
+
+  const nyushituButton = async (column5Html,cid) => {
+    console.log(`💾 保存: ID=${column5Html}, メモ=${cid}`)
+    await clickEnterButton(column5Html, Number(cid));
+
+    if(res.success){
+      showSuccessToast("入室　実行完了");
+    }else{
+      showErrorToast("入室　失敗");
+    }
+  }
+
+
+  const taishituButton = async(column6Html,cid) => {
+    console.log(`💾 保存: ID=${column6Html}, メモ=${cid}`)
+    const res = await clickExitButton(column6Html, Number(cid));
+
+    if(res.success){
+      showSuccessToast("退室　実行完了");
+    }else{
+      showErrorToast("退室　失敗");
+    }
+  }
+
   return (
     <div className="mt-6">
       <table className="min-w-full border border-gray-300 text-sm rounded-md shadow-sm">
@@ -110,7 +141,7 @@ function SendRoomTable() {
                         ) : (
                           <button
                             className="btn-green"
-                            onClick={() => clickExitButton(column6Html, Number(cid))}
+                            onClick={() =>  taishituButton(column6Html,cid)}
                             disabled={!isUIEnabled}
                           >
                             退室
@@ -121,7 +152,7 @@ function SendRoomTable() {
                       <>
                         <button
                           className="btn-blue"
-                          onClick={() => clickEnterButton(column5Html, Number(cid))}
+                          onClick={() => nyushituButton(column5Html, cid)}
                           disabled={!isUIEnabled}
                         >
                           入室
