@@ -169,7 +169,7 @@ export default function PersonalRecordPrompt() {
       <div className="mt-1">
         <label className="font-semibold">個人記録用プロンプト</label>
         <textarea
-          className="w-full h-20 border bg-black-500 text-white border-gray-300 rounded-lg p-2 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+          className="w-full h-20 border bg-gray-900 text-white border-gray-300 rounded-lg p-2 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
           value={text1}
           readOnly
         />

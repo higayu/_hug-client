@@ -148,7 +148,7 @@ export default function ProfessionalPrompt2() {
       <div className="flex flex-col gap-1">
         <label className="font-semibold">専門的支援加算用プロンプト2</label>
         <textarea
-          className="w-full h-20 border bg-black-500 text-white border-gray-300 rounded-lg p-2 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+          className="w-full h-20 border bg-gray-900 text-white border-gray-300 rounded-lg p-2 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
           value={text1}
           readOnly
         />
