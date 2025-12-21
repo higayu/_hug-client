@@ -2,12 +2,13 @@
 const axios = require("axios");
 const { loadIni } = require("./iniUtils");
 
-// axiosインスタンス
-const apiClient = axios.create({
+const DB_NAME = "houday";
+const PORT = ":3001/api/sql";
+
+// axios インスタンス（内部用）
+const axiosInstance = axios.create({
   headers: { "Content-Type": "application/json" },
 });
-
-const PORT = ":3001/api/sql";
 
 /**
  * ini.json から baseURL を更新
@@ -15,62 +16,101 @@ const PORT = ":3001/api/sql";
 function updateBaseURL() {
   try {
     const ini = loadIni();
-    const baseURL = ini?.apiSettings?.baseURL  || "http://192.168.1.229";
-    apiClient.defaults.baseURL = baseURL + PORT;
-    console.log("🔧 [apiClient] baseURL 更新:", baseURL);
-    return baseURL;
+    const baseURL = ini?.apiSettings?.baseURL || "http://192.168.1.229";
+    axiosInstance.defaults.baseURL = baseURL + PORT;
+    console.log("🔧 [apiClient] baseURL:", axiosInstance.defaults.baseURL);
+    return axiosInstance.defaults.baseURL;
   } catch (err) {
-    apiClient.defaults.baseURL = "http://192.168.1.229" + PORT;
-    console.error("❌ [apiClient] baseURL更新エラー:", err);
-    return apiClient.defaults.baseURL;
+    axiosInstance.defaults.baseURL = "http://192.168.1.229" + PORT;
+    console.error("❌ [apiClient] baseURL error:", err);
+    return axiosInstance.defaults.baseURL;
   }
 }
 
 // 初期設定
 updateBaseURL();
 
-/* ------------------------------
-   DELETE（PK 指定）
-   dbname は固定：houday
------------------------------- */
-async function deleteByPk({ table, pk, values }) {
-  updateBaseURL();
-  const res = await apiClient.delete(`/houday/${table}`, {
-    params: { pk, values },
-  });
-  return res.data;
-}
+/* =====================================================
+   apiClient（フロント normal API と同じ形）
+===================================================== */
+const apiClient = {
+  /* --------------------
+     GET
+     -------------------- */
+  get: async (table, config = {}) => {
+    updateBaseURL();
+    const res = await axiosInstance.get(
+      `/${DB_NAME}/${table}`,
+      config
+    );
+    return res.data;
+  },
 
-/* ------------------------------
-   全テーブル取得
-   dbname は固定：houday
------------------------------- */
-async function fetchTableAll() {
-  updateBaseURL();
-  const res = await apiClient.get(`/houday/__all`);
-  return res.data;
-}
+  /* --------------------
+     POST（INSERT）
+     -------------------- */
+  post: async (table, data, config = {}) => {
+    updateBaseURL();
+    const res = await axiosInstance.post(
+      `/${DB_NAME}/${table}`,
+      data,
+      config
+    );
+    return res.data;
+  },
 
-/* ------------------------------
-   Stored Procedure
-   dbname は固定：houday
------------------------------- */
-async function callProcedure(procname, params = []) {
-  updateBaseURL();
+  /* --------------------
+     PUT（UPDATE）
+     -------------------- */
+  put: async (table, data, config = {}) => {
+    updateBaseURL();
+    const res = await axiosInstance.put(
+      `/${DB_NAME}/${table}`,
+      data,
+      config
+    );
+    return res.data;
+  },
 
-  // パラメータは value 配列に変換
-  const values = params.map((p) => p.value);
+  /* --------------------
+     DELETE
+     -------------------- */
+  delete: async (table, config = {}) => {
+    updateBaseURL();
+    const res = await axiosInstance.delete(
+      `/${DB_NAME}/${table}`,
+      config
+    );
+    return res.data;
+  },
 
-  const res = await apiClient.post(`/houday/procedure/${procname}`, {
-    params: values,
-  });
+  /* --------------------
+     全テーブル取得
+     -------------------- */
+  fetchTableAll: async () => {
+    updateBaseURL();
+    const res = await axiosInstance.get(`/${DB_NAME}/__all`);
+    return res.data;
+  },
 
-  return res.data;
-}
+  /* --------------------
+     Stored Procedure
+     -------------------- */
+  callProcedure: async (procname, params = []) => {
+    updateBaseURL();
 
-module.exports = {
-  fetchTableAll,
-  callProcedure,
-  deleteByPk,
-  updateBaseURL,
+    // [{value}] / [value] 両対応
+    const values = params.map((p) =>
+      typeof p === "object" && p !== null && "value" in p ? p.value : p
+    );
+
+    const res = await axiosInstance.post(
+      `/${DB_NAME}/procedure/${procname}`,
+      { params: values }
+    );
+
+    return res.data;
+  },
 };
+
+module.exports = apiClient;

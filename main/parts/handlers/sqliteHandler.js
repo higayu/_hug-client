@@ -17,7 +17,7 @@ const {
   facilitys,
   facility_children,
   facility_staff,
-  managers,
+  managers2,
   pc,
   pc_to_children,
   individual_support,
@@ -31,7 +31,7 @@ const {
   facilitys: require("./sqlite/facilitys"),
   facility_children: require("./sqlite/facility_children"),
   facility_staff: require("./sqlite/facility_staff"),
-  managers: require("./sqlite/managers"),
+  managers2: require("./sqlite/managers2"),
   pc: require("./sqlite/pc"),
   pc_to_children: require("./sqlite/pc_to_children"),
   individual_support: require("./sqlite/individual_support"),
@@ -51,7 +51,7 @@ function registerSqliteHandlers(ipcMain) {
     facilitys,
     facility_children,
     facility_staff,
-    managers,
+    managers2,
     pc,
     pc_to_children,
     individual_support,
@@ -116,8 +116,8 @@ function registerSqliteHandlers(ipcMain) {
 
   ipcMain.handle("getTempNote", async (_, data) => {
     try {
-      const { children_id, staff_id, week_day } = data;
-      const result = await temp_notes.getTempNote(children_id, staff_id, week_day);
+      const { children_id, staff_id, day_of_week_id } = data;
+      const result = await temp_notes.getTempNote(children_id, staff_id, day_of_week_id);
       return { success: true, data: result };
     } catch (err) {
       console.error("❌ SQLite getTempNote エラー:", err);

@@ -1,28 +1,44 @@
 // renderer/src/utils/noteUtils.js
+// renderer/src/utils/noteUtils.js
+
+const WEEKDAY_MAP = {
+  日: 7,
+  月: 1,
+  火: 2,
+  水: 3,
+  木: 4,
+  金: 5,
+  土: 6,
+};
 
 /**
  * 一時メモを保存する
  */
 export async function saveTempNote(childId, memo1, memo2, appState) {
   console.group("📝 saveTempNote() 呼び出し");
-  console.log("📌 childId:", childId);
-  console.log("📌 memo1:", memo1);
-  console.log("📌 memo2:", memo2);
-  console.log("📌 appState:", appState);
-
-  if (!childId || !appState?.STAFF_ID || !appState?.WEEK_DAY) {
-    console.error("❌ [noteUtils] 必須パラメータが不足しています");
-    console.groupEnd();
-    return;
-  }
 
   try {
+    console.log("📌 childId:", childId);
+    console.log("📌 memo1:", memo1);
+    console.log("📌 memo2:", memo2);
+    console.log("📌 appState:", appState);
+
+    if (!childId || !appState?.STAFF_ID || !appState?.WEEK_DAY) {
+      throw new Error("必須パラメータ不足");
+    }
+
+    const weekDayNumber = WEEKDAY_MAP[appState.WEEK_DAY];
+
+    if (!weekDayNumber) {
+      throw new Error("曜日変換失敗");
+    }
+
     const data = {
       children_id: childId,
       staff_id: appState.STAFF_ID,
-      week_day: appState.WEEK_DAY,
-      memo1: memo1 || "",
-      memo2: memo2 || "",
+      day_of_week_id: weekDayNumber,
+      memo1: memo1 ?? "",
+      memo2: memo2 ?? "",
     };
 
     console.log("📤 送信データ(saveTempNote):", data);
@@ -34,68 +50,67 @@ export async function saveTempNote(childId, memo1, memo2, appState) {
     if (result?.success) {
       console.log("✅ TEMP_NOTE 保存成功");
       return true;
-    } else {
-      console.error("❌ TEMP_NOTE 保存失敗", result?.error);
-      return false;
     }
+
+    throw new Error(result?.error || "保存失敗");
   } catch (error) {
     console.error("❌ 一時メモ保存エラー(saveTempNote):", error);
     return false;
   } finally {
     console.groupEnd();
-    return false;
   }
-
 }
-
 
 /**
  * 一時メモを読み込む
  */
-export function loadTempNote(childId, proxy, appState) {
+export async function loadTempNote(childId, proxy, appState) {
   console.group("📄 loadTempNote() 呼び出し");
-  console.log("📌 childId:", childId);
-  console.log("📌 proxy:", proxy);
-  console.log("📌 appState:", appState);
 
-  if (!childId || !appState?.STAFF_ID || !appState?.WEEK_DAY) {
-    console.error("❌ [noteUtils] 必須パラメータ不足");
-    console.groupEnd();
+  try {
+    console.log("📌 childId:", childId);
+    console.log("📌 proxy:", proxy);
+    console.log("📌 appState:", appState);
+
+    if (!childId || !appState?.STAFF_ID || !appState?.WEEK_DAY) {
+      throw new Error("必須パラメータ不足");
+    }
+
+    const weekDayNumber = WEEKDAY_MAP[appState.WEEK_DAY];
+
+    if (!weekDayNumber) {
+      throw new Error("曜日変換失敗");
+    }
+
+    const data = {
+      children_id: childId,
+      staff_id: appState.STAFF_ID,
+      day_of_week_id: weekDayNumber,
+    };
+
+    console.log("📤 送信データ(getTempNote):", data);
+
+    const result = await window.electronAPI.getTempNote(data);
+
+    console.log("📥 受信結果(getTempNote):", result);
+
+    if (result?.success && result?.data) {
+      proxy.value = {
+        memo1: result.data.memo1 ?? "",
+        memo2: result.data.memo2 ?? "",
+      };
+      console.log("✅ TEMP_NOTE 読込成功");
+      return true;
+    }
+
+    proxy.value = { memo1: "", memo2: "" };
+    console.log("ℹ️ TEMP_NOTE なし");
     return false;
+  } catch (error) {
+    console.error("❌ TEMP_NOTE 読込失敗:", error);
+    proxy.value = { memo1: "", memo2: "" };
+    return false;
+  } finally {
+    console.groupEnd();
   }
-
-  const data = {
-    children_id: childId,
-    staff_id: appState.STAFF_ID,
-    week_day: appState.WEEK_DAY,
-  };
-
-  console.log("📤 送信データ(getTempNote):", data);
-
-  window.electronAPI
-    .getTempNote(data)
-    .then((result) => {
-      console.log("📥 受信結果(getTempNote):", result);
-
-      if (result?.success && result?.data) {
-        const note = result.data;
-
-        // 🔥 ここを修正！！ note.memo は存在しない
-        proxy.value = {
-          memo1: note.memo1 || "",
-          memo2: note.memo2 || "",
-        };
-
-        console.log("✅ TEMP_NOTE 読込成功");
-      } else {
-        proxy.value = { memo1: "", memo2: "" };
-        console.log("ℹ️ TEMP_NOTE なし");
-      }
-    })
-    .catch((error) => {
-      console.error("❌ TEMP_NOTE 読込失敗:", error);
-      proxy.value = { memo1: "", memo2: "" };
-    });
-
-  console.groupEnd();
 }

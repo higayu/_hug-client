@@ -3,78 +3,80 @@
 export async function handleMariaDBInsert(
   child,
   {
-    childrenData,
-    managersData,
-    FACILITY_ID,
     STAFF_ID,
     WEEK_DAY,
+    priority = 0, // ← 通常対応 = 0
   }
 ) {
   console.log("====== MariaDB: handleMariaDBInsert START ======");
   console.log("処理する児童:", child);
 
-  // -----------------------------
-  // ① 児童の存在確認
-  // -----------------------------
-  const existingChild = childrenData.find(
-    (c) => String(c.id) === String(child.children_id)
-  );
-  const existsChild = existingChild ? 1 : 0;
+  /**
+   * child 例:
+   * {
+   *   children_id,
+   *   day_of_week: [1,2,5] | undefined
+   * }
+   */
 
-  console.log("MariaDB: existsChild =", existsChild);
+  // ----------------------------------
+  // ① 曜日ID配列を確定
+  // ----------------------------------
+  let dayIds = [];
 
-  // -----------------------------
-  // ② 担当者の存在確認
-  // -----------------------------
-  const existingManager = managersData.find((m) => {
-    const sameChild = String(m.children_id) === String(child.children_id);
-    const sameStaff = String(m.staff_id) === String(STAFF_ID);
-    return sameChild && sameStaff;
-  });
-  const existsManager = existingManager ? 1 : 0;
+  if (Array.isArray(child.day_of_week)) {
+    // 既に配列の場合（推奨）
+    dayIds = child.day_of_week;
 
-  console.log("MariaDB: existsManager =", existsManager);
-
-  // -----------------------------
-  // ③ 曜日はフロント側で形成済みの値をそのまま使う
-  // -----------------------------
-  let dayOfWeekJson = null;
-
-  if (child.day_of_week) {
-    // ConfirmModal + updateManager() で計算済みの JSON を使用
-    dayOfWeekJson = child.day_of_week;
-    console.log("MariaDB: フロント側 day_of_week を使用:", dayOfWeekJson);
-
-  } else {
-    // フロント側が渡していない場合のフォールバック
-    console.warn("MariaDB: child.day_of_week が未設定 → fallback");
-    dayOfWeekJson = JSON.stringify({ days: [WEEK_DAY] });
+  } else if (typeof child.day_of_week === "string") {
+    // JSON文字列フォールバック
+    try {
+      const parsed = JSON.parse(child.day_of_week);
+      if (Array.isArray(parsed.days)) {
+        dayIds = parsed.days;
+      }
+    } catch {
+      dayIds = [];
+    }
   }
 
-  // -----------------------------
-  // ④ メインプロシージャ呼び出し
-  // -----------------------------
-  const payload = {
-    child_id: child.children_id,
-    child_name: child.children_name,
-    notes: child.notes ?? "",
-    pronunciation_id: child.pronunciation_id,
-    children_type_id: child.children_type_id,
-    staff_id: STAFF_ID,
-    facility_id: FACILITY_ID,
-    day_of_week: dayOfWeekJson,
-    exists_child: existsChild,
-    exists_manager: existsManager,
-  };
+  // フォールバック：当日曜日
+  if (dayIds.length === 0 && WEEK_DAY != null) {
+    dayIds = [WEEK_DAY];
+  }
 
-  console.log("📡 renderer → main: manager_insert_procedure 呼び出し:", payload);
+  if (dayIds.length === 0) {
+    console.warn("❌ 曜日が確定できないため insert 中断");
+    return false;
+  }
 
+  console.log("📅 insert 対象 dayIds:", dayIds);
+
+  // ----------------------------------
+  // ② managers2 レコードを順次 insert
+  // ----------------------------------
   try {
-    const result = await window.electronAPI.insert_manager_p(payload);
-    console.log("✅ MariaDB: manager_insert_procedure 成功:", result);
-  } catch (error) {
-    console.error("❌ MariaDB: manager_insert_procedure エラー:", error);
-  }
+    for (const dayId of dayIds) {
+      const payload = {
+        children_id: Number(child.children_id),
+        staff_id: Number(STAFF_ID),
+        day_of_week_id: Number(dayId),
+        priority: Number(priority),
+      };
 
-  console.log("====== MariaDB: handleMariaDBInsert END ======");
+      console.log("📡 managers2_insert:", payload);
+
+      await window.electronAPI.managers2_insert(payload);
+    }
+
+    console.log("✅ MariaDB: managers2_insert 完了");
+    return true;
+
+  } catch (error) {
+    console.error("❌ MariaDB: managers2_insert エラー:", error);
+    return false;
+
+  } finally {
+    console.log("====== MariaDB: handleMariaDBInsert END ======");
+  }
 }

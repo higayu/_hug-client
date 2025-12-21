@@ -7,7 +7,7 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 const tableKeys = [
   'children',
   'staffs',
-  'managers',
+  'managers2',
   'facility_children',
   'facility_staff',
   'facilitys',          // ← facilitys を正式名称へ
@@ -34,7 +34,7 @@ export const fetchAllTables = createAsyncThunk(
 const initialState = {
   children: [],
   staffs: [],
-  managers: [],
+  managers2: [],
   facility_children: [],
   facility_staff: [],
   facilitys: [],

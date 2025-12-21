@@ -59,11 +59,23 @@ CREATE TABLE IF NOT EXISTS "individual_support" (
   short_term_goal TEXT, 
   support_date TEXT
 );
-CREATE TABLE IF NOT EXISTS "managers" (
-  "children_id" BIGINT,
-  "staff_id" BIGINT,
-  "day_of_week" TEXT,
-  PRIMARY KEY("children_id","staff_id")
+PRAGMA foreign_keys = ON;
+
+CREATE TABLE IF NOT EXISTS managers2 (
+  children_id     INTEGER NOT NULL,
+  staff_id        INTEGER NOT NULL,
+  day_of_week_id  INTEGER NOT NULL,
+  priority        INTEGER NOT NULL DEFAULT 0,
+  PRIMARY KEY (children_id, staff_id, day_of_week_id),
+  FOREIGN KEY (children_id)
+    REFERENCES children(id)
+    ON DELETE CASCADE,
+  FOREIGN KEY (staff_id)
+    REFERENCES staffs(id)
+    ON DELETE CASCADE,
+  FOREIGN KEY (day_of_week_id)
+    REFERENCES day_of_week(id)
+    ON DELETE CASCADE
 );
 CREATE TABLE IF NOT EXISTS "memo" (
   "id"  BIGINT,
@@ -102,14 +114,14 @@ CREATE TABLE IF NOT EXISTS staffs (
   is_delete BIGINT
 );
 CREATE TABLE IF NOT EXISTS temp_notes (
-  children_id TEXT NOT NULL,
-  staff_id TEXT NOT NULL,
-  week_day TEXT NOT NULL,
+	children_id	INTEGER NOT NULL,
+	staff_id	INTEGER NOT NULL,
+	day_of_week_id	INTEGER NOT NULL,
   memo TEXT,
   memo2 TEXT,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (children_id, week_day)
+  PRIMARY KEY (children_id, day_of_week_id)
 );
 CREATE TABLE IF NOT EXISTS ai_temp_notes (
   id INTEGER PRIMARY KEY AUTOINCREMENT,

@@ -1,7 +1,8 @@
 const { contextBridge, ipcRenderer } = require("electron");
 
 // デバッグモード判定
-const isDebugMode = process.argv.includes("--dev") || process.argv.includes("--debug");
+const isDebugMode =
+  process.argv.includes("--dev") || process.argv.includes("--debug");
 
 // ============================================
 // 🔹 SQLite / MariaDB 共通テーブル一覧
@@ -9,155 +10,132 @@ const isDebugMode = process.argv.includes("--dev") || process.argv.includes("--d
 const tables = [
   "children",
   "children_type",
-  "day_of_week",          // ← 曜日マスタ
+  "day_of_week",
   "facility_children",
   "facility_staff",
   "facilitys",
   "individual_support",
-  "managers",
+  "managers2",
   "pc",
   "pc_to_children",
   "pronunciation",
   "staffs",
   "temp_notes",
+  "ai_temp_notes",
 ];
 
+// ============================================
+// 🔹 テーブル CRUD API 自動生成
+// ============================================
 const tableAPIs = {};
 for (const table of tables) {
-  tableAPIs[`${table}_getAll`] = () => ipcRenderer.invoke(`${table}:getAll`);
-  // 🟢 CRUD 対応追加
-  tableAPIs[`${table}_insert`] = (data) => ipcRenderer.invoke(`${table}:insert`, data);
-  tableAPIs[`${table}_update`] = (data) => ipcRenderer.invoke(`${table}:update`, data);
-  tableAPIs[`${table}_delete`] = (ids) => ipcRenderer.invoke(`${table}:delete`, ids);
+  tableAPIs[`${table}_getAll`] = () =>
+    ipcRenderer.invoke(`${table}:getAll`);
+
+  tableAPIs[`${table}_getById`] = (id) =>
+    ipcRenderer.invoke(`${table}:getById`, id);
+
+  tableAPIs[`${table}_insert`] = (data) =>
+    ipcRenderer.invoke(`${table}:insert`, data);
+
+  tableAPIs[`${table}_update`] = (dataOrId, maybeData) =>
+    ipcRenderer.invoke(`${table}:update`, dataOrId, maybeData);
+
+  tableAPIs[`${table}_delete`] = (...args) =>
+    ipcRenderer.invoke(`${table}:delete`, ...args);
 }
 
-
 // ============================================
-// 🔹 すべてのAPIを一度に expose
+// 🔹 API expose
 // ============================================
 contextBridge.exposeInMainWorld("electronAPI", {
-  // ---- デバッグ情報 ----
+  // ---- デバッグ ----
   isDebugMode: () => isDebugMode,
 
-  // ---- AI プロンプト関連 API ----
-  loadPrompts: () => ipcRenderer.invoke("load-prompts"),
+  // ---- DB 種別 ----
+  getDatabaseType: () => ipcRenderer.invoke("get-database-type"),
 
+  // ---- テーブル一括取得（MariaDB 用）----
+  fetchTableAll: () => ipcRenderer.invoke("fetchTableAll"),
+
+  // ---- AI プロンプト ----
+  loadPrompts: () => ipcRenderer.invoke("load-prompts"),
   getAiPrompt: (promptKey) =>
     ipcRenderer.invoke("get-ai-prompt", promptKey),
-
   buildAiPrompt: (promptKey, userText) =>
     ipcRenderer.invoke("build-ai-prompt", promptKey, userText),
 
-  clearWebviewCache: (wcId) => ipcRenderer.invoke("clear-webview-cache", wcId),
+  // ---- 一時メモ ----
+  saveTempNote: (data) => ipcRenderer.invoke("saveTempNote", data),
+  getTempNote: (data) => ipcRenderer.invoke("getTempNote", data),
+
+  saveAiTempNote: (childId, note) =>
+    ipcRenderer.invoke("saveAiTempNote", { childId, note }),
+  getTempNote: ({ children_id, staff_id, day_of_week_id }) =>
+    ipcRenderer.invoke("getTempNote", {
+      children_id,
+      staff_id,
+      day_of_week_id,
+    }),
 
 
-  // ---- ログイン系 ----
-  hugLogin: () => ipcRenderer.invoke("hug-login"),
-  doAutoLogin: (username, password) =>
-    ipcRenderer.invoke("do-auto-login", { username, password }),
-  onInjectLogin: (callback) =>
-    ipcRenderer.on("inject-login", (event, args) => callback(args)),
+  // ---- UI / Window ----
+  clearWebviewCache: (wcId) =>
+    ipcRenderer.invoke("clear-webview-cache", wcId),
 
-  // ---- MariaDB関連 ----
-  // ✅ 追加: すべてのテーブルを一括取得
-  fetchTableAll: async () => {
-    try {
-      const result = await ipcRenderer.invoke("fetchTableAll");
-      return result;
-    } catch (err) {
-      console.error("❌ [preload] fetchTableAll 失敗:", err);
-      throw err;
-    }
-  },
+  openIndividualSupportPlan: (childId) =>
+    ipcRenderer.send("open-individual-support-plan", childId),
 
-  // ✅ MariaDB 一括登録（児童＋施設＋スタッフ）
-  insert_manager_p: async (data) => {
-    try {
-      const result = await ipcRenderer.invoke("insert_manager_p", data);
-      return result;
-    } catch (err) {
-      throw err;
-    }
-  },
+  openSpecializedSupportPlan: (childId) =>
+    ipcRenderer.send("open-specialized-support-plan", childId),
 
-  // ✅ 児童担当の更新（MariaDB）
-  update_manager_p: async (data) => {
-    try {
-      const result = await ipcRenderer.invoke("update_manager_p", data);
-      return result;
-    } catch (err) {
-      console.error("❌ [preload] update_manager_p 失敗:", err);
-      throw err;
-    }
-  },
+  Open_NowDayPage: (args) =>
+    ipcRenderer.send("Open_NowDayPage", args),
 
-    // ✅ 児童担当の削除（MariaDB）
-  delete_manager: async (data) => {
-    try {
-      const result = await ipcRenderer.invoke("delete_manager", data);
-      return result;
-    } catch (err) {
-      console.error("❌ [preload] delete 失敗:", err);
-      throw err;
-    }
-  },
-  
+  open_addition_compare_btn: (facility_id, date_str) =>
+    ipcRenderer.send("open-addition-compare-btn", {
+      facility_id,
+      date_str,
+    }),
 
-  getDatabaseType: () => ipcRenderer.invoke("get-database-type"),
-
-  // ---- ファイル・設定関連 ----
+  // ---- 設定 ----
   readConfig: () => ipcRenderer.invoke("read-config"),
   saveConfig: (data) => ipcRenderer.invoke("save-config", data),
   readIni: () => ipcRenderer.invoke("read-ini"),
   saveIni: (data) => ipcRenderer.invoke("save-ini", data),
-  updateIniSetting: (path, value) => ipcRenderer.invoke("update-ini-setting", path, value),
+  updateIniSetting: (path, value) =>
+    ipcRenderer.invoke("update-ini-setting", path, value),
+
   importConfigFile: () => ipcRenderer.invoke("import-config-file"),
   openConfigFolder: () => ipcRenderer.invoke("open-config-folder"),
 
-  // ---- UI操作関連 ----
-  openIndividualSupportPlan: (childId) =>
-    ipcRenderer.send("open-individual-support-plan", childId),
-  openSpecializedSupportPlan: (childId) =>
-    ipcRenderer.send("open-specialized-support-plan", childId),
-  Open_NowDayPage: (args) => ipcRenderer.send("Open_NowDayPage", args),
+  // ---- UpdateのためのAPI ----
+  getUpdateDebugInfo: () =>
+    ipcRenderer.invoke("get-update-debug-info"),
+  checkForUpdates: () =>
+    ipcRenderer.invoke("check-for-updates"),
 
-  open_addition_compare_btn: (facility_id, date_str) => {
-    const eventName = "open-addition-compare-btn";
-    const args = { facility_id, date_str };
-    ipcRenderer.send(eventName, args);
-  },
-
-
-  // ---- ユーザー一時メモ ----
-  saveTempNote: (data) => ipcRenderer.invoke("saveTempNote", data),
-  getTempNote: (data) => ipcRenderer.invoke("getTempNote", data),
-
-  // ---- AI一時メモ ----
-  saveAiTempNote: (childId, note) => ipcRenderer.invoke("saveAiTempNote", { childId, note }),
-  getAiTempNote: (childId) => ipcRenderer.invoke("getAiTempNote", { childId }),
-
-
-  // ---- アップデート関連 ----
-  getUpdateDebugInfo: () => ipcRenderer.invoke("get-update-debug-info"),
-  checkForUpdates: () => ipcRenderer.invoke("check-for-updates"),
 
   // ---- カスタムボタン ----
   readCustomButtons: () => ipcRenderer.invoke("read-custom-buttons"),
   saveCustomButtons: (data) => ipcRenderer.invoke("save-custom-buttons", data),
   readAvailableActions: () => ipcRenderer.invoke("read-available-actions"),
 
-  // ---- 終了確認 ----
+
+  // ---- Close ----
   onConfirmCloseRequest: (callback) =>
     ipcRenderer.on("confirm-close-request", () => callback()),
   sendConfirmCloseResponse: (shouldClose) =>
     ipcRenderer.send("confirm-close-response", shouldClose),
 
-  // ---- webview preload取得 ----
-  getPreloadPath: () => ipcRenderer.invoke("get-preload-path"),
+  // ---- webview ----
+  getPreloadPath: () =>
+    ipcRenderer.invoke("get-preload-path"),
 
-  // ---- 出勤データ列保存 ----
-  saveAttendanceColumnData: (data) => ipcRenderer.invoke("saveAttendanceColumnData", data),
+  // ---- Attendance ----
+  saveAttendanceColumnData: (data) =>
+    ipcRenderer.invoke("saveAttendanceColumnData", data),
 
-  // ---- SQLite テーブルAPIを展開 ----
+  // ---- CRUD API 展開 ----
   ...tableAPIs,
 });

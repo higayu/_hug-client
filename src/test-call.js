@@ -1,26 +1,42 @@
+const Database = require("better-sqlite3");
 const path = require("path");
-const fs = require("fs");
-const apiClient = require("./apiClient");
 
-async function main() {
+function main() {
   try {
-    // ✅ config.json の正しいパス（1つ上の階層にある data フォルダ）
-    const configPath = path.join(__dirname, "..", "data", "config.json");
-    const config = JSON.parse(fs.readFileSync(configPath, "utf8"));
-    console.log("config.json loaded:", config);
+    // SQLite DB ファイル
+    const dbPath = path.join(__dirname, "database.sqlite");
+    const db = new Database(dbPath, { readonly: true });
 
-    const staffId = config.STAFF_ID || 73;
-    const weekday = "土";
+    const staffId = 73;
+    const dayOfWeekId = 6;
 
-    console.log("callProcedure executing...");
-    const result = await apiClient.callProcedure("GetChildrenByStaffAndDay", [
-      { name: "staff_id", value: staffId },
-      { name: "weekday", value: weekday },
-    ]);
+    console.log("better-sqlite3 query executing...");
+
+    const sql = `
+      SELECT
+        m.children_id,
+        c.name AS children_name,
+        m.staff_id,
+        m.day_of_week_id,
+        m.priority
+      FROM managers2 m
+      INNER JOIN children c
+        ON c.id = m.children_id
+      WHERE
+        m.staff_id = ?
+        AND m.day_of_week_id = ?
+        AND c.is_delete = 0
+      ORDER BY c.name COLLATE NOCASE
+    `;
+
+    const stmt = db.prepare(sql);
+    const result = stmt.all(staffId, dayOfWeekId);
 
     console.log("result:", JSON.stringify(result, null, 2));
+
+    db.close();
   } catch (err) {
-    console.error("error:", err.response?.data || err.message);
+    console.error("error:", err.message);
   }
 }
 

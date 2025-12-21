@@ -38,6 +38,12 @@ async function handleApiCalls(ipcMain) {
   const DB_TYPE = getDatabaseType();
 
   // ============================================================
+  // 📗 SQLite/MariaDB CRUD IPC登録
+  // ============================================================
+  registerMariadbHandlers(ipcMain);
+  registerSqliteHandlers(ipcMain);
+
+  // ============================================================
   // 🔹 getDatabaseType IPCハンドラー
   // ============================================================
   ipcMain.handle("get-database-type", async () => {
@@ -50,12 +56,6 @@ async function handleApiCalls(ipcMain) {
     }
   });
 
-
-  // ============================================================
-  // 📗 SQLite/MariaDB CRUD IPC登録
-  // ============================================================
-  registerMariadbHandlers(ipcMain);
-  registerSqliteHandlers(ipcMain);
 
 }
 

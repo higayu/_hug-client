@@ -1,4 +1,5 @@
 // main/ipcHandlers.js
+console.log("🔥 ipcHandlers.js LOADED");
 const { ipcMain, app } = require("electron");
 const path = require("path");
 const { pathToFileURL } = require("url");
@@ -16,6 +17,7 @@ const { handlePromptAccess } = require("./parts/handlers/readfile/promptHandler"
 function registerIpcHandlers(mainWindow, tempNoteHandler) {
   try {
     handleLogin(ipcMain, mainWindow);
+    // ★ ここが超重要
     handleApiCalls(ipcMain);
     handleConfigAccess(ipcMain);
     handleIniAccess(ipcMain);

@@ -5,9 +5,6 @@ const path = require("path");
 const { createMainWindow } = require("./main/window");
 const { registerIpcHandlers } = require("./main/ipcHandlers");
 const { setAppMenu } = require("./main/menu");   // ← 追加
-// ✅ 修正版（1階層深く）
-const { registerSqliteHandlers } = require("./main/parts/handlers/sqliteHandler");
-
 
 // ✅ アップデーター関連
 const { autoUpdater } = require("electron-updater");
@@ -53,8 +50,7 @@ app.whenReady().then(async () => {
   // ============================================================
   // ⚡ IPCハンドラ登録
   // ============================================================
-  registerIpcHandlers(mainWindow, null); // 既存のIPC（tempNoteHandlerは後で必要に応じて追加）
-  // registerSqliteHandlersはapiHandler.js内でDB_TYPEに応じて自動登録される
+    registerIpcHandlers(mainWindow, null); // 既存のIPC（tempNoteHandlerは後で必要に応じて追加）
 
   // ============================================================
   // 🪟 終了確認処理

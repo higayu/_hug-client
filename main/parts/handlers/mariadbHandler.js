@@ -1,116 +1,140 @@
 // main/parts/handlers/mariadbHandler.js
 const apiClient = require("../../../src/apiClient");
-const { insert_manager_p, update_manager_p } = require("./mariadb/GetProcedure");
-const { delete_manager } = require("./mariadb/managers");   // ★ 追加
 
+/**
+ * MariaDB 用 IPC ハンドラ登録
+ * SQLite と同一インターフェースを提供する
+ */
 function registerMariadbHandlers(ipcMain) {
-  // ============================================================
-  // 📘 fetchTableAll
-  // ============================================================
-  ipcMain.handle("fetchTableAll", async () => {
-    try {
-      const allTables = await apiClient.fetchTableAll();
-      const normalizedTables = normalizeTableData(allTables);
-      return normalizedTables;
-    } catch (err) {
-      console.error("error:", err);
-      throw err;
+  const tables = {
+    children: createCrudHandlers("children"),
+    staffs: createCrudHandlers("staffs"),
+    facilitys: createCrudHandlers("facilitys"),
+    facility_children: createCrudHandlers("facility_children"),
+    facility_staff: createCrudHandlers("facility_staff"),
+    managers2: createCrudHandlers("managers2"),
+    pc: createCrudHandlers("pc"),
+    pc_to_children: createCrudHandlers("pc_to_children"),
+    individual_support: createCrudHandlers("individual_support"),
+    temp_notes: createCrudHandlers("temp_notes"),
+    pronunciation: createCrudHandlers("pronunciation"),
+    children_type: createCrudHandlers("children_type"),
+    ai_temp_notes: createCrudHandlers("ai_temp_notes"),
+  };
+
+  for (const [table, handler] of Object.entries(tables)) {
+    if (handler.getAll) {
+      ipcMain.handle(`${table}:getAll`, async () => handler.getAll());
     }
-  });
 
-  // ============================================================
-  // 📘 insert_manager_p
-  // ============================================================
-  ipcMain.handle("insert_manager_p", async (event, data) => {
-    return await insert_manager_p(data);
-  });
+    if (handler.getById) {
+      ipcMain.handle(`${table}:getById`, async (_, id) =>
+        handler.getById(id)
+      );
+    }
 
-  // ============================================================
-  // 📘 update_manager_p
-  // ============================================================
-  ipcMain.handle("update_manager_p", async (event, data) => {
-    return await update_manager_p(data);
-  });
+    if (handler.insert) {
+      ipcMain.handle(`${table}:insert`, async (_, data) =>
+        handler.insert(data)
+      );
+    }
 
-  // ============================================================
-  // 📘 delete_manager（★新規追加）
-  // ============================================================
-  ipcMain.handle("delete_manager", async (event, { children_id, staff_id }) => {
-    return await delete_manager(children_id, staff_id);
+    if (handler.update) {
+      ipcMain.handle(
+        `${table}:update`,
+        async (_, idOrData, maybeData) => {
+          if (maybeData !== undefined) {
+            return handler.update(idOrData, maybeData);
+          } else {
+            return handler.update(idOrData);
+          }
+        }
+      );
+    }
+
+    if (handler.delete) {
+      ipcMain.handle(`${table}:delete`, async (_, ...args) =>
+        handler.delete(...args)
+      );
+    }
+  }
+
+    // ★ 一括取得（DB種別非依存）
+  ipcMain.handle("fetchTableAll", async () => {
+    return await apiClient.fetchTableAll();
   });
 }
 
 /**
- * APIから返されるデータ構造をSQLiteと同じ形式に正規化
+ * MariaDB CRUD ハンドラ生成
+ * SQLite の module API に合わせる
  */
-function normalizeTableData(data) {
-  if (!data || typeof data !== 'object' || Array.isArray(data)) {
-    console.warn("⚠️ [mariadbHandler] 予期しないデータ構造:", data);
-    return {
-      children: [],
-      staffs: [],
-      managers: [],
-      facility_children: [],
-      facility_staff: [],
-      facilitys: [],
-      pc: [],
-      pc_to_children: [],
-      pronunciation: [],
-      children_type: [],
-      day_of_week: [],
-    };
-  }
+function createCrudHandlers(table) {
+  return {
+    // 全件取得
+    async getAll() {
+      return apiClient.get(table);
+    },
 
-  const tableMapping = {
-    'Children': 'children',
-    'Staffs': 'staffs',
-    'Managers': 'managers',
-    'Facility_children': 'facility_children',
-    'Facility_staff': 'facility_staff',
-    'Facilitys': 'facilitys',
-    'Pc': 'pc',
-    'Pc_to_children': 'pc_to_children',
-    'Pronunciation': 'pronunciation',
-    'Children_type': 'children_type',
-    'Day_of_week': 'day_of_week',
+    // ID指定取得（id 前提）
+    async getById(id) {
+      return apiClient.get(`${table}/search`, {
+        params: {
+          pk: "id",
+          values: id,
+        },
+      });
+    },
 
-    'children': 'children',
-    'staffs': 'staffs',
-    'managers': 'managers',
-    'facility_children': 'facility_children',
-    'facility_staff': 'facility_staff',
-    'facilitys': 'facilitys',
-    'pc': 'pc',
-    'pc_to_children': 'pc_to_children',
-    'pronunciation': 'pronunciation',
-    'children_type': 'children_type',
-    'day_of_week': 'day_of_week',
+    // INSERT
+    async insert(data) {
+      return apiClient.post(table, data);
+    },
+
+    // UPDATE
+    async update(idOrData, maybeData) {
+      // update(id, data) or update(data)
+      let data;
+      let pk;
+      let values;
+
+      if (maybeData !== undefined) {
+        data = maybeData;
+        pk = "id";
+        values = idOrData;
+      } else {
+        data = idOrData;
+        if (!data.id) {
+          throw new Error(`update(${table}): id が必要です`);
+        }
+        pk = "id";
+        values = data.id;
+      }
+
+      return apiClient.put(table, data, {
+        params: { pk, values },
+      });
+    },
+
+    // DELETE
+    async delete(...args) {
+      // delete(id) or delete(pk, values)
+      if (args.length === 1) {
+        return apiClient.delete(table, {
+          params: { pk: "id", values: args[0] },
+        });
+      }
+
+      if (args.length === 2) {
+        const [pk, values] = args;
+        return apiClient.delete(table, {
+          params: { pk, values },
+        });
+      }
+
+      throw new Error(`delete(${table}): 引数が不正です`);
+    },
   };
-
-  const normalized = {
-    children: [],
-    staffs: [],
-    managers: [],
-    facility_children: [],
-    facility_staff: [],
-    facilitys: [],
-    pc: [],
-    pc_to_children: [],
-    pronunciation: [],
-    children_type: [],
-    day_of_week: [],
-  };
-
-  for (const [key, value] of Object.entries(data)) {
-    const normalizedKey = tableMapping[key] || key.toLowerCase();
-    if (normalized[normalizedKey] !== undefined) {
-      normalized[normalizedKey] = Array.isArray(value) ? value : (value ? [value] : []);
-    } else {
-      console.warn(`⚠️ [mariadbHandler] 未知のテーブル名: ${key}`);
-    }
-  }
-
-  return normalized;
 }
 
 module.exports = { registerMariadbHandlers };

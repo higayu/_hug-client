@@ -22,7 +22,7 @@ export const sqliteApi = {
       const [
         children,
         staffs,
-        managers,
+        managers2,
         facility_children,
         facility_staff,
         facilitys,
@@ -33,7 +33,7 @@ export const sqliteApi = {
       ] = await Promise.all([
         window.electronAPI.children_getAll?.() ?? [],
         window.electronAPI.staffs_getAll?.() ?? [],
-        window.electronAPI.managers_getAll?.() ?? [],
+        window.electronAPI.managers2_getAll?.() ?? [],
         window.electronAPI.facility_children_getAll?.() ?? [],
         window.electronAPI.facility_staff_getAll?.() ?? [],
         window.electronAPI.facilitys_getAll?.() ?? [],
@@ -48,7 +48,7 @@ export const sqliteApi = {
       console.log("📊 取得件数:", {
         children: children?.length ?? 0,
         staffs: staffs?.length ?? 0,
-        managers: managers?.length ?? 0,
+        managers2: managers2?.length ?? 0,
         facility_children: facility_children?.length ?? 0,
         facility_staff: facility_staff?.length ?? 0,
         facilitys: facilitys?.length ?? 0,
@@ -61,7 +61,7 @@ export const sqliteApi = {
       console.log("📋 取得データ:", {
         children,
         staffs,
-        managers,
+        managers2,
         facility_children,
         facility_staff,
         facilitys,
@@ -77,7 +77,7 @@ export const sqliteApi = {
       return {
         children,
         staffs,
-        managers,
+        managers2,
         facility_children,
         facility_staff,
         facilitys,

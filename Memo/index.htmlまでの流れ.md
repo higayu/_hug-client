@@ -7,7 +7,7 @@
 ```
  renderer/modules/childrenList.js
    ・ loadChildren
-        ・ const data = await window.electronAPI.GetChildrenByStaffAndDay(AppState.STAFF_ID, AppState.WEEK_DAY, facility_id);
+        ・ const data = await window.electronAPI.GetChildrenByStaffAndDay(AppState.STAFF_ID, AppState.day_of_week_id, facility_id);
         引数を指定
     ↓
 preload.js

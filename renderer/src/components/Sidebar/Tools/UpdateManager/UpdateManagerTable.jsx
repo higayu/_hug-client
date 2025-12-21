@@ -1,17 +1,15 @@
 // renderer/src/components/Sidebar/Tools/UpdateManager/UpdateManagerTable.jsx
 import { useSelector } from "react-redux";
-import { useEffect, useState } from "react";
-import { managers_v } from "@/sql/useManager/getManager/managers_v.js";
+import { useEffect, useState, useMemo } from "react";
 import EditModal from "./Modals/EditModal.jsx";
 import DeleteModal from "./Modals/DeleteModal.jsx";
-//import { useAppState } from "@/contexts/AppStateContext.jsx";
-import { useAppState } from '@/contexts/appState';
+import { useAppState } from "@/contexts/appState";
 import { updateManager } from "@/sql/useManager/updateManager/updateManager.js";
 import { deleteManager } from "@/sql/useManager/deleteManager/deleteManager.js";
 import { store } from "@/store/store.js";
-import { useToast } from  '@/components/common/ToastContext.jsx'
+import { useToast } from "@/components/common/ToastContext.jsx";
 import { useChildrenList } from "@/hooks/useChildrenList.js";
-import WeekDayButton from "@/components/common/WeekDayButton.jsx";
+import { selectManagersFull } from "./selectManagersFull.js";
 
 const MODAL_COMPONENTS = {
   edit: EditModal,
@@ -19,106 +17,117 @@ const MODAL_COMPONENTS = {
 };
 
 export default function UpdateManagerTable() {
-  const database = useSelector((state) => state.database);
-  const { showInfoToast,showErrorToast } = useToast();
+  const { showInfoToast, showErrorToast } = useToast();
   const { loadChildren } = useChildrenList();
+  const { STAFF_ID, appState } = useAppState();
 
-  // 🔥 day_of_week テーブルを取得（label_jp, id, sort_order）
-  const dayOfWeekMaster = useSelector(
-    (state) => state.database?.day_of_week ?? []
-  );
+  // DB から取得済みのテーブル
+  const database = useSelector((state) => state.database);
+  const dayOfWeekMaster =
+    useSelector((state) => state.database?.day_of_week) ?? [];
 
   const [managers, setManagers] = useState([]);
+  const [activeDayId, setActiveDayId] = useState(null);
+
   const [modal, setModal] = useState({ open: false, mode: "edit" });
   const [selectedManager, setSelectedManager] = useState(null);
 
-  const childrenData = store.getState().database.children;
-  const managersData = store.getState().database.managers;
+  // ------------------------------------------
+  // 初期ロード
+  // ------------------------------------------
+  useEffect(() => {
+    const data = selectManagersFull(database);
+    setManagers(data);
 
-  const { STAFF_ID, WEEK_DAY, FACILITY_ID, appState } = useAppState();
+    // 初期タブ（最小 sort_order の曜日）
+    if (dayOfWeekMaster.length > 0 && activeDayId == null) {
+      const firstDay = [...dayOfWeekMaster].sort(
+        (a, b) => a.sort_order - b.sort_order
+      )[0];
+      setActiveDayId(firstDay.id);
+    }
+  }, [database, dayOfWeekMaster]);
 
+  // ------------------------------------------
+  // 表示用：曜日で絞り込み
+  // ------------------------------------------
+  const filteredManagers = useMemo(() => {
+    if (!activeDayId) return [];
+
+    return managers
+      .filter(
+        (m) =>
+          m.day_of_week_id === activeDayId &&
+          Number(m.staff_id) === Number(STAFF_ID)
+      )
+      .sort((a, b) =>
+        a.children_name.localeCompare(b.children_name, "ja")
+      );
+  }, [managers, activeDayId, STAFF_ID]);
+
+  // ------------------------------------------
+  // 操作系
+  // ------------------------------------------
   const handleDelete = (manager) => {
     setSelectedManager(manager);
     setModal({ open: true, mode: "delete" });
   };
 
-  const handleEdit = (manager) => {
-    setSelectedManager(manager);
-    setModal({ open: true, mode: "edit" });
-  };
 
   const handleConfirm = async (managerOrUpdated, mode) => {
-    if (mode === "edit") {
-      const result = await updateManager(managerOrUpdated, appState.DATABASE_TYPE);
-      if (result) {
-        showInfoToast("更新完了");
-        await loadChildren();
-      } else {
-        showErrorToast("エラー");
+    try {
+      if (mode === "delete") {
+        const { children_id, staff_id, day_of_week_id } = managerOrUpdated;
+        const result = await deleteManager(
+          { children_id, staff_id, day_of_week_id },
+          appState.DATABASE_TYPE
+        );
+        if (!result) throw new Error();
       }
+
+      showInfoToast("更新完了");
+      await loadChildren();
+    } catch {
+      showErrorToast("エラー");
+    } finally {
+      setModal((prev) => ({ ...prev, open: false }));
     }
-
-    if (mode === "delete") {
-      const { children_id, staff_id } = managerOrUpdated;
-      const result = await deleteManager({ children_id, staff_id }, appState.DATABASE_TYPE);
-
-      if (result) {
-        showInfoToast("更新完了");
-        await loadChildren();
-      } else {
-        showErrorToast("エラー");
-      }
-    }
-
-    setModal((prev) => ({ ...prev, open: false }));
   };
 
   const handleClose = () => {
     setModal((prev) => ({ ...prev, open: false }));
   };
 
-  // ------------------------------------------
-  // 🔥 曜日パース（ID配列にして返す）
-  // ------------------------------------------
-  const parseDays = (dayStr) => {
-    if (!dayStr) return [];
-
-    try {
-      const s = String(dayStr).trim();
-
-      // JSON形式 {"days":[1,3,5]}
-      if (s.startsWith("{") && s.endsWith("}")) {
-        const obj = JSON.parse(s);
-        if (obj && Array.isArray(obj.days)) return obj.days;
-      }
-
-      // 文字列などその他形式 → 数字へ変換
-      return s
-        .replace(/[\[\]"'{}]/g, " ")
-        .trim()
-        .split(/\s+|,/)
-        .map((v) => Number(v))
-        .filter((n) => !Number.isNaN(n));
-    } catch {
-      return [];
-    }
-  };
-
-
-  useEffect(() => {
-    async function load() {
-      const data = await managers_v({ tables: database, staffId: STAFF_ID });
-      setManagers(data);
-    }
-    load();
-  }, [database]);
-
   const DynamicModal = MODAL_COMPONENTS[modal.mode];
 
+  // ------------------------------------------
+  // UI
+  // ------------------------------------------
   return (
     <div className="p-2 bg-white shadow rounded-xl">
       <h4 className="text-lg font-bold mb-2">児童担当編集</h4>
 
+      {/* ===== 曜日タブ ===== */}
+      <div className="flex gap-2 mb-3">
+        {[...dayOfWeekMaster]
+          .sort((a, b) => a.sort_order - b.sort_order)
+          .map((d) => (
+            <button
+              key={d.id}
+              onClick={() => setActiveDayId(d.id)}
+              className={`px-3 py-1 rounded-full text-sm font-semibold border
+                ${
+                  activeDayId === d.id
+                    ? "bg-blue-500 text-white border-blue-500"
+                    : "bg-gray-100 text-gray-700 border-gray-300"
+                }`}
+            >
+              {d.label_jp}
+            </button>
+          ))}
+      </div>
+
+      {/* ===== テーブル ===== */}
       <div className="overflow-x-auto">
         <table className="w-full border-collapse">
           <thead>
@@ -127,17 +136,12 @@ export default function UpdateManagerTable() {
               <th className="border px-4 py-2 text-xs">子どもID</th>
               <th className="border px-4 py-2 text-xs">子ども名</th>
               <th className="border px-4 py-2 text-xs">スタッフ名</th>
-              <th className="border px-4 py-2 text-xs">曜日</th>
-              <th className="text-xs">編集</th>
             </tr>
           </thead>
 
           <tbody>
-            {managers.map((m, index) => {
-              // 🔥 m.day_of_week → [1,3,5]（曜日ID）
-              const dayIds = parseDays(m.day_of_week);
-
-              return (
+            {filteredManagers.length > 0 ? (
+              filteredManagers.map((m, index) => (
                 <tr key={index}>
                   <td className="border px-4 py-2">
                     <button
@@ -148,53 +152,40 @@ export default function UpdateManagerTable() {
                     </button>
                   </td>
 
-                  <td className="border px-4 py-2 text-xs">{m.children_id}</td>
-                  <td className="border px-4 py-2 text-xs">{m.children_name}</td>
-                  <td className="border px-4 py-2 text-xs">{m.staff_name}</td>
-
-                  {/* 🔥 曜日表示（ID → label_jp） */}
-                  <td className="border px-4 py-2">
-                    <div className="flex flex-wrap gap-1">
-                      {dayIds.map((id) => {
-                        const w = dayOfWeekMaster.find((d) => d.id === id);
-                        const label = w?.label_jp ?? "？";
-
-                        return (
-                          <WeekDayButton 
-                            key={id}
-                            dayId={id}
-                            label={label}
-                          />
-                        );
-                      })}
-                    </div>
+                  <td className="border px-4 py-2 text-xs">
+                    {m.children_id}
                   </td>
-
-
-                  <td className="border px-4 py-2">
-                    <button
-                      className="bg-blue-500 text-xs text-white p-2 rounded-md"
-                      onClick={() => handleEdit(m)}
-                    >
-                      編集
-                    </button>
+                  <td className="border px-4 py-2 text-xs">
+                    {m.children_name}
+                  </td>
+                  <td className="border px-4 py-2 text-xs">
+                    {m.staff_name}
                   </td>
                 </tr>
-              );
-            })}
+              ))
+            ) : (
+              <tr>
+                <td
+                  colSpan={4}
+                  className="text-center text-gray-400 py-6 text-sm"
+                >
+                  この曜日の担当はありません
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
 
-      {/* --- 動的モーダル --- */}
+      {/* ===== モーダル ===== */}
       {modal.open && DynamicModal && (
-      <DynamicModal
-        open={modal.open}
-        mode={modal.mode}   // ← 追加
-        manager={selectedManager}
-        onClose={handleClose}
-        onConfirm={handleConfirm}
-      />
+        <DynamicModal
+          open={modal.open}
+          mode={modal.mode}
+          manager={selectedManager}
+          onClose={handleClose}
+          onConfirm={handleConfirm}
+        />
       )}
     </div>
   );
