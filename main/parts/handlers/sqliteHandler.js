@@ -1,16 +1,15 @@
 // main/parts/handlers/sqliteHandler.js
+// main/parts/handlers/sqliteHandler.js
 const fs = require("fs");
 const path = require("path");
 const { getDbPath } = require("../utils/pathResolver");
 const { initializeDatabase } = require("../utils/initDatabase");
 
-// ✅ デバッグ用ログ
+// DB 初期化
 const dbPath = getDbPath();
-
-// DBが存在しない場合は作成＆テーブル構築
 initializeDatabase();
 
-// 各テーブルモジュールを読み込み
+// 各テーブルモジュール
 const {
   children,
   staffs,
@@ -42,9 +41,11 @@ const {
 };
 
 // ============================================================
-// 📘 SQLite IPCハンドラ登録
+// 📘 SQLite IPCハンドラ登録（sqlite: プレフィックス付き）
 // ============================================================
 function registerSqliteHandlers(ipcMain) {
+  console.log("🔥 registerSqliteHandlers (sqlite) CALLED");
+
   const tables = {
     children,
     staffs,
@@ -61,30 +62,49 @@ function registerSqliteHandlers(ipcMain) {
     ai_temp_notes,
   };
 
+  // CRUD 共通
   for (const [table, handler] of Object.entries(tables)) {
-    if (handler.getAll)
-      ipcMain.handle(`${table}:getAll`, async () => await handler.getAll());
-    if (handler.getById)
-      ipcMain.handle(`${table}:getById`, async (_, id) => await handler.getById(id));
-    if (handler.insert)
-      ipcMain.handle(`${table}:insert`, async (_, data) => await handler.insert(data));
-    if (handler.update)
-      ipcMain.handle(`${table}:update`, async (_, idOrData, maybeData) => {
-        if (maybeData !== undefined) {
-          return await handler.update(idOrData, maybeData);
-        } else {
-          return await handler.update(idOrData);
+    if (handler.getAll) {
+      ipcMain.handle(`sqlite:${table}:getAll`, async () => handler.getAll());
+    }
+
+    if (handler.getById) {
+      ipcMain.handle(`sqlite:${table}:getById`, async (_, id) =>
+        handler.getById(id)
+      );
+    }
+
+    if (handler.insert) {
+      ipcMain.handle(`sqlite:${table}:insert`, async (_, data) =>
+        handler.insert(data)
+      );
+    }
+
+    if (handler.update) {
+      ipcMain.handle(
+        `sqlite:${table}:update`,
+        async (_, idOrData, maybeData) => {
+          if (maybeData !== undefined) {
+            return handler.update(idOrData, maybeData);
+          } else {
+            return handler.update(idOrData);
+          }
         }
-      });
-    if (handler.delete)
-      ipcMain.handle(`${table}:delete`, async (_, ...args) => await handler.delete(...args));
+      );
+    }
+
+    if (handler.delete) {
+      ipcMain.handle(`sqlite:${table}:delete`, async (_, ...args) =>
+        handler.delete(...args)
+      );
+    }
   }
 
   // ============================================================
-  // 🟢 ai_temp_notes 専用 IPC ハンドラー
+  // 🟢 ai_temp_notes（SQLite 専用）
   // ============================================================
 
-  ipcMain.handle("saveAiTempNote", async (_, { childId, note }) => {
+  ipcMain.handle("sqlite:saveAiTempNote", async (_, { childId, note }) => {
     try {
       return await ai_temp_notes.saveAiTempNote(childId, note);
     } catch (err) {
@@ -93,7 +113,7 @@ function registerSqliteHandlers(ipcMain) {
     }
   });
 
-  ipcMain.handle("getAiTempNote", async (_, { childId }) => {
+  ipcMain.handle("sqlite:getAiTempNote", async (_, { childId }) => {
     try {
       return await ai_temp_notes.getAiTempNote(childId);
     } catch (err) {
@@ -102,10 +122,11 @@ function registerSqliteHandlers(ipcMain) {
     }
   });
 
-    // ============================================================
-  // 🟢 temp_notes 専用 IPC ハンドラー
   // ============================================================
-  ipcMain.handle("saveTempNote", async (_, data) => {
+  // 🟢 temp_notes（SQLite 専用）
+  // ============================================================
+
+  ipcMain.handle("sqlite:saveTempNote", async (_, data) => {
     try {
       return await temp_notes.upsert(data);
     } catch (err) {
@@ -114,18 +135,20 @@ function registerSqliteHandlers(ipcMain) {
     }
   });
 
-  ipcMain.handle("getTempNote", async (_, data) => {
+  ipcMain.handle("sqlite:getTempNote", async (_, data) => {
     try {
       const { children_id, staff_id, day_of_week_id } = data;
-      const result = await temp_notes.getTempNote(children_id, staff_id, day_of_week_id);
+      const result = await temp_notes.getTempNote(
+        children_id,
+        staff_id,
+        day_of_week_id
+      );
       return { success: true, data: result };
     } catch (err) {
       console.error("❌ SQLite getTempNote エラー:", err);
       throw err;
     }
   });
-
-
 }
 
 module.exports = { registerSqliteHandlers };

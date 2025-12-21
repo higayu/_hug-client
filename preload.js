@@ -25,7 +25,7 @@ const tables = [
 ];
 
 // ============================================
-// 🔹 テーブル CRUD API 自動生成
+// 🔹 テーブル CRUD API 自動生成（共通IPC名）
 // ============================================
 const tableAPIs = {};
 for (const table of tables) {
@@ -55,7 +55,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
   // ---- DB 種別 ----
   getDatabaseType: () => ipcRenderer.invoke("get-database-type"),
 
-  // ---- テーブル一括取得（MariaDB 用）----
+  // ---- テーブル一括取得（主に MariaDB）----
   fetchTableAll: () => ipcRenderer.invoke("fetchTableAll"),
 
   // ---- AI プロンプト ----
@@ -65,19 +65,22 @@ contextBridge.exposeInMainWorld("electronAPI", {
   buildAiPrompt: (promptKey, userText) =>
     ipcRenderer.invoke("build-ai-prompt", promptKey, userText),
 
-  // ---- 一時メモ ----
-  saveTempNote: (data) => ipcRenderer.invoke("saveTempNote", data),
-  getTempNote: (data) => ipcRenderer.invoke("getTempNote", data),
+  // ---- 一時メモ（共通）----
+  saveTempNote: (data) =>
+    ipcRenderer.invoke("sqlite:saveTempNote", data),
 
-  saveAiTempNote: (childId, note) =>
-    ipcRenderer.invoke("saveAiTempNote", { childId, note }),
   getTempNote: ({ children_id, staff_id, day_of_week_id }) =>
-    ipcRenderer.invoke("getTempNote", {
+    ipcRenderer.invoke("sqlite:getTempNote", {
       children_id,
       staff_id,
       day_of_week_id,
     }),
 
+  saveAiTempNote: (childId, note) =>
+    ipcRenderer.invoke("sqlite:saveAiTempNote", { childId, note }),
+
+  getAiTempNote: (childId) =>
+    ipcRenderer.invoke("sqlite:getAiTempNote", { childId }),
 
   // ---- UI / Window ----
   clearWebviewCache: (wcId) =>
@@ -109,18 +112,18 @@ contextBridge.exposeInMainWorld("electronAPI", {
   importConfigFile: () => ipcRenderer.invoke("import-config-file"),
   openConfigFolder: () => ipcRenderer.invoke("open-config-folder"),
 
-  // ---- UpdateのためのAPI ----
+  // ---- Update ----
   getUpdateDebugInfo: () =>
     ipcRenderer.invoke("get-update-debug-info"),
   checkForUpdates: () =>
     ipcRenderer.invoke("check-for-updates"),
 
-
   // ---- カスタムボタン ----
   readCustomButtons: () => ipcRenderer.invoke("read-custom-buttons"),
-  saveCustomButtons: (data) => ipcRenderer.invoke("save-custom-buttons", data),
-  readAvailableActions: () => ipcRenderer.invoke("read-available-actions"),
-
+  saveCustomButtons: (data) =>
+    ipcRenderer.invoke("save-custom-buttons", data),
+  readAvailableActions: () =>
+    ipcRenderer.invoke("read-available-actions"),
 
   // ---- Close ----
   onConfirmCloseRequest: (callback) =>

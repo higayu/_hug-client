@@ -15,6 +15,7 @@ const { resolvePreloadPath } = require("./parts/window/windowManager");
 const { handlePromptAccess } = require("./parts/handlers/readfile/promptHandler");
 
 function registerIpcHandlers(mainWindow, tempNoteHandler) {
+  console.log("🔥 registerIpcHandlers CALLED");
   try {
     handleLogin(ipcMain, mainWindow);
     // ★ ここが超重要
@@ -146,6 +147,7 @@ function registerIpcHandlers(mainWindow, tempNoteHandler) {
   } catch (error) {
     console.error("error:", error);
   }
+  console.log("🔥 registerIpcHandlers END");
   
 }
 

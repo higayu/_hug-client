@@ -1,11 +1,14 @@
 // main/parts/handlers/mariadbHandler.js
+
 const apiClient = require("../../../src/apiClient");
 
 /**
  * MariaDB 用 IPC ハンドラ登録
- * SQLite と同一インターフェースを提供する
+ * SQLite と同一インターフェースを提供する（mariadb: プレフィックス）
  */
 function registerMariadbHandlers(ipcMain) {
+  console.log("🔥 registerMariadbHandlers (mariadb) CALLED");
+
   const tables = {
     children: createCrudHandlers("children"),
     staffs: createCrudHandlers("staffs"),
@@ -16,32 +19,32 @@ function registerMariadbHandlers(ipcMain) {
     pc: createCrudHandlers("pc"),
     pc_to_children: createCrudHandlers("pc_to_children"),
     individual_support: createCrudHandlers("individual_support"),
-    temp_notes: createCrudHandlers("temp_notes"),
     pronunciation: createCrudHandlers("pronunciation"),
     children_type: createCrudHandlers("children_type"),
-    ai_temp_notes: createCrudHandlers("ai_temp_notes"),
   };
 
   for (const [table, handler] of Object.entries(tables)) {
     if (handler.getAll) {
-      ipcMain.handle(`${table}:getAll`, async () => handler.getAll());
+      ipcMain.handle(`mariadb:${table}:getAll`, async () =>
+        handler.getAll()
+      );
     }
 
     if (handler.getById) {
-      ipcMain.handle(`${table}:getById`, async (_, id) =>
+      ipcMain.handle(`mariadb:${table}:getById`, async (_, id) =>
         handler.getById(id)
       );
     }
 
     if (handler.insert) {
-      ipcMain.handle(`${table}:insert`, async (_, data) =>
+      ipcMain.handle(`mariadb:${table}:insert`, async (_, data) =>
         handler.insert(data)
       );
     }
 
     if (handler.update) {
       ipcMain.handle(
-        `${table}:update`,
+        `mariadb:${table}:update`,
         async (_, idOrData, maybeData) => {
           if (maybeData !== undefined) {
             return handler.update(idOrData, maybeData);
@@ -53,16 +56,11 @@ function registerMariadbHandlers(ipcMain) {
     }
 
     if (handler.delete) {
-      ipcMain.handle(`${table}:delete`, async (_, ...args) =>
+      ipcMain.handle(`mariadb:${table}:delete`, async (_, ...args) =>
         handler.delete(...args)
       );
     }
   }
-
-    // ★ 一括取得（DB種別非依存）
-  ipcMain.handle("fetchTableAll", async () => {
-    return await apiClient.fetchTableAll();
-  });
 }
 
 /**
@@ -76,7 +74,7 @@ function createCrudHandlers(table) {
       return apiClient.get(table);
     },
 
-    // ID指定取得（id 前提）
+    // ID指定取得
     async getById(id) {
       return apiClient.get(`${table}/search`, {
         params: {
@@ -93,7 +91,6 @@ function createCrudHandlers(table) {
 
     // UPDATE
     async update(idOrData, maybeData) {
-      // update(id, data) or update(data)
       let data;
       let pk;
       let values;
@@ -118,7 +115,6 @@ function createCrudHandlers(table) {
 
     // DELETE
     async delete(...args) {
-      // delete(id) or delete(pk, values)
       if (args.length === 1) {
         return apiClient.delete(table, {
           params: { pk: "id", values: args[0] },

@@ -35,6 +35,7 @@ function getDatabaseType() {
 // 🧩 メイン関数
 // ============================================================
 async function handleApiCalls(ipcMain) {
+  console.log("🔥 handleApiCalls START");
   const DB_TYPE = getDatabaseType();
 
   // ============================================================
@@ -42,6 +43,10 @@ async function handleApiCalls(ipcMain) {
   // ============================================================
   registerMariadbHandlers(ipcMain);
   registerSqliteHandlers(ipcMain);
+
+  ipcMain.handle("fetchTableAll", async () => {
+    return await apiClient.fetchTableAll();
+  });
 
   // ============================================================
   // 🔹 getDatabaseType IPCハンドラー
