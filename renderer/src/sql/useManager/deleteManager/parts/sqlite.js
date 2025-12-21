@@ -110,11 +110,12 @@ export async function handleSQLiteDelete(
           day_of_week: updatedJson,
         });
 
-        const result4 = await window.electronAPI.managers_delete({
-          children_id: child.children_id,
-          staff_id: STAFF_ID,
-          day_of_week: updatedJson,
-        });
+        await window.electronAPI.sqlite_managers2_delete(
+          children_id,
+          staff_id,
+          day_of_week_id
+        );
+
 
         console.log("SQLite: managers_delete 完了:", result4);
       }

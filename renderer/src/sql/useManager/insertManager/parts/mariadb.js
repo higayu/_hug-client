@@ -25,11 +25,9 @@ export async function handleMariaDBInsert(
   let dayIds = [];
 
   if (Array.isArray(child.day_of_week)) {
-    // 既に配列の場合（推奨）
     dayIds = child.day_of_week;
 
   } else if (typeof child.day_of_week === "string") {
-    // JSON文字列フォールバック
     try {
       const parsed = JSON.parse(child.day_of_week);
       if (Array.isArray(parsed.days)) {
@@ -64,9 +62,10 @@ export async function handleMariaDBInsert(
         priority: Number(priority),
       };
 
-      console.log("📡 managers2_insert:", payload);
+      console.log("📡 mariadb_managers2_insert:", payload);
 
-      await window.electronAPI.managers2_insert(payload);
+      // ✅ ★ここだけ修正
+      await window.electronAPI.mariadb_managers2_insert(payload);
     }
 
     console.log("✅ MariaDB: managers2_insert 完了");

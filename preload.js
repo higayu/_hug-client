@@ -25,25 +25,44 @@ const tables = [
 ];
 
 // ============================================
-// 🔹 テーブル CRUD API 自動生成（共通IPC名）
+// 🔹 テーブル CRUD API 自動生成（DB別）
 // ============================================
 const tableAPIs = {};
+
 for (const table of tables) {
-  tableAPIs[`${table}_getAll`] = () =>
-    ipcRenderer.invoke(`${table}:getAll`);
+  // ---------- SQLite ----------
+  tableAPIs[`sqlite_${table}_getAll`] = () =>
+    ipcRenderer.invoke(`sqlite:${table}:getAll`);
 
-  tableAPIs[`${table}_getById`] = (id) =>
-    ipcRenderer.invoke(`${table}:getById`, id);
+  tableAPIs[`sqlite_${table}_getById`] = (id) =>
+    ipcRenderer.invoke(`sqlite:${table}:getById`, id);
 
-  tableAPIs[`${table}_insert`] = (data) =>
-    ipcRenderer.invoke(`${table}:insert`, data);
+  tableAPIs[`sqlite_${table}_insert`] = (data) =>
+    ipcRenderer.invoke(`sqlite:${table}:insert`, data);
 
-  tableAPIs[`${table}_update`] = (dataOrId, maybeData) =>
-    ipcRenderer.invoke(`${table}:update`, dataOrId, maybeData);
+  tableAPIs[`sqlite_${table}_update`] = (dataOrId, maybeData) =>
+    ipcRenderer.invoke(`sqlite:${table}:update`, dataOrId, maybeData);
 
-  tableAPIs[`${table}_delete`] = (...args) =>
-    ipcRenderer.invoke(`${table}:delete`, ...args);
+  tableAPIs[`sqlite_${table}_delete`] = (...args) =>
+    ipcRenderer.invoke(`sqlite:${table}:delete`, ...args);
+
+  // ---------- MariaDB ----------
+  tableAPIs[`mariadb_${table}_getAll`] = () =>
+    ipcRenderer.invoke(`mariadb:${table}:getAll`);
+
+  tableAPIs[`mariadb_${table}_getById`] = (id) =>
+    ipcRenderer.invoke(`mariadb:${table}:getById`, id);
+
+  tableAPIs[`mariadb_${table}_insert`] = (data) =>
+    ipcRenderer.invoke(`mariadb:${table}:insert`, data);
+
+  tableAPIs[`mariadb_${table}_update`] = (dataOrId, maybeData) =>
+    ipcRenderer.invoke(`mariadb:${table}:update`, dataOrId, maybeData);
+
+  tableAPIs[`mariadb_${table}_delete`] = (...args) =>
+    ipcRenderer.invoke(`mariadb:${table}:delete`, ...args);
 }
+
 
 // ============================================
 // 🔹 API expose
