@@ -24,6 +24,7 @@ const {
   pronunciation,
   children_type,
   ai_temp_notes,
+  day_of_week,
 } = {
   children: require("./sqlite/children"),
   staffs: require("./sqlite/staffs"),
@@ -38,6 +39,7 @@ const {
   pronunciation: require("./sqlite/pronunciation"),
   children_type: require("./sqlite/children_type"),
   ai_temp_notes: require("./sqlite/ai_temp_notes"),
+  day_of_week: require("./sqlite/day_of_week"), // ✅ 追加
 };
 
 // ============================================================
@@ -60,6 +62,7 @@ function registerSqliteHandlers(ipcMain) {
     pronunciation,
     children_type,
     ai_temp_notes,
+    day_of_week,
   };
 
   // CRUD 共通

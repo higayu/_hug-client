@@ -1,6 +1,23 @@
 // main/parts/handlers/sqlite/day_of_week.js
 const { connect } = require("./base");
 
+/**
+ * JSON.parse を安全に行うヘルパー
+ * main プロセスでは必須
+ */
+function safeJsonParse(value, fallback = null) {
+  if (value == null || value === "") {
+    return fallback;
+  }
+
+  try {
+    return JSON.parse(value);
+  } catch (err) {
+    console.warn("⚠️ [day_of_week] JSON parse failed:", value);
+    return fallback;
+  }
+}
+
 module.exports = {
   // =======================================================
   // day_of_week 全件取得
@@ -8,14 +25,15 @@ module.exports = {
   getAll() {
     return new Promise((resolve, reject) => {
       const db = connect();
+
       db.all("SELECT * FROM day_of_week;", [], (err, rows) => {
         db.close();
         if (err) return reject(err);
 
-        // JSON をパースして返す
         const parsed = rows.map(r => ({
           ...r,
-          days: JSON.parse(r.days)
+          // ★ ここを安全化
+          days: safeJsonParse(r.days, []),
         }));
 
         resolve(parsed);
@@ -29,6 +47,7 @@ module.exports = {
   getOne(children_id, staff_id) {
     return new Promise((resolve, reject) => {
       const db = connect();
+
       const sql = `
         SELECT * FROM day_of_week
         WHERE children_id = ? AND staff_id = ?
@@ -41,7 +60,9 @@ module.exports = {
 
         if (!row) return resolve(null);
 
-        row.days = JSON.parse(row.days);
+        // ★ ここも安全化
+        row.days = safeJsonParse(row.days, []);
+
         resolve(row);
       });
     });
@@ -79,7 +100,7 @@ module.exports = {
   },
 
   // =======================================================
-  // 削除（任意）
+  // 削除
   // =======================================================
   delete(children_id, staff_id) {
     return new Promise((resolve, reject) => {

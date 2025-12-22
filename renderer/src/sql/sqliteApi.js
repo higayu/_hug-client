@@ -1,7 +1,6 @@
 // src/sql/sqliteApi.js
 
 export const sqliteApi = {
-  
   async getAllTables() {
     try {
       const uid = Math.random().toString(36).slice(2, 8);
@@ -30,21 +29,24 @@ export const sqliteApi = {
         pc_to_children,
         pronunciation,
         children_type,
+        day_of_week,
       ] = await Promise.all([
-        window.electronAPI.children_getAll?.() ?? [],
-        window.electronAPI.staffs_getAll?.() ?? [],
-        window.electronAPI.managers2_getAll?.() ?? [],
-        window.electronAPI.facility_children_getAll?.() ?? [],
-        window.electronAPI.facility_staff_getAll?.() ?? [],
-        window.electronAPI.facilitys_getAll?.() ?? [],
-        window.electronAPI.pc_getAll?.() ?? [],
-        window.electronAPI.pc_to_children_getAll?.() ?? [],
-        window.electronAPI.pronunciation_getAll?.() ?? [],
-        window.electronAPI.children_type_getAll?.() ?? [],
+        window.electronAPI.sqlite_children_getAll?.() ?? [],
+        window.electronAPI.sqlite_staffs_getAll?.() ?? [],
+        window.electronAPI.sqlite_managers2_getAll?.() ?? [],
+        window.electronAPI.sqlite_facility_children_getAll?.() ?? [],
+        window.electronAPI.sqlite_facility_staff_getAll?.() ?? [],
+        window.electronAPI.sqlite_facilitys_getAll?.() ?? [],
+        window.electronAPI.sqlite_pc_getAll?.() ?? [],
+        window.electronAPI.sqlite_pc_to_children_getAll?.() ?? [],
+        window.electronAPI.sqlite_pronunciation_getAll?.() ?? [],
+        window.electronAPI.sqlite_children_type_getAll?.() ?? [],
+        window.electronAPI.sqlite_day_of_week_getAll?.() ?? [],
       ]);
 
       console.timeEnd(timerName);
 
+      // ===== 取得件数ログ =====
       console.log("📊 取得件数:", {
         children: children?.length ?? 0,
         staffs: staffs?.length ?? 0,
@@ -56,8 +58,10 @@ export const sqliteApi = {
         pc_to_children: pc_to_children?.length ?? 0,
         pronunciation: pronunciation?.length ?? 0,
         children_type: children_type?.length ?? 0,
+        day_of_week: day_of_week?.length ?? 0, // ★ 追加
       });
 
+      // ===== 取得データログ =====
       console.log("📋 取得データ:", {
         children,
         staffs,
@@ -69,11 +73,12 @@ export const sqliteApi = {
         pc_to_children,
         pronunciation,
         children_type,
+        day_of_week, // ★ 追加
       });
 
       console.groupEnd();
 
-      // Redux に渡す形式で返す
+      // ===== Redux に渡す形式 =====
       return {
         children,
         staffs,
@@ -85,6 +90,7 @@ export const sqliteApi = {
         pc_to_children,
         pronunciation,
         children_type,
+        day_of_week, // ★ 追加
       };
     } catch (error) {
       console.error("❌ [sqliteApi] getAllTables エラー:", error);
@@ -93,4 +99,3 @@ export const sqliteApi = {
     }
   },
 };
-

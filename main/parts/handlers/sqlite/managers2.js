@@ -45,12 +45,12 @@ module.exports = {
     });
   },
 
-  delete(children_id, staff_id) {
+  delete(children_id, staff_id,day_of_week_id) {
     return new Promise((resolve, reject) => {
       const db = connect();
       db.run(
-        "DELETE FROM managers2 WHERE children_id=? AND staff_id=?;",
-        [children_id, staff_id],
+        "DELETE FROM managers2 WHERE children_id=? AND staff_id=? AND day_of_week_id=?;",
+        [children_id, staff_id,day_of_week_id],
         function (err) {
           db.close();
           if (err) return reject(err);
