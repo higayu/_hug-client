@@ -156,6 +156,11 @@ export function AppStateProvider({ children }) {
       updates.DATABASE_TYPE = dbType
     }
 
+    // DEBUG_FLG は文字列の"true"/"false"をbooleanに変換
+    if (apiSettings.debugFlg != null) {
+      updates.DEBUG_FLG = apiSettings.debugFlg === true || apiSettings.debugFlg === 'true'
+    }
+
     if (Object.keys(updates).length > 0) {
       dispatch(updateAppStateRedux(updates))
     }
@@ -163,6 +168,7 @@ export function AppStateProvider({ children }) {
     iniState?.apiSettings,
     redux.STAFF_ID,
     redux.FACILITY_ID,
+    redux.DEBUG_FLG,
     activeApi,
     resolveApiByDatabaseType,
     setActiveApi,

@@ -1,5 +1,5 @@
 // renderer/src/components/Sidebar/TabsContainer.jsx
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import ToolContent from '../Tools/SelectChildren/ToolContent.jsx'
 import SQLManager from '../Tools/SQLManager/index.jsx'
 import ChildrenTable from '../Tools/InsertManageChildren/index.jsx'
@@ -10,15 +10,31 @@ import { useAppState } from '@/contexts/appState'
 
 function TabsContainer() {
   // デフォルトでツールタブを開く
-  const { activeSidebarTab: activeTab, setActiveSidebarTab: setActiveTab } = useAppState();
+  const {
+    activeSidebarTab: activeTab,
+    setActiveSidebarTab: setActiveTab,
+    DEBUG_FLG,
+  } = useAppState()
 
+  // DEBUG_FLG に応じてタブ定義を切り替え
+  const tabs = useMemo(() => {
+    const baseTabs = [
+      { id: 'tools', label: '🧰 ツール' },
+      { id: 'insertManageChildren', label: '👶 子ども管理' },
+      { id: 'updateManager', label: '👨‍👧‍👦 児童担当編集' },
+    ]
 
-  const tabs = [
-    { id: 'tools', label: '🧰 ツール' },
-    { id: 'insertManageChildren', label: '👶 子ども管理' },
-    { id: 'updateManager', label: '👨‍👧‍👦 児童担当編集' },
-    { id: 'SendRoomTable', label: '入室・退室テスト' },
-  ]
+    if (DEBUG_FLG) {
+      baseTabs.push({
+        id: 'SendRoomTable',
+        label: '入室・退室テスト',
+      })
+    }else{
+      console.log('debugのフラグ',DEBUG_FLG);
+    }
+
+    return baseTabs
+  }, [DEBUG_FLG])
 
   return (
     <div className="flex flex-col w-full h-full">
@@ -65,7 +81,8 @@ function TabsContainer() {
           </div>
         )}
 
-        {activeTab === 'SendRoomTable' && (
+        {/* ★ DEBUG_FLG が true のときだけ描画 */}
+        {DEBUG_FLG && activeTab === 'SendRoomTable' && (
           <div className="h-full flex flex-col">
             <SendRoomTable />
           </div>

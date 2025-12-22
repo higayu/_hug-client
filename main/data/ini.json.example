@@ -65,6 +65,7 @@
     "staffId": "73",
     "facilityId": "3",
     "databaseType": "mariadb",
-    "useAI": "gemini"
+    "useAI": "gemini",
+    "debugFlg":"false"
   }
 }

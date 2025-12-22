@@ -57,6 +57,7 @@ function loadDefaultIni() {
       facilityId: "3",
       databaseType: "mariadb",
       useAI: "gemini",
+      debugFlg:"false"
     },
   };
 }

@@ -1,4 +1,5 @@
 // src/components/Sidebar/ChildMemoPanel.jsx
+// src/components/Sidebar/ChildMemoPanel.jsx
 import { useEffect, useState } from 'react'
 import { useAppState } from '@/contexts/appState'
 import { useChildrenList } from '@/hooks/useChildrenList.js'
@@ -7,19 +8,26 @@ import {
   clickEnterButton,
   clickAbsenceButton,
   clickExitButton
-} from '@/utils/attendanceButtonClick.js';
+} from '@/utils/attendanceButtonClick.js'
 
 function ChildMemoPanel() {
   const {
     appState,
     attendanceData,
-    setSelectedChildColumns
+    setSelectedChildColumns,
+    DEBUG_FLG,
   } = useAppState()
+
+  const IS_STOP = !DEBUG_FLG;//まだ不完全のため停止
 
   const SELECT_CHILD = appState.SELECT_CHILD
 
-  const { childrenData, waitingChildrenData, experienceChildrenData } =
-    useChildrenList()
+  const {
+    childrenData,
+    waitingChildrenData,
+    experienceChildrenData
+  } = useChildrenList()
+
   const { addProfessionalSupportNewTab } = useTabs()
 
   const [selectedChildData, setSelectedChildData] = useState(null)
@@ -30,9 +38,10 @@ function ChildMemoPanel() {
    * 出欠データ解決
    * =============================== */
   useEffect(() => {
-    console.group('🧩 [ChildMemoPanel] attendance 判定')
+    console.group('🔎 [ChildMemoPanel] isUIEnabled 判定')
 
     if (!SELECT_CHILD) {
+      console.log('理由: SELECT_CHILD が未選択')
       setAttendanceItem(null)
       setIsUIEnabled(false)
       setSelectedChildColumns({
@@ -41,15 +50,17 @@ function ChildMemoPanel() {
         column6: null,
         column6Html: null
       })
+      console.log('isUIEnabled => false')
       console.groupEnd()
       return
     }
 
     const list = attendanceData?.data
     if (!Array.isArray(list)) {
-      console.warn('❌ attendanceData.data が配列ではない')
+      console.log('理由: attendanceData.data が配列ではない', list)
       setAttendanceItem(null)
       setIsUIEnabled(false)
+      console.log('isUIEnabled => false')
       console.groupEnd()
       return
     }
@@ -61,10 +72,16 @@ function ChildMemoPanel() {
     console.log('attendanceItem:', item)
 
     setAttendanceItem(item || null)
-    setIsUIEnabled(!!item)
+    const enabled = !!item
+    setIsUIEnabled(enabled)
+
+    console.log(
+      '判定結果:',
+      enabled ? 'UI 有効' : 'UI 無効',
+      '（attendanceItem の有無）'
+    )
 
     if (item) {
-      // Redux には保存だけする（UIは直接参照しない）
       setSelectedChildColumns({
         column5: item.column5 ?? null,
         column5Html: item.column5Html ?? null,
@@ -107,7 +124,7 @@ function ChildMemoPanel() {
   }
 
   /* ===============================
-   * UI判定（attendanceItemのみ）
+   * UI判定
    * =============================== */
   const column5 = attendanceItem?.column5 ?? null
   const column5Html = attendanceItem?.column5Html ?? null
@@ -118,6 +135,8 @@ function ChildMemoPanel() {
   const isAbsent = column5 === '欠席'
   const hasEntered = isTimeFormat(column5)
   const hasExited = isTimeFormat(column6)
+
+  const disabledBtnClass = 'grayscale opacity-50 cursor-not-allowed'
 
   /* ===============================
    * Render
@@ -138,12 +157,9 @@ function ChildMemoPanel() {
 
       {/* 入退室 UI */}
       <div
-        className="flex flex-col rounded bg-gray-200 mb-1 p-2 gap-2"
-        style={{
-          pointerEvents: isUIEnabled ? 'auto' : 'none',
-          opacity: isUIEnabled ? 1 : 0.5,
-          transition: 'opacity 0.2s'
-        }}
+        className={`flex flex-col rounded bg-gray-200 mb-1 p-2 gap-2 ${
+          !isUIEnabled ? 'opacity-60' : ''
+        }`}
       >
         {isAbsent ? (
           <div className="text-xs font-bold text-red-600 mb-3">欠席</div>
@@ -151,13 +167,13 @@ function ChildMemoPanel() {
           <>
             <div>入室: {column5}</div>
 
-            {hasExited ? (
-              <div className="mt-2">退室: {column6}</div>
-            ) : (
+            {!hasExited && (
               <button
-                className="btn-green mt-4"
+                className={`btn-green mt-4 ${
+                  !isUIEnabled || IS_STOP ? disabledBtnClass : ''
+                }`}
                 onClick={() => clickExitButton(column6Html)}
-                disabled={!isUIEnabled}
+                disabled={!isUIEnabled || IS_STOP}
               >
                 退室
               </button>
@@ -165,7 +181,9 @@ function ChildMemoPanel() {
 
             {hasExited && (
               <button
-                className="btn-purple mt-4 p-2"
+                className={`btn-purple mt-4 p-2 ${
+                  !isUIEnabled ? disabledBtnClass : ''
+                }`}
                 onClick={addProfessionalSupportNewTab}
                 disabled={!isUIEnabled}
               >
@@ -176,24 +194,27 @@ function ChildMemoPanel() {
         ) : (
           <>
             <button
-              className="btn-blue p-2 w-[80px]"
+              className={`btn-blue p-2 w-[80px] ${
+                !isUIEnabled || IS_STOP ? disabledBtnClass : ''
+              }`}
               onClick={() => clickEnterButton(column5Html)}
-              disabled={!isUIEnabled}
+              disabled={!isUIEnabled || IS_STOP}
             >
               入室
             </button>
 
             <button
-              className="btn-red mt-2 p-2 w-[80px]"
+              className={`btn-red mt-2 p-2 w-[80px] ${
+                !isUIEnabled || IS_STOP ? disabledBtnClass : ''
+              }`}
               onClick={() => clickAbsenceButton(column5Html)}
-              disabled={!isUIEnabled}
+              disabled={!isUIEnabled || IS_STOP}
             >
               欠席
             </button>
           </>
         )}
       </div>
-
     </div>
   )
 }

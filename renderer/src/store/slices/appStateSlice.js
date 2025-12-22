@@ -10,6 +10,10 @@ const initialState = {
   HUG_USERNAME: "",
   HUG_PASSWORD: "",
   GEMINI_API_KEY: "",
+
+  // ★ 追加：デバッグフラグ（デフォルト false）
+  DEBUG_FLG: false,
+
   // OpenAI 用の認証情報（config.json から読み込み）
   OPENAI_MAIL: "",
   OPENAI_PASSWORD: "",
@@ -55,6 +59,10 @@ const appStateSlice = createSlice({
   name: 'appState',
   initialState,
   reducers: {
+      // ★ デバッグフラグを設定
+    setDebugFlg: (state, action) => {
+      state.DEBUG_FLG = action.payload === true
+    },
     // 認証情報を設定
     setHugUsername: (state, action) => {
       state.HUG_USERNAME = action.payload || ""
@@ -170,6 +178,12 @@ const appStateSlice = createSlice({
     // 複数の状態を一度に更新
     updateAppState: (state, action) => {
       const updates = action.payload
+
+      // ★ デバッグフラグ
+      if (updates.DEBUG_FLG !== undefined) {
+        state.DEBUG_FLG = updates.DEBUG_FLG === true
+      }
+
       // 認証情報
       if (updates.HUG_USERNAME !== undefined) state.HUG_USERNAME = updates.HUG_USERNAME
       if (updates.HUG_PASSWORD !== undefined) state.HUG_PASSWORD = updates.HUG_PASSWORD
@@ -253,6 +267,8 @@ export const {
   updateAppState,
   clearSelection,
   resetAppState,
+
+  setDebugFlg,
   // ★ 追加
   setPrompts,
 } = appStateSlice.actions
@@ -286,6 +302,9 @@ export const selectFacilityData = (state) => state.appState.FACILITY_DATA
 export const selectStaffAndFacilityData = (state) => state.appState.STAFF_AND_FACILITY_DATA
 export const selectAttendanceData = (state) => state.appState.attendanceData
 export const selectAppState = (state) => state.appState
+
+// ★ DEBUG_FLG セレクター
+export const selectDebugFlg = (state) => state.appState.DEBUG_FLG
 // ★ PROMPTS セレクター追加
 export const selectPrompts = (state) => state.appState.PROMPTS
 

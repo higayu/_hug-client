@@ -43,6 +43,11 @@ export async function initializeAppState({
     merged.FACILITY_ID = String(apiSettings.facilityId)
   }
 
+  // DEBUG_FLG は文字列の"true"/"false"をbooleanに変換
+  if (apiSettings.debugFlg != null) {
+    merged.DEBUG_FLG = apiSettings.debugFlg === true || apiSettings.debugFlg === 'true'
+  }
+
   // 4) Redux 反映
   dispatch(updateAppState(merged))
   dispatch(setPrompts(prompts || {}))

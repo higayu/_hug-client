@@ -26,6 +26,7 @@ export function useReduxBindings() {
   const PROMPTS = useSelector(s.selectPrompts)
   const childrenData = useSelector(s.selectChildrenData)
   const attendanceData = useSelector(s.selectAttendanceData)
+  const DEBUG_FLG = useSelector(s.selectDebugFlg)
 
   return {
     appState,
@@ -49,6 +50,7 @@ export function useReduxBindings() {
     PROMPTS,
     childrenData,
     attendanceData,
+    DEBUG_FLG,
   }
 }
 
