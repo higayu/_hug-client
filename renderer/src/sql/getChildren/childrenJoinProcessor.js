@@ -9,18 +9,20 @@ import { Experience_children_v } from "./Experience_children_v.js";
  * @param {Object} params
  * @param {Object} params.tables - SQLiteモードの全テーブルデータ
  * @param {number|string} params.staffId - スタッフID
- * @param {string} params.date - 日付または曜日
+ * @param {number} params.weekdayId - 日付または曜日
  * @param {number|string|null} [params.facility_id] - 施設ID（省略可）
  * @returns {Promise<{ week_children:Array, waiting_children:Array, Experience_children:Array }>}
  */
-export async function joinChildrenData({ tables, staffId, date, facility_id = null }) {
+export async function joinChildrenData({ tables, staffId, weekdayId, facility_id = null }) {
   
   let myChildren = [];
   let myWaitingChildren = [];
   let myExperienceChildren = [];
 
+  console.log('日付の引数',weekdayId);
+
     // 各種データ取得
-    myChildren = await GetchildrenByStaffAndDay({ tables, staffId, date });
+    myChildren = await GetchildrenByStaffAndDay({ tables, staffId, weekdayId });
     myWaitingChildren = await Get_waiting_children_pc({ tables, facility_id });
     myExperienceChildren = await Experience_children_v({ tables });
 

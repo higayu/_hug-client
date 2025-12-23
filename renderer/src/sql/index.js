@@ -15,13 +15,15 @@ import { mariadbApi } from "./mariadbApi.js";
  * @param {number|string|null} [params.facility_id] - 施設ID（省略可）
  * @param {Object} params.activeApi - 使用するAPI（sqliteApiまたはmariadbApi）
  */
-export async function getSQLData({ staffId, date, facility_id, activeApi }) {
+export async function getSQLData({ staffId, date_id, facility_id, activeApi }) {
   try {
     // ⚠️ activeApiパラメータを使用
     if (!activeApi) {
       console.error("❌ [index.js] activeApiが指定されていません");
       return null;
     }
+
+    console.log('引数のdate',date_id);
 
     // ✅ SQLiteモード
     if (activeApi === sqliteApi) {
@@ -30,7 +32,7 @@ export async function getSQLData({ staffId, date, facility_id, activeApi }) {
       return await joinChildrenData({
         tables,
         staffId,
-        date,
+        date_id,
         facility_id,
       });
     } else if (activeApi === mariadbApi) {
@@ -41,7 +43,7 @@ export async function getSQLData({ staffId, date, facility_id, activeApi }) {
       return await joinChildrenData({
         tables,
         staffId,
-        date,
+        date_id,
         facility_id,
       });
     } else {

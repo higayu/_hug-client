@@ -1,18 +1,25 @@
 // src/hooks/useChildrenList.js
-import { useEffect, useState, useCallback } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { useAppState } from '@/contexts/appState';
-import { ELEMENT_IDS } from "@/utils/constants.js";
+import { useEffect, useState, useCallback } from "react"
+import { useDispatch, useSelector } from "react-redux"
+import { useAppState } from "@/contexts/appState"
+import { ELEMENT_IDS } from "@/utils/constants.js"
 
-import { mariadbApi } from "@/sql/mariadbApi.js";
-import { sqliteApi } from "@/sql/sqliteApi.js";
-import { joinChildrenData } from "@/sql/getChildren/childrenJoinProcessor.js";
-import { fetchAllTables } from "@/store/slices/databaseSlice.js";
-import { selectExtractedData, selectAttendanceError } from "@/store/slices/attendanceSlice.js";
+import { mariadbApi } from "@/sql/mariadbApi.js"
+import { sqliteApi } from "@/sql/sqliteApi.js"
+import { joinChildrenData } from "@/sql/getChildren/childrenJoinProcessor.js"
+import { fetchAllTables } from "@/store/slices/databaseSlice.js"
+import {
+  selectExtractedData,
+  selectAttendanceError,
+} from "@/store/slices/attendanceSlice.js"
 
 export function useChildrenList() {
+  // =============================================================
+  // AppState（必要なものだけ取り出す）
+  // =============================================================
   const {
-    appState,
+    STAFF_ID,
+    CURRENT_DATE,
     activeApi,
     isInitialized,
     setSelectedChild,
@@ -20,103 +27,140 @@ export function useChildrenList() {
     setChildrenData,
     updateAppState,
     SELECT_CHILD,
-  } = useAppState();
-  const dispatch = useDispatch();
-  const extractedData = useSelector(selectExtractedData);
-  const attendanceError = useSelector(selectAttendanceError);
+  } = useAppState()
 
-  const [childrenData, setLocalChildrenData] = useState([]);
-  const [waitingChildrenData, setWaitingChildrenData] = useState([]);
-  const [experienceChildrenData, setExperienceChildrenData] = useState([]);
+  const weekdayId = CURRENT_DATE?.weekdayId
 
-  // 🔹 子どもデータ取得
+  const dispatch = useDispatch()
+  const extractedData = useSelector(selectExtractedData)
+  const attendanceError = useSelector(selectAttendanceError)
+
+  // =============================================================
+  // local state（表示用）
+  // =============================================================
+  const [childrenData, setLocalChildrenData] = useState([])
+  const [waitingChildrenData, setWaitingChildrenData] = useState([])
+  const [experienceChildrenData, setExperienceChildrenData] = useState([])
+
+  // =============================================================
+  // 子どもデータ取得
+  // =============================================================
   const loadChildren = useCallback(async () => {
-    // 依存条件が揃わない場合は即 return
-    if (!isInitialized) {
-      console.warn("⏳ [useChildrenList] 初期化待ち");
-      return;
-    }
-    if (!activeApi) {
-      console.warn("⏳ [useChildrenList] activeApi未設定");
-      return;
-    }
-    if (!appState.STAFF_ID || !appState.WEEK_DAY) {
-      console.warn("⏳ [useChildrenList] STAFF_ID / WEEK_DAY 未設定");
-      return;
+    if (!isInitialized || !activeApi || !STAFF_ID || !weekdayId) {
+      console.warn("⏳ [useChildrenList] 前提条件不足", {
+        isInitialized,
+        activeApi,
+        STAFF_ID,
+        weekdayId,
+      })
+      return
     }
 
     try {
-      const facilitySelect = document.getElementById(ELEMENT_IDS.FACILITY_SELECT);
-      const facility_id = facilitySelect ? facilitySelect.value : null;
-      console.log('🔍 [useChildrenList] appState:',appState);
-      const api = activeApi;
-      console.log('🔍 [useChildrenList] 使用するAPI:', api === mariadbApi ? 'mariadbApi' : (api === sqliteApi ? 'sqliteApi' : '不明'));
-      
-      const tables = await api.getAllTables();
-      console.log("🔍 [useChildrenList] テーブルデータ:", tables);
+      const facilitySelect = document.getElementById(
+        ELEMENT_IDS.FACILITY_SELECT
+      )
+      const facility_id = facilitySelect ? facilitySelect.value : null
+
+      console.log(
+        "🔍 [useChildrenList] 使用API:",
+        activeApi === mariadbApi
+          ? "mariadbApi"
+          : activeApi === sqliteApi
+          ? "sqliteApi"
+          : "unknown"
+      )
+
+      const tables = await activeApi.getAllTables()
       if (!tables) {
-        console.error("❌ [useChildrenList] テーブルデータの取得に失敗しました");
-        return;
+        console.error("❌ [useChildrenList] テーブル取得失敗")
+        return
       }
 
-      await dispatch(fetchAllTables(tables));
+      await dispatch(fetchAllTables(tables))
 
+      // ★ 新仕様：weekdayId をそのまま渡す
       const data = await joinChildrenData({
         tables,
-        staffId: appState.STAFF_ID,
-        date: appState.WEEK_DAY,
+        staffId: STAFF_ID,
+        weekdayId,
         ...(facility_id && { facility_id }),
-      });
+      })
 
-      setChildrenData(data.week_children || []);
+      const weekChildren = data.week_children || []
+      const waiting = data.waiting_children || []
+      const experience = data.Experience_children || []
+
+      // Redux
+      setChildrenData(weekChildren)
       updateAppState({
-        waiting_childrenData: data.waiting_children || [],
-        Experience_childrenData: data.Experience_children || [],
-        childrenData: data.week_children || [],
-      });
-      setLocalChildrenData(data.week_children || []);
-      setWaitingChildrenData(data.waiting_children || []);
-      setExperienceChildrenData(data.Experience_children || []);
-    } catch (error) {
-      console.error("❌ 子どもデータ読み込みエラー:", error);
-    }
-  }, [isInitialized, activeApi, appState.STAFF_ID, appState.WEEK_DAY, dispatch, setChildrenData, updateAppState]);
+        childrenData: weekChildren,
+        waiting_childrenData: waiting,
+        Experience_childrenData: experience,
+      })
 
-  // 🔹 曜日変更イベント
+      // local
+      setLocalChildrenData(weekChildren)
+      setWaitingChildrenData(waiting)
+      setExperienceChildrenData(experience)
+    } catch (error) {
+      console.error("❌ [useChildrenList] 子どもデータ読み込みエラー:", error)
+    }
+  }, [
+    isInitialized,
+    activeApi,
+    STAFF_ID,
+    weekdayId,
+    dispatch,
+    setChildrenData,
+    updateAppState,
+  ])
+
+  // =============================================================
+  // 曜日変更イベント（互換用）
+  // =============================================================
   useEffect(() => {
     const handleWeekdayChanged = async () => {
-      setSelectedChild("", "");
-      await loadChildren();
-    };
-    window.addEventListener("weekday-changed", handleWeekdayChanged);
-    return () => window.removeEventListener("weekday-changed", handleWeekdayChanged);
-  }, [loadChildren, setSelectedChild]);
+      setSelectedChild("", "")
+      await loadChildren()
+    }
 
-  // 🔹 初期化・依存が揃ったら発火（かつ STAFF_ID / WEEK_DAY 変化にも追従）
+    window.addEventListener("weekday-changed", handleWeekdayChanged)
+    return () =>
+      window.removeEventListener("weekday-changed", handleWeekdayChanged)
+  }, [loadChildren, setSelectedChild])
+
+  // =============================================================
+  // 初期化 & 依存変化で再取得
+  // =============================================================
   useEffect(() => {
-    if (!isInitialized) return;
-    if (!activeApi) return;
-    if (!appState.STAFF_ID || !appState.WEEK_DAY) return;
-    loadChildren();
-  }, [isInitialized, activeApi, appState.STAFF_ID, appState.WEEK_DAY, loadChildren]);
+    loadChildren()
+  }, [loadChildren])
 
-  // 🔹 最初の子どもを自動選択
+  // =============================================================
+  // 最初の子どもを自動選択
+  // =============================================================
   useEffect(() => {
     if (childrenData.length > 0 && !SELECT_CHILD) {
-      const firstChild = childrenData[0];
-      setSelectedChild(firstChild.children_id, firstChild.children_name);
-      if (firstChild.pc_name) setSelectedPcName(firstChild.pc_name);
+      const firstChild = childrenData[0]
+      setSelectedChild(firstChild.children_id, firstChild.children_name)
+      if (firstChild.pc_name) {
+        setSelectedPcName(firstChild.pc_name)
+      }
     }
-  }, [childrenData, SELECT_CHILD, setSelectedChild, setSelectedPcName]);
+  }, [childrenData, SELECT_CHILD, setSelectedChild, setSelectedPcName])
 
+  // =============================================================
+  // return
+  // =============================================================
   return {
     childrenData,
     waitingChildrenData,
     experienceChildrenData,
     loadChildren,
 
-    SELECT_CHILD: appState.SELECT_CHILD,
+    SELECT_CHILD,
     extractedData,
     attendanceError,
-  };
+  }
 }

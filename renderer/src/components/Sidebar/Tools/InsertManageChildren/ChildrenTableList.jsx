@@ -19,7 +19,7 @@ function ChildrenTableList({ childrenList = [] }) {
 
   const {
     STAFF_ID,
-    WEEK_DAY,
+    CURRENT_DATE,
     FACILITY_ID,
     appState,
     activeSidebarTab: activeTab,
@@ -51,9 +51,9 @@ function ChildrenTableList({ childrenList = [] }) {
     console.log("=== ChildrenTableList 初期化（managers2） ===");
     console.log("▶ props.childrenList:", childrenList);
     console.log("▶ 対応児童 childrenData:", childrenData);
-    console.log("▶ STAFF_ID:", STAFF_ID, "WEEK_DAY:", WEEK_DAY);
+    console.log("▶ STAFF_ID:", STAFF_ID, "WEEK_DAY:", CURRENT_DATE);
     console.log("▶ readonlyChildrenIdSet:", [...readonlyChildrenIdSet]);
-  }, [childrenData, childrenList, STAFF_ID, WEEK_DAY, readonlyChildrenIdSet]);
+  }, [childrenData, childrenList, STAFF_ID, CURRENT_DATE, readonlyChildrenIdSet]);
 
   // =============================================================
   // データなし
@@ -108,7 +108,7 @@ function ChildrenTableList({ childrenList = [] }) {
         databaseType,
         FACILITY_ID,
         STAFF_ID,
-        WEEK_DAY,
+        CURRENT_DATE.weekdayid,
       });
 
       if (result) {
