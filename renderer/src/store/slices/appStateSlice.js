@@ -2,7 +2,8 @@
 // アプリケーション状態の管理
 
 import { createSlice } from '@reduxjs/toolkit'
-import { getDateString, getTodayWeekday } from '../../utils/dateUtils.js'
+import { getDateString, getTodayWeekdayId } from '../../utils/dateUtils.js'
+
 
 // 初期状態
 const initialState = {
@@ -23,8 +24,11 @@ const initialState = {
   // ID・日付・選択状態
   STAFF_ID: "",
   FACILITY_ID: "",
-  DATE_STR: getDateString(), // 初期値は今日の日付
-  WEEK_DAY: getTodayWeekday(), // 初期値は今日の曜日
+  CURRENT_DATE: {
+    dateStr: getDateString(),
+    weekdayId: getTodayWeekdayId(),
+  },
+  
   SELECT_CHILD: "",
   SELECT_CHILD_NAME: "",
   SELECT_PC_NAME: "",
@@ -90,16 +94,6 @@ const appStateSlice = createSlice({
     setStaffId: (state, action) => {
       // 文字列として統一（数値の場合は文字列に変換）
       state.STAFF_ID = action.payload != null ? String(action.payload) : ""
-    },
-    
-    // 日付を設定
-    setDateStr: (state, action) => {
-      state.DATE_STR = action.payload || ""
-    },
-    
-    // 曜日を設定
-    setWeekDay: (state, action) => {
-      state.WEEK_DAY = action.payload || ""
     },
     
     // 選択された児童を設定
@@ -174,6 +168,18 @@ const appStateSlice = createSlice({
     setPrompts: (state, action) => {
       state.PROMPTS = action.payload || {}
     },
+
+    setCurrentDate: (state, action) => {
+      const { dateStr, weekdayId } = action.payload || {}
+    
+      if (dateStr !== undefined) {
+        state.CURRENT_DATE.dateStr = dateStr
+      }
+      if (weekdayId !== undefined) {
+        state.CURRENT_DATE.weekdayId = weekdayId
+      }
+    },
+    
     
     // 複数の状態を一度に更新
     updateAppState: (state, action) => {
@@ -197,8 +203,13 @@ const appStateSlice = createSlice({
         state.STAFF_ID = updates.STAFF_ID != null ? String(updates.STAFF_ID) : ""
       }
       if (updates.FACILITY_ID !== undefined) state.FACILITY_ID = updates.FACILITY_ID
-      if (updates.DATE_STR !== undefined) state.DATE_STR = updates.DATE_STR
-      if (updates.WEEK_DAY !== undefined) state.WEEK_DAY = updates.WEEK_DAY
+      if (updates.CURRENT_DATE !== undefined) {
+        state.CURRENT_DATE = {
+          ...state.CURRENT_DATE,
+          ...updates.CURRENT_DATE,
+        }
+      }
+      
       if (updates.SELECT_CHILD !== undefined) state.SELECT_CHILD = updates.SELECT_CHILD
       if (updates.SELECT_CHILD_NAME !== undefined) state.SELECT_CHILD_NAME = updates.SELECT_CHILD_NAME
       if (updates.SELECT_PC_NAME !== undefined) state.SELECT_PC_NAME = updates.SELECT_PC_NAME
@@ -249,8 +260,7 @@ export const {
   setOpenaiPassword,
   setFacilityId,
   setStaffId,
-  setDateStr,
-  setWeekDay,
+  setCurrentDate,
   setSelectedChild,
   setSelectedPcName,
   setChildrenData,
@@ -284,8 +294,7 @@ export const selectUseAI = (state) => state.appState.USE_AI
 export const selectDatabaseType = (state) => state.appState.DATABASE_TYPE
 export const selectStaffId = (state) => state.appState.STAFF_ID
 export const selectFacilityId = (state) => state.appState.FACILITY_ID
-export const selectDateStr = (state) => state.appState.DATE_STR
-export const selectWeekDay = (state) => state.appState.WEEK_DAY
+export const selectCurrentDate = (state) => state.appState.CURRENT_DATE 
 export const selectSelectedChild = (state) => state.appState.SELECT_CHILD
 export const selectSelectedChildName = (state) => state.appState.SELECT_CHILD_NAME
 export const selectSelectedPcName = (state) => state.appState.SELECT_PC_NAME

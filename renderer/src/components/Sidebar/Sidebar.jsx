@@ -10,8 +10,8 @@ import TableDataGetButton from "./common/TableDataGetButon.jsx"
 function Sidebar() {
   const { showInfoToast } = useToast()
 
-  // appState（既存互換のため label_jp も維持）
-  const { setDate, setWeekday, DATE_STR, WEEK_DAY } = useAppState()
+  // ✅ Redux / AppState（唯一の正）
+  const { setCurrentDate, CURRENT_DATE } = useAppState()
 
   // 再取得
   const { loadChildren } = useChildrenList()
@@ -22,42 +22,36 @@ function Sidebar() {
     (state) => state.database?.day_of_week ?? []
   )
 
-  const initialDate = DATE_STR || getDateString()
-
-  // -----------------------------
-  // state
-  // -----------------------------
-  const [dateValue, setDateValue] = useState(initialDate)
-
-  // 🔥 曜日は「オブジェクトごと」保持
-  const [weekdayValue, setWeekdayValue] = useState(null)
-
-  const [isPinned, setIsPinned] = useState(false)
   const sidebarRef = useRef(null)
+  const [isPinned, setIsPinned] = useState(false)
 
-  // -----------------------------
-  // 初期化（日付・曜日）
-  // -----------------------------
+  const initialDate = CURRENT_DATE.dateStr || getDateString()
+
+  // =============================================================
+  // 初期化（日付・曜日ID）
+  // =============================================================
   useEffect(() => {
     if (!dayOfWeekList.length) return
 
-    const weekdayLabel = WEEK_DAY || getWeekdayFromDate(initialDate)
+    // weekdayId 未設定 → dateStr から決定
+    if (!CURRENT_DATE.weekdayId) {
+      const label = getWeekdayFromDate(initialDate)
+      const weekdayObj =
+        dayOfWeekList.find((w) => w.label_jp === label) ??
+        dayOfWeekList[0]
 
-    const weekdayObj =
-      dayOfWeekList.find((w) => w.label_jp === weekdayLabel) ??
-      dayOfWeekList[0]
+      setCurrentDate({ weekdayId: weekdayObj.id })
+    }
 
-    setWeekdayValue(weekdayObj)
-    setWeekday(weekdayObj.label_jp)
-
-    if (!DATE_STR) {
-      setDate(initialDate)
+    // dateStr 未設定 → 今日
+    if (!CURRENT_DATE.dateStr) {
+      setCurrentDate({ dateStr: initialDate })
     }
   }, [dayOfWeekList])
 
-  // -----------------------------
+  // =============================================================
   // 日付変更
-  // -----------------------------
+  // =============================================================
   const handleDateChange = (e) => {
     const selectedDate = e.target.value
     if (!selectedDate) return
@@ -67,13 +61,14 @@ function Sidebar() {
       dayOfWeekList.find((w) => w.label_jp === weekdayLabel) ??
       dayOfWeekList[0]
 
-    setDateValue(selectedDate)
-    setDate(selectedDate)
+    setCurrentDate({
+      dateStr: selectedDate,
+      weekdayId: weekdayObj.id,
+    })
 
-    setWeekdayValue(weekdayObj)
-    setWeekday(weekdayObj.label_jp)
-
-    showInfoToast(`📅 日付を ${selectedDate}（${weekdayObj.label_jp}）に設定しました`)
+    showInfoToast(
+      `📅 日付を ${selectedDate}（${weekdayObj.label_jp}）に設定しました`
+    )
 
     window.dispatchEvent(
       new CustomEvent("date-changed", {
@@ -86,36 +81,42 @@ function Sidebar() {
     )
   }
 
-  // -----------------------------
+  // =============================================================
   // 曜日変更（Select）
-  // -----------------------------
+  // =============================================================
   const handleWeekdayChange = (e) => {
     const selectedId = Number(e.target.value)
     const selectedObj = dayOfWeekList.find((w) => w.id === selectedId)
     if (!selectedObj) return
 
-    setWeekdayValue(selectedObj)
-    setWeekday(selectedObj.label_jp)
+    setCurrentDate({ weekdayId: selectedObj.id })
 
     showInfoToast(`📅 曜日を ${selectedObj.label_jp} に設定しました`)
   }
 
-  // -----------------------------
+  // =============================================================
   // 曜日変更イベント通知（id + label）
-  // -----------------------------
+  // =============================================================
   useEffect(() => {
-    if (!weekdayValue) return
+    if (!CURRENT_DATE.weekdayId || !dayOfWeekList.length) return
+
+    const weekdayObj = dayOfWeekList.find(
+      (w) => w.id === CURRENT_DATE.weekdayId
+    )
 
     window.dispatchEvent(
       new CustomEvent("weekday-changed", {
         detail: {
-          weekdayId: weekdayValue.id,
-          weekdayLabel: weekdayValue.label_jp,
+          weekdayId: CURRENT_DATE.weekdayId,
+          weekdayLabel: weekdayObj?.label_jp,
         },
       })
     )
-  }, [weekdayValue])
+  }, [CURRENT_DATE.weekdayId, dayOfWeekList])
 
+  // =============================================================
+  // JSX
+  // =============================================================
   return (
     <div ref={sidebarRef} className="text-black bg-gray-50 flex flex-col h-full">
       {/* ヘッダー */}
@@ -127,7 +128,7 @@ function Sidebar() {
           </label>
           <input
             type="date"
-            value={dateValue}
+            value={CURRENT_DATE.dateStr ?? ""}
             onChange={handleDateChange}
             className="w-full p-2 border border-gray-300 rounded text-sm bg-white text-black max-w-[200px] cursor-pointer"
           />
@@ -142,7 +143,7 @@ function Sidebar() {
           <select
             id="weekdaySelect"
             name="weekdaySelect"
-            value={weekdayValue?.id ?? ""}
+            value={CURRENT_DATE.weekdayId ?? ""}
             onChange={handleWeekdayChange}
             className="w-full p-2 border border-gray-300 rounded text-sm bg-white text-black"
           >

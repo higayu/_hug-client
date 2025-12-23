@@ -15,8 +15,7 @@ import { useWindowBridge } from './useWindowBridge'
 import { initializeAppState } from './useAppInitializer'
 
 import {
-  setDateStr,
-  setWeekDay,
+  setCurrentDate,
   setSelectedChild,
   setSelectedPcName,
   setChildrenData as setChildrenDataRedux,
@@ -209,13 +208,8 @@ export function AppStateProvider({ children }) {
     [dispatch]
   )
 
-  const setDate = useCallback(
-    (date) => dispatch(setDateStr(date)),
-    [dispatch]
-  )
-
-  const setWeekday = useCallback(
-    (weekday) => dispatch(setWeekDay(weekday)),
+  const setCurrentDate = useCallback(
+    (date) => dispatch(setCurrentDate(date)),
     [dispatch]
   )
 
@@ -282,8 +276,7 @@ export function AppStateProvider({ children }) {
         getWindowSettings,
         activeApi,
         updateAppState,
-        setDate,
-        setWeekday,
+        setCurrentDate: setCurrentDateCallback,
         setSelectedChild: setSelectedChildCallback,
         setChildrenData,
         setSelectedPcName: setSelectedPcNameCallback,
