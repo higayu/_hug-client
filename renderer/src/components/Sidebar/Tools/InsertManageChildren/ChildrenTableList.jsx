@@ -1,5 +1,5 @@
 // renderer/src/components/Sidebar/Tools/InsertManageChildren/ChildrenTableList.jsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import ConfirmModal from "./ConfirmModal.jsx";
 import { store } from "@/store/store.js";
 import { insertManager } from "@/sql/useManager/insertManager/insertManager.js";
@@ -32,6 +32,17 @@ function ChildrenTableList({ childrenList = [] }) {
   const { childrenData } = useChildrenList();
 
   // =============================================================
+  // readonly 対象 children_id を Set 化（children_id 一致のみ）
+  // =============================================================
+  const readonlyChildrenIdSet = useMemo(() => {
+    if (!childrenData) return new Set();
+
+    return new Set(
+      childrenData.map((cd) => Number(cd.children_id))
+    );
+  }, [childrenData]);
+
+  // =============================================================
   // 初期ログ
   // =============================================================
   useEffect(() => {
@@ -41,7 +52,8 @@ function ChildrenTableList({ childrenList = [] }) {
     console.log("▶ props.childrenList:", childrenList);
     console.log("▶ 対応児童 childrenData:", childrenData);
     console.log("▶ STAFF_ID:", STAFF_ID, "WEEK_DAY:", WEEK_DAY);
-  }, [childrenData, childrenList, STAFF_ID, WEEK_DAY]);
+    console.log("▶ readonlyChildrenIdSet:", [...readonlyChildrenIdSet]);
+  }, [childrenData, childrenList, STAFF_ID, WEEK_DAY, readonlyChildrenIdSet]);
 
   // =============================================================
   // データなし
@@ -68,18 +80,8 @@ function ChildrenTableList({ childrenList = [] }) {
   const handleSelectAll = (e) => {
     if (e.target.checked) {
       const selectableIds = childrenList
-        .filter((child) => {
-          const cid = Number(child.children_id);
-
-          // 🔥 managers2 基準で readonly 判定
-          return !childrenData.some(
-            (cd) =>
-              Number(cd.children_id) === cid &&
-              Number(cd.staff_id) === Number(STAFF_ID) &&
-              Number(cd.day_of_week_id) === Number(WEEK_DAY)
-          );
-        })
-        .map((child) => Number(child.children_id));
+        .map((child) => Number(child.children_id))
+        .filter((cid) => !readonlyChildrenIdSet.has(cid));
 
       setSelectedIds(selectableIds);
     } else {
@@ -173,14 +175,7 @@ function ChildrenTableList({ childrenList = [] }) {
         <tbody>
           {childrenList.map((child) => {
             const cid = Number(child.children_id);
-
-            // 🔥 managers2 基準 readonly 判定
-            const isReadonly = childrenData.some(
-              (cd) =>
-                Number(cd.children_id) === cid &&
-                Number(cd.staff_id) === Number(STAFF_ID) &&
-                Number(cd.day_of_week_id) === Number(WEEK_DAY)
-            );
+            const isReadonly = readonlyChildrenIdSet.has(cid);
 
             return (
               <tr
@@ -196,14 +191,15 @@ function ChildrenTableList({ childrenList = [] }) {
                     className={isReadonly ? "hidden" : ""}
                     type="checkbox"
                     checked={selectedIds.includes(cid)}
+                    disabled={isReadonly}
                     onChange={() => {
                       if (!isReadonly) handleCheckboxChange(cid);
                     }}
-                    disabled={isReadonly}
                   />
                 </td>
 
                 <td className="border px-2 py-1">{cid}</td>
+
                 <td className="border px-2 py-1">
                   {child.children_name}
                 </td>
@@ -221,7 +217,7 @@ function ChildrenTableList({ childrenList = [] }) {
         </tbody>
       </table>
 
-      {/* モーダル */}
+      {/* 確認モーダル */}
       <ConfirmModal
         show={showConfirmModal}
         message="以下の児童を登録しますか？"
