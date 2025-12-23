@@ -59,7 +59,7 @@ export async function loadConfig() {
 
     // 旧キーがあれば削除（事故防止）
     delete data.DATE_STR
-    delete data.WEEK_DAY
+    delete data.CURRENT_DATE
 
     console.log('✅ [CONFIG] config.json読み込み成功:', data)
     if (output) output.textContent = JSON.stringify(data, null, 2)

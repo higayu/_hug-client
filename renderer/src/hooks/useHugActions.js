@@ -44,7 +44,7 @@ export function useHugActions() {
       
       const childrenData = await window.electronAPI.GetChildrenByStaffAndDay(
         appState.STAFF_ID,
-        appState.WEEK_DAY,
+        appState.CURRENT_DATE,
         facility_id
       )
       updateAppState({ childrenData: childrenData.week_children })
@@ -53,7 +53,7 @@ export function useHugActions() {
       console.error("❌ 子リスト再取得エラー:", err)
       alert("子どもリストの再取得に失敗しました")
     }
-  }, [appState.STAFF_ID, appState.WEEK_DAY, updateAppState])
+  }, [appState.STAFF_ID, appState.CURRENT_DATE, updateAppState])
 
   // 自動ログイン
   const handleLogin = useCallback(async () => {

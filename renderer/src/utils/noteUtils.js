@@ -23,20 +23,14 @@ export async function saveTempNote(childId, memo1, memo2, appState) {
     console.log("📌 memo2:", memo2);
     console.log("📌 appState:", appState);
 
-    if (!childId || !appState?.STAFF_ID || !appState?.WEEK_DAY) {
+    if (!childId || !appState?.STAFF_ID || !appState?.CURRENT_DATE) {
       throw new Error("必須パラメータ不足");
-    }
-
-    const weekDayNumber = WEEKDAY_MAP[appState.WEEK_DAY];
-
-    if (!weekDayNumber) {
-      throw new Error("曜日変換失敗");
     }
 
     const data = {
       children_id: childId,
       staff_id: appState.STAFF_ID,
-      day_of_week_id: weekDayNumber,
+      day_of_week_id: appState?.CURRENT_DATE.weekdayId,
       memo1: memo1 ?? "",
       memo2: memo2 ?? "",
     };
@@ -72,20 +66,14 @@ export async function loadTempNote(childId, proxy, appState) {
     console.log("📌 proxy:", proxy);
     console.log("📌 appState:", appState);
 
-    if (!childId || !appState?.STAFF_ID || !appState?.WEEK_DAY) {
+    if (!childId || !appState?.STAFF_ID || !appState?.CURRENT_DATE) {
       throw new Error("必須パラメータ不足");
-    }
-
-    const weekDayNumber = WEEKDAY_MAP[appState.WEEK_DAY];
-
-    if (!weekDayNumber) {
-      throw new Error("曜日変換失敗");
     }
 
     const data = {
       children_id: childId,
       staff_id: appState.STAFF_ID,
-      day_of_week_id: weekDayNumber,
+      day_of_week_id:appState?.CURRENT_DATE.weekdayId,
     };
 
     console.log("📤 送信データ(getTempNote):", data);

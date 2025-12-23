@@ -1,5 +1,5 @@
 export async function insertChild(child) {
-    const result = await window.electronAPI.children_insert({
+    const result = await window.electronAPI.sqlite_children_insert({
       id: child.children_id,
       name: child.children_name,
       notes: child.notes,

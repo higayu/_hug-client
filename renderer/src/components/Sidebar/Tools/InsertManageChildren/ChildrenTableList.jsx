@@ -51,7 +51,7 @@ function ChildrenTableList({ childrenList = [] }) {
     console.log("=== ChildrenTableList 初期化（managers2） ===");
     console.log("▶ props.childrenList:", childrenList);
     console.log("▶ 対応児童 childrenData:", childrenData);
-    console.log("▶ STAFF_ID:", STAFF_ID, "WEEK_DAY:", CURRENT_DATE);
+    console.log("▶ STAFF_ID:", STAFF_ID, "CURRENT_DATE:", CURRENT_DATE);
     console.log("▶ readonlyChildrenIdSet:", [...readonlyChildrenIdSet]);
   }, [childrenData, childrenList, STAFF_ID, CURRENT_DATE, readonlyChildrenIdSet]);
 
@@ -108,7 +108,7 @@ function ChildrenTableList({ childrenList = [] }) {
         databaseType,
         FACILITY_ID,
         STAFF_ID,
-        CURRENT_DATE.weekdayid,
+        CURRENT_DATE,
       });
 
       if (result) {

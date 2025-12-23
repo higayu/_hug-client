@@ -11,10 +11,11 @@ export async function insertManager(
     databaseType,
     FACILITY_ID,
     STAFF_ID,
-    WEEK_DAY,
+    CURRENT_DATE,
   }
 ) {
   console.log("===== insertManager START =====");
+  console.log('🔥CURRENT_DATE',CURRENT_DATE);
 
   try {
     // 単一オブジェクトなら配列に変換
@@ -24,7 +25,7 @@ export async function insertManager(
 
     console.log("選択された児童数:", childrenList.length);
     console.log("databaseType:", databaseType);
-    console.log("FACILITY_ID:", FACILITY_ID, "STAFF_ID:", STAFF_ID, "WEEK_DAY:", WEEK_DAY);
+    console.log("FACILITY_ID:", FACILITY_ID, "STAFF_ID:", STAFF_ID);
 
     // activeApi がない場合は false
     if (!databaseType) {
@@ -32,6 +33,9 @@ export async function insertManager(
       console.log("===== insertManager END (error: no activeApi) =====");
       return false;
     }
+
+    const weekId = CURRENT_DATE.weekdayId;
+    console.log('曜日のID',weekId);
 
     for (const child of childrenList) {
       console.log("-------------------------------------------");
@@ -45,7 +49,7 @@ export async function insertManager(
           managersData,
           FACILITY_ID,
           STAFF_ID,
-          WEEK_DAY,
+          weekId: weekId,
         });
 
         console.log("✔ SQLite 処理完了:", child.children_id);
@@ -58,7 +62,7 @@ export async function insertManager(
           managersData,
           FACILITY_ID,
           STAFF_ID,
-          WEEK_DAY,
+          weekId: weekId,
         });
 
         console.log("✔ MariaDB 処理完了:", child.children_id);

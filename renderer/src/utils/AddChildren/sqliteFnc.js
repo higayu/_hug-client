@@ -10,7 +10,7 @@ export async function sqliteFnc({
   childrenData,
   managersData,
   STAFF_ID,
-  WEEK_DAY,
+  CURRENT_DATE,
   FACILITY_ID,
 }) {
   const existingChild = childrenData.find(
@@ -22,5 +22,5 @@ export async function sqliteFnc({
     await insertFacilityChild(child.children_id, FACILITY_ID);
   }
 
-  await insertOrUpdateManager(child, managersData, STAFF_ID, WEEK_DAY);
+  await insertOrUpdateManager(child, managersData, STAFF_ID, CURRENT_DATE);
 }

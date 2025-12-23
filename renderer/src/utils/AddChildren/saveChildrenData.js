@@ -10,7 +10,7 @@ export async function saveChildrenData({
   childrenData,
   managersData,
   STAFF_ID,
-  WEEK_DAY,
+  CURRENT_DATE,
   FACILITY_ID,
 }) {
   const { activeApi, mariadbApi, sqliteApi } = appState || {};
@@ -28,7 +28,7 @@ export async function saveChildrenData({
       childrenData,
       managersData,
       STAFF_ID,
-      WEEK_DAY,
+      CURRENT_DATE,
       FACILITY_ID,
     });
   }

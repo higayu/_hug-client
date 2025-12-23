@@ -6,7 +6,7 @@ export async function mariadbFnc({
   childrenData,
   managersData,
   STAFF_ID,
-  WEEK_DAY,
+  CURRENT_DATE,
   FACILITY_ID,
 }) {
   try {
@@ -21,26 +21,7 @@ export async function mariadbFnc({
         String(m.staff_id) === String(STAFF_ID)
     );
 
-    // -----------------------------------
-    // day_of_week（JSONオブジェクトで送信）
-    // -----------------------------------
-    let dayOfWeekObj = { days: [WEEK_DAY] };
-
-    if (existingManager) {
-      try {
-        const parsed = JSON.parse(existingManager.day_of_week);
-        const daysArray = parsed?.days ?? [];
-
-        if (!daysArray.includes(WEEK_DAY)) {
-          dayOfWeekObj = { days: [...daysArray, WEEK_DAY] };
-        } else {
-          // 既に登録済みなら現状維持
-          dayOfWeekObj = parsed;
-        }
-      } catch {
-        dayOfWeekObj = { days: [WEEK_DAY] };
-      }
-    }
+    const weekId = CURRENT_DATE.weekdayId;
 
     // -----------------------------------
     // MariaDBに送信するペイロード
@@ -53,7 +34,7 @@ export async function mariadbFnc({
       children_type_id: child.children_type_id,
       staff_id: STAFF_ID,
       facility_id: FACILITY_ID,
-      day_of_week: dayOfWeekObj,     // ← JSON オブジェクトで送る
+      day_of_week: weekId,     // ← JSON オブジェクトで送る
       exists_child: !!existingChild,
       exists_manager: !!existingManager,
     };

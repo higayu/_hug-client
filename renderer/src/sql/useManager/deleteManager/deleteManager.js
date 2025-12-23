@@ -18,7 +18,10 @@ export async function deleteManager(
   }
 
     if (databaseType === 'sqlite') {
-      return false;
+      const result =  await handleSQLiteDelete(selectedChildren);
+      if(result){
+          return true;
+      }
     } else if (databaseType === 'mariadb') {
       console.log("→ 使用DB: MariaDB");
       const result =  await handleMariaDBDelete(selectedChildren);

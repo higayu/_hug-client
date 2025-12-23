@@ -8,13 +8,13 @@ export async function handleSQLiteInsert(
     managersData,
     FACILITY_ID,
     STAFF_ID,
-    WEEK_DAY,
+    weekId,
   }
 ) {
 
   console.log("====== SQLite: handleSQLiteInsert START ======");
   console.log("処理する児童:", child);
-  console.log("FACILITY_ID:", FACILITY_ID, "STAFF_ID:", STAFF_ID, "WEEK_DAY:", WEEK_DAY);
+  console.log("FACILITY_ID:", FACILITY_ID, "STAFF_ID:", STAFF_ID, "weekID:", weekId);
 
   // -----------------------------------------
   // ① children テーブルのチェック
@@ -36,7 +36,7 @@ export async function handleSQLiteInsert(
       children_type_id: child.children_type_id,
     });
 
-    const result = await window.electronAPI.children_insert({
+    const result = await window.electronAPI.sqlite_children_insert({
       id: child.children_id,
       name: child.children_name,
       notes: child.notes,
@@ -51,7 +51,7 @@ export async function handleSQLiteInsert(
       facility_id: FACILITY_ID,
     });
 
-    const result2 = await window.electronAPI.facility_children_insert({
+    const result2 = await window.electronAPI.sqlite_facility_children_insert({
       children_id: child.children_id,
       facility_id: FACILITY_ID,
     });
@@ -64,72 +64,18 @@ export async function handleSQLiteInsert(
   // -----------------------------------------
   // ② managers テーブルのチェック
   // -----------------------------------------
-  console.log("SQLite: managers テーブル検索中...");
-
-  const existingManager = managersData.find((m) => {
-    const sameChild = String(m.children_id) === String(child.children_id);
-    const sameStaff = String(m.staff_id) === String(STAFF_ID);
-    return sameChild && sameStaff;
-  });
-
-  console.log("SQLite: existingManager:", existingManager);
-
-  if (!existingManager) {
-    console.log("SQLite: 担当者レコードなし → 新規作成");
-
-    const dayOfWeekJson = JSON.stringify({ days: [WEEK_DAY] });
-
     console.log("SQLite: managers_insert 実行 →", {
       children_id: child.children_id,
       staff_id: STAFF_ID,
-      day_of_week: dayOfWeekJson,
+      weekId:weekId,
     });
 
-    const result3 = await window.electronAPI.managers_insert({
+    const result3 = await window.electronAPI.sqlite_managers2_insert({
       children_id: child.children_id,
       staff_id: STAFF_ID,
-      day_of_week: dayOfWeekJson,
+      day_of_week_id: weekId,
     });
 
-    console.log("SQLite: managers_insert 完了:", result3);
-
-  } else {
-    console.log("SQLite: 既に担当レコードが存在します:", existingManager);
-
-    try {
-      console.log("SQLite: day_of_week JSON 解析中...");
-      const parsed = JSON.parse(existingManager.day_of_week);
-      const daysArray = parsed?.days ?? [];
-
-      console.log("SQLite: 現在登録されている曜日:", daysArray);
-
-      if (daysArray.includes(WEEK_DAY)) {
-        console.log("SQLite: 既に同じ曜日が登録されています:", WEEK_DAY);
-      } else {
-        console.log("SQLite: 新しい曜日を追加:", WEEK_DAY);
-
-        const updatedDays = [...daysArray, WEEK_DAY];
-        const updatedJson = JSON.stringify({ days: updatedDays });
-
-        console.log("SQLite: managers_update 実行 →", {
-          children_id: child.children_id,
-          staff_id: STAFF_ID,
-          day_of_week: updatedJson,
-        });
-
-        const result4 = await window.electronAPI.managers_update({
-          children_id: child.children_id,
-          staff_id: STAFF_ID,
-          day_of_week: updatedJson,
-        });
-
-        console.log("SQLite: managers_update 完了:", result4);
-      }
-    } catch (error) {
-      console.error("SQLite: JSON パースエラー:", error);
-      console.error("SQLite: パース対象:", existingManager.day_of_week);
-    }
-  }
-
+  console.log("SQLite: managers_insert 完了:", result3);
   console.log("====== SQLite: handleSQLiteInsert END ======");
 }

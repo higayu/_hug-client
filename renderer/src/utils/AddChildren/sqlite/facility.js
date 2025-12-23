@@ -1,5 +1,5 @@
 export async function insertFacilityChild(children_id, facility_id) {
-    const result = await window.electronAPI.facility_children_insert({
+    const result = await window.electronAPI.sqlite_facility_children_insert({
       children_id,
       facility_id,
     });
