@@ -2,7 +2,7 @@
 // 設定ファイル（config.json）の読み書きユーティリティ
 
 import { MESSAGES, ELEMENT_IDS } from './constants.js'
-import { getDateString, getTodayWeekday } from './dateUtils.js'
+import { getDateString, getTodayWeekdayId } from './dateUtils.js'
 
 /**
  * config.jsonを保存
@@ -31,26 +31,39 @@ export async function saveConfig(configData) {
  */
 export async function loadConfig() {
   const output = document.getElementById(ELEMENT_IDS.CONFIG_OUTPUT)
+
   try {
     console.log('🔄 [CONFIG] config.json読み込み開始')
     const result = await window.electronAPI.readConfig()
     console.log('🔍 [CONFIG] readConfig結果:', result)
-    
+
     if (!result.success) {
       console.error('❌ [CONFIG] 読み込みエラー:', result.error)
       if (output) output.textContent = '❌ 読み込みエラー: ' + result.error
       return null
     }
 
-    const data = result.data
+    const data = result.data ?? {}
     console.log('🔍 [CONFIG] 読み込んだデータ:', data)
 
-    // 自動で日付と曜日を設定
-    data.DATE_STR = getDateString()
-    data.WEEK_DAY = getTodayWeekday()
+    // =============================================================
+    // ✅ CURRENT_DATE を自動セット（新仕様）
+    // =============================================================
+    const dateStr = getDateString()
+    const weekdayId = getTodayWeekdayId()
+
+    data.CURRENT_DATE = {
+      dateStr,
+      weekdayId,
+    }
+
+    // 旧キーがあれば削除（事故防止）
+    delete data.DATE_STR
+    delete data.WEEK_DAY
 
     console.log('✅ [CONFIG] config.json読み込み成功:', data)
     if (output) output.textContent = JSON.stringify(data, null, 2)
+
     return data
   } catch (err) {
     console.error('❌ [CONFIG] config.json読み込みエラー:', err)
@@ -58,4 +71,3 @@ export async function loadConfig() {
     return null
   }
 }
-

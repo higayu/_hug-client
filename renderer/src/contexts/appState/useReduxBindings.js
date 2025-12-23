@@ -3,10 +3,12 @@ import { useSelector, shallowEqual } from 'react-redux'
 import * as s from '@/store/slices/appStateSlice'
 
 export function useReduxBindings() {
-  // ⚠️ object を返す selector だけ shallowEqual を指定
+  // ✅ appState 全体（必要な場合のみ）
   const appState = useSelector(s.selectAppState, shallowEqual)
 
-  // primitives / memoized selector はそのままでOK
+  // =========================
+  // primitives
+  // =========================
   const HUG_USERNAME = useSelector(s.selectHugUsername)
   const HUG_PASSWORD = useSelector(s.selectHugPassword)
   const GEMINI_API_KEY = useSelector(s.selectGeminiApiKey)
@@ -15,14 +17,21 @@ export function useReduxBindings() {
 
   const USE_AI = useSelector(s.selectUseAI)
   const DATABASE_TYPE = useSelector(s.selectDatabaseType)
-  const SELECT_CHILD = useSelector(s.selectSelectedChild)
 
   const STAFF_ID = useSelector(s.selectStaffId)
   const FACILITY_ID = useSelector(s.selectFacilityId)
 
-  const DATE_STR = useSelector(s.selectDateStr)
-  const WEEK_DAY = useSelector(s.selectWeekDay)
+  const SELECT_CHILD = useSelector(s.selectSelectedChild)
 
+  // =========================
+  // ✅ 日付・曜日は1本化
+  // =========================
+  const CURRENT_DATE = useSelector(s.selectCurrentDate, shallowEqual)
+  // { dateStr, weekdayId }
+
+  // =========================
+  // others
+  // =========================
   const PROMPTS = useSelector(s.selectPrompts)
   const childrenData = useSelector(s.selectChildrenData)
   const attendanceData = useSelector(s.selectAttendanceData)
@@ -39,13 +48,14 @@ export function useReduxBindings() {
 
     USE_AI,
     DATABASE_TYPE,
-    SELECT_CHILD,
 
     STAFF_ID,
     FACILITY_ID,
 
-    DATE_STR,
-    WEEK_DAY,
+    SELECT_CHILD,
+
+    // ✅ これだけ
+    CURRENT_DATE,
 
     PROMPTS,
     childrenData,
@@ -53,4 +63,3 @@ export function useReduxBindings() {
     DEBUG_FLG,
   }
 }
-

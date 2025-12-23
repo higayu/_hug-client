@@ -1,39 +1,33 @@
-import React, { useState,useEffect } from "react";
-//import { useAppState } from "@/contexts/AppStateContext.jsx";
-import { useAppState } from '@/contexts/appState';
+import React, { useState, useEffect } from "react";
+import { useAppState } from "@/contexts/appState";
 import { store } from "@/store/store.js";
-import { getDayOfWeekId } from '@/utils/dateUtils.js';
 import { useSelector } from "react-redux";
-import { updateManager,getManagerRecord } from '@/utils/managersUtils.js';
+import { updateManager, getManagerRecord } from "@/utils/managersUtils.js";
 
 /**
  * 確認モーダルコンポーネント
- * @param {boolean} show - モーダルを表示するかどうか
- * @param {string} message - 表示メッセージ
- * @param {Array} list - 表示する児童リスト（任意）
- * @param {function} onConfirm - 「はい」クリック時
- * @param {function} onCancel - 「いいえ」クリック時
  */
 function ConfirmModal({ show, message, list = [], onConfirm, onCancel }) {
-
   const database = useSelector((state) => state.database);
+
   const pronunciation = store.getState().database.pronunciation;
   const childrenType = store.getState().database.children_type;
   const childrenData = store.getState().database.children;
-  const { STAFF_ID, WEEK_DAY, FACILITY_ID } = useAppState();
+
+  // ✅ 新仕様：CURRENT_DATE から weekdayId を直接取得
+  const { STAFF_ID, FACILITY_ID, CURRENT_DATE } = useAppState();
+  const weekdayId = CURRENT_DATE?.weekdayId;
 
   const [selectedValues, setSelectedValues] = useState({});
 
   useEffect(() => {
-    console.log("選択日付",WEEK_DAY);
-    console.log("職員ID",STAFF_ID);
+    console.log("職員ID", STAFF_ID);
+    console.log("曜日ID", weekdayId);
+    console.log("day_of_week マスタ", database["day_of_week"]);
+    console.log("managers データ", database["managers"]);
+  }, [database, STAFF_ID, weekdayId]);
 
-    console.log("曜日のID",getDayOfWeekId(WEEK_DAY, database["day_of_week"]));
-    console.log("初期化ログ: day_of_weekのデータ", database["day_of_week"]);
-    console.log("初期化ログ: managersのデータ", database["managers"]);
-  }, [database]);
-
-  // 🟦 フックが全て終わったあとで条件分岐
+  // モーダル非表示
   if (!show) return null;
 
   const handleSelectChange = (children_id, key, value) => {
@@ -44,13 +38,12 @@ function ConfirmModal({ show, message, list = [], onConfirm, onCancel }) {
   };
 
   const handleConfirm = () => {
-    console.log("day_of_weekのデータ", database["day_of_week"]);
-    console.log("Managersのデータ", database["managers"]);
-
     const managersList = database["managers"];
-    const weekID = getDayOfWeekId(WEEK_DAY, database["day_of_week"]);
-    console.log('今の曜日のID',weekID);
 
+    if (!weekdayId) {
+      console.error("❌ weekdayId が未設定です");
+      return;
+    }
 
     const updatedList = list.map((child) => {
       const existingChild = childrenData.find(
@@ -64,9 +57,11 @@ function ConfirmModal({ show, message, list = [], onConfirm, onCancel }) {
         managersList
       );
 
-      // ② day_of_week を更新（新しい曜日IDを追加）
-      const updatedDayJson = updateManager(managerRecord.day_of_week, weekID);
-      console.log("保存曜日",updatedDayJson);
+      // ② weekdayId をそのまま使う（変換不要）
+      const updatedDayJson = updateManager(
+        managerRecord?.day_of_week,
+        weekdayId
+      );
 
       return {
         ...child,
@@ -80,16 +75,14 @@ function ConfirmModal({ show, message, list = [], onConfirm, onCancel }) {
           selectedValues[child.children_id]?.children_type_id ??
           null,
 
-        // ★ 追加：更新後の day_of_week JSON を付与
+        // ★ 更新後の day_of_week JSON
         day_of_week: updatedDayJson,
       };
     });
 
     console.log("送信データ(updatedList):", updatedList);
-
     onConfirm(updatedList);
   };
-
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
@@ -112,14 +105,13 @@ function ConfirmModal({ show, message, list = [], onConfirm, onCancel }) {
                   (c) => String(c.id) === String(child.children_id)
                 );
 
-                const isExisting = !!existingChild; // ✅ 児童テーブルに存在するか判定
+                const isExisting = !!existingChild;
 
                 return (
                   <tr key={child.children_id} className="hover:bg-blue-50">
                     <td className="border px-2 py-1">{child.children_id}</td>
                     <td className="border px-2 py-1">{child.children_name}</td>
 
-                    {/* ✅ 検索文字（既存なら固定） */}
                     <td className="border px-2 py-1">
                       <select
                         className={`border px-2 py-1 w-full ${
@@ -148,7 +140,6 @@ function ConfirmModal({ show, message, list = [], onConfirm, onCancel }) {
                       </select>
                     </td>
 
-                    {/* ✅ 利用種別（既存なら固定） */}
                     <td className="border px-2 py-1">
                       <select
                         className={`border px-2 py-1 w-full ${

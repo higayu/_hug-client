@@ -2,15 +2,20 @@ import { useDispatch, useSelector } from "react-redux"
 import { useEffect, useRef, useState } from "react"
 import { useChildrenList } from "@/hooks/useChildrenList.js"
 import { useAppState } from "@/contexts/appState"
-import { getWeekdayFromDate, getDateString } from "@/utils/dateUtils.js"
+import {
+  getWeekdayIdFromDate,
+  getDateString,
+} from "@/utils/dateUtils.js"
 import { useToast } from "@/components/common/ToastContext.jsx"
 import TabsContainer from "./common/TabsContainer.jsx"
 import TableDataGetButton from "./common/TableDataGetButon.jsx"
+import WeekdaySelect from "@/components/common/WeekdaySelect.jsx"
+
 
 function Sidebar() {
   const { showInfoToast } = useToast()
 
-  // ✅ Redux / AppState（唯一の正）
+  // ✅ AppState（唯一の正）
   const { setCurrentDate, CURRENT_DATE } = useAppState()
 
   // 再取得
@@ -33,19 +38,15 @@ function Sidebar() {
   useEffect(() => {
     if (!dayOfWeekList.length) return
 
-    // weekdayId 未設定 → dateStr から決定
-    if (!CURRENT_DATE.weekdayId) {
-      const label = getWeekdayFromDate(initialDate)
-      const weekdayObj =
-        dayOfWeekList.find((w) => w.label_jp === label) ??
-        dayOfWeekList[0]
-
-      setCurrentDate({ weekdayId: weekdayObj.id })
-    }
-
     // dateStr 未設定 → 今日
     if (!CURRENT_DATE.dateStr) {
       setCurrentDate({ dateStr: initialDate })
+    }
+
+    // weekdayId 未設定 → dateStr から算出
+    if (!CURRENT_DATE.weekdayId) {
+      const weekdayId = getWeekdayIdFromDate(initialDate)
+      setCurrentDate({ weekdayId })
     }
   }, [dayOfWeekList])
 
@@ -56,9 +57,9 @@ function Sidebar() {
     const selectedDate = e.target.value
     if (!selectedDate) return
 
-    const weekdayLabel = getWeekdayFromDate(selectedDate)
+    const weekdayId = getWeekdayIdFromDate(selectedDate)
     const weekdayObj =
-      dayOfWeekList.find((w) => w.label_jp === weekdayLabel) ??
+      dayOfWeekList.find((w) => w.id === weekdayId) ??
       dayOfWeekList[0]
 
     setCurrentDate({
@@ -140,22 +141,7 @@ function Sidebar() {
             曜日別（対応児童）:
           </label>
 
-          <select
-            id="weekdaySelect"
-            name="weekdaySelect"
-            value={CURRENT_DATE.weekdayId ?? ""}
-            onChange={handleWeekdayChange}
-            className="w-full p-2 border border-gray-300 rounded text-sm bg-white text-black"
-          >
-            {dayOfWeekList
-              .slice()
-              .sort((a, b) => a.sort_order - b.sort_order)
-              .map((w) => (
-                <option key={w.id} value={w.id}>
-                  {w.label_jp}
-                </option>
-              ))}
-          </select>
+          <WeekdaySelect />
         </div>
 
         {/* 固定ボタン */}
