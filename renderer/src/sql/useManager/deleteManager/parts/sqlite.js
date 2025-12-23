@@ -15,6 +15,6 @@ export async function handleSQLiteDelete(
     });
 
     console.log("SQLite: managers_delete 完了:", result3);
-
-  console.log("====== SQLite: handleSQLiteDelete END ======");
+    console.log("====== SQLite: handleSQLiteDelete END ======");
+    return true;
 }
