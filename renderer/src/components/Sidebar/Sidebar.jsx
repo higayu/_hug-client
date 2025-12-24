@@ -6,6 +6,9 @@ import {
   getWeekdayIdFromDate,
   getDateString,
 } from "@/utils/dateUtils.js"
+import {
+  getTodayYmdString,
+} from "@/utils/dateYMD.js"
 import { useToast } from "@/components/common/ToastContext.jsx"
 import TabsContainer from "./common/TabsContainer.jsx"
 import TableDataGetButton from "./common/TableDataGetButon.jsx"
@@ -15,7 +18,13 @@ function Sidebar() {
   const { showInfoToast } = useToast()
 
   // ✅ AppState（唯一の正）
-  const { setCurrentDate, CURRENT_DATE } = useAppState()
+  // 変更後
+  const {
+    CURRENT_DATE,        // 曜日専用
+    CURRENT_YMD,         // '2025-11-20'
+    setCurrentDate,
+    setCurrentYmd,
+  } = useAppState()
 
   // 再取得（手動）
   const { loadChildren } = useChildrenList()
@@ -29,34 +38,41 @@ function Sidebar() {
   // 初期化（日付・曜日ID）
   // =============================================================
   useEffect(() => {
-    // dateStr 未設定 → 今日
-    if (!CURRENT_DATE.dateStr) {
-      setCurrentDate({ dateStr: initialDate })
+    // 年月日が未設定 → 今日
+    if (!CURRENT_YMD) {
+      const today = getTodayYmdString()
+      setCurrentYmd(today)
+
+      const weekdayId = getWeekdayIdFromDate(today)
+      setCurrentDate({ weekdayId })
+      return
     }
 
-    // weekdayId 未設定 → dateStr から算出
-    if (!CURRENT_DATE.weekdayId) {
-      const weekdayId = getWeekdayIdFromDate(initialDate)
+    // 年月日があるのに weekdayId がない場合
+    if (CURRENT_YMD && CURRENT_DATE.weekdayId == null) {
+      const weekdayId = getWeekdayIdFromDate(CURRENT_YMD)
       setCurrentDate({ weekdayId })
     }
-  }, [CURRENT_DATE.dateStr, CURRENT_DATE.weekdayId, initialDate, setCurrentDate])
+  }, [CURRENT_YMD, CURRENT_DATE.weekdayId, setCurrentDate, setCurrentYmd])
+
 
   // =============================================================
   // 日付変更
   // =============================================================
   const handleDateChange = (e) => {
-    const selectedDate = e.target.value
+    const selectedDate = e.target.value // 'YYYY-MM-DD'
     if (!selectedDate) return
 
-    const weekdayId = getWeekdayIdFromDate(selectedDate)
+    // ① 年月日を更新
+    setCurrentYmd(selectedDate)
 
-    setCurrentDate({
-      dateStr: selectedDate,
-      weekdayId,
-    })
+    // ② 曜日を同期
+    const weekdayId = getWeekdayIdFromDate(selectedDate)
+    setCurrentDate({ weekdayId })
 
     showInfoToast(`📅 日付を ${selectedDate} に設定しました`)
   }
+
 
   // =============================================================
   // JSX
@@ -70,12 +86,12 @@ function Sidebar() {
           <label className="font-bold text-sm text-black mt-2.5 mb-1.5">
             日付:（個人記録）
           </label>
-          <input
-            type="date"
-            value={CURRENT_DATE.dateStr ?? ""}
-            onChange={handleDateChange}
-            className="w-full p-2 border border-gray-300 rounded text-sm bg-white text-black max-w-[200px] cursor-pointer"
-          />
+            <input
+              type="date"
+              value={CURRENT_YMD ?? ""}
+              onChange={handleDateChange}
+              className="w-full p-2 border border-gray-300 rounded text-sm bg-white text-black max-w-[200px] cursor-pointer"
+            />
         </div>
 
         {/* 曜日 Select（完全委譲） */}

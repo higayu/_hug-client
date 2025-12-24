@@ -3,7 +3,7 @@
 
 import { createSlice } from '@reduxjs/toolkit'
 import { getDateString, getTodayWeekdayId } from '../../utils/dateUtils.js'
-
+import { getTodayYmdString } from '../../utils/dateYMD.js'
 
 // 初期状態
 const initialState = {
@@ -28,6 +28,8 @@ const initialState = {
     dateStr: getDateString(),
     weekdayId: getTodayWeekdayId(),
   },
+
+  CURRENT_YMD: getTodayYmdString(), // "2025-12-24形式"
   
   SELECT_CHILD: "",
   SELECT_CHILD_NAME: "",
@@ -169,7 +171,7 @@ const appStateSlice = createSlice({
       state.PROMPTS = action.payload || {}
     },
 
-    setCurrentDate: (state, action) => {
+    setCurrentDate: (state, action) => {//曜日
       const { dateStr, weekdayId } = action.payload || {}
     
       if (dateStr !== undefined) {
@@ -179,6 +181,12 @@ const appStateSlice = createSlice({
         state.CURRENT_DATE.weekdayId = weekdayId
       }
     },
+    setCurrentYmd: (state, action) => {
+      if (typeof action.payload === 'string') {
+        state.CURRENT_YMD = action.payload
+      }
+    },
+
     
     
     // 複数の状態を一度に更新
@@ -261,6 +269,7 @@ export const {
   setFacilityId,
   setStaffId,
   setCurrentDate,
+  setCurrentYmd,
   setSelectedChild,
   setSelectedPcName,
   setChildrenData,
@@ -295,6 +304,8 @@ export const selectDatabaseType = (state) => state.appState.DATABASE_TYPE
 export const selectStaffId = (state) => state.appState.STAFF_ID
 export const selectFacilityId = (state) => state.appState.FACILITY_ID
 export const selectCurrentDate = (state) => state.appState.CURRENT_DATE 
+export const selectCurrentYmd = (state) => state.appState.CURRENT_YMD
+
 export const selectSelectedChild = (state) => state.appState.SELECT_CHILD
 export const selectSelectedChildName = (state) => state.appState.SELECT_CHILD_NAME
 export const selectSelectedPcName = (state) => state.appState.SELECT_PC_NAME

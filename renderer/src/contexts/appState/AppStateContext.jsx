@@ -22,6 +22,7 @@ import {
   setAttendanceData as setAttendanceDataRedux,
   setSelectedChildColumns,
   updateAppState as updateAppStateRedux,
+  setCurrentYmd as setCurrentYmdRedux,   // ★ 追加
 } from '@/store/slices/appStateSlice'
 
 import { loadIni as loadIniFromUtils } from '@/utils/iniUtils'
@@ -175,6 +176,10 @@ export function AppStateProvider({ children }) {
     (payload) => dispatch(setCurrentDateRedux(payload)),
     [dispatch]
   )
+ const setCurrentYmd = useCallback(
+   (payload) => dispatch(setCurrentYmdRedux(payload)),
+   [dispatch]
+ )
 
   const setSelectedChildCallback = useCallback(
     (childId, childName) =>
@@ -214,6 +219,7 @@ export function AppStateProvider({ children }) {
     actions: {
       updateAppState,
       setCurrentDate,
+      setCurrentYmd, // ★ 追加
       setSelectedChild: setSelectedChildCallback,
       setChildrenData,
       setSelectedPcName: setSelectedPcNameCallback,
@@ -241,6 +247,7 @@ export function AppStateProvider({ children }) {
 
         updateAppState,
         setCurrentDate,
+        setCurrentYmd,   // ★ これが無かった
         setSelectedChild: setSelectedChildCallback,
         setChildrenData,
         setSelectedPcName: setSelectedPcNameCallback,
