@@ -6,12 +6,18 @@ import { useToast } from  '@/components/common/ToastContext.jsx'
 import { useAppState } from '@/contexts/appState'
 import { useTabs } from '@/hooks/useTabs'
 import { useHugActions } from '@/hooks/useHugActions'
+import { useDispatch, useSelector } from 'react-redux'
+import { setFacilityId, selectFacilityId } from '@/store/slices/appStateSlice'
 
 function Toolbar() {
   const { showInfoToast } = useToast()
   const { appState } = useAppState()
   const { addPersonalRecordTab, addProfessionalSupportNewTab, addProfessionalSupportListTab,clearActiveWebviewCache } = useTabs()
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false)
+
+  const dispatch = useDispatch()
+  const facilityId = useSelector(selectFacilityId)
+
   
   // 各種ボタンのイベントリスナーとハンドラー
   const { 
@@ -61,6 +67,10 @@ function Toolbar() {
       dropdown.style.top = (rect.bottom + 5) + 'px'
       dropdown.style.left = rect.left + 'px'
       dropdown.style.zIndex = '99999'
+    }
+    if (!facilityId) {
+      console.log('',);
+      dispatch(setFacilityId("3"))
     }
 
     // ========= 設定ナビゲーション =====
@@ -219,6 +229,18 @@ function Toolbar() {
     }
   }, [])
 
+  const handleFacilityChange = (e) => {
+    const nextFacilityId = e.target.value
+  
+    console.log('[facility change]', {
+      before: facilityId,
+      after: nextFacilityId,
+    })
+  
+    dispatch(setFacilityId(nextFacilityId))
+  }
+  
+
   return (
     <div 
       id="toolbar" 
@@ -318,15 +340,17 @@ function Toolbar() {
           施設:
         </button>
 
-      <select 
-        id="facilitySelect" 
-        className="js_c_f_id bg-white text-black border border-[#ddd] px-2.5 py-1.5 rounded text-sm cursor-pointer whitespace-nowrap flex-shrink-0 hover:border-gray-400 focus:outline-none focus:border-[#2196f3] focus:ring-2 focus:ring-[rgba(33,150,243,0.2)]"
-      >
-        <option value="3" defaultChecked>PD吉島</option>
-        <option value="6">PD光</option>
-        <option value="7">PD横川</option>
-        <option value="8">PD五日市駅前</option>
-      </select>
+        <select
+            id="facilitySelect"
+            value={facilityId}
+            onChange={handleFacilityChange}
+            className="js_c_f_id bg-white text-black border border-[#ddd] px-2.5 py-1.5 rounded text-sm"
+          >
+            <option value="3">PD吉島</option>
+            <option value="6">PD光</option>
+            <option value="7">PD横川</option>
+            <option value="8">PD五日市駅前</option>
+          </select>
 
       {/* ======== ナビゲーションメニュー ======== */}
       <nav className="relative inline-block ml-0 min-w-auto flex-shrink-0 z-[1001]">
