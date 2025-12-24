@@ -27,7 +27,7 @@ export default function TableDataGetButton() {
     }
   
     const facility_id = appState.SELECT_FACILITY_ID || appState.FACILITY_ID || "1";
-    const date_str = appState.DATE_STR || new Date().toISOString().slice(0, 10);
+    const date_str = appState.CURRENT_YMD || new Date().toISOString().slice(0, 10);
   
     const targetUrl = `https://www.hug-ayumu.link/hug/wm/attendance.php?mode=detail&f_id=${facility_id}&date=${date_str}`;
     console.log("📅 勤怠データ取得:", targetUrl);

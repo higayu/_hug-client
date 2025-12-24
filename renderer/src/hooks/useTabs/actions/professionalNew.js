@@ -16,7 +16,7 @@ export function addProfessionalSupportNewAction(appState) {
     return
   }
 
-  const newId = `hugview-${appState.DATE_STR}-${document.querySelectorAll('webview').length}`
+  const newId = `hugview-${appState.CURRENT_YMD}-${document.querySelectorAll('webview').length}`
 
   const newWebview = createWebview(
     newId,
@@ -54,7 +54,7 @@ export function addProfessionalSupportNewAction(appState) {
     initialized = true
 
     // 日付を日本語へ変換
-    const parts = appState.DATE_STR.split('-')
+    const parts = appState.CURRENT_YMD.split('-')
     const jpDate = `${parts[0]}年${parseInt(parts[1])}月${parseInt(parts[2])}日`
 
     // 開始終了時刻のパース

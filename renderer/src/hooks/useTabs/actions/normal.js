@@ -17,7 +17,7 @@ export function addNormalTabAction(appState) {
 
   const newWebview = createWebview(
     newId,
-    `https://www.hug-ayumu.link/hug/wm/attendance.php?mode=detail&f_id=${appState.FACILITY_ID}&date=${appState.DATE_STR}`
+    `https://www.hug-ayumu.link/hug/wm/attendance.php?mode=detail&f_id=${appState.FACILITY_ID}&date=${appState.CURRENT_YMD}`
   )
 
   webviewContainer.appendChild(newWebview)

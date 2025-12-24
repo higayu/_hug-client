@@ -222,7 +222,7 @@ export function useHugActions() {
       const dateInput = document.getElementById("settings")?.querySelector("#dateSelect")
       
       const facility_id = facilitySelect?.value || appState.FACILITY_ID
-      const date_str = dateInput?.value || appState.DATE_STR
+      const date_str = dateInput?.value || appState.CURRENT_YMD
 
       if (!facility_id || !date_str) {
         throw new Error("施設IDまたは日付が設定されていません")
@@ -281,7 +281,7 @@ export function useHugActions() {
         button.textContent = "📊 出勤データ取得"
       }
     }
-  }, [appState.FACILITY_ID, appState.DATE_STR, dispatch])
+  }, [appState.FACILITY_ID, appState.CURRENT_YMD, dispatch])
 
   /**
    * HTMLエスケープ関数

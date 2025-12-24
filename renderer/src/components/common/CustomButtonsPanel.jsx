@@ -24,13 +24,13 @@ function CustomButtonsPanel() {
     console.log("🔍 [CUSTOM_BUTTONS] buttonConfig:", buttonConfig)
     console.log("🔍 [CUSTOM_BUTTONS] AppState:", {
       FACILITY_ID: appState.FACILITY_ID,
-      DATE_STR: appState.DATE_STR
+      DATE_STR: appState.CURRENT_YMD
     })
     try {
       if (window.electronAPI && window.electronAPI.open_addition_compare_btn) {
         console.log("📤 [CUSTOM_BUTTONS] electronAPI.open_addition_compare_btn を呼び出します")
-        console.log("📤 [CUSTOM_BUTTONS] 引数:", appState.FACILITY_ID, appState.DATE_STR)
-        window.electronAPI.open_addition_compare_btn(appState.FACILITY_ID, appState.DATE_STR)
+        console.log("📤 [CUSTOM_BUTTONS] 引数:", appState.FACILITY_ID, appState.CURRENT_YMD)
+        window.electronAPI.open_addition_compare_btn(appState.FACILITY_ID, appState.CURRENT_YMD)
       } else {
         console.error("❌ [CUSTOM_BUTTONS] window.electronAPI.open_addition_compare_btn が見つかりません")
         console.log("🔍 [CUSTOM_BUTTONS] window.electronAPI:", window.electronAPI)
@@ -45,7 +45,7 @@ function CustomButtonsPanel() {
     console.log("🔧 カスタムアクション1を実行")
     console.log("🔍 [CUSTOM_BUTTONS] AppState:", {
       FACILITY_ID: appState.FACILITY_ID,
-      DATE_STR: appState.DATE_STR
+      DATE_STR: appState.CURRENT_YMD
     })
 
     // 新しいwebviewを作成
@@ -56,9 +56,9 @@ function CustomButtonsPanel() {
     const newId = `hugview-${Date.now()}-${document.querySelectorAll("webview").length}`
     const newWebview = document.createElement("webview")
     newWebview.id = newId
-    console.log("🔍 日付指定", appState.DATE_STR)
+    console.log("🔍 日付指定", appState.CURRENT_YMD)
     // 指定されたURLを設定
-    const targetUrl = `https://www.hug-ayumu.link/hug/wm/attendance.php?mode=add&date=${appState.DATE_STR}&f_id=${appState.FACILITY_ID}`
+    const targetUrl = `https://www.hug-ayumu.link/hug/wm/attendance.php?mode=add&date=${appState.CURRENT_YMD}&f_id=${appState.FACILITY_ID}`
     newWebview.src = targetUrl
     newWebview.setAttribute("allowpopups", "true")
     newWebview.setAttribute("disablewebsecurity", "true")

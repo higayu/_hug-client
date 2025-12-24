@@ -12,7 +12,7 @@ export function addProfessionalSupportListAction(appState) {
     return
   }
 
-  const newId = `hugview-${appState.DATE_STR}-${document.querySelectorAll('webview').length}`
+  const newId = `hugview-${appState.CURRENT_YMD}-${document.querySelectorAll('webview').length}`
 
   const newWebview = createWebview(newId, `https://www.hug-ayumu.link/hug/wm/record_proceedings.php`)
   webviewContainer.appendChild(newWebview)

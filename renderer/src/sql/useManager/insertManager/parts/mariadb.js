@@ -4,7 +4,7 @@ export async function handleMariaDBInsert(
   child,
   {
     STAFF_ID,
-    CURRENT_DATE,
+    weekId,
     priority = 0, // ← 通常対応 = 0
   }
 ) {
@@ -16,13 +16,15 @@ export async function handleMariaDBInsert(
   // ----------------------------------
   try {
 
-    const weekId =  CURRENT_DATE.weekdayId;
+
+    console.log("weekId:", weekId);
+    console.log("STAFF_ID:", STAFF_ID);
+    console.log("child.children_id:", child.children_id);
 
     const payload = {
       children_id: Number(child.children_id),
       staff_id: Number(STAFF_ID),
-      day_of_week_id: weekId,
-      priority: Number(priority),
+      day_of_week_id: weekId
     };
 
     console.log("📡 mariadb_managers2_insert:", payload);

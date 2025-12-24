@@ -99,7 +99,7 @@ export function extractExitButtonOnclick(column6Html) {
 async function useDedicatedTabAndNavigate() {
   const state = store.getState();
   const facilityId = state.appState.FACILITY_ID;
-  const dateStr = state.appState.DATE_STR;
+  const dateStr = state.appState.CURRENT_YMD;
 
   if (!facilityId || !dateStr) {
     throw new Error('FACILITY_ID または DATE_STR がありません');

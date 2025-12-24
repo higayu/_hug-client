@@ -17,7 +17,7 @@ export function addPersonalRecordTabAction2(appState) {
       return
     }
   
-    const newId = `hugview-${appState.DATE_STR}-${document.querySelectorAll('webview').length}`
+    const newId = `hugview-${appState.CURRENT_YMD}-${document.querySelectorAll('webview').length}`
     const newWebview = createWebview(
       newId,
       `https://www.hug-ayumu.link/hug/wm/contact_book.php?id=${appState.SELECT_CHILD}`
@@ -67,8 +67,8 @@ export function addPersonalRecordTabAction2(appState) {
           const dp1 = document.querySelector('input[name="date"]');
           const dp2 = document.querySelector('input[name="date_end"]');
           if (dp1 && dp2) {
-            dp1.value = "${appState.DATE_STR}";
-            dp2.value = "${appState.DATE_STR}";
+            dp1.value = "${appState.CURRENT_YMD}";
+            dp2.value = "${appState.CURRENT_YMD}";
             dp1.dispatchEvent(new Event("change", { bubbles: true }));
             dp2.dispatchEvent(new Event("change", { bubbles: true }));
           }
@@ -203,7 +203,7 @@ export function addPersonalRecordTabAction3(appState) {
     return
   }
 
-  const newId = `hugview-${appState.DATE_STR}-${document.querySelectorAll('webview').length}`
+  const newId = `hugview-${appState.CURRENT_YMD}-${document.querySelectorAll('webview').length}`
   const newWebview = createWebview(
     newId,
     `https://www.hug-ayumu.link/hug/wm/contact_book.php?id=${appState.SELECT_CHILD}`
@@ -250,8 +250,8 @@ export function addPersonalRecordTabAction3(appState) {
           const dp1 = document.querySelector('input[name="date"]')
           const dp2 = document.querySelector('input[name="date_end"]')
           if (dp1 && dp2) {
-            dp1.value = "${appState.DATE_STR}"
-            dp2.value = "${appState.DATE_STR}"
+            dp1.value = "${appState.CURRENT_YMD}"
+            dp2.value = "${appState.CURRENT_YMD}"
             dp1.dispatchEvent(new Event("input", { bubbles: true }))
             dp1.dispatchEvent(new Event("change", { bubbles: true }))
             dp2.dispatchEvent(new Event("input", { bubbles: true }))

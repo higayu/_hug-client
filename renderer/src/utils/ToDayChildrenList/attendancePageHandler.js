@@ -1,6 +1,5 @@
 // renderer/src/utils/ToDayChildrenList/attendancePageHandler.js
 import { fetchAndExtractAttendanceData } from "@/store/slices/attendanceSlice.js";
-import { fetchAttendanceTableData } from "./attendanceTable.js";
 /**
  * 勤怠ページからテーブルを抽出し、Redux・AppState・Electronに保存する関数
  */

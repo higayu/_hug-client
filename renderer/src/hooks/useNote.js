@@ -15,7 +15,7 @@ export function useNote() {
       console.error("❌ 一時メモ保存失敗");
       return false;
     }
-  }, [appState.STAFF_ID, appState.CURRENT_DATE, appState.DATE_STR]);
+  }, [appState.STAFF_ID, appState.CURRENT_DATE, appState.CURRENT_YMD]);
 
   const loadTemp = useCallback((childId, proxy) => {
     return loadFn(childId, proxy, {

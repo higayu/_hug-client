@@ -32,8 +32,6 @@ function Sidebar() {
   const sidebarRef = useRef(null)
   const [isPinned, setIsPinned] = useState(false)
 
-  const initialDate = CURRENT_DATE.dateStr || getDateString()
-
   // =============================================================
   // 初期化（日付・曜日ID）
   // =============================================================
@@ -41,19 +39,35 @@ function Sidebar() {
     // 年月日が未設定 → 今日
     if (!CURRENT_YMD) {
       const today = getTodayYmdString()
-      setCurrentYmd(today)
+  
+      console.log("[INIT] CURRENT_YMD が未設定のため今日をセット:", today)
 
+      console.log("today:", today, typeof today)
+  
+      setCurrentYmd(today)
+      console.log("CURRENT_YMD:", CURRENT_YMD, typeof CURRENT_YMD)
+      
       const weekdayId = getWeekdayIdFromDate(today)
+  
+      console.log("[INIT] 今日の日付から weekdayId を算出:", weekdayId)
+  
       setCurrentDate({ weekdayId })
       return
     }
-
+  
     // 年月日があるのに weekdayId がない場合
     if (CURRENT_YMD && CURRENT_DATE.weekdayId == null) {
       const weekdayId = getWeekdayIdFromDate(CURRENT_YMD)
+  
+      console.log(
+        "[INIT] CURRENT_YMD はあるが weekdayId が未設定。再計算:",
+        { CURRENT_YMD, weekdayId }
+      )
+  
       setCurrentDate({ weekdayId })
     }
   }, [CURRENT_YMD, CURRENT_DATE.weekdayId, setCurrentDate, setCurrentYmd])
+  
 
 
   // =============================================================
@@ -62,16 +76,15 @@ function Sidebar() {
   const handleDateChange = (e) => {
     const selectedDate = e.target.value // 'YYYY-MM-DD'
     if (!selectedDate) return
-
+  
+    console.log("[DATE CHANGE] ユーザーが日付を変更:", selectedDate)
+  
     // ① 年月日を更新
     setCurrentYmd(selectedDate)
-
-    // ② 曜日を同期
-    const weekdayId = getWeekdayIdFromDate(selectedDate)
-    setCurrentDate({ weekdayId })
-
+  
     showInfoToast(`📅 日付を ${selectedDate} に設定しました`)
   }
+  
 
 
   // =============================================================

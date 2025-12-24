@@ -95,7 +95,7 @@ export function useTabs() {
           e.preventDefault()
           window.electronAPI.Open_NowDayPage({
             facilityId: appState.FACILITY_ID,
-            dateStr: appState.DATE_STR,
+            dateStr: appState.CURRENT_YMD,
           })
         })
       }
@@ -132,7 +132,7 @@ export function useTabs() {
       e.preventDefault()
       window.electronAPI.Open_NowDayPage({
         facilityId: appState.FACILITY_ID,
-        dateStr: appState.DATE_STR,
+        dateStr: appState.CURRENT_YMD,
       })
     }
     addTabBtn.addEventListener('contextmenu', handleContextMenu)
@@ -166,7 +166,7 @@ export function useTabs() {
         professionalSupportBtn.removeEventListener('click', addProfessionalSupportListTab)
       }
     }
-  }, [addNormalTab, addPersonalRecordTab, addProfessionalSupportListTab, addWebManagerActionTab, appState.FACILITY_ID, appState.DATE_STR])
+  }, [addNormalTab, addPersonalRecordTab, addProfessionalSupportListTab, addWebManagerActionTab, appState.FACILITY_ID, appState.CURRENT_YMD])
 
   return {
     addNormalTab,
