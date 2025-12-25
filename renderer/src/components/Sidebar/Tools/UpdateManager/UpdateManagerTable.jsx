@@ -10,6 +10,8 @@ import { useToast } from "@/components/common/ToastContext.jsx";
 import { useChildrenList } from "@/hooks/useChildrenList.js";
 import { selectManagersFull } from "./selectManagersFull.js";
 
+import { DAY_OF_WEEK_MASTER } from "@/utils/dateUtils.js"
+
 const MODAL_COMPONENTS = {
   edit: EditModal,
   delete: DeleteModal,
@@ -18,7 +20,7 @@ const MODAL_COMPONENTS = {
 export default function UpdateManagerTable() {
   const { showInfoToast, showErrorToast } = useToast();
   const { loadChildren } = useChildrenList();
-  const { STAFF_ID, appState } = useAppState();
+  const { STAFF_ID, appState, CURRENT_DATE, setCurrentDate } = useAppState();
 
   // DB から取得済みのテーブル
   const database = useSelector((state) => state.database);
@@ -38,14 +40,23 @@ export default function UpdateManagerTable() {
     const data = selectManagersFull(database);
     setManagers(data);
 
-    // 初期タブ（最小 sort_order の曜日）
+    // 初期タブ：CURRENT_DATE.weekdayId を優先
     if (dayOfWeekMaster.length > 0 && activeDayId == null) {
-      const firstDay = [...dayOfWeekMaster].sort(
-        (a, b) => a.sort_order - b.sort_order
-      )[0];
-      setActiveDayId(firstDay.id);
+      const today = dayOfWeekMaster.find(
+        (d) => Number(d.id) === Number(CURRENT_DATE.weekdayId)
+      );
+
+      if (today) {
+        setActiveDayId(today.id);
+      } else {
+        // フォールバック（念のため）
+        const firstDay = [...dayOfWeekMaster].sort(
+          (a, b) => a.sort_order - b.sort_order
+        )[0];
+        setActiveDayId(firstDay.id);
+      }
     }
-  }, [database, dayOfWeekMaster]);
+  }, [database, dayOfWeekMaster, CURRENT_DATE.weekdayId]);
 
   // ------------------------------------------
   // 表示用：曜日で絞り込み
