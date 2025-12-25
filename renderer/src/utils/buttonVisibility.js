@@ -27,8 +27,6 @@ export function updateButtonVisibility() {
 
   // 各ボタンの表示/非表示を制御
   const buttonMappings = {
-    'individualSupportPlan': 'Individual_Support_Button',
-    'specializedSupportPlan': 'Specialized-Support-Plan',
     'importSetting': 'Import-Setting',
     'getUrl': 'Get-Url',
     'loadIni': 'Load-Ini',

@@ -42,8 +42,6 @@ function getDefaultIni() {
         autoRefresh: { enabled: false, interval: 30000 },
       },
       features: {
-        individualSupportPlan: { enabled: true, buttonText: "個別支援計画", buttonColor: "#007bff" },
-        specializedSupportPlan: { enabled: true, buttonText: "専門的支援計画", buttonColor: "#28a745" },
         importSetting: { enabled: false, buttonText: "設定ファイル取得", buttonColor: "#6c757d" },
         getUrl: { enabled: false, buttonText: "URL取得", buttonColor: "#17a2b8" },
         loadIni: { enabled: true, buttonText: "設定の再読み込み", buttonColor: "#e5d7fe" },

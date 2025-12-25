@@ -15,16 +15,6 @@
       "confirmOnClose": true
     },
     "features": {
-      "individualSupportPlan": {
-        "enabled": true,
-        "buttonText": "個別支援計画",
-        "buttonColor": "#007bff"
-      },
-      "specializedSupportPlan": {
-        "enabled": true,
-        "buttonText": "専門的支援計画",
-        "buttonColor": "#28a745"
-      },
       "importSetting": {
         "enabled": false,
         "buttonText": "設定ファイル取得",

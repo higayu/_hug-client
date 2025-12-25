@@ -116,6 +116,7 @@ function Toolbar() {
       }
 
       handleSupportOutsideClick = (e) => {
+        e.stopPropagation()
         if (!panel_Support.contains(e.target) && e.target !== panel_Support_Btn) {
           panel_Support.classList.remove("open")
         }
@@ -142,6 +143,7 @@ function Toolbar() {
       }
 
       handleSpecialOutsideClick = (e) => {
+        e.stopPropagation()
         if (!panel_special.contains(e.target) && e.target !== panel_special_Btn) {
           panel_special.classList.remove("open")
         }
@@ -306,6 +308,7 @@ function Toolbar() {
         </button>
         <div 
           id="panel-support" 
+          onClick={(e) => e.stopPropagation()}
           className="navInner fixed right-auto top-auto bg-white border border-gray-300 rounded-md shadow-lg z-[99999] min-w-[200px] max-h-[300px] overflow-y-auto"
         >
           <ul className="list-none m-0 p-0 py-1.25">

@@ -314,16 +314,6 @@ export function useSettingsModalLogic(isOpen) {
               },
             },
             features: {
-              individualSupportPlan: {
-                enabled: true,
-                buttonText: "個別支援計画",
-                buttonColor: "#007bff",
-              },
-              specializedSupportPlan: {
-                enabled: true,
-                buttonText: "専門的支援計画",
-                buttonColor: "#28a745",
-              },
               additionCompare: {
                 enabled: true,
                 buttonText: "加算比較",
