@@ -8,6 +8,7 @@ import { useTabs } from '@/hooks/useTabs'
 import { useHugActions } from '@/hooks/useHugActions'
 import { useDispatch, useSelector } from 'react-redux'
 import { setFacilityId, selectFacilityId } from '@/store/slices/appStateSlice'
+import { ArrowRightOnRectangleIcon,TrashIcon,Cog6ToothIcon,AdjustmentsHorizontalIcon } from "@heroicons/react/24/outline";
 
 function Toolbar() {
   const { showInfoToast } = useToast()
@@ -354,33 +355,50 @@ function Toolbar() {
 
       {/* ======== ナビゲーションメニュー ======== */}
       <nav className="relative inline-block ml-0 min-w-auto flex-shrink-0 z-[1001]">
-        <button 
-          id="panel-btn" 
-          className="bg-[#515152] text-white border-none rounded-md px-3 py-1.5 cursor-pointer transition-all whitespace-nowrap relative z-[1002] hover:bg-[#2196f3]"
-        >
-          ⚙️設定 ▾
-        </button>
+          <button
+            id="panel-btn"
+            className="flex items-center gap-2
+                      bg-[#515152] text-white border-none rounded-md
+                      px-3 py-1.5 text-sm cursor-pointer whitespace-nowrap
+                      transition-all relative z-[1002]
+                      hover:bg-[#2196f3]"
+          >
+            <AdjustmentsHorizontalIcon className="h-5 w-5 text-white" />
+            <span>設定</span>
+            <span className="text-xs opacity-80">▾</span>
+          </button>
         <div 
           id="panel" 
           className="navInner fixed right-auto top-auto bg-white border border-gray-300 rounded-md shadow-lg z-[99999] min-w-[200px] max-h-[300px] overflow-y-auto"
         >
           <ul className="list-none m-0 p-0 py-1.25">
             <li className="m-0 p-0">
-              <button 
+              <button
                 id="loginBtn"
                 onClick={handleLogin}
-                className="block w-full text-left text-black border-none bg-transparent px-4 py-2 text-sm cursor-pointer transition-all hover:bg-[#e3f2fd]"
+                className="
+                  flex w-full items-center gap-2
+                  text-left text-while
+                  border-none
+                  px-4 py-2 text-sm
+                  cursor-pointer transition-colors
+                  bg-sky-600
+                  hover:bg-gray-800
+                "
+                aria-label="自動ログイン"
               >
-                ⚙️ 自動ログイン
+                <ArrowRightOnRectangleIcon className="h-5 w-5 transition-transform group-hover:translate-x-0.5" />
+                <span>自動ログイン</span>
               </button>
             </li>
             <li className="m-0 p-0">
-              <button 
+              <button
                 id="cash-Clear"
                 onClick={handleClearWebviewCache}
-                className="block w-full text-left text-black border-none bg-transparent px-4 py-2 text-sm cursor-pointer transition-all hover:bg-[#e3f2fd]"
+                className="flex w-full items-center gap-2 text-left text-white border-none bg-green-600 px-4 py-2 text-sm cursor-pointer transition-all hover:bg-green-900"
               >
-                WebViewのキャッシュクリア
+                <TrashIcon className="h-4 w-4 text-gray-600" />
+                <span>WebViewのキャッシュクリア</span>
               </button>
             </li>
             <li className="m-0 p-0">
@@ -393,12 +411,15 @@ function Toolbar() {
               </button>
             </li>
             <li className="m-0 p-0">
-              <button 
+              <button
                 id="Edit-Settings"
                 onClick={handleEditSettings}
-                className="block w-full text-left text-black border-none bg-transparent px-4 py-2 text-sm cursor-pointer transition-all hover:bg-[#e3f2fd]"
+                className="flex w-full items-center gap-2 text-left text-black
+                          border-none bg-transparent px-4 py-2 text-sm cursor-pointer
+                          transition-all hover:bg-gray-400"
               >
-                ⚙️ 設定編集
+                <Cog6ToothIcon className="h-5 w-5 text-gray-600" />
+                <span>設定編集</span>
               </button>
             </li>
           </ul>
