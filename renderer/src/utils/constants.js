@@ -211,16 +211,6 @@ export const DEFAULTS = {
 // 🔧 機能設定
 // ==========================
 export const FEATURES = {
-  INDIVIDUAL_SUPPORT_PLAN: {
-    ENABLED: true,
-    BUTTON_TEXT: "個別支援計画",
-    BUTTON_COLOR: COLORS.PRIMARY
-  },
-  SPECIALIZED_SUPPORT_PLAN: {
-    ENABLED: true,
-    BUTTON_TEXT: "専門的支援計画",
-    BUTTON_COLOR: COLORS.SUCCESS
-  },
   ADDITION_COMPARE: {
     ENABLED: false,
     BUTTON_TEXT: "加算比較",

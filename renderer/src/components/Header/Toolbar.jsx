@@ -316,7 +316,7 @@ function Toolbar() {
               <button 
                 id="Individual_Support_Button"
                 onClick={handleIndividualSupport}
-                className="block w-full text-left border-none bg-transparent px-4 py-2 text-sm cursor-pointer transition-all hover:bg-[#e3f2fd]"
+                className="block w-full text-left border-none bg-green-600 px-4 py-2 text-sm cursor-pointer transition-all hover:bg-[#e3f2fd]"
               >
                 個別支援-計画
               </button>
@@ -325,7 +325,7 @@ function Toolbar() {
               <button 
                 id="Specialized-Support-Plan"
                 onClick={handleSpecializedSupport}
-                className="block w-full text-left border-none bg-transparent px-4 py-2 text-sm cursor-pointer transition-all hover:bg-[#e3f2fd]"
+                className="block w-full text-left border-none bg-red-600 px-4 py-2 text-sm cursor-pointer transition-all hover:bg-[#e3f2fd]"
               >
                 専門的支援-計画
               </button>
