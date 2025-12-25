@@ -20,12 +20,9 @@ function Toolbar() {
 
   
   // 各種ボタンのイベントリスナーとハンドラー
-  const { 
-    handleRefresh, 
-    handleLogin,
+  const {
+     handleLogin,
      handleGetUrl,
-     handleLoadIni,
-     handleImportSetting,
      handleIndividualSupport,
      handleSpecializedSupport
      } = useHugActions()
@@ -388,15 +385,6 @@ function Toolbar() {
             </li>
             <li className="m-0 p-0">
               <button 
-                id="refreshBtn"
-                onClick={handleRefresh}
-                className="block w-full text-left text-black border-none bg-transparent px-4 py-2 text-sm cursor-pointer transition-all hover:bg-[#e3f2fd]"
-              >
-                🔄 更新
-              </button>
-            </li>
-            <li className="m-0 p-0">
-              <button 
                 id="Get-Url"
                 onClick={handleGetUrl}
                 className="block w-full text-left text-black border-none bg-transparent px-4 py-2 text-sm cursor-pointer transition-all hover:bg-[#e3f2fd]"
@@ -411,24 +399,6 @@ function Toolbar() {
                 className="block w-full text-left text-black border-none bg-transparent px-4 py-2 text-sm cursor-pointer transition-all hover:bg-[#e3f2fd]"
               >
                 ⚙️ 設定編集
-              </button>
-            </li>
-            <li className="m-0 p-0">
-              <button 
-                id="Load-Ini"
-                onClick={handleLoadIni}
-                className="block w-full text-left text-black border-none bg-transparent px-4 py-2 text-sm cursor-pointer transition-all hover:bg-[#e3f2fd]"
-              >
-                🔄 設定の再読み込み
-              </button>
-            </li>
-            <li className="m-0 p-0">
-              <button 
-                id="Import-Setting"
-                onClick={handleImportSetting}
-                className="block w-full text-left text-black border-none bg-transparent px-4 py-2 text-sm cursor-pointer transition-all hover:bg-[#e3f2fd]"
-              >
-                📁 設定ファイルのインポート
               </button>
             </li>
           </ul>

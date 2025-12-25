@@ -319,20 +319,10 @@ export function useSettingsModalLogic(isOpen) {
                 buttonText: "加算比較",
                 buttonColor: "#ffc107",
               },
-              importSetting: {
-                enabled: false,
-                buttonText: "設定ファイル取得",
-                buttonColor: "#6c757d",
-              },
               getUrl: {
                 enabled: true,
                 buttonText: "URL取得",
                 buttonColor: "#17a2b8",
-              },
-              loadIni: {
-                enabled: true,
-                buttonText: "設定の再読み込み",
-                buttonColor: "#6f42c1",
               },
             },
             window: {

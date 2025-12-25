@@ -42,9 +42,7 @@ function getDefaultIni() {
         autoRefresh: { enabled: false, interval: 30000 },
       },
       features: {
-        importSetting: { enabled: false, buttonText: "設定ファイル取得", buttonColor: "#6c757d" },
         getUrl: { enabled: false, buttonText: "URL取得", buttonColor: "#17a2b8" },
-        loadIni: { enabled: true, buttonText: "設定の再読み込み", buttonColor: "#e5d7fe" },
       },
       window: {
         width: 1200,

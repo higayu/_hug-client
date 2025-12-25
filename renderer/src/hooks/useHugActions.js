@@ -19,42 +19,6 @@ export function useHugActions() {
   const dispatch = useDispatch()
   const initializedRef = useRef(false)
 
-  // 更新ボタン
-  const handleRefresh = useCallback(async () => {
-    console.log("🖱️ [HugActions] refreshBtn clicked")
-    const vw = getActiveWebview()
-    if (!vw) {
-      alert("WebView が見つかりません")
-      return
-    }
-
-    console.log("🔄 WebViewを再読み込み中...")
-    vw.reload()
-
-    // 再読み込み完了を待つ
-    await new Promise((resolve) => {
-      vw.addEventListener("did-finish-load", resolve, { once: true })
-    })
-
-    console.log("✅ 再読み込み完了。子どもリストを再取得")
-    try {
-      // facilitySelectの値を取得
-      const facilitySelect = document.getElementById("facilitySelect")
-      const facility_id = facilitySelect ? facilitySelect.value : null
-      
-      const childrenData = await window.electronAPI.GetChildrenByStaffAndDay(
-        appState.STAFF_ID,
-        appState.CURRENT_DATE,
-        facility_id
-      )
-      updateAppState({ childrenData: childrenData.week_children })
-    
-    } catch (err) {
-      console.error("❌ 子リスト再取得エラー:", err)
-      alert("子どもリストの再取得に失敗しました")
-    }
-  }, [appState.STAFF_ID, appState.CURRENT_DATE, updateAppState])
-
   // 自動ログイン
   const handleLogin = useCallback(async () => {
     console.log("🖱️ [HugActions] loginBtn clicked")
@@ -99,25 +63,6 @@ export function useHugActions() {
     window.electronAPI.openSpecializedSupportPlan(appState.SELECT_CHILD)
   }, [appState.SELECT_CHILD])
 
-  // 設定ファイルのインポート
-  const handleImportSetting = useCallback(async () => {
-    try {
-      const result = await window.electronAPI.importConfigFile()
-      if (result.success) {
-        showSuccessToast("✅ 設定ファイルをコピーしました:\n" + result.destination)
-        // 設定の再読み込み
-        const reloadOk = await loadAllReload()
-        if (reloadOk) {
-          updateButtonVisibility() // ボタン表示を更新
-          showSuccessToast("✅ 設定の再読み込みが完了しました")
-        }
-      } else {
-        alert("⚠️ コピーがキャンセルまたは失敗しました")
-      }
-    } catch (err) {
-      alert("❌ エラーが発生しました: " + err.message)
-    }
-  }, [showSuccessToast])
 
   // URLの取得
   const handleGetUrl = useCallback(async () => {
@@ -335,13 +280,6 @@ export function useHugActions() {
     if (initializedRef.current) return
     initializedRef.current = true
 
-    // refreshBtn
-    const refreshBtn = document.getElementById("refreshBtn")
-    if (refreshBtn) {
-      console.log("🔗 [HugActions] Attaching click listener: refreshBtn")
-      refreshBtn.addEventListener("click", handleRefresh)
-    }
-
     // loginBtn
     const loginBtn = document.getElementById("loginBtn")
     if (loginBtn) {
@@ -361,24 +299,12 @@ export function useHugActions() {
       specializedBtn.addEventListener("click", handleSpecializedSupport)
     }
 
-    // Import-Setting
-    const importBtn = document.getElementById("Import-Setting")
-    if (importBtn) {
-      importBtn.addEventListener("click", handleImportSetting)
-    }
 
     // Get-Url
     const getUrlBtn = document.getElementById("Get-Url")
     if (getUrlBtn) {
       console.log("🔗 [HugActions] Attaching click listener: Get-Url")
       getUrlBtn.addEventListener("click", handleGetUrl)
-    }
-
-    // Load-Ini
-    const loadIniBtn = document.getElementById("Load-Ini")
-    if (loadIniBtn) {
-      console.log("🔗 [HugActions] Attaching click listener: Load-Ini")
-      loadIniBtn.addEventListener("click", handleLoadIni)
     }
 
     // closeToggle
@@ -388,33 +314,24 @@ export function useHugActions() {
     }
 
     return () => {
-      if (refreshBtn) refreshBtn.removeEventListener("click", handleRefresh)
       if (loginBtn) loginBtn.removeEventListener("click", handleLogin)
       if (individualBtn) individualBtn.removeEventListener("click", handleIndividualSupport)
       if (specializedBtn) specializedBtn.removeEventListener("click", handleSpecializedSupport)
-      if (importBtn) importBtn.removeEventListener("click", handleImportSetting)
       if (getUrlBtn) getUrlBtn.removeEventListener("click", handleGetUrl)
-      if (loadIniBtn) loadIniBtn.removeEventListener("click", handleLoadIni)
       if (closeToggle) closeToggle.removeEventListener("change", handleCloseToggle)
     }
   }, [
-    handleRefresh,
     handleLogin,
     handleIndividualSupport,
     handleSpecializedSupport,
-    handleImportSetting,
     handleGetUrl,
-    handleLoadIni,
     handleCloseToggle
   ])
 
   // ハンドラーを返して、JSXの onClick からも呼べるようにする
   return {
-    handleRefresh,
     handleLogin,
     handleGetUrl,
-    handleLoadIni,
-    handleImportSetting,
     handleIndividualSupport,
     handleSpecializedSupport,
   }

@@ -106,44 +106,6 @@ export function useAppInitialization() {
         updateButtonVisibility()
       }, 100)
 
-      // ===== 7️⃣ 設定ファイルインポート後の再読み込み処理 =====
-      // 設定ファイルインポートボタンのイベントリスナーを追加
-      const importSettingBtn = document.getElementById("Import-Setting")
-      if (importSettingBtn) {
-        importSettingBtn.addEventListener("click", async () => {
-          try {
-            const result = await window.electronAPI.importConfigFile()
-            if (result.success) {
-              // 設定ファイルインポート後に設定を再読み込み
-              const reloadOk = await loadAllReload()
-              if (reloadOk) {
-                updateButtonVisibility() // ボタン表示を更新
-                console.log("✅ 設定ファイルインポート後の再読み込み完了")
-              }
-            }
-          } catch (err) {
-            console.error("❌ 設定ファイルインポート後の再読み込みエラー:", err)
-          }
-        })
-      }
-
-      // ===== 8️⃣ ini.jsonの手動読み込み処理 =====
-      const loadIniBtn = document.getElementById("Load-Ini")
-      if (loadIniBtn) {
-        loadIniBtn.addEventListener("click", async () => {
-          try {
-            const reloadOk = await loadAllReload()
-            if (reloadOk) {
-              updateButtonVisibility() // ボタン表示を更新
-              // カスタムボタンも再読み込み
-              await reloadCustomButtons()
-              console.log("✅ ini.jsonの手動読み込み完了")
-            }
-          } catch (err) {
-            console.error("❌ ini.jsonの手動読み込みエラー:", err)
-          }
-        })
-      }
 
       // ===== 退出確認（メインからの要求に応答） =====
       window.electronAPI.onConfirmCloseRequest(async () => {

@@ -27,9 +27,7 @@ export function updateButtonVisibility() {
 
   // 各ボタンの表示/非表示を制御
   const buttonMappings = {
-    'importSetting': 'Import-Setting',
     'getUrl': 'Get-Url',
-    'loadIni': 'Load-Ini',
   };
 
   Object.keys(buttonMappings).forEach(featureName => {
