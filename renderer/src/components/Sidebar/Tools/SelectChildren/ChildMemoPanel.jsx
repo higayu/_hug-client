@@ -1,5 +1,4 @@
 // src/components/Sidebar/ChildMemoPanel.jsx
-// src/components/Sidebar/ChildMemoPanel.jsx
 import { useEffect, useState } from 'react'
 import { useAppState } from '@/contexts/appState'
 import { useChildrenList } from '@/hooks/useChildrenList.js'
@@ -18,8 +17,7 @@ function ChildMemoPanel() {
     DEBUG_FLG,
   } = useAppState()
 
-  const IS_STOP = !DEBUG_FLG;//まだ不完全のため停止
-
+  const IS_STOP = !DEBUG_FLG // まだ不完全のため停止
   const SELECT_CHILD = appState.SELECT_CHILD
 
   const {
@@ -38,10 +36,7 @@ function ChildMemoPanel() {
    * 出欠データ解決
    * =============================== */
   useEffect(() => {
-    console.group('🔎 [ChildMemoPanel] isUIEnabled 判定')
-
     if (!SELECT_CHILD) {
-      console.log('理由: SELECT_CHILD が未選択')
       setAttendanceItem(null)
       setIsUIEnabled(false)
       setSelectedChildColumns({
@@ -50,18 +45,13 @@ function ChildMemoPanel() {
         column6: null,
         column6Html: null
       })
-      console.log('isUIEnabled => false')
-      console.groupEnd()
       return
     }
 
     const list = attendanceData?.data
     if (!Array.isArray(list)) {
-      console.log('理由: attendanceData.data が配列ではない', list)
       setAttendanceItem(null)
       setIsUIEnabled(false)
-      console.log('isUIEnabled => false')
-      console.groupEnd()
       return
     }
 
@@ -69,17 +59,8 @@ function ChildMemoPanel() {
       i => String(i.children_id) === String(SELECT_CHILD)
     )
 
-    console.log('attendanceItem:', item)
-
     setAttendanceItem(item || null)
-    const enabled = !!item
-    setIsUIEnabled(enabled)
-
-    console.log(
-      '判定結果:',
-      enabled ? 'UI 有効' : 'UI 無効',
-      '（attendanceItem の有無）'
-    )
+    setIsUIEnabled(!!item)
 
     if (item) {
       setSelectedChildColumns({
@@ -89,8 +70,6 @@ function ChildMemoPanel() {
         column6Html: item.column6Html ?? null
       })
     }
-
-    console.groupEnd()
   }, [SELECT_CHILD, attendanceData, setSelectedChildColumns])
 
   /* ===============================
@@ -132,7 +111,11 @@ function ChildMemoPanel() {
   const column6Html = attendanceItem?.column6Html ?? null
 
   const isTimeFormat = (v) => /^\d{2}:\d{2}$/.test(v || '')
-  const isAbsent = column5 === '欠席'
+
+  // ★ 修正ポイント：欠席系をすべて拾う
+  const isAbsent =
+    typeof column5 === 'string' && column5.startsWith('欠席')
+
   const hasEntered = isTimeFormat(column5)
   const hasExited = isTimeFormat(column6)
 
@@ -142,78 +125,75 @@ function ChildMemoPanel() {
    * Render
    * =============================== */
   return (
-    <div className="child-memo-panel flex-1 border-l border-gray-300 bg-gray-50 overflow-y-auto flex flex-col h-full">
-      {/* 子ども情報 */}
-      <div className="bg-white text-center rounded p-2 mb-2">
-        <h3 className="text-sm font-bold text-gray-700 m-2">
-          {selectedChildData.children_id}: {selectedChildData.children_name}
-        </h3>
-        {selectedChildData.pc_name && (
-          <p className="text-xs text-gray-600 mb-2">
-            PC名: {selectedChildData.pc_name}
-          </p>
-        )}
-      </div>
+    <div className="child-memo-panel flex-1 min-h-0 border-l border-gray-300 bg-gray-50 flex flex-col">
 
-      {/* 入退室 UI */}
-      <div
-        className={`flex flex-col rounded bg-gray-200 mb-1 p-2 gap-2 ${
-          !isUIEnabled ? 'opacity-60' : ''
-        }`}
-      >
-        {isAbsent ? (
-          <div className="text-xs font-bold text-red-600 mb-3">欠席</div>
-        ) : hasEntered ? (
-          <>
-            <div>入室: {column5}</div>
+      {/* スクロール領域 */}
+      <div className="flex-1 min-h-0 overflow-y-auto p-2">
+        <div
+          className={`flex flex-col rounded bg-gray-200 gap-2 p-2 ${
+            !isUIEnabled ? 'opacity-60' : ''
+          }`}
+        >
+          {isAbsent ? (
+            <div className="text-xs font-bold text-red-600">
+              {column5}
+            </div>
+          ) : hasEntered ? (
+            <>
+              <div>入室: {column5}</div>
 
-            {!hasExited && (
+              {hasExited && (
+                <div>退室: {column6}</div>
+              )}
+
+              {!hasExited && (
+                <button
+                  className={`btn-green mt-2 ${
+                    !isUIEnabled || IS_STOP ? disabledBtnClass : ''
+                  }`}
+                  onClick={() => clickExitButton(column6Html)}
+                  disabled={!isUIEnabled || IS_STOP}
+                >
+                  退室
+                </button>
+              )}
+
+              {hasExited && (
+                <button
+                  className={`btn-purple mt-2 p-2 ${
+                    !isUIEnabled ? disabledBtnClass : ''
+                  }`}
+                  onClick={addProfessionalSupportNewTab}
+                  disabled={!isUIEnabled}
+                >
+                  専門的支援
+                </button>
+              )}
+            </>
+          ) : (
+            <>
               <button
-                className={`btn-green mt-4 ${
+                className={`btn-blue p-2 w-[80px] ${
                   !isUIEnabled || IS_STOP ? disabledBtnClass : ''
                 }`}
-                onClick={() => clickExitButton(column6Html)}
+                onClick={() => clickEnterButton(column5Html)}
                 disabled={!isUIEnabled || IS_STOP}
               >
-                退室
+                入室
               </button>
-            )}
 
-            {hasExited && (
               <button
-                className={`btn-purple mt-4 p-2 ${
-                  !isUIEnabled ? disabledBtnClass : ''
+                className={`btn-red mt-2 p-2 w-[80px] ${
+                  !isUIEnabled || IS_STOP ? disabledBtnClass : ''
                 }`}
-                onClick={addProfessionalSupportNewTab}
-                disabled={!isUIEnabled}
+                onClick={() => clickAbsenceButton(column5Html)}
+                disabled={!isUIEnabled || IS_STOP}
               >
-                専門的支援
+                欠席
               </button>
-            )}
-          </>
-        ) : (
-          <>
-            <button
-              className={`btn-blue p-2 w-[80px] ${
-                !isUIEnabled || IS_STOP ? disabledBtnClass : ''
-              }`}
-              onClick={() => clickEnterButton(column5Html)}
-              disabled={!isUIEnabled || IS_STOP}
-            >
-              入室
-            </button>
-
-            <button
-              className={`btn-red mt-2 p-2 w-[80px] ${
-                !isUIEnabled || IS_STOP ? disabledBtnClass : ''
-              }`}
-              onClick={() => clickAbsenceButton(column5Html)}
-              disabled={!isUIEnabled || IS_STOP}
-            >
-              欠席
-            </button>
-          </>
-        )}
+            </>
+          )}
+        </div>
       </div>
     </div>
   )
