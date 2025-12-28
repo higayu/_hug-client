@@ -1,6 +1,6 @@
 // main/ipcHandlers.js
 console.log("🔥 ipcHandlers.js LOADED");
-const { ipcMain, app } = require("electron");
+const { ipcMain, app,BrowserWindow } = require("electron");
 const path = require("path");
 const { pathToFileURL } = require("url");
 const fs = require("fs");
@@ -143,6 +143,14 @@ function registerIpcHandlers(mainWindow, tempNoteHandler) {
         return { success: false, error: err.message };
       }
     });
+
+    ipcMain.handle("open-devtools", () => {
+      const win = BrowserWindow.getFocusedWindow();
+      if (win) {
+        win.webContents.openDevTools({ mode: "detach" }); // 任意
+      }
+    });
+
     
   } catch (error) {
     console.error("error:", error);

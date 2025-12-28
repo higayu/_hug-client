@@ -161,3 +161,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
   // ---- CRUD API 展開 ----
   ...tableAPIs,
 });
+
+contextBridge.exposeInMainWorld("api", {
+  openDevTools: () => ipcRenderer.invoke("open-devtools"),
+});

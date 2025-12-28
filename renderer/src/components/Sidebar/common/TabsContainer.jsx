@@ -7,6 +7,7 @@ import UpdateManager from '../Tools/UpdateManager/index.jsx'
 //import { useAppState } from '@/contexts/AppStateContext.jsx'
 import SendRoomTable from '@/components/Sidebar/Tools/TestTool/SendRoomTable.jsx';
 import { useAppState } from '@/contexts/appState'
+//import { FaTable } from "react-icons/fa";
 
 function TabsContainer() {
   // デフォルトでツールタブを開く

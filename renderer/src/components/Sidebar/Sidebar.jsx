@@ -126,13 +126,13 @@ function Sidebar() {
         </button>
 
         <div className="flex flex-col gap-1 items-start">
-          <TableDataGetButton />
           <button
             className="mt-1 px-2 py-1 text-xs rounded bg-blue-500 text-white"
             onClick={loadChildren}
           >
             再取得
           </button>
+          <TableDataGetButton />
         </div>
       </div>
 

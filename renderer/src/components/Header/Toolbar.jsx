@@ -12,7 +12,7 @@ import { ArrowRightOnRectangleIcon,TrashIcon,Cog6ToothIcon,AdjustmentsHorizontal
 
 function Toolbar() {
   const { showInfoToast } = useToast()
-  const { appState } = useAppState()
+  const { appState,DEBUG_FLG } = useAppState()
   const { addPersonalRecordTab, addProfessionalSupportNewTab, addProfessionalSupportListTab,clearActiveWebviewCache } = useTabs()
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false)
 
@@ -441,6 +441,18 @@ function Toolbar() {
           <CustomButtonsPanel />
         </div>
       </nav>
+
+      {/* ★ DEBUG_FLG が true のときだけ描画 */}
+      {DEBUG_FLG  && (
+        <button
+          className="bg-[#515152] text-white border-none rounded-md px-3 py-1.5 cursor-pointer transition-all whitespace-nowrap relative z-[1002] hover:bg-[#2196f3]"
+          id="devtools"
+          onClick={() => window.api.openDevTools()}
+        >
+          デベロッパー
+        </button>
+      )}
+
 
       <label className="toggle-switch relative inline-block w-10 h-[22px] ml-2 align-middle" title="閉じるボタン表示トグル">
         <input 
