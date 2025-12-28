@@ -1,7 +1,7 @@
-// renderer/src/components/Sidebar/Tools/SQLManager/ChildrenRow.jsx
+// renderer/src/components/Sidebar/Tools/SQLManager/SelectRow.jsx
 import { useState } from 'react'
 
-function ChildrenRow({ child }) {
+function SelectRow({ child }) {
   const [memo, setMemo] = useState(child.memo || '')
   const [editing, setEditing] = useState(false)
 
@@ -49,4 +49,4 @@ function ChildrenRow({ child }) {
   )
 }
 
-export default ChildrenRow
+export default SelectRow

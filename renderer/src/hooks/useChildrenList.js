@@ -76,6 +76,7 @@ export function useChildrenList() {
         console.error("❌ [useChildrenList] テーブル取得失敗")
         return
       }
+      console.log('テーブルのデータ',tables);
 
       await dispatch(fetchAllTables(tables))
 

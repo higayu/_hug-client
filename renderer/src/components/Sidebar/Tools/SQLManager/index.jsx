@@ -1,9 +1,11 @@
 // renderer/src/components/Sidebar/SQLManager/index.jsx
-import ChildrenTable from "./ChildrenTable.jsx";
+import SelectTable from "./SelectTable.jsx";
 import { useTabs } from '@/hooks/useTabs/index.js'
+import { useSelector } from "react-redux";
 
 function SQLManager() {
   const { addWebManagerAction } = useTabs()
+
 
 
   return (
@@ -23,7 +25,7 @@ function SQLManager() {
 
       {/* 👇 ここで ChildrenTable を呼び出す */}
       <div className="flex-1 overflow-auto">
-        <ChildrenTable />
+        <SelectTable />
       </div>
     </div>
   );

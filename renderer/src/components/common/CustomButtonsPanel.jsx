@@ -6,11 +6,14 @@ import { useCustomButtons } from '@/components/common/CustomButtonsContext.jsx'
 //import { useAppState } from '@/contexts/AppStateContext.jsx'
 import { useAppState } from '@/contexts/appState'
 import { getActiveWebview, setActiveWebview } from '@/utils/webviewState.js'
+import { useSelector } from "react-redux";
 
 function CustomButtonsPanel() {
   const { customButtons, getCustomButtons } = useCustomButtons()
   const { appState } = useAppState()
   const [buttons, setButtons] = useState([])
+  const database = useSelector((state) => state.database);
+  const facilitys = database.facilitys;
 
   // カスタムボタンを取得
   useEffect(() => {
@@ -29,7 +32,7 @@ function CustomButtonsPanel() {
     try {
       if (window.electronAPI && window.electronAPI.open_addition_compare_btn) {
         console.log("📤 [CUSTOM_BUTTONS] electronAPI.open_addition_compare_btn を呼び出します")
-        console.log("📤 [CUSTOM_BUTTONS] 引数:", appState.FACILITY_ID, appState.CURRENT_YMD)
+        console.log("📤 施設データ:", facilitys)
         window.electronAPI.open_addition_compare_btn(appState.FACILITY_ID, appState.CURRENT_YMD)
       } else {
         console.error("❌ [CUSTOM_BUTTONS] window.electronAPI.open_addition_compare_btn が見つかりません")

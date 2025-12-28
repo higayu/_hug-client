@@ -29,6 +29,10 @@ function TabsContainer() {
         id: 'SendRoomTable',
         label: '入室・退室テスト',
       })
+      baseTabs.push({
+        id: 'SQLManager',
+        label: 'テーブルデータ',
+      })
     }else{
       console.log('debugのフラグ',DEBUG_FLG);
     }
@@ -85,6 +89,13 @@ function TabsContainer() {
         {DEBUG_FLG && activeTab === 'SendRoomTable' && (
           <div className="h-full flex flex-col">
             <SendRoomTable />
+          </div>
+        )}
+
+        {/* ★ DEBUG_FLG が true のときだけ描画 */}
+        {DEBUG_FLG && activeTab === 'SQLManager' && (
+          <div className="h-full flex flex-col">
+            <SQLManager />
           </div>
         )}
 
