@@ -26,7 +26,7 @@ export function useReduxBindings() {
   // =========================
   // ✅ 日付・曜日は1本化
   // =========================
-  const CURRENT_DATE = useSelector(s.selectCurrentDate, shallowEqual)
+  const CURRENT_DAY_OF_WEEK = useSelector(s.selectCurrentDate, shallowEqual)
   const CURRENT_YMD = useSelector(s.selectCurrentYmd)
   // { dateStr, weekdayId }
 
@@ -56,7 +56,7 @@ export function useReduxBindings() {
     SELECT_CHILD,
 
     // ✅ これだけ
-    CURRENT_DATE,
+    CURRENT_DAY_OF_WEEK,
     CURRENT_YMD,
     PROMPTS,
     childrenData,

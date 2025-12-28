@@ -23,7 +23,7 @@ export async function initializeAppState({
   // OpenAI 用の認証情報（メール / パスワード）も appState に反映
   if (config?.OPENAI_MAIL !== undefined) merged.OPENAI_MAIL = config.OPENAI_MAIL
   if (config?.OPENAI_PASSWORD !== undefined) merged.OPENAI_PASSWORD = config.OPENAI_PASSWORD
-  if (config?.CURRENT_DATE !== undefined) merged.CURRENT_DATE = config.CURRENT_DATE
+  if (config?.CURRENT_DAY_OF_WEEK !== undefined) merged.CURRENT_DAY_OF_WEEK = config.CURRENT_DAY_OF_WEEK
 
   // 3) ini.json → Context & Redux
   const apiSettings = ini?.apiSettings ?? {}

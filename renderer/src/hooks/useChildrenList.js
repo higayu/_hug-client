@@ -19,7 +19,7 @@ export function useChildrenList() {
   // =============================================================
   const {
     STAFF_ID,
-    CURRENT_DATE,
+    CURRENT_DAY_OF_WEEK,
     activeApi,
     isInitialized,
     setSelectedChild,
@@ -29,7 +29,7 @@ export function useChildrenList() {
     SELECT_CHILD,
   } = useAppState()
 
-  const weekdayId = CURRENT_DATE?.weekdayId
+  const weekdayId = CURRENT_DAY_OF_WEEK?.weekdayId
 
   const dispatch = useDispatch()
   const extractedData = useSelector(selectExtractedData)

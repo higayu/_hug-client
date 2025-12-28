@@ -20,7 +20,7 @@ function Sidebar() {
   // ✅ AppState（唯一の正）
   // 変更後
   const {
-    CURRENT_DATE,        // 曜日専用
+    CURRENT_DAY_OF_WEEK,        // 曜日専用
     CURRENT_YMD,         // '2025-11-20'
     setCurrentDate,
     setCurrentYmd,
@@ -56,7 +56,7 @@ function Sidebar() {
     }
   
     // 年月日があるのに weekdayId がない場合
-    if (CURRENT_YMD && CURRENT_DATE.weekdayId == null) {
+    if (CURRENT_YMD && CURRENT_DAY_OF_WEEK.weekdayId == null) {
       const weekdayId = getWeekdayIdFromDate(CURRENT_YMD)
   
       console.log(
@@ -66,7 +66,7 @@ function Sidebar() {
   
       setCurrentDate({ weekdayId })
     }
-  }, [CURRENT_YMD, CURRENT_DATE.weekdayId, setCurrentDate, setCurrentYmd])
+  }, [CURRENT_YMD, CURRENT_DAY_OF_WEEK.weekdayId, setCurrentDate, setCurrentYmd])
   
 
 

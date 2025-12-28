@@ -11,11 +11,11 @@ export async function insertManager(
     databaseType,
     FACILITY_ID,
     STAFF_ID,
-    CURRENT_DATE,
+    CURRENT_DAY_OF_WEEK,
   }
 ) {
   console.log("===== insertManager START =====");
-  console.log('🔥CURRENT_DATE',CURRENT_DATE);
+  console.log('🔥CURRENT_DAY_OF_WEEK',CURRENT_DAY_OF_WEEK);
 
   try {
     // 単一オブジェクトなら配列に変換
@@ -34,7 +34,7 @@ export async function insertManager(
       return false;
     }
 
-    const weekId = CURRENT_DATE.weekdayId;
+    const weekId = CURRENT_DAY_OF_WEEK.weekdayId;
     console.log('曜日のID',weekId);
 
     for (const child of childrenList) {

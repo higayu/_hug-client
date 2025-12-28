@@ -14,9 +14,9 @@ function ConfirmModal({ show, message, list = [], onConfirm, onCancel }) {
   const childrenType = store.getState().database.children_type;
   const childrenData = store.getState().database.children;
 
-  // ✅ 新仕様：CURRENT_DATE から weekdayId を直接取得
-  const { STAFF_ID, FACILITY_ID, CURRENT_DATE } = useAppState();
-  const weekdayId = CURRENT_DATE?.weekdayId;
+  // ✅ 新仕様：CURRENT_DAY_OF_WEEK から weekdayId を直接取得
+  const { STAFF_ID, FACILITY_ID, CURRENT_DAY_OF_WEEK } = useAppState();
+  const weekdayId = CURRENT_DAY_OF_WEEK?.weekdayId;
 
   const [selectedValues, setSelectedValues] = useState({});
 

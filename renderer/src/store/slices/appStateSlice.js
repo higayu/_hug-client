@@ -24,7 +24,7 @@ const initialState = {
   // ID・日付・選択状態
   STAFF_ID: "",
   FACILITY_ID: "",
-  CURRENT_DATE: {
+  CURRENT_DAY_OF_WEEK: {
     dateStr: getDateString(),
     weekdayId: getTodayWeekdayId(),
   },
@@ -175,10 +175,10 @@ const appStateSlice = createSlice({
       const { dateStr, weekdayId } = action.payload || {}
     
       if (dateStr !== undefined) {
-        state.CURRENT_DATE.dateStr = dateStr
+        state.CURRENT_DAY_OF_WEEK.dateStr = dateStr
       }
       if (weekdayId !== undefined) {
-        state.CURRENT_DATE.weekdayId = weekdayId
+        state.CURRENT_DAY_OF_WEEK.weekdayId = weekdayId
       }
     },
     setCurrentYmd: (state, action) => {
@@ -211,10 +211,10 @@ const appStateSlice = createSlice({
         state.STAFF_ID = updates.STAFF_ID != null ? String(updates.STAFF_ID) : ""
       }
       if (updates.FACILITY_ID !== undefined) state.FACILITY_ID = updates.FACILITY_ID
-      if (updates.CURRENT_DATE !== undefined) {
-        state.CURRENT_DATE = {
-          ...state.CURRENT_DATE,
-          ...updates.CURRENT_DATE,
+      if (updates.CURRENT_DAY_OF_WEEK !== undefined) {
+        state.CURRENT_DAY_OF_WEEK = {
+          ...state.CURRENT_DAY_OF_WEEK,
+          ...updates.CURRENT_DAY_OF_WEEK,
         }
       }
       
@@ -303,7 +303,7 @@ export const selectUseAI = (state) => state.appState.USE_AI
 export const selectDatabaseType = (state) => state.appState.DATABASE_TYPE
 export const selectStaffId = (state) => state.appState.STAFF_ID
 export const selectFacilityId = (state) => state.appState.FACILITY_ID
-export const selectCurrentDate = (state) => state.appState.CURRENT_DATE 
+export const selectCurrentDate = (state) => state.appState.CURRENT_DAY_OF_WEEK 
 export const selectCurrentYmd = (state) => state.appState.CURRENT_YMD
 
 export const selectSelectedChild = (state) => state.appState.SELECT_CHILD

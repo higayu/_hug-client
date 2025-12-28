@@ -13,7 +13,7 @@ function WeekdaySelect({
   const { showInfoToast } = useToast()
 
   // ✅ AppState（唯一の状態）
-  const { CURRENT_DATE, setCurrentDate } = useAppState()
+  const { CURRENT_DAY_OF_WEEK, setCurrentDate } = useAppState()
 
   const handleChange = (e) => {
     const weekdayId = Number(e.target.value)
@@ -38,7 +38,7 @@ function WeekdaySelect({
     <select
       id={id}
       name={name}
-      value={CURRENT_DATE.weekdayId ?? ""}
+      value={CURRENT_DAY_OF_WEEK.weekdayId ?? ""}
       onChange={handleChange}
       className={`w-full p-2 border border-gray-300 rounded text-sm bg-white text-black ${className}`}
     >

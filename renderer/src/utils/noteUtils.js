@@ -23,14 +23,14 @@ export async function saveTempNote(childId, memo1, memo2, appState) {
     console.log("📌 memo2:", memo2);
     console.log("📌 appState:", appState);
 
-    if (!childId || !appState?.STAFF_ID || !appState?.CURRENT_DATE) {
+    if (!childId || !appState?.STAFF_ID || !appState?.CURRENT_DAY_OF_WEEK) {
       throw new Error("必須パラメータ不足");
     }
 
     const data = {
       children_id: childId,
       staff_id: appState.STAFF_ID,
-      day_of_week_id: appState?.CURRENT_DATE.weekdayId,
+      day_of_week_id: appState?.CURRENT_DAY_OF_WEEK.weekdayId,
       memo1: memo1 ?? "",
       memo2: memo2 ?? "",
     };
@@ -66,14 +66,14 @@ export async function loadTempNote(childId, proxy, appState) {
     console.log("📌 proxy:", proxy);
     console.log("📌 appState:", appState);
 
-    if (!childId || !appState?.STAFF_ID || !appState?.CURRENT_DATE) {
+    if (!childId || !appState?.STAFF_ID || !appState?.CURRENT_DAY_OF_WEEK) {
       throw new Error("必須パラメータ不足");
     }
 
     const data = {
       children_id: childId,
       staff_id: appState.STAFF_ID,
-      day_of_week_id:appState?.CURRENT_DATE.weekdayId,
+      day_of_week_id:appState?.CURRENT_DAY_OF_WEEK.weekdayId,
     };
 
     console.log("📤 送信データ(getTempNote):", data);

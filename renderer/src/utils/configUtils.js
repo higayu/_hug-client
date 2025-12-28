@@ -47,19 +47,19 @@ export async function loadConfig() {
     console.log('🔍 [CONFIG] 読み込んだデータ:', data)
 
     // =============================================================
-    // ✅ CURRENT_DATE を自動セット（新仕様）
+    // ✅ CURRENT_DAY_OF_WEEK を自動セット（新仕様）
     // =============================================================
     const dateStr = getDateString()
     const weekdayId = getTodayWeekdayId()
 
-    data.CURRENT_DATE = {
+    data.CURRENT_DAY_OF_WEEK = {
       dateStr,
       weekdayId,
     }
 
     // 旧キーがあれば削除（事故防止）
     delete data.DATE_STR
-    delete data.CURRENT_DATE
+    delete data.CURRENT_DAY_OF_WEEK
 
     console.log('✅ [CONFIG] config.json読み込み成功:', data)
     if (output) output.textContent = JSON.stringify(data, null, 2)

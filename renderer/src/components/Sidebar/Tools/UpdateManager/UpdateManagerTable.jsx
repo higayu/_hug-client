@@ -20,7 +20,7 @@ const MODAL_COMPONENTS = {
 export default function UpdateManagerTable() {
   const { showInfoToast, showErrorToast } = useToast();
   const { loadChildren } = useChildrenList();
-  const { STAFF_ID, appState, CURRENT_DATE, setCurrentDate } = useAppState();
+  const { STAFF_ID, appState, CURRENT_DAY_OF_WEEK, setCurrentDate } = useAppState();
 
   // DB から取得済みのテーブル
   const database = useSelector((state) => state.database);
@@ -40,10 +40,10 @@ export default function UpdateManagerTable() {
     const data = selectManagersFull(database);
     setManagers(data);
 
-    // 初期タブ：CURRENT_DATE.weekdayId を優先
+    // 初期タブ：CURRENT_DAY_OF_WEEK.weekdayId を優先
     if (dayOfWeekMaster.length > 0 && activeDayId == null) {
       const today = dayOfWeekMaster.find(
-        (d) => Number(d.id) === Number(CURRENT_DATE.weekdayId)
+        (d) => Number(d.id) === Number(CURRENT_DAY_OF_WEEK.weekdayId)
       );
 
       if (today) {
@@ -56,7 +56,7 @@ export default function UpdateManagerTable() {
         setActiveDayId(firstDay.id);
       }
     }
-  }, [database, dayOfWeekMaster, CURRENT_DATE.weekdayId]);
+  }, [database, dayOfWeekMaster, CURRENT_DAY_OF_WEEK.weekdayId]);
 
   // ------------------------------------------
   // 表示用：曜日で絞り込み

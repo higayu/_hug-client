@@ -21,11 +21,11 @@ function CustomButtonsPanel() {
   // 加算比較ボタンの処理
   const handleAdditionCompare = (buttonConfig) => {
     console.log("🔘 [CUSTOM_BUTTONS] 加算比較ボタンがクリックされました")
-    console.log("🔍 [CUSTOM_BUTTONS] buttonConfig:", buttonConfig)
+    console.log("🔍 [CUSTOM_BUTTONS] buttonConfig:", buttonConfig);
+
     console.log("🔍 [CUSTOM_BUTTONS] AppState:", {
       FACILITY_ID: appState.FACILITY_ID,
-      DATE_STR: appState.CURRENT_YMD
-    })
+      DATE_STR: appState.CURRENT_YMD})
     try {
       if (window.electronAPI && window.electronAPI.open_addition_compare_btn) {
         console.log("📤 [CUSTOM_BUTTONS] electronAPI.open_addition_compare_btn を呼び出します")

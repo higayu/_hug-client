@@ -6,7 +6,7 @@ export async function mariadbFnc({
   childrenData,
   managersData,
   STAFF_ID,
-  CURRENT_DATE,
+  CURRENT_DAY_OF_WEEK,
   FACILITY_ID,
 }) {
   try {
@@ -21,7 +21,7 @@ export async function mariadbFnc({
         String(m.staff_id) === String(STAFF_ID)
     );
 
-    const weekId = CURRENT_DATE.weekdayId;
+    const weekId = CURRENT_DAY_OF_WEEK.weekdayId;
 
     // -----------------------------------
     // MariaDBに送信するペイロード
