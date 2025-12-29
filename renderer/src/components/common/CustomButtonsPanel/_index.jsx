@@ -1,4 +1,4 @@
-// src/components/CustomButtonsPanel.jsx
+// src/components/CustomButtonsPanel/index.jsx
 // カスタムボタンのパネルコンポーネント
 
 import { useEffect, useState } from 'react'
@@ -239,4 +239,3 @@ function CustomButtonsPanel() {
 }
 
 export default CustomButtonsPanel
-

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import SettingsModal from '@/components/settings/SettingsModal.jsx'
-import CustomButtonsPanel from '@/components/common/CustomButtonsPanel.jsx'
+import CustomButtonsPanel from '@/components/common/CustomButtonsPanel/index.jsx'
 import { useToast } from  '@/components/common/ToastContext.jsx'
 ////import { useAppState } from '@/contexts/AppStateContext.jsx'
 import { useAppState } from '@/contexts/appState'

@@ -314,11 +314,6 @@ export function useSettingsModalLogic(isOpen) {
               },
             },
             features: {
-              additionCompare: {
-                enabled: true,
-                buttonText: "加算比較",
-                buttonColor: "#ffc107",
-              },
               getUrl: {
                 enabled: true,
                 buttonText: "URL取得",

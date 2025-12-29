@@ -10,19 +10,19 @@
       "order": 1
     },
     {
+      "id": "professional-support-search",
+      "enabled": true,
+      "text": "専門的支援加算の検索",
+      "color": "#dc3545",
+      "action": "professionalSupportSearch",
+      "order": 2
+    },
+    {
       "id": "custom1",
       "enabled": true,
       "text": "キャンセル待ち登録",
       "color": "#dc3545",
       "action": "customAction1",
-      "order": 2
-    },
-    {
-      "id": "custom2",
-      "enabled": false,
-      "text": "カスタムボタン2",
-      "color": "#6f42c1",
-      "action": "customAction2",
       "order": 3
     }
   ]

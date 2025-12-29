@@ -120,6 +120,13 @@ contextBridge.exposeInMainWorld("electronAPI", {
       date_str,
     }),
 
+  handleProfessionalSupportSearch: (facility_id,targetFacility,date_str) =>
+    ipcRenderer.send("handle-professional-support-search", {
+      facility_id,
+      targetFacility,
+      date_str,
+  }),
+
   // ---- 設定 ----
   readConfig: () => ipcRenderer.invoke("read-config"),
   saveConfig: (data) => ipcRenderer.invoke("save-config", data),

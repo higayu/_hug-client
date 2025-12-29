@@ -10,7 +10,9 @@ const { handleConfigAccess } = require("./parts/handlers/readfile/configHandler"
 const { handleIniAccess } = require("./parts/handlers/readfile/iniHandler");
 const { handleCustomButtonsAccess } = require("./parts/handlers/readfile/customButtonsHandler");
 const { registerPlanWindows } = require("./parts/window/planWindows");
-const { open_addition_compare_btn } = require("./parts/window/computeWindows");
+const { open_addition_compare_btn } = require("./parts/window/computeWindows/index");
+const { handleProfessionalSupportSearch } = require("./parts/window/handleProfessionalSupportSearch/index");
+
 const { resolvePreloadPath } = require("./parts/window/windowManager");
 const { handlePromptAccess } = require("./parts/handlers/readfile/promptHandler");
 
@@ -26,6 +28,7 @@ function registerIpcHandlers(mainWindow, tempNoteHandler) {
     handlePromptAccess(ipcMain);
     registerPlanWindows(ipcMain);
     open_addition_compare_btn(ipcMain);
+    handleProfessionalSupportSearch(ipcMain);
 
     
      // =======================================

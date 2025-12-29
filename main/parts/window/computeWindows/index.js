@@ -1,4 +1,5 @@
 // main/parts/computeWindows.js
+// 加算比較用ウインドウ
 const fs = require("fs");
 const path = require("path");
 const { createDoubleWebviewWindow } = require("./windowManager");
@@ -39,7 +40,7 @@ function open_addition_compare_btn(ipcMain, facility_id, date_str) {
 function openDoubleWebviewWithTabs(url1, url2, label, facilityId, dateStr) {
   
   // HTMLテンプレートを読み込み
-  const templatePath = path.join(__dirname, "..", "templates", "doubleWebviewTemplate.html");
+  const templatePath = path.join(__dirname, ".", "templates", "doubleWebviewTemplate.html");
   const htmlTemplate = fs.readFileSync(templatePath, "utf8");
   
   // ウィンドウを作成
