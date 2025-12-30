@@ -1,9 +1,4 @@
-import { getYearMonthFromDate, getDaysInMonth } from "./getDays.js";
-
-export async function fetchRightTable(right, facilityId,dateStr) {
-  // const startdate =  monthStr+'-01';
-  // const enddate = monthStr+'-' + getDaysInMonth(monthStr);
-
+export async function fetchRightTable(right, facilityId, dateStr) {
   await right.executeJavaScript(`
     document.querySelectorAll('input[type="checkbox"][name^="f_ary"]').forEach(c => c.checked = false);
     const cb = document.querySelector('input[data-fid="${facilityId}"]');

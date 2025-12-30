@@ -182,14 +182,12 @@ td {
   padding: 6px 8px;
   vertical-align: top;
   word-break: break-word;
-  font-size: larger;
 }
 
 th {
   background: #e0e0e0;
   font-weight: bold;
   text-align: left;
-  font-size: larger;
 }
 
 /* 偶数行の背景（Excel/Word互換） */

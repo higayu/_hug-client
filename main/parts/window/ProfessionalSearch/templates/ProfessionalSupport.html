@@ -31,13 +31,6 @@
       <label>施設URL:</label>
       <input id="facilityUrlInput" readonly>
     </div>
-
-    <!-- ★ 追加：年月 -->
-    <div>
-      <label>年月:</label>
-      <input type="month" id="yearMonthInput">
-    </div>
-
     <div>
       <label>日付:</label>
       <input type="date" id="dateStrInput">
@@ -54,7 +47,7 @@
   <!-- ===== コンテンツ ===== -->
   <div id="content">
     <div id="webviews">
-      <webview id="left" src="https://www.hug-ayumu.link/hug/wm/attendance.php?f_id=3" allowpopups>
+      <webview id="left" src="https://www.hug-ayumu.link/hug/wm/" allowpopups>
       </webview>
 
       <webview id="right" src="{{URL2}}" allowpopups>
@@ -71,11 +64,6 @@
     facilityNameInput.value = params.get("FACILITY_NAME") ?? "";
     facilityUrlInput.value = params.get("FACILITY_URL") ?? "";
     dateStrInput.value = params.get("DATE_STR") ?? "";
-      // "YYYY-MM-DD" → ["YYYY", "MM", "DD"]
-    const parts = dateStrInput.value.split("-");
-    if (parts.length < 2) return "";
-    const [year, month] = parts;
-    yearMonthInput.value = `${year}-${month}`;
   });
 </script>
 
