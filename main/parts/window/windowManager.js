@@ -50,28 +50,15 @@ function createDoubleWebviewWindow(url1, url2, label, htmlTemplate, facilityId, 
  * @returns {string} preload.jsのパス
  */
 function resolvePreloadPath() {
-  // ① 開発時（npm start等）- プロジェクトルートのpreload.js
   const devPath = path.join(__dirname, "../../../preload.js");
-  // ② パッケージ後
-  const prodPath = path.join(process.resourcesPath, "data", "preload.js");
+  const prodPath = path.join(process.resourcesPath, "preload.js");
 
-  console.log("preload path check:");
-  console.log("  - dev path:", devPath);
-  console.log("  - prod path:", prodPath);
-  console.log("  - dev path exists:", fs.existsSync(devPath));
-  console.log("  - prod path exists:", fs.existsSync(prodPath));
+  if (fs.existsSync(devPath)) return devPath;
+  if (fs.existsSync(prodPath)) return prodPath;
 
-  if (fs.existsSync(devPath)) {
-    console.log("dev path used:", devPath);
-    return devPath;
-  }
-  if (fs.existsSync(prodPath)) {
-    console.log("prod path used:", prodPath);
-    return prodPath;
-  }
-  console.warn("preload.js not found:", devPath, prodPath);
-  return devPath;
+  throw new Error("preload.js not found: " + devPath);
 }
+
 
 module.exports = {
   createDoubleWebviewWindow,

@@ -5,6 +5,7 @@
   <meta charset="utf-8">
   <meta http-equiv="Content-Security-Policy"
     content="default-src 'self' https: data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline';">
+
   <style>
     html,
     body {
@@ -95,6 +96,22 @@
       overflow: auto;
       padding: 20px;
     }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      font-size: 13px;
+    }
+
+    th,
+    td {
+      border: 1px solid #ccc;
+      padding: 6px;
+    }
+
+    th {
+      background: #e0e0e0;
+    }
   </style>
 </head>
 
@@ -129,9 +146,9 @@
 
   <div id="content">
     <div id="webviews">
-      <webview id="left" src="{{URL1}}" preload="file://{{PRELOAD_PATH}}" allowpopups disablewebsecurity></webview>
+      <webview id="left" src="https://www.hug-ayumu.link/hug/wm/" allowpopups></webview>
 
-      <webview id="right" src="{{URL2}}" preload="file://{{PRELOAD_PATH}}" allowpopups disablewebsecurity></webview>
+      <webview id="right" src="{{URL2}}" allowpopups></webview>
     </div>
 
     <div id="resultView"></div>
@@ -145,17 +162,16 @@
     const left = document.getElementById("left");
     const right = document.getElementById("right");
 
-    document.addEventListener("DOMContentLoaded", () => {
-      document.getElementById("facilityIdInput").value = "{{FACILITY_ID}}";
-      document.getElementById("facilityNameInput").value = "{{FACILITY_NAME}}";
-      document.getElementById("facilityUrlInput").value = "{{FACILITY_URL}}";
-      document.getElementById("dateStrInput").value = "{{DATE_STR}}";
+    const facilityIdInput = document.getElementById("facilityIdInput");
+    const facilityNameInput = document.getElementById("facilityNameInput");
+    const facilityUrlInput = document.getElementById("facilityUrlInput");
+    const dateStrInput = document.getElementById("dateStrInput");
 
-      console.log("facility:", {
-        id: "{{FACILITY_ID}}",
-        name: "{{FACILITY_NAME}}",
-        url: "{{FACILITY_URL}}"
-      });
+    document.addEventListener("DOMContentLoaded", () => {
+      facilityIdInput.value = "{{FACILITY_ID}}";
+      facilityNameInput.value = "{{FACILITY_NAME}}";
+      facilityUrlInput.value = "{{FACILITY_URL}}";
+      dateStrInput.value = "{{DATE_STR}}";
     });
 
     tabView.onclick = () => {
@@ -172,14 +188,90 @@
       resultView.style.display = "block";
     };
 
+    function waitForLoadStop(view) {
+      return new Promise(resolve => {
+        view.addEventListener("did-stop-loading", resolve, { once: true });
+      });
+    }
+
+    // ★ 右専用：table が出るまで待つ
+    async function waitForTable(view, selector, timeout = 15000) {
+      const start = Date.now();
+      while (Date.now() - start < timeout) {
+        const exists = await view.executeJavaScript(
+          `!!document.querySelector("${selector}")`
+        );
+        if (exists) return true;
+        await new Promise(r => setTimeout(r, 500));
+      }
+      throw new Error("右ページのテーブルが表示されません");
+    }
+
     document.getElementById("getDataBtn").onclick = async () => {
-      const facilityId = document.getElementById("facilityIdInput").value;
-      const dateStr = document.getElementById("dateStrInput").value;
+      try {
+        const facilityId = facilityIdInput.value;
+        const dateStr = dateStrInput.value;
 
-      const url = `https://www.hug-ayumu.link/hug/wm/attendance.php?mode=detail&f_id=${facilityId}&date=${dateStr}`;
-      left.src = url;
+        /* ===== 左 ===== */
+        const leftUrl =
+          `https://www.hug-ayumu.link/hug/wm/attendance.php?mode=detail&f_id=${facilityId}&date=${dateStr}`;
 
-      console.log("reload left:", url);
+        const waitLeft = waitForLoadStop(left);
+        left.src = leftUrl;
+        await waitLeft;
+
+        const htmlLeft = await left.executeJavaScript(`
+        const t = document.querySelector("table.js_adding_table") || document.querySelector("table");
+        t ? t.outerHTML : "<p>左：テーブルなし</p>";
+      `);
+
+        /* ===== 右 ===== */
+        // 検索条件をセット
+        await right.executeJavaScript(`
+        document.querySelectorAll('input[type="checkbox"][name^="f_ary"]').forEach(c => c.checked = false);
+        const cb = document.querySelector('input[data-fid="${facilityId}"]');
+        if (cb) cb.checked = true;
+
+        const sel = document.querySelector('select[name="adding_children_id"]');
+        if (sel) sel.value = "55";
+
+        const dp1 = document.getElementById("dp1");
+        const dp2 = document.getElementById("dp2");
+        if (dp1) dp1.value = "${dateStr}";
+        if (dp2) dp2.value = "${dateStr}";
+
+        const btn = document.querySelector('button.btn.search[type="submit"]');
+        if (btn) btn.click();
+      `);
+
+        // ★ table 出現待ち
+        await waitForTable(right, "table");
+
+        const htmlRight = await right.executeJavaScript(`
+        const t = document.querySelector("table");
+        t ? t.outerHTML : "<p>右：テーブルなし</p>";
+      `);
+
+        /* ===== 表示 ===== */
+        resultView.innerHTML = `
+        <div style="display:flex; gap:20px;">
+          <div style="flex:1;">
+            <h2>📘 左ページ（記録一覧）</h2>
+            ${htmlLeft}
+          </div>
+          <div style="flex:1;">
+            <h2>📙 右ページ（計画状況）</h2>
+            ${htmlRight}
+          </div>
+        </div>
+      `;
+
+        tabResult.click();
+
+      } catch (e) {
+        console.error(e);
+        alert(e.message);
+      }
     };
   </script>
 

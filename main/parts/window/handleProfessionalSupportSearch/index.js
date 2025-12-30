@@ -1,7 +1,5 @@
 // main/parts/window/handleProfessionalSupportSearch/index.js
 // 加算比較用ウインドウ
-// main/parts/window/handleProfessionalSupportSearch/index.js
-// 加算比較用ウインドウ
 const fs = require("fs");
 const path = require("path");
 const { createDoubleWebviewWindow } = require("./windowManager");

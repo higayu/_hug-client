@@ -60,15 +60,15 @@ function createDoubleWebviewWindow(
  * preload.js のパス解決
  */
 function resolvePreloadPath() {
-  const devPath = path.join(__dirname, "../../../preload.js");
-  const prodPath = path.join(process.resourcesPath, "data", "preload.js");
+  const devPath = path.join(__dirname, "../../../../preload.js");
+  const prodPath = path.join(process.resourcesPath, "preload.js");
 
   if (fs.existsSync(devPath)) return devPath;
   if (fs.existsSync(prodPath)) return prodPath;
 
-  console.warn("preload.js not found");
-  return devPath;
+  throw new Error("preload.js not found: " + devPath);
 }
+
 
 module.exports = {
   createDoubleWebviewWindow,
