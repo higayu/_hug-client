@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy"
+    content="default-src 'self' https: data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline';">
+
+  <style>
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      font-family: sans-serif;
+    }
+
+    #toolbar {
+      background: #f5f5f5;
+      padding: 10px;
+      border-bottom: 1px solid #ddd;
+      display: flex;
+      gap: 20px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    label {
+      font-weight: bold;
+    }
+
+    input {
+      padding: 4px 8px;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+      background: #fff;
+    }
+
+    button {
+      padding: 8px 12px;
+      background: #007acc;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #005a9e;
+    }
+
+    #tabs {
+      display: flex;
+      background: #eee;
+      border-bottom: 2px solid #ccc;
+    }
+
+    .tab {
+      flex: 1;
+      text-align: center;
+      padding: 10px;
+      cursor: pointer;
+    }
+
+    .tab.active {
+      background: #fff;
+      border-top: 2px solid #555;
+    }
+
+    #content {
+      flex: 1;
+      position: relative;
+    }
+
+    #webviews {
+      position: absolute;
+      inset: 0;
+      display: flex;
+    }
+
+    webview {
+      flex: 1;
+      border: none;
+    }
+
+    #left {
+      border-right: 2px solid #ccc;
+    }
+
+    #resultView {
+      position: absolute;
+      inset: 0;
+      display: none;
+      background: #fafafa;
+      overflow: auto;
+      padding: 20px;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      font-size: 13px;
+    }
+
+    th,
+    td {
+      border: 1px solid #ccc;
+      padding: 6px;
+    }
+
+    th {
+      background: #e0e0e0;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ===== ツールバー ===== -->
+  <div id="toolbar">
+    <div>
+      <label>施設ID:</label>
+      <input id="facilityIdInput" readonly>
+    </div>
+    <div>
+      <label>施設名:</label>
+      <input id="facilityNameInput" readonly>
+    </div>
+    <div>
+      <label>施設URL:</label>
+      <input id="facilityUrlInput" readonly>
+    </div>
+    <div>
+      <label>日付:</label>
+      <input type="date" id="dateStrInput">
+    </div>
+    <button id="getDataBtn">📥 データ取得</button>
+  </div>
+
+  <!-- ===== タブ ===== -->
+  <div id="tabs">
+    <div id="tabView" class="tab active">📄 ページ表示</div>
+    <div id="tabResult" class="tab">📊 取得結果</div>
+  </div>
+
+  <div id="content">
+    <div id="webviews">
+      <webview id="left" src="https://www.hug-ayumu.link/hug/wm/" allowpopups></webview>
+
+      <webview id="right" src="{{URL2}}" allowpopups></webview>
+    </div>
+
+    <div id="resultView"></div>
+  </div>
+
+  <script>
+    const tabView = document.getElementById("tabView");
+    const tabResult = document.getElementById("tabResult");
+    const webviews = document.getElementById("webviews");
+    const resultView = document.getElementById("resultView");
+    const left = document.getElementById("left");
+    const right = document.getElementById("right");
+
+    const facilityIdInput = document.getElementById("facilityIdInput");
+    const facilityNameInput = document.getElementById("facilityNameInput");
+    const facilityUrlInput = document.getElementById("facilityUrlInput");
+    const dateStrInput = document.getElementById("dateStrInput");
+
+    document.addEventListener("DOMContentLoaded", () => {
+      facilityIdInput.value = "{{FACILITY_ID}}";
+      facilityNameInput.value = "{{FACILITY_NAME}}";
+      facilityUrlInput.value = "{{FACILITY_URL}}";
+      dateStrInput.value = "{{DATE_STR}}";
+    });
+
+    tabView.onclick = () => {
+      tabView.classList.add("active");
+      tabResult.classList.remove("active");
+      webviews.style.display = "flex";
+      resultView.style.display = "none";
+    };
+
+    tabResult.onclick = () => {
+      tabResult.classList.add("active");
+      tabView.classList.remove("active");
+      webviews.style.display = "none";
+      resultView.style.display = "block";
+    };
+
+    function waitForLoadStop(view) {
+      return new Promise(resolve => {
+        view.addEventListener("did-stop-loading", resolve, { once: true });
+      });
+    }
+
+    // ★ 右専用：table が出るまで待つ
+    async function waitForTable(view, selector, timeout = 15000) {
+      const start = Date.now();
+      while (Date.now() - start < timeout) {
+        const exists = await view.executeJavaScript(
+          `!!document.querySelector("${selector}")`
+        );
+        if (exists) return true;
+        await new Promise(r => setTimeout(r, 500));
+      }
+      throw new Error("右ページのテーブルが表示されません");
+    }
+
+    document.getElementById("getDataBtn").onclick = async () => {
+      try {
+        const facilityId = facilityIdInput.value;
+        const dateStr = dateStrInput.value;
+
+        /* ===== 左 ===== */
+        const leftUrl =
+          `https://www.hug-ayumu.link/hug/wm/attendance.php?mode=detail&f_id=${facilityId}&date=${dateStr}`;
+
+        const waitLeft = waitForLoadStop(left);
+        left.src = leftUrl;
+        await waitLeft;
+
+        const htmlLeft = await left.executeJavaScript(`
+        const t = document.querySelector("table.js_adding_table") || document.querySelector("table");
+        t ? t.outerHTML : "<p>左：テーブルなし</p>";
+      `);
+
+        /* ===== 右 ===== */
+        // 検索条件をセット
+        await right.executeJavaScript(`
+        document.querySelectorAll('input[type="checkbox"][name^="f_ary"]').forEach(c => c.checked = false);
+        const cb = document.querySelector('input[data-fid="${facilityId}"]');
+        if (cb) cb.checked = true;
+
+        const sel = document.querySelector('select[name="adding_children_id"]');
+        if (sel) sel.value = "55";
+
+        const dp1 = document.getElementById("dp1");
+        const dp2 = document.getElementById("dp2");
+        if (dp1) dp1.value = "${dateStr}";
+        if (dp2) dp2.value = "${dateStr}";
+
+        const btn = document.querySelector('button.btn.search[type="submit"]');
+        if (btn) btn.click();
+      `);
+
+        // ★ table 出現待ち
+        await waitForTable(right, "table");
+
+        const htmlRight = await right.executeJavaScript(`
+        const t = document.querySelector("table");
+        t ? t.outerHTML : "<p>右：テーブルなし</p>";
+      `);
+
+        /* ===== 表示 ===== */
+        resultView.innerHTML = `
+        <div style="display:flex; gap:20px;">
+          <div style="flex:1;">
+            <h2>📘 左ページ（記録一覧）</h2>
+            ${htmlLeft}
+          </div>
+          <div style="flex:1;">
+            <h2>📙 右ページ（計画状況）</h2>
+            ${htmlRight}
+          </div>
+        </div>
+      `;
+
+        tabResult.click();
+
+      } catch (e) {
+        console.error(e);
+        alert(e.message);
+      }
+    };
+  </script>
+
+</body>
+
+</html>

@@ -1,0 +1,53 @@
+import { initTabs } from "./ui.js";
+import { fetchLeftTable } from "./leftWebview.js";
+import { fetchRightTable } from "./rightWebview.js";
+
+document.addEventListener("DOMContentLoaded", () => {
+  initTabs();
+
+  const params = new URLSearchParams(location.search);
+
+  const facilityIdInput = document.getElementById("facilityIdInput");
+  const facilityNameInput = document.getElementById("facilityNameInput");
+  const facilityUrlInput = document.getElementById("facilityUrlInput");
+  const dateStrInput = document.getElementById("dateStrInput");
+  const right = document.getElementById("right");
+
+  // ★ query から値を取得
+  facilityIdInput.value = params.get("FACILITY_ID") ?? "";
+  facilityNameInput.value = params.get("FACILITY_NAME") ?? "";
+  facilityUrlInput.value = params.get("FACILITY_URL") ?? "";
+  dateStrInput.value = params.get("DATE_STR") ?? "";
+
+  // ★ 右webviewの初期URLも query からセット
+  const url2 = params.get("URL2");
+  if (right && url2) {
+    right.src = url2;
+  }
+});
+
+getDataBtn.onclick = async () => {
+  const left = document.getElementById("left");
+  const right = document.getElementById("right");
+
+  const facilityId = facilityIdInput.value;
+  const dateStr = dateStrInput.value;
+
+  const htmlLeft = await fetchLeftTable(left, facilityId, dateStr);
+  const htmlRight = await fetchRightTable(right, facilityId, dateStr);
+
+  resultView.innerHTML = `
+    <div style="display:flex; gap:20px;">
+      <div style="flex:1;">
+        <h2>📘 左</h2>
+        ${htmlLeft}
+      </div>
+      <div style="flex:1;">
+        <h2>📙 右</h2>
+        ${htmlRight}
+      </div>
+    </div>
+  `;
+
+  tabResult.click();
+};

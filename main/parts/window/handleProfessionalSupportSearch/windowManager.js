@@ -3,20 +3,11 @@ const { BrowserWindow } = require("electron");
 const path = require("path");
 const fs = require("fs");
 
-/**
- * ダブルWebViewウインドウを作成する
- * @param {string} url1
- * @param {string} url2
- * @param {string} label
- * @param {string} htmlTemplate
- * @param {{ id:number, name:string, url:string }} targetFacility
- * @param {string} dateStr
- */
 function createDoubleWebviewWindow(
   url1,
   url2,
   label,
-  htmlTemplate,
+  htmlTemplate, // ← もう使わない（互換のため残してOK）
   targetFacility,
   dateStr
 ) {
@@ -33,20 +24,23 @@ function createDoubleWebviewWindow(
     },
   });
 
-  const preloadPath = resolvePreloadPath();
-
-  const html = htmlTemplate
-    .replace(/{{URL1}}/g, url1)
-    .replace(/{{URL2}}/g, url2)
-    .replace(/{{PRELOAD_PATH}}/g, preloadPath)
-    .replace(/{{FACILITY_ID}}/g, String(targetFacility?.id ?? ""))
-    .replace(/{{FACILITY_NAME}}/g, targetFacility?.name ?? "")
-    .replace(/{{FACILITY_URL}}/g, targetFacility?.url ?? "")
-    .replace(/{{DATE_STR}}/g, dateStr ?? "");
-
-  win.loadURL(
-    "data:text/html;charset=utf-8," + encodeURIComponent(html)
+  // ★ HTML ファイルを直接ロードする
+  const htmlPath = path.join(
+    __dirname,
+    "templates",
+    "ProfessionalSupport.html"
   );
+
+  win.loadFile(htmlPath, {
+    query: {
+      URL1: url1,
+      URL2: url2,
+      FACILITY_ID: String(targetFacility?.id ?? ""),
+      FACILITY_NAME: targetFacility?.name ?? "",
+      FACILITY_URL: targetFacility?.url ?? "",
+      DATE_STR: dateStr ?? "",
+    },
+  });
 
   win.webContents.once("did-finish-load", () => {
     console.log(`${label} window loaded`);
@@ -68,7 +62,6 @@ function resolvePreloadPath() {
 
   throw new Error("preload.js not found: " + devPath);
 }
-
 
 module.exports = {
   createDoubleWebviewWindow,
