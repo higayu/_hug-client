@@ -1,6 +1,12 @@
-// main\parts\window\handleProfessionalSupportSearch\scripts\rightWebview.js
+// main\parts\window\handleProfessionalSupportSearch\scripts\rightWebviewOneChildren.js
 
-export async function fetchRightTable(right, facilityId, dateStr) {
+
+import { getYearMonthFromDate, getDaysInMonth } from "./getDays.js";
+
+export async function fetchRightTable(right,childrenId, facilityId, monthStr) {
+  const startdate =  monthStr+'-01';
+  const enddate = monthStr+'-' + getDaysInMonth(monthStr);
+
 
   const url =
     `https://www.hug-ayumu.link/hug/wm/record_proceedings.php?f_id=${facilityId}`;
@@ -25,12 +31,12 @@ export async function fetchRightTable(right, facilityId, dateStr) {
       if (cb) cb.checked = true;
 
       const sel = document.querySelector('select[name="adding_children_id"]');
-      if (sel) sel.value = "55";
+      if (sel) sel.value = "${childrenId}";
 
       const dp1 = document.getElementById("dp1");
       const dp2 = document.getElementById("dp2");
-      if (dp1) dp1.value = "${dateStr}";
-      if (dp2) dp2.value = "${dateStr}";
+      if (dp1) dp1.value = "${startdate}";
+      if (dp2) dp2.value = "${enddate}";
 
       document.querySelector('button.btn.search[type="submit"]')?.click();
     `);

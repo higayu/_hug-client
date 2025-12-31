@@ -10,7 +10,11 @@ export async function fetchLeftTable(left, facilityId, dateStr) {
   });
 
   return left.executeJavaScript(`
-(() => {
+(async () => {
+
+  /* =========================
+     ④ 元々の処理
+  ========================= */
   const result = [];
 
   const cells = document.querySelectorAll(

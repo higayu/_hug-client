@@ -29,7 +29,7 @@ function handleProfessionalSupportSearch(ipcMain, defaultFacilityId, defaultDate
         `?mode=detail&f_id=${receivedFacilityId}&date=${receivedDateStr}`;
 
       const url2 =
-        "https://www.hug-ayumu.link/hug/wm/record_proceedings.php";
+        `https://www.hug-ayumu.link/hug/wm/record_proceedings.php?f_id=${targetFacility.id}`;
 
       openDoubleWebviewWithTabs(
         url1,
