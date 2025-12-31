@@ -7,7 +7,7 @@ import { getYearMonthFromDate, getDaysInMonth } from "./getDays.js";
    ★ 取得結果を保持する変数
 ========================= */
 let leftData = [];        // 左：月分の全日データ
-let rightDataHtml = "";  // 右：HTMLそのまま
+let rightData = [];       // 右：日付単位の行データ（配列）
 
 /* =========================
    ★ 初期化
@@ -34,25 +34,23 @@ document.addEventListener("DOMContentLoaded", () => {
 ========================= */
 getDataBtn.onclick = async () => {
   const left  = document.getElementById("left");
-  const right = document.getElementById("right");
 
   const facilityId = facilityIdInput.value;
   const dateStr    = dateStrInput.value;
-  const monthStr   = yearMonthInput.value;
 
-  /* ===== データ取得 ===== */
-  leftData       = await fetchLeftTable(left, facilityId, dateStr);
-  rightDataHtml  = await fetchRightTable(right, facilityId, dateStr);
+  /* ===== 左（月データ）取得 ===== */
+  leftData = await fetchLeftTable(left, facilityId, dateStr);
 
   /* ===== 表示枠生成 ===== */
   resultView.innerHTML = `
     <div style="display:flex; gap:20px;">
       <div style="flex:1;">
-        <select id="dateSelect" style=" font-size: larger;" ></select>
+        <select id="dateSelect" style="font-size:larger;"></select>
         <div id="leftResult" style="margin-top:10px;"></div>
       </div>
       <div style="flex:1;">
-        ${rightDataHtml}
+        <h1 id="rightTitle"></h1>
+        <div id="rightResult"></div>
       </div>
     </div>
   `;
@@ -76,19 +74,24 @@ function initDateSelector() {
   });
 
   select.onchange = () => {
-    renderLeftByDate(select.value);
+    renderByDate(select.value);
   };
 
-  // 初期表示（最初の日）
   if (leftData.length > 0) {
     select.value = leftData[0].date;
-    renderLeftByDate(leftData[0].date);
+    renderByDate(leftData[0].date);
   }
 }
 
 /* =========================
-   ★ 日付指定で左を描画
+   ★ 日付指定で左右を描画
 ========================= */
+async function renderByDate(date) {
+  renderLeftByDate(date);
+  await renderRightByDate(date);
+}
+
+/* ---------- 左 ---------- */
 function renderLeftByDate(date) {
   const day = leftData.find(d => d.date === date);
   if (!day) {
@@ -99,8 +102,8 @@ function renderLeftByDate(date) {
   const rows = Object.entries(day.categories).map(
     ([category, data]) => `
       <tr>
-        <td>${category}</td>
-        <td style="text-align:right;">${data.count}</td>
+        <td style="width:80px;">${category}</td>
+        <td style="width:50px;text-align:right;">${data.count}</td>
         <td>${data.names.join("<br>")}</td>
       </tr>
     `
@@ -108,7 +111,8 @@ function renderLeftByDate(date) {
 
   document.getElementById("leftResult").innerHTML = `
     <h3>${day.date}（${day.weekday}）</h3>
-    <table border="1" cellspacing="0" cellpadding="4" style="border-collapse:collapse; width:100%;">
+    <table border="1" cellspacing="0" cellpadding="4"
+           style="border-collapse:collapse; width:100%;">
       <thead>
         <tr>
           <th>区分</th>
@@ -119,6 +123,44 @@ function renderLeftByDate(date) {
       <tbody>
         ${rows || `<tr><td colspan="3">データなし</td></tr>`}
       </tbody>
+    </table>
+  `;
+}
+
+/* ---------- 右 ---------- */
+async function renderRightByDate(date) {
+  const right = document.getElementById("right");
+  const facilityId = facilityIdInput.value;
+
+  rightData = await fetchRightTable(right, facilityId, date);
+
+  document.getElementById("rightTitle").textContent = date;
+
+  if (!rightData || rightData.length === 0) {
+    document.getElementById("rightResult").innerHTML =
+      "<p>記録データなし</p>";
+    return;
+  }
+
+  const headers = Object.keys(rightData[0]);
+
+  const thead = `
+    <tr>
+      ${headers.map(h => `<th>${h}</th>`).join("")}
+    </tr>
+  `;
+
+  const tbody = rightData.map(row => `
+    <tr>
+      ${headers.map(h => `<td>${row[h] ?? ""}</td>`).join("")}
+    </tr>
+  `).join("");
+
+  document.getElementById("rightResult").innerHTML = `
+    <table border="1" cellspacing="0" cellpadding="4"
+           style="border-collapse:collapse; width:100%;">
+      <thead>${thead}</thead>
+      <tbody>${tbody}</tbody>
     </table>
   `;
 }
