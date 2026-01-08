@@ -19,7 +19,7 @@
         "enabled": false,
         "buttonText": "URL取得",
         "buttonColor": "#17a2b8"
-      },
+      }
     },
     "window": {
       "width": 1200,
