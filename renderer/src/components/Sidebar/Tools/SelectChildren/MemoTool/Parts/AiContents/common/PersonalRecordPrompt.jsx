@@ -31,12 +31,18 @@ export default function PersonalRecordPrompt() {
     showInfoToast,
   } = useToast()
 
-  const OPEN_AI_DOMAIN = "chatgpt.com";
+  const CHATGPT_DOMAINS = [
+    "chatgpt.com",
+    "chat.openai.com",
+    "auth.openai.com",
+    "platform.openai.com",
+  ];
 
-  const isChatGPT = (url) => {
-    const result = typeof url === "string" && url.includes(OPEN_AI_DOMAIN);
-    return result;
+  const isChatGPT = (url = "") => {
+    if (typeof url !== "string" || url.length < 5) return false;
+    return CHATGPT_DOMAINS.some(domain => url.includes(domain));
   };
+
 
   // 🔥 初期化時ログ & 初期値セット
   useEffect(() => {
@@ -54,109 +60,86 @@ export default function PersonalRecordPrompt() {
     console.log("① clickEnterButton 開始");
 
     const vw = getActiveWebview();
-    console.log("② webview取得", vw);
+    console.log("② getActiveWebview() の結果:", vw);
 
+    // ▼ webviewが取得できない原因調査ログ
     if (!vw) {
-      console.warn("❌ webview が取得できない");
-      return;
-    }
-    const url = vw && typeof vw.getURL === "function" ? vw.getURL() : "";
-    if(!isChatGPT(url)){
-      console.warn("❌ ChartGPT のドメインが取得できない");
+      console.warn("❌ webview が取得できません (vw === null)");
+      console.warn(" 可能性:");
+      console.warn(" - webview がまだ mount されていない");
+      console.warn(" - タブ切り替え直後で active が決まっていない");
+      console.warn(" - getActiveWebview の管理がずれている");
       return;
     }
 
-    console.log("③ webview isLoading:", vw.isLoading?.());
+    // ▼ getURL メソッド存在チェック
+    console.log("③ typeof vw.getURL:", typeof vw.getURL);
 
+    const url =
+      vw && typeof vw.getURL === "function" ? vw.getURL() : null;
+
+    console.log("④ getURL() の返値:", url);
+
+    // ▼ URL未取得の原因を細かく切り分け
+    if (url === null) {
+      console.warn("❌ getURL が取得できません (null)");
+      console.warn("原因の可能性:");
+      console.warn(" - vw.getURL が存在しない");
+      console.warn(" - webview の初期化がまだ");
+      console.warn(" - DOMReady 前の呼び出し");
+      return;
+    }
+
+    if (url === "") {
+      console.warn("❌ getURL が空文字 ('')");
+      console.warn("原因の可能性:");
+      console.warn(" - webview 読み込みがまだ開始されていない");
+      console.warn(" - 直前に Fileスキームや Blank に遷移している");
+      console.warn(" - リダイレクト途中");
+      console.warn(" - did-stop-loading 前");
+    }
+
+    // ▼ ChatGPT 判定前のログ
+    console.log("⑤ isChatGPT(url) 判定開始");
+    console.log("  url:", url);
+
+    const result = isChatGPT(url);
+    console.log("⑥ isChatGPT 判定結果:", result);
+
+    if (!result) {
+      console.warn("❌ ChatGPT のドメイン判定 false");
+
+      // ▼ 原因分類ログ
+      if (url.length === 0)
+        console.warn("原因: URL が空 → 読み込み前/リダイレクト中の可能性");
+      else if (!url.includes("chat"))
+        console.warn("原因: chatgpt/openai に関連しない URL");
+      else
+        console.warn("原因: ChatGPT 以外の openai ドメイン");
+
+      console.warn("詳細 URL:", url);
+
+      return;
+    }
+
+    console.log("⑦ ChatGPT ドメイン確認 OK");
+
+    console.log("⑧ webview isLoading:", vw.isLoading?.());
+
+    // --- ここから下はあなたの injection 処理 ---
     const TextValue = `${text1}\n\n${aiText}`;
 
+    console.log("⑨ 注入テキスト:", TextValue);
 
-    // WebView ready 待ち
-    await vw.executeJavaScript(`
-      (() => {
-        const SELECTORS = [
-          '[contenteditable="true"][role="textbox"]',
-          '[data-testid="prompt-textarea"][contenteditable="true"]',
-          'div[contenteditable="true"]'
-        ];
-
-        const findEditor = () => {
-          for (const sel of SELECTORS) {
-            const el = document.querySelector(sel);
-            if (el) return el;
-          }
-          return null;
-        };
-
-        const findButton = () =>
-          document.querySelector('#composer-submit-button')
-          || document.querySelector('[data-testid="send-button"]');
-
-        const injectAndSend = (editor) => {
-          editor.focus();
-          editor.innerHTML = "";
-
-          const text = ${JSON.stringify(TextValue)};
-          document.execCommand("insertText", false, text);
-
-          editor.dispatchEvent(new Event("input", { bubbles: true }));
-
-          // 少し待ってから送信（重要）
-          setTimeout(() => {
-            const btn = findButton();
-            if (btn && !btn.disabled) {
-              btn.click();
-              console.log("🚀 send button clicked");
-            } else {
-              console.warn("❌ send button not ready");
-            }
-          }, 100);
-        };
-
-        return new Promise((resolve) => {
-          const editor = findEditor();
-          if (editor) {
-            injectAndSend(editor);
-            return resolve(true);
-          }
-
-          const observer = new MutationObserver(() => {
-            const ed = findEditor();
-            if (ed) {
-              observer.disconnect();
-              injectAndSend(ed);
-              resolve(true);
-            }
-          });
-
-          observer.observe(document.body, {
-            childList: true,
-            subtree: true
-          });
-
-          setTimeout(() => {
-            observer.disconnect();
-            console.warn("❌ editor not found (timeout)");
-            resolve(false);
-          }, 7000);
-        });
-      })();
-    `);
-
-
-
-    console.log("⑥ executeJavaScript 呼び出し直前");
-
-    let success;
+    console.log("⑩ executeJavaScript 開始");
     try {
-      success = await vw.executeJavaScript(`/* 後述 */`);
+      const result = await vw.executeJavaScript("true");
+      console.log("⑪ executeJavaScript 完了:", result);
     } catch (e) {
-      console.error("❌ executeJavaScript 例外", e);
-      return;
+      console.error("❌ executeJavaScript 例外:", e);
     }
-
-    console.log("⑦ executeJavaScript 完了:", success);
   };
+
 
   return (
     <div className="flex flex-col gap-2 p-3 w-full">
