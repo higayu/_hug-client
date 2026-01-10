@@ -36,7 +36,7 @@ function ChildMemoPanel() {
     experienceChildrenData
   } = useChildrenList()
 
-  const { addProfessionalSupportNewTab } = useTabs()
+  const { addProfessionalSupportNewTab,addWebManagerAction } = useTabs()
 
   const [selectedChildData, setSelectedChildData] = useState(null)
   const [attendanceItem, setAttendanceItem] = useState(null)
@@ -291,6 +291,13 @@ function ChildMemoPanel() {
             </>
           )}
         </div>
+
+        <button 
+          id="professional-support-new"
+          onClick={addWebManagerAction}
+          className="block text-left bg-blue-300 rounded text-black px-4 py-2 text-sm cursor-pointer transition-all hover:bg-[#e3f2fd]"        >
+          Webページへ
+        </button>
       </div>
     </div>
   )
