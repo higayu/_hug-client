@@ -3,11 +3,14 @@ import { useEffect, useState } from 'react'
 import { useAppState } from '@/contexts/appState'
 import { useChildrenList } from '@/hooks/useChildrenList.js'
 import { useTabs } from '@/hooks/useTabs/index.js'
+
 import {
   clickEnterButton,
   clickAbsenceButton,
-  clickExitButton
-} from '@/utils/attendanceButtonClick.js'
+  clickExitButton,
+} from "@/utils/attendance/index.js";
+
+import { useToast } from "@/components/common/ToastContext.jsx";
 
 function ChildMemoPanel() {
   const {
@@ -16,6 +19,13 @@ function ChildMemoPanel() {
     setSelectedChildColumns,
     DEBUG_FLG,
   } = useAppState()
+
+  const {
+    showSuccessToast,
+    showErrorToast,
+    showWarningToast,
+    showInfoToast,
+  } = useToast();
 
   const IS_STOP = !DEBUG_FLG // まだ不完全のため停止
   const SELECT_CHILD = appState.SELECT_CHILD
@@ -121,6 +131,93 @@ function ChildMemoPanel() {
 
   const disabledBtnClass = 'grayscale opacity-50 cursor-not-allowed'
 
+
+  /* ===============================
+  * 入室ボタン
+  * =============================== */
+  const nyushituButton = async (column5Html) => {
+    const cid = SELECT_CHILD;
+    console.group("🟦 入室クリック");
+
+    if (!column5Html) {
+      showErrorToast("入室情報が取得できません");
+      console.groupEnd();
+      return;
+    }
+
+    try {
+      const res = await clickEnterButton(column5Html, Number(cid));
+      if (res?.success === true) {
+        showSuccessToast("入室　実行完了");
+      } else {
+        showErrorToast("入室　失敗");
+      }
+    } catch (e) {
+      console.error("入室処理例外:", e);
+      showErrorToast("入室　例外発生");
+    } finally {
+      console.groupEnd();
+    }
+  };
+
+  /* ===============================
+  * 退室ボタン
+  * =============================== */
+  const taishituButton = async (column6Html) => {
+    const cid = SELECT_CHILD;
+    console.group("🟥 退室クリック");
+
+    if (!column6Html) {
+      showErrorToast("退室情報が取得できません");
+      console.groupEnd();
+      return;
+    }
+
+    try {
+      const res = await clickExitButton(column6Html, Number(cid));
+      if (res?.success === true) {
+        showSuccessToast("退室　実行完了");
+      } else {
+        showErrorToast("退室　失敗");
+      }
+    } catch (e) {
+      console.error("退室処理例外:", e);
+      showErrorToast("退室　例外発生");
+    } finally {
+      console.groupEnd();
+    }
+  };
+
+  /* ===============================
+  * 欠席ボタン
+  * =============================== */
+  const kessekiButton = async (column5Html) => {
+    const cid = SELECT_CHILD;
+    console.group("🟨 欠席クリック");
+
+    if (!column5Html) {
+      showErrorToast("欠席情報が取得できません");
+      console.groupEnd();
+      return;
+    }
+
+    try {
+      const res = await clickAbsenceButton(column5Html, Number(cid));
+      if (res?.success === true) {
+        showSuccessToast("欠席　実行完了");
+      } else {
+        showErrorToast("欠席　失敗");
+      }
+    } catch (e) {
+      console.error("欠席処理例外:", e);
+      showErrorToast("欠席　例外発生");
+    } finally {
+      console.groupEnd();
+    }
+  };
+
+
+
   /* ===============================
    * Render
    * =============================== */
@@ -151,7 +248,7 @@ function ChildMemoPanel() {
                   className={`btn-green mt-2 ${
                     !isUIEnabled || IS_STOP ? disabledBtnClass : ''
                   }`}
-                  onClick={() => clickExitButton(column6Html)}
+                  onClick={() => taishituButton(column6Html)}
                   disabled={!isUIEnabled || IS_STOP}
                 >
                   退室
@@ -176,7 +273,7 @@ function ChildMemoPanel() {
                 className={`btn-blue p-2 w-[80px] ${
                   !isUIEnabled || IS_STOP ? disabledBtnClass : ''
                 }`}
-                onClick={() => clickEnterButton(column5Html)}
+                onClick={() => nyushituButton(column5Html)}
                 disabled={!isUIEnabled || IS_STOP}
               >
                 入室
@@ -186,7 +283,7 @@ function ChildMemoPanel() {
                 className={`btn-red mt-2 p-2 w-[80px] ${
                   !isUIEnabled || IS_STOP ? disabledBtnClass : ''
                 }`}
-                onClick={() => clickAbsenceButton(column5Html)}
+                onClick={() => kessekiButton(column5Html)}
                 disabled={!isUIEnabled || IS_STOP}
               >
                 欠席

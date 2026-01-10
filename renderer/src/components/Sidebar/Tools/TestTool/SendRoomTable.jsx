@@ -125,6 +125,40 @@ function SendRoomTable() {
     }
   };
 
+  /* ===============================
+  * 欠席ボタン
+  * =============================== */
+  const kessekiButton = async (column5Html, cid) => {
+    console.group("🟨 欠席クリック");
+    console.log("cid:", cid);
+    console.log("column5Html:", column5Html);
+
+    if (!column5Html) {
+      console.warn("❌ column5Html が null / undefined");
+      showErrorToast("欠席情報が取得できません");
+      console.groupEnd();
+      return;
+    }
+
+    try {
+      console.log("➡ clickAbsenceButton 実行開始");
+      const res = await clickAbsenceButton(column5Html, Number(cid));
+      console.log("⬅ clickAbsenceButton 結果:", res);
+
+      if (res?.success === true) {
+        showSuccessToast("欠席　実行完了");
+      } else {
+        showErrorToast("欠席　失敗");
+      }
+    } catch (e) {
+      console.error("💥 欠席処理例外:", e);
+      showErrorToast("欠席　例外発生");
+    } finally {
+      console.groupEnd();
+    }
+  };
+
+
   return (
     <div className="mt-6">
       <table className="min-w-full border border-gray-300 text-sm rounded-md shadow-sm">
@@ -213,18 +247,16 @@ function SendRoomTable() {
                           入室
                         </button>
 
-                        <button
-                          className="btn-red"
-                          onClick={() =>
-                            clickAbsenceButton(
-                              column5Html,
-                              targetChildrenId
-                            )
-                          }
-                          disabled={!isUIEnabled}
-                        >
-                          欠席
-                        </button>
+                          <button
+                            className="btn-red"
+                            onClick={() =>
+                              kessekiButton(column5Html, cid)
+                            }
+                            disabled={!isUIEnabled}
+                          >
+                            欠席
+                          </button>
+
                       </>
                     )}
                   </div>
