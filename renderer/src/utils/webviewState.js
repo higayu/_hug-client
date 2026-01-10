@@ -73,28 +73,43 @@ export function setActiveWebview(vw) {
 
   activeWebview = vw;
 
-  let url = "";
-  try {
-    url = typeof vw.getURL === "function" ? vw.getURL() : "";
-  } catch (e) {
-    console.error("💥 getURL 実行時エラー:", e);
-  }
+  // ▼ getURL() を安全に取得する関数
+  const getSafeURL = () => {
+    try {
+      if (typeof vw.getURL === "function") {
+        return vw.getURL();
+      }
+    } catch (e) {
+      console.warn("⚠ getURL() 実行エラー（まだdom-ready前）:", e.message);
+      return "(dom-not-ready)";
+    }
+    return "(no-getURL)";
+  };
 
-  console.log("📌 新 activeWebview URL:", url);
+  // ▼ 今のURL（例外は飲み込む）
+  let url = getSafeURL();
+  console.log("📌 現時点のURL:", url);
 
-  // イベント発火
-  try {
-    const detail = { webview: vw, url };
-    document.dispatchEvent(
-      new CustomEvent("active-webview-changed", { detail })
-    );
-    console.log("📣 active-webview-changed イベント送出 OK");
-  } catch (e) {
-    console.error("💥 active-webview-changed イベント送出失敗:", e);
-  }
+  // ▼ dom-ready で更新
+  vw.addEventListener("dom-ready", () => {
+    console.log("🟢 webview dom-ready 発火", vw.id);
+    const readyURL = getSafeURL();
+    console.log("📌 dom-ready後のURL:", readyURL);
+
+    try {
+      const detail = { webview: vw, url: readyURL };
+      document.dispatchEvent(
+        new CustomEvent("active-webview-changed", { detail })
+      );
+      console.log("📣 active-webview-changed イベント送出（dom-ready後）OK");
+    } catch (e) {
+      console.error("💥 active-webview-changed イベント送出失敗:", e);
+    }
+  });
 
   console.groupEnd();
 }
+
 
 /**
  * 現在のアクティブIDを取得（デバッグ用途）

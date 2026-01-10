@@ -1,5 +1,5 @@
 // renderer/src/components/Sidebar/Tools/MemoTool/Parts/AiInputBox.jsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 //import { useAppState } from "@/contexts/AppStateContext.jsx";
 import { useAppState } from '@/contexts/appState';
 import { useToast } from  '@/components/common/ToastContext.jsx'
@@ -11,6 +11,9 @@ export default function MemoInputBox() {
   const [memo1, setMemo1] = useState("");       // 一時メモ1
   const [memo2, setMemo2] = useState("");     // 一時メモ2
   const { showErrorToast, showSuccessToast,showWarningToast } = useToast();
+  const memo1Ref = useRef(null);
+  const memo2Ref = useRef(null);
+
 
   // 🔄 一時メモ読込（memo + memo2）
   useEffect(() => {
@@ -90,34 +93,64 @@ export default function MemoInputBox() {
 
       {/* --- 一時メモ1 --- */}
       <div>
-        <label className="text-xs font-bold text-gray-700 block mb-1">
-          一時メモ１（編集可能）
-        </label>
+          <div className="flex gap-2 mt-1 mb-1 items-start">
+            <label className="px-2 py-1 text-xs font-bold text-gray-700 block">
+              一時メモ１（編集可能）
+            </label>
+            <button
+              type="button"
+              onMouseDown={(e) => e.preventDefault()} // ★重要
+              onClick={() => memo1Ref.current?.focus()}
+              className="px-2 py-1 text-xs bg-sky-200 rounded hover:bg-gray-300 whitespace-nowrap"
+            >
+              入力に戻す
+            </button>
+        </div>
 
-        <textarea
-          className="w-full h-32 p-2 border border-gray-300 rounded text-xs bg-white resize-y min-h-[100px]
-                     text-black focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-200"
-          placeholder="メモを入力..."
-          value={memo1}
-          onChange={(e) => setMemo1(e.target.value)}
-          rows={4}
-        />
+        <div className="flex gap-2 items-start">
+          <textarea
+            ref={memo1Ref}
+            className="flex-1 h-32 p-2 border border-gray-300 rounded text-xs bg-white resize-y min-h-[100px]
+                      text-black focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-200"
+            placeholder="メモを入力..."
+            value={memo1}
+            onChange={(e) => setMemo1(e.target.value)}
+            rows={4}
+          />
+
+        </div>
       </div>
+
 
       {/* --- 一時メモ2 --- */}
       <div className="mt-3">
-        <label className="text-xs font-bold text-gray-700 block mb-1">
-          一時メモ２（編集可能）
-        </label>
+        <div className="flex gap-2 mt-1 mb-1 items-start">
+          <label className="px-2 py-1 text-xs font-bold text-gray-700 block">
+            一時メモ２（編集可能）
+          </label>
+          <button
+              type="button"
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => memo2Ref.current?.focus()}
+              className="px-2 py-1 text-xs bg-sky-200 rounded hover:bg-gray-300 whitespace-nowrap"
+            >
+              入力に戻す
+          </button>
+        </div>
 
-        <textarea
-          className="w-full h-32 p-2 border border-gray-300 rounded text-xs bg-white resize-y min-h-[80px]
-                     text-black focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-200"
-          placeholder="メモを入力..."
-          value={memo2}
-          onChange={(e) => setMemo2(e.target.value)}
-          rows={3}
-        />
+        <div className="flex gap-2 items-start">
+          <textarea
+            ref={memo2Ref}
+            className="flex-1 h-32 p-2 border border-gray-300 rounded text-xs bg-white resize-y min-h-[80px]
+                      text-black focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-200"
+            placeholder="メモを入力..."
+            value={memo2}
+            onChange={(e) => setMemo2(e.target.value)}
+            rows={3}
+          />
+
+
+        </div>
       </div>
 
     </div>

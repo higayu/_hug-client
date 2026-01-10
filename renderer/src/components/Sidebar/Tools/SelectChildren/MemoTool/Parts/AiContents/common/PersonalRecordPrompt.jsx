@@ -144,10 +144,6 @@ export default function PersonalRecordPrompt() {
   return (
     <div className="flex flex-col gap-2 p-3 w-full">
 
-      <div className="flex flex-row justify-end">
-        <PersonalInjectButton />
-      </div>
-
       {/* --- AI入力 --- */}
       <div className="mt-1">
         <label className="font-semibold">個人記録用プロンプト</label>
@@ -176,12 +172,18 @@ export default function PersonalRecordPrompt() {
             )
           }
         />
-        <button
-        className="bg-green-700 p-2 rounded text-white"
-        onClick={() => clickEnterButton()}
-        >
-          実行
-        </button>
+
+        <div className="flex flex-row justify-between items-center">
+          <button
+            className="w-[250px] bg-green-500 hover:bg-green-600 p-2 rounded text-white"
+            onClick={() => clickEnterButton()}
+          >
+            実行
+          </button>
+
+          <PersonalInjectButton />
+        </div>
+
       </div>
     </div>
   );

@@ -3,6 +3,7 @@ import React from 'react';
 import { getActiveWebview } from '@/utils/webviewState.js';
 import { useToast } from "@/components/common/ToastContext.jsx";
 import { ProfessionalInjectText } from './ProfessionalInjectText.js';
+import { ArrowRightIcon } from '@heroicons/react/24/solid';
 /**
  * 専門的支援加算を注入するボタン
  */
@@ -38,11 +39,24 @@ export default function ProfessionalInjectButton() {
 
   return (
     <button
-      className="w-60 h-10  bg-green-700 hover:bg-green-800 text-white rounded"
+      className="
+        w-40 h-10
+        bg-purple-500 hover:bg-purple-600
+        text-white rounded
+        flex items-center justify-center gap-2
+        group
+      "
       onClick={clickEnterButton}
       type="button"
     >
-      専門的支援加算の入力
+      <span>専門的加算</span>
+      <ArrowRightIcon
+        className="
+          w-4 h-4
+          transition-transform
+          group-hover:translate-x-1
+        "
+      />
     </button>
   );
 }

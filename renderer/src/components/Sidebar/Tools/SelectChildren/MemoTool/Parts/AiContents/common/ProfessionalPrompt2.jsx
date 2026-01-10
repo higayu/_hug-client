@@ -141,9 +141,7 @@ export default function ProfessionalPrompt2() {
 
   return (
     <div className="flex flex-col gap-4 p-3 w-full">
-      <div className="flex flex-row justify-end">
-        <ProfessionalInjectButton />
-      </div>
+
       {/* ===== Textarea 2 ===== */}
       <div className="flex flex-col gap-1">
         <label className="font-semibold">専門的支援加算用プロンプト2</label>
@@ -168,12 +166,16 @@ export default function ProfessionalPrompt2() {
         />
       </div>
 
+
+      <div className="flex flex-row justify-between items-center">
         <button
-        className="bg-green-700 p-2 rounded text-white"
-        onClick={() => clickEnterButton()}
+          className="w-[250px] bg-green-500 hover:bg-green-600 p-2 rounded text-white"
+          onClick={() => clickEnterButton()}
         >
           実行
         </button>
+        <ProfessionalInjectButton />
+      </div>
     </div>
   );
 }

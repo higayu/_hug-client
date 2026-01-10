@@ -193,7 +193,7 @@ export default function ProfessionalPrompt1() {
       </div>
 
         <button
-        className="bg-green-700 p-2 rounded text-white"
+        className="bg-green-500 hover:bg-green-600 p-2 rounded text-white"
         onClick={() => clickEnterButton()}
         >
           実行
