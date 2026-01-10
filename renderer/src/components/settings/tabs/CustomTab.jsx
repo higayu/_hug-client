@@ -28,6 +28,7 @@ function CustomTab() {
 
   // コンテキスト側で既に初期読み込み済みのため、ここでは読み込み不要
 
+
   // Contextの変更をローカルステートに反映
   useEffect(() => {
     setButtons([...customButtons])
@@ -163,6 +164,8 @@ function CustomTab() {
       if (colorInput) colorInput.removeEventListener('change', updateNewButton)
     }
   }, [])
+
+    //console.log(availableActions);
 
   return (
     <div>

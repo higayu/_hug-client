@@ -38,7 +38,8 @@ export async function waitForWebviewReady(webview) {
 export async function useDedicatedTabAndNavigate() {
   const state = store.getState();
   const facilityId = state.appState?.FACILITY_ID;
-  const dateStr = state.appState?.DATE_STR;
+  const dateStr = state.appState?.CURRENT_YMD;
+   console.log("入退室ボタンの起動",state);
 
   if (!facilityId || !dateStr) {
     throw new Error("FACILITY_ID または DATE_STR がありません");

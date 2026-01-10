@@ -2,7 +2,7 @@
 // 出勤データの入室・欠席・退室ボタンを自動クリックする機能
 
 import { getActiveWebview, setActiveWebview } from './webviewState.js'
-import store from '../store/store.js'
+import store from '@/store/store.js'
 import { activateHugViewFirstButton } from '@/hooks/useTabs/common/index.js'
 
 const FIRST_BUTTON_ID = 'hugview-first-button';
@@ -100,6 +100,7 @@ async function useDedicatedTabAndNavigate() {
   const state = store.getState();
   const facilityId = state.appState.FACILITY_ID;
   const dateStr = state.appState.CURRENT_YMD;
+  console.log("入退室ボタンの起動",state);
 
   if (!facilityId || !dateStr) {
     throw new Error('FACILITY_ID または DATE_STR がありません');
