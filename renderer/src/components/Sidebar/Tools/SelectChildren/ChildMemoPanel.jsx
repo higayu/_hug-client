@@ -27,7 +27,7 @@ function ChildMemoPanel() {
     showInfoToast,
   } = useToast();
 
-  const IS_STOP = !DEBUG_FLG // まだ不完全のため停止
+  const IS_STOP = false;//停止を解除 !DEBUG_FLG // まだ不完全のため停止
   const SELECT_CHILD = appState.SELECT_CHILD
 
   const {
