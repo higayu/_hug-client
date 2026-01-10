@@ -295,7 +295,7 @@ function ChildMemoPanel() {
         <button 
           id="professional-support-new"
           onClick={addWebManagerAction}
-          className="block text-left bg-blue-300 rounded text-black px-4 py-2 text-sm cursor-pointer transition-all hover:bg-[#e3f2fd]"        >
+          className="mt-2 block text-left bg-blue-300 rounded text-black px-4 py-2 text-sm cursor-pointer transition-all hover:bg-[#e3f2fd]">
           Webページへ
         </button>
       </div>
