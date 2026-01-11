@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { useAppState } from '@/contexts/appState'
 import { useChildrenList } from '@/hooks/useChildrenList.js'
 import { useTabs } from '@/hooks/useTabs/index.js'
+import { GlobeAltIcon } from "@heroicons/react/24/outline";
 
 import {
   clickEnterButton,
@@ -20,6 +21,9 @@ function ChildMemoPanel() {
     DEBUG_FLG,
   } = useAppState()
 
+  const { addPersonalRecordTab, addProfessionalSupportNewTab,addWebManagerAction } = useTabs()
+
+
   const {
     showSuccessToast,
     showErrorToast,
@@ -36,7 +40,6 @@ function ChildMemoPanel() {
     experienceChildrenData
   } = useChildrenList()
 
-  const { addProfessionalSupportNewTab,addWebManagerAction } = useTabs()
 
   const [selectedChildData, setSelectedChildData] = useState(null)
   const [attendanceItem, setAttendanceItem] = useState(null)
@@ -292,12 +295,43 @@ function ChildMemoPanel() {
           )}
         </div>
 
-        <button 
-          id="professional-support-new"
-          onClick={addWebManagerAction}
-          className="mt-2 block text-left bg-blue-300 rounded text-black px-4 py-2 text-sm cursor-pointer transition-all hover:bg-[#e3f2fd]">
-          Webページへ
-        </button>
+        <div className="flex items-center justify-center gap-2">
+          <button
+            id="professional-support-new"
+            onClick={addWebManagerAction}
+            title="Webページを開く"
+            aria-label="Webページを開く"
+            className="
+              flex items-center justify-center
+              bg-blue-300 rounded
+              text-black
+              px-3 py-2
+              cursor-pointer
+              transition-all
+              hover:bg-[#e3f2fd]
+            "
+          >
+            <GlobeAltIcon className="h-5 w-5" />
+          </button>
+
+          <button 
+            id="kojin-kiroku"
+            onClick={addPersonalRecordTab}
+            className="
+              flex items-center justify-center
+              bg-[#4CAF50] text-white
+              px-3 py-2
+              rounded-lg font-bold
+              cursor-pointer transition-all whitespace-nowrap
+              hover:bg-[#66BB6A] hover:scale-105
+              active:bg-[#43A047] active:scale-[0.97]
+            "
+          >
+            個人記録
+          </button>
+        </div>
+
+
       </div>
     </div>
   )

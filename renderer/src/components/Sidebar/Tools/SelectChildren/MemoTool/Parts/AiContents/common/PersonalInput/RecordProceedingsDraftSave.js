@@ -12,7 +12,7 @@ export const RecordProceedingsDraftSave = async (vw) => {
   }
 
   const TARGET_URL =
-    'https://www.hug-ayumu.link/hug/wm/record_proceedings.php';
+    'https://www.hug-ayumu.link/hug/wm/contact_book.php';
 
   const isTargetPage = (url) =>
     typeof url === 'string' && url.includes(TARGET_URL);
@@ -21,26 +21,31 @@ export const RecordProceedingsDraftSave = async (vw) => {
     vw && typeof vw.getURL === 'function' ? vw.getURL() : '';
 
   if (!isTargetPage(url)) {
-    console.warn('❌ 議事録管理ページではありません');
+    console.warn('❌ 個人記録ページではありません');
     return false;
   }
 
   return await vw.executeJavaScript(`
     (() => {
-      // 下書き保存ボタンを取得
-      const draftBtn = document.querySelector(
-        'button.save[value="draft"]'
-      );
+      // 下書き保存ボタンを取得（最優先）
+      let draftBtn =
+        document.querySelector('button.draft[data-save-button]') ||
+        document.querySelector('button.draft');
 
       if (!draftBtn) {
         console.warn('❌ 下書き保存ボタンが見つかりません');
         return false;
       }
 
-      // 無効状態チェック
       if (draftBtn.disabled) {
         console.warn('⚠️ 下書き保存ボタンが disabled です');
         return false;
+      }
+
+      // 念のため value を確認
+      const val = draftBtn.value;
+      if (val !== '1') {
+        console.warn('⚠️ 想定外の value:', val);
       }
 
       // フォーカス → クリック

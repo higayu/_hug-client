@@ -1,5 +1,4 @@
 // renderer/src/components/settings/tabs/ConfigTab.jsx
-// renderer/src/hooks/useSettingsModalLogic.js からデータ操作を行っている
 function ConfigTab({ onSaveConfig, onReloadConfig, onTogglePassword }) {
   // 再読み込みボタンのハンドラー
   const handleReload = async () => {

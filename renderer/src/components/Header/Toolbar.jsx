@@ -9,12 +9,15 @@ import { useHugActions } from '@/hooks/useHugActions'
 import { useDispatch, useSelector } from 'react-redux'
 import { setFacilityId, selectFacilityId } from '@/store/slices/appStateSlice'
 import { ArrowRightOnRectangleIcon,TrashIcon,Cog6ToothIcon,AdjustmentsHorizontalIcon } from "@heroicons/react/24/outline";
+import UrlContent from '@/components/common/UrlContent';
+import CloseToggleSwitch from '@/components/common/CloseToggleSwitch'
 
 function Toolbar() {
   const { showInfoToast } = useToast()
   const { appState,DEBUG_FLG } = useAppState()
   const { addPersonalRecordTab, addProfessionalSupportNewTab, addProfessionalSupportListTab,clearActiveWebviewCache } = useTabs()
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false)
+  const [showCloseButton, setShowCloseButton] = useState(true)
 
   const dispatch = useDispatch()
   const facilityId = useSelector(selectFacilityId)
@@ -253,13 +256,6 @@ function Toolbar() {
         <i className="fa-solid fa-bars text-xl text-white min-w-[40px]"></i>
       </button>
 
-      <button 
-        id="kojin-kiroku"
-        onClick={addPersonalRecordTab}
-        className="bg-[#4CAF50] text-white border-none px-3.5 py-1.5 rounded-lg font-bold cursor-pointer transition-all whitespace-nowrap flex-shrink-0 hover:bg-[#66BB6A] hover:scale-105 active:bg-[#43A047] active:scale-[0.97]"
-      >
-        ＋ 個人記録
-      </button>
 
       {/* ======== ナビゲーションメニュー ======== */}
       <nav className="relative inline-block ml-0 min-w-auto flex-shrink-0 z-[1001]">
@@ -422,6 +418,18 @@ function Toolbar() {
                 <span>設定編集</span>
               </button>
             </li>
+            {/* ★ DEBUG_FLG が true のときだけ描画 */}
+            {DEBUG_FLG  && (
+            <li className="m-0 p-0">
+              <button
+                className="bg-[#515152] text-white border-none rounded-md px-3 py-1.5 cursor-pointer transition-all whitespace-nowrap relative z-[1002] hover:bg-[#2196f3]"
+                id="devtools"
+                onClick={() => window.api.openDevTools()}
+              >
+                デベロッパー
+              </button>
+            </li>
+            )}
           </ul>
         </div>
       </nav>
@@ -442,27 +450,13 @@ function Toolbar() {
         </div>
       </nav>
 
-      {/* ★ DEBUG_FLG が true のときだけ描画 */}
-      {DEBUG_FLG  && (
-        <button
-          className="bg-[#515152] text-white border-none rounded-md px-3 py-1.5 cursor-pointer transition-all whitespace-nowrap relative z-[1002] hover:bg-[#2196f3]"
-          id="devtools"
-          onClick={() => window.api.openDevTools()}
-        >
-          デベロッパー
-        </button>
-      )}
-
-
-      <label className="toggle-switch relative inline-block w-10 h-[22px] ml-2 align-middle" title="閉じるボタン表示トグル">
-        <input 
-          type="checkbox" 
-          id="closeToggle" 
-          defaultChecked 
-          className="opacity-0 w-0 h-0"
+      <div className='w-full flex flex-col'>
+        <UrlContent/>
+        <CloseToggleSwitch
+          checked={showCloseButton}
+          onChange={setShowCloseButton}
         />
-        <span className="slider absolute cursor-pointer top-0 left-0 right-0 bottom-0 bg-[#ccc] rounded-[22px] transition-all before:content-[''] before:absolute before:h-4 before:w-4 before:left-[3px] before:bottom-[3px] before:bg-white before:rounded-full before:transition-all"></span>
-      </label>
+      </div>
 
       <SettingsModal
         isOpen={isSettingsModalOpen}
