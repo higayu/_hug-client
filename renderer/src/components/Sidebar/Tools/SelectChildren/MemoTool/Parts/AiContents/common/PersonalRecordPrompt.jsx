@@ -13,6 +13,7 @@ import {
   sendError
 } from '@/store/slices/sendTextSlice'
 import PersonalInjectButton from './PersonalInput/PersonalInjectButton';
+import RecordProceedingsDraftSaveButton from './PersonalInput/RecordProceedingsDraftSaveButton';
 
 export default function PersonalRecordPrompt() {
   const { appState, PROMPTS } = useAppState();
@@ -181,7 +182,10 @@ export default function PersonalRecordPrompt() {
             実行
           </button>
 
-          <PersonalInjectButton />
+          <div className="flex flex-col justify-end">
+            <RecordProceedingsDraftSaveButton />
+            <PersonalInjectButton />
+          </div>
         </div>
 
       </div>

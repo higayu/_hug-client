@@ -31,9 +31,9 @@ export function useTabs() {
 
     // 個人記録タブ追加
     const addPersonalRecordTab = useCallback(() => {
-     // addPersonalRecordTabAction3(appState)
-      console.log('個人記録ボタン埋め込みテスト');
-      addPersonalRecordTabAction4(appState);
+      addPersonalRecordTabAction3(appState)
+     // console.log('個人記録ボタン埋め込みテスト');
+     // addPersonalRecordTabAction4(appState);
     }, [appState])
 
     // 専門的支援一覧タブ追加
