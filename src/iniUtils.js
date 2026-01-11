@@ -42,7 +42,7 @@ function getDefaultIni() {
         autoRefresh: { enabled: false, interval: 30000 },
       },
       features: {
-        getUrl: { enabled: false, buttonText: "URL取得", buttonColor: "#17a2b8" },
+        getUrl: { enabled: false, buttonText: "URL取得", buttonColor: "#762e8c" },
       },
       window: {
         width: 1200,

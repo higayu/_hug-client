@@ -10,7 +10,8 @@ import { useDispatch, useSelector } from 'react-redux'
 import { setFacilityId, selectFacilityId } from '@/store/slices/appStateSlice'
 import { ArrowRightOnRectangleIcon,TrashIcon,Cog6ToothIcon,AdjustmentsHorizontalIcon } from "@heroicons/react/24/outline";
 import UrlContent from '@/components/common/UrlContent';
-import CloseToggleSwitch from '@/components/common/CloseToggleSwitch'
+import CloseToggleSwitch from '@/components/common/CloseToggleSwitch';
+import FacilitySelector from '@/components/facility'
 
 function Toolbar() {
   const { showInfoToast } = useToast()
@@ -247,7 +248,7 @@ function Toolbar() {
   return (
     <div 
       id="toolbar" 
-      className="bg-[#616161] text-white p-2 flex-none flex flex-nowrap items-center gap-2.5 overflow-x-auto whitespace-nowrap relative z-[1000] pointer-events-auto"
+      className="bg-[#616161] text-white flex-none flex flex-nowrap items-center gap-2.5 overflow-x-auto whitespace-nowrap relative z-[1000] pointer-events-auto"
     >
       <button 
         id="menuToggle" 
@@ -302,26 +303,6 @@ function Toolbar() {
         </div>
       </nav>
 
-        {/* 🌟 設定フォルダーを開くボタン（救済措置・右クリック） */}
-        <button
-          onContextMenu={handleOpenConfigFolder}
-          className="flex-shrink-0 p-1.5 rounded transition-colors duration-200  text-white hover:bg-yellow-600"
-          title="右クリック: 設定フォルダーを開く（Database設定がずれた時の救済措置）"
-        >
-          施設:
-        </button>
-
-        <select
-            id="facilitySelect"
-            value={facilityId}
-            onChange={handleFacilityChange}
-            className="js_c_f_id bg-white text-black border border-[#ddd] px-2.5 py-1.5 rounded text-sm"
-          >
-            <option value="3">PD吉島</option>
-            <option value="6">PD光</option>
-            <option value="7">PD横川</option>
-            <option value="8">PD五日市駅前</option>
-          </select>
 
       {/* ======== ナビゲーションメニュー ======== */}
       <nav className="relative inline-block ml-0 min-w-auto flex-shrink-0 z-[1001]">
@@ -375,7 +356,7 @@ function Toolbar() {
               <button 
                 id="Get-Url"
                 onClick={handleGetUrl}
-                className="block w-full text-left text-black border-none bg-transparent px-4 py-2 text-sm cursor-pointer transition-all hover:bg-[#e3f2fd]"
+                className="block w-full text-left bg-purple-500 text-black border-none bg-transparent px-4 py-2 text-sm cursor-pointer transition-all hover:bg-[#e3f2fd]"
               >
                 URLの取得
               </button>
@@ -396,7 +377,7 @@ function Toolbar() {
             {DEBUG_FLG  && (
             <li className="m-0 p-0">
               <button
-                className="bg-[#515152] text-white border-none rounded-md px-3 py-1.5 cursor-pointer transition-all whitespace-nowrap relative z-[1002] hover:bg-[#2196f3]"
+                className="w-full bg-[#515152] text-white border-none rounded-md cursor-pointer transition-all whitespace-nowrap relative z-[1002] hover:bg-[#2196f3]"
                 id="devtools"
                 onClick={() => window.api.openDevTools()}
               >
@@ -424,12 +405,16 @@ function Toolbar() {
         </div>
       </nav>
 
-      <div className='w-full flex flex-col'>
+      <div className='w-full flex flex-col p-1'>
         <UrlContent/>
-        <CloseToggleSwitch
-          checked={showCloseButton}
-          onChange={setShowCloseButton}
-        />
+        <div className='flex flex-row'>
+            <CloseToggleSwitch
+              checked={showCloseButton}
+              onChange={setShowCloseButton}
+            />
+            {/* 🌟 設定フォルダーを開くボタン（救済措置・右クリック） */}
+            <FacilitySelector onOpenConfigFolder={handleOpenConfigFolder} />
+        </div>
       </div>
 
       <SettingsModal

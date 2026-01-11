@@ -24,6 +24,7 @@ function Sidebar() {
     CURRENT_YMD,         // '2025-11-20'
     setCurrentDate,
     setCurrentYmd,
+    DEBUG_FLG,
   } = useAppState()
 
   // 再取得（手動）
@@ -132,7 +133,12 @@ function Sidebar() {
           >
             再取得
           </button>
-          <TableDataGetButton />
+
+          {/* ★ DEBUG_FLG が true のときだけ描画 */}
+          {DEBUG_FLG  && (
+            <TableDataGetButton />
+          )}
+
         </div>
       </div>
 

@@ -69,10 +69,13 @@ export function addProfessionalSupportListAction(appState) {
     `)
   }, { once: true })
 
-  // DevTools（開発中のみ）
-  newWebview.addEventListener('dom-ready', () => {
-    newWebview.openDevTools({ mode: 'detach' })
-  })
+  if(appState.DEBUG_FLG){
+    // DevTools（開発中のみ）
+    newWebview.addEventListener('dom-ready', () => {
+      newWebview.openDevTools({ mode: 'detach' })
+    })
+  }
+
 
   activateTab(newId)
 }

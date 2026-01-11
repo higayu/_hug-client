@@ -57,7 +57,9 @@ const initialState = {
   attendanceData: [],
 
   // ★ 追加：プロンプトデータ
-  PROMPTS: {}
+  PROMPTS: {},
+  // ★ 追加：アクティブ webview の URL
+  ACTIVE_WEBVIEW_URL: ""
 }
 
 // Sliceの作成
@@ -187,7 +189,9 @@ const appStateSlice = createSlice({
       }
     },
 
-    
+    setActiveWebviewUrl: (state, action) => {
+      state.ACTIVE_WEBVIEW_URL = action.payload || ""
+    },
     
     // 複数の状態を一度に更新
     updateAppState: (state, action) => {
@@ -290,6 +294,8 @@ export const {
   setDebugFlg,
   // ★ 追加
   setPrompts,
+    // ★ 追加
+  setActiveWebviewUrl,
 } = appStateSlice.actions
 
 // セレクターのエクスポート
@@ -327,6 +333,10 @@ export const selectAppState = (state) => state.appState
 export const selectDebugFlg = (state) => state.appState.DEBUG_FLG
 // ★ PROMPTS セレクター追加
 export const selectPrompts = (state) => state.appState.PROMPTS
+
+// ★ アクティブ webview URL セレクター
+export const selectActiveWebviewUrl = (state) => state.appState.ACTIVE_WEBVIEW_URL
+
 
 // リデューサーのエクスポート
 export default appStateSlice.reducer

@@ -224,7 +224,7 @@ export const FEATURES = {
   GET_URL: {
     ENABLED: true,
     BUTTON_TEXT: "URL取得",
-    BUTTON_COLOR: COLORS.INFO
+    BUTTON_COLOR: COLORS.PURPLE
   },
   LOAD_INI: {
     ENABLED: true,

@@ -15,6 +15,7 @@ import { CustomButtonsProvider } from '@/components/common/CustomButtonsContext.
 import Toolbar from '@/components/Header/Toolbar.jsx'
 import Tabs from '@/components/Header/Tabs.jsx'
 import ContentArea from '@/components/ContentArea.jsx'
+import { useActiveWebviewLogger } from '@/hooks/useTabs/useActiveWebviewLogger'
 
 // グローバルにエクスポート（デバッグ・開発用）
 window.attendanceTableAPI = {
@@ -39,6 +40,7 @@ function AppContent({ preloadPath }) {
 
 function App() {
   const preloadPath = usePreloadPath()
+  useActiveWebviewLogger()
 
   return (
     <Provider store={store}>

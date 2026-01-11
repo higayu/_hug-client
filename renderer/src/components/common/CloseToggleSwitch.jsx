@@ -26,6 +26,7 @@ function CloseToggleSwitch({
   }
 
   return (
+  <div className=''>
     <label
       className="toggle-switch relative inline-block w-10 h-[22px] ml-2 align-middle"
       title={title}
@@ -50,6 +51,7 @@ function CloseToggleSwitch({
         "
       />
     </label>
+  </div>
   )
 }
 
