@@ -10,105 +10,60 @@ export function getActiveWebview() {
   console.group("🔍 getActiveWebview() 呼び出し");
 
   if (!activeWebview) {
-    console.warn("⚠ activeWebview が null → DOM から取得を試みる");
-
     const vw = document.getElementById("hugview");
-    console.log("📌 document.getElementById('hugview'):", vw);
-
     if (!vw) {
-      console.error("❌ #hugview が DOM に存在しません");
-      console.warn("⛔ webview が mount 前の可能性");
-      console.warn("⛔ レンダラー切り替え直後で DOM 未反映の可能性");
-      console.warn("⛔ React の useEffect がまだ走っていない可能性");
       console.groupEnd();
       return null;
     }
-
-    console.log("🟢 #hugview を activeWebview として採用");
     activeWebview = vw;
   }
 
-  // ▼ activeWebview のURL取得をチェック
-  const hasGetURL = typeof activeWebview.getURL === "function";
-  console.log("📌 typeof activeWebview.getURL:", typeof activeWebview.getURL);
-
-  if (!hasGetURL) {
-    console.warn("⚠ getURL() が存在しない → webview がまだ準備中の可能性");
-    console.warn(
-      "   推測: <webview> タグの 'nodeintegration' や 'preload' が影響している可能性"
-    );
-  }
-
+  // getURL があっても dom-ready 前は例外になることがある
   let url = "";
   try {
-    url = hasGetURL ? activeWebview.getURL() : "";
-  } catch (e) {
-    console.error("💥 getURL() 実行で例外:", e);
+    if (typeof activeWebview.getURL === "function") {
+      url = activeWebview.getURL();
+    }
+  } catch {
+    // ★ ここが重要：何も出さない（正常系として扱う）
+    console.groupEnd();
+    return activeWebview;
   }
 
-  console.log("📌 getURL() の返値:", url);
-
-  if (url === "") {
-    console.warn("⚠ getURL が空文字 → 読み込み前 or about:blank の可能性");
+  if (url) {
+    console.log("📌 現在URL:", url);
   }
 
   console.groupEnd();
   return activeWebview;
 }
 
+
 /**
  * アクティブwebviewを更新（タブ切り替え時などに使用）
  */
 export function setActiveWebview(vw) {
-  console.group("🔄 setActiveWebview 呼び出し");
-
-  console.log("📌 新しい activeWebview:", vw);
-
   if (!vw) {
-    console.error("❌ 渡された vw が null → activeWebview をクリア");
     activeWebview = null;
-    console.groupEnd();
     return;
   }
 
   activeWebview = vw;
 
-  // ▼ getURL() を安全に取得する関数
-  const getSafeURL = () => {
-    try {
-      if (typeof vw.getURL === "function") {
-        return vw.getURL();
-      }
-    } catch (e) {
-      console.warn("⚠ getURL() 実行エラー（まだdom-ready前）:", e.message);
-      return "(dom-not-ready)";
-    }
-    return "(no-getURL)";
-  };
-
-  // ▼ 今のURL（例外は飲み込む）
-  let url = getSafeURL();
-  console.log("📌 現時点のURL:", url);
-
-  // ▼ dom-ready で更新
   vw.addEventListener("dom-ready", () => {
-    console.log("🟢 webview dom-ready 発火", vw.id);
-    const readyURL = getSafeURL();
-    console.log("📌 dom-ready後のURL:", readyURL);
-
     try {
-      const detail = { webview: vw, url: readyURL };
+      const url = vw.getURL();
       document.dispatchEvent(
-        new CustomEvent("active-webview-changed", { detail })
+        new CustomEvent("active-webview-changed", {
+          detail: { webview: vw, url }
+        })
       );
-      console.log("📣 active-webview-changed イベント送出（dom-ready後）OK");
-    } catch (e) {
-      console.error("💥 active-webview-changed イベント送出失敗:", e);
+    } catch {
+      // dom-ready直後でも失敗することがあるので黙殺
     }
   });
-
-  console.groupEnd();
 }
+
 
 
 /**

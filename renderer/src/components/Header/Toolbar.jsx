@@ -15,7 +15,7 @@ import CloseToggleSwitch from '@/components/common/CloseToggleSwitch'
 function Toolbar() {
   const { showInfoToast } = useToast()
   const { appState,DEBUG_FLG } = useAppState()
-  const { addPersonalRecordTab, addProfessionalSupportNewTab, addProfessionalSupportListTab,clearActiveWebviewCache } = useTabs()
+  const { addProfessionalSupportListTab,clearActiveWebviewCache } = useTabs()
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false)
   const [showCloseButton, setShowCloseButton] = useState(true)
 
@@ -257,40 +257,14 @@ function Toolbar() {
       </button>
 
 
-      {/* ======== ナビゲーションメニュー ======== */}
-      <nav className="relative inline-block ml-0 min-w-auto flex-shrink-0 z-[1001]">
-        <button 
-          id="panel-special-btn" 
-          className="bg-[#f8461f] text-white border-none rounded-md px-3 py-1.5 cursor-pointer transition-all whitespace-nowrap relative z-[1002] hover:bg-[#2196f3]"
-        >
-          💵専門的支援加算 ▾
-        </button>
-        <div 
-          id="panel-special" 
-          className="navInner fixed right-auto top-auto bg-white border border-gray-300 rounded-md shadow-lg z-[99999] min-w-[200px] max-h-[300px] overflow-y-auto"
-        >
-          <ul className="list-none m-0 p-0 py-1.25">
-            <li className="m-0 p-0">
-              <button 
-                id="professional-support-new"
-                onClick={addProfessionalSupportNewTab}
-                className="block w-full text-left border-none bg-white text-black px-4 py-2 text-sm cursor-pointer transition-all hover:bg-[#e3f2fd]"
-              >
-                ＋ 専門的支援-新規
-              </button>
-            </li>
-            <li className="m-0 p-0">
-              <button 
-                id="professional-support"
-                onClick={addProfessionalSupportListTab}
-                className="block w-full text-left border-none bg-white text-black px-4 py-2 text-sm cursor-pointer transition-all hover:bg-[#e3f2fd]"
-              >
-                専門的支援-一覧
-              </button>
-            </li>
-          </ul>
-        </div>
-      </nav>
+      <button 
+        id="professional-support"
+        onClick={addProfessionalSupportListTab}
+        className="rounded-lg block text-left border-none bg-[#f8461f] text-white px-4 py-2 text-sm cursor-pointer transition-all hover:bg-[#e3f2fd]"
+      >
+        専門的支援-一覧
+      </button>
+
 
       {/* ======== ナビゲーションメニュー ======== */}
       <nav className="relative inline-block ml-0 min-w-auto flex-shrink-0 z-[1001]">
