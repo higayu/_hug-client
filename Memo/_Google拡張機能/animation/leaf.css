@@ -1,0 +1,51 @@
+/* body直下の最上位レイヤー */
+#leaf-fall-root {
+  position: fixed;
+  inset: 0;
+  z-index: 999999;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+/* 共通 */
+.leaf {
+  position: absolute;
+  top: 0;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  animation-name: animate-leaf;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+
+/* 画像 */
+.leaf-1 {
+  background-image: url(chrome-extension://__MSG_@@extension_id__/images/leaf/leaf-1.svg);
+}
+.leaf-2 {
+  background-image: url(chrome-extension://__MSG_@@extension_id__/images/leaf/leaf-2.svg);
+}
+.leaf-3 {
+  background-image: url(chrome-extension://__MSG_@@extension_id__/images/leaf/leaf-3.svg);
+}
+
+/* アニメーション */
+@keyframes animate-leaf {
+  0% {
+    opacity: 0;
+    transform: rotate(0deg);
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+    top: 90vh;
+  }
+  100% {
+    opacity: 0;
+    top: 100vh;
+    transform: rotate(1080deg);
+  }
+}

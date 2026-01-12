@@ -1,0 +1,19 @@
+{
+  "manifest_version": 3,
+  "name": "Leaf Fall Overlay",
+  "version": "1.0",
+  "description": "body直下に落ち葉アニメーションを追加",
+  "content_scripts": [
+    {
+      "matches": ["https://www.hug-ayumu.link/*"],
+      "js": ["content.js"],
+      "css": ["leaf.css"]
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["images/leaf/*.svg"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}

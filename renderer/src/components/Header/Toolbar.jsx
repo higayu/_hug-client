@@ -38,23 +38,6 @@ function Toolbar() {
     };
 
 
-  // 設定フォルダーを開く（右クリック）
-  const handleOpenConfigFolder = async (e) => {
-    e.preventDefault() // デフォルトのコンテキストメニューを防ぐ
-    try {
-      const result = await window.electronAPI.openConfigFolder()
-      if (result.success) {
-        showInfoToast(`📁 設定フォルダーを開きました`)
-        console.log("✅ 設定フォルダーを開きました:", result.path)
-      } else {
-        showInfoToast(`❌ 設定フォルダーを開けませんでした: ${result.error}`)
-        console.error("❌ 設定フォルダーを開く失敗:", result.error)
-      }
-    } catch (err) {
-      showInfoToast(`❌ 設定フォルダーを開く際にエラーが発生しました`)
-      console.error("❌ 設定フォルダーを開くエラー:", err)
-    }
-  }
 
   // 設定編集ボタンのハンドラー
   const handleEditSettings = () => {
@@ -413,7 +396,7 @@ function Toolbar() {
               onChange={setShowCloseButton}
             />
             {/* 🌟 設定フォルダーを開くボタン（救済措置・右クリック） */}
-            <FacilitySelector onOpenConfigFolder={handleOpenConfigFolder} />
+            <FacilitySelector  />
         </div>
       </div>
 

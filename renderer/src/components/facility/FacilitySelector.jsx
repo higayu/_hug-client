@@ -2,7 +2,7 @@ import { useSelector, useDispatch } from 'react-redux'
 import { setFacilityId, selectFacilityId } from '@/store/slices/appStateSlice'
 import { useToast } from '@/components/common/ToastContext.jsx'
 
-function FacilitySelector({ onOpenConfigFolder }) {
+function FacilitySelector() {
   const dispatch = useDispatch()
   const { showInfoToast } = useToast()
   const facilityId = useSelector(selectFacilityId)
@@ -34,11 +34,29 @@ function FacilitySelector({ onOpenConfigFolder }) {
     }
   }
 
+    // 設定フォルダーを開く（右クリック）
+  const handleOpenConfigFolder = async (e) => {
+    e.preventDefault() // デフォルトのコンテキストメニューを防ぐ
+    try {
+      const result = await window.electronAPI.openConfigFolder()
+      if (result.success) {
+        showInfoToast(`📁 設定フォルダーを開きました`)
+        console.log("✅ 設定フォルダーを開きました:", result.path)
+      } else {
+        showInfoToast(`❌ 設定フォルダーを開けませんでした: ${result.error}`)
+        console.error("❌ 設定フォルダーを開く失敗:", result.error)
+      }
+    } catch (err) {
+      showInfoToast(`❌ 設定フォルダーを開く際にエラーが発生しました`)
+      console.error("❌ 設定フォルダーを開くエラー:", err)
+    }
+  }
+
   return (
     <div className=''>
       {/* 🌟 設定フォルダーを開くボタン（右クリック） */}
       <button
-        onContextMenu={handleContextMenu}
+        onContextMenu={handleOpenConfigFolder}
         className="flex-shrink-0 p-1.5 rounded transition-colors duration-200 text-white hover:bg-yellow-600"
         title="右クリック: 設定フォルダーを開く（Database設定がずれた時の救済措置）"
       >
