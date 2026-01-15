@@ -1,62 +1,73 @@
-import { useEffect, useState } from 'react'
-import { getActiveWebview } from '@/utils/webviewState.js'
+import { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { getActiveWebview } from "@/utils/webviewState.js";
+import { setCurrentUrl } from "@/store/slices/webviewSlice";
 
 export default function UrlContent() {
-  const [currentUrl, setCurrentUrl] = useState('')
+  const dispatch = useDispatch();
+  const currentUrl = useSelector(
+    (state) => state.webview.currentUrl
+  );
 
   useEffect(() => {
-    let cleanupWebviewListeners = null
+    let cleanupWebviewListeners = null;
 
     const readUrl = async (vw) => {
       if (!vw) {
-        setCurrentUrl('')
-        return
+        dispatch(setCurrentUrl(""));
+        return;
       }
 
       try {
-        const maybe = vw.getURL?.()
-        const url = typeof maybe === 'string' ? maybe : await maybe
-        const fallback = vw.getAttribute?.('src') || ''
-        setCurrentUrl(url || fallback || '')
+        const maybe = vw.getURL?.();
+        const url = typeof maybe === "string" ? maybe : await maybe;
+        const fallback = vw.getAttribute?.("src") || "";
+        dispatch(setCurrentUrl(url || fallback || ""));
       } catch {
-        // dom-ready 前は「読まない」が正解
+        // dom-ready 前は読まない
       }
-    }
+    };
 
     const attachWebviewListeners = (vw) => {
-      if (!vw) return () => {}
+      if (!vw) return () => {};
 
-      const onNavigate = () => readUrl(vw)
+      const onNavigate = () => readUrl(vw);
 
-      vw.addEventListener('dom-ready', onNavigate)
-      vw.addEventListener('did-navigate', onNavigate)
-      vw.addEventListener('did-navigate-in-page', onNavigate)
-      vw.addEventListener('did-finish-load', onNavigate)
+      vw.addEventListener("dom-ready", onNavigate);
+      vw.addEventListener("did-navigate", onNavigate);
+      vw.addEventListener("did-navigate-in-page", onNavigate);
+      vw.addEventListener("did-finish-load", onNavigate);
 
       return () => {
-        vw.removeEventListener('dom-ready', onNavigate)
-        vw.removeEventListener('did-navigate', onNavigate)
-        vw.removeEventListener('did-navigate-in-page', onNavigate)
-        vw.removeEventListener('did-finish-load', onNavigate)
-      }
-    }
+        vw.removeEventListener("dom-ready", onNavigate);
+        vw.removeEventListener("did-navigate", onNavigate);
+        vw.removeEventListener("did-navigate-in-page", onNavigate);
+        vw.removeEventListener("did-finish-load", onNavigate);
+      };
+    };
 
-    const initial = getActiveWebview()
-    cleanupWebviewListeners = attachWebviewListeners(initial)
+    const initial = getActiveWebview();
+    cleanupWebviewListeners = attachWebviewListeners(initial);
 
     const onActiveChanged = (e) => {
-      const vw = e?.detail?.webview || getActiveWebview()
-      if (cleanupWebviewListeners) cleanupWebviewListeners()
-      cleanupWebviewListeners = attachWebviewListeners(vw)
-    }
+      const vw = e?.detail?.webview || getActiveWebview();
+      if (cleanupWebviewListeners) cleanupWebviewListeners();
+      cleanupWebviewListeners = attachWebviewListeners(vw);
+    };
 
-    document.addEventListener('active-webview-changed', onActiveChanged)
+    document.addEventListener(
+      "active-webview-changed",
+      onActiveChanged
+    );
 
     return () => {
-      document.removeEventListener('active-webview-changed', onActiveChanged)
-      if (cleanupWebviewListeners) cleanupWebviewListeners()
-    }
-  }, [])
+      document.removeEventListener(
+        "active-webview-changed",
+        onActiveChanged
+      );
+      if (cleanupWebviewListeners) cleanupWebviewListeners();
+    };
+  }, [dispatch]);
 
   return (
     <div className="flex items-center w-full">
@@ -68,5 +79,5 @@ export default function UrlContent() {
         placeholder="URLを取得中..."
       />
     </div>
-  )
+  );
 }
