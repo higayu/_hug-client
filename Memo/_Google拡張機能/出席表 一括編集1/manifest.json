@@ -1,0 +1,15 @@
+{
+  "manifest_version": 3,
+  "name": "テーブル読み込み列追加",
+  "version": "1.0",
+  "description": "サービス提供記録・ケア記録・生活記録から専門的支援に飛ぶ拡張機能1",
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.hug-ayumu.link/hug/wm/contact_book.php?f_id=3*"
+      ],
+      "js": ["content.js"],
+      "css": ["style.css"]
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "manifest_version": 3,
+  "name": "テーブル読み込み列追加",
+  "version": "1.0",
+  "description": "今日の利用者から専門的支援に飛ぶ拡張機能2",
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.hug-ayumu.link/hug/wm/attendance.php?mode=detail&f_id=3*"
+      ],
+      "js": ["content.js"],
+      "css": ["style.css"]
+    }
+  ]
+}

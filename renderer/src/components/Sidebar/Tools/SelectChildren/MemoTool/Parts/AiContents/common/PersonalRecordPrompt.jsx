@@ -1,8 +1,9 @@
-// renderer/src/components/Sidebar/Tools/MemoTool/Parts/AiContents/common/PromptBox.jsx
+// renderer/src/components/Sidebar/Tools/MemoTool/Parts/AiContents/common/PersonalRecordPrompt.jsx
 import React, { useState, useEffect } from "react";
 import { getActiveWebview } from '@/utils/webviewState.js'
 //import { useAppState } from "@/contexts/AppStateContext.jsx";
 import { useAppState } from '@/contexts/appState';
+import { sendPromptToChatGPT } from "./send/sendPromptToChatGPT";
 
 import { useToast } from '@/components/common/ToastContext.jsx'
 import { useDispatch, useSelector } from 'react-redux'
@@ -58,86 +59,36 @@ export default function PersonalRecordPrompt() {
   }, []);
 
   const clickEnterButton = async () => {
-    console.log("① clickEnterButton 開始");
+    const textValue = `${text1}\n\n${aiText}`;
 
-    const vw = getActiveWebview();
-    console.log("② getActiveWebview() の結果:", vw);
-
-    // ▼ webviewが取得できない原因調査ログ
-    if (!vw) {
-      console.warn("❌ webview が取得できません (vw === null)");
-      console.warn(" 可能性:");
-      console.warn(" - webview がまだ mount されていない");
-      console.warn(" - タブ切り替え直後で active が決まっていない");
-      console.warn(" - getActiveWebview の管理がずれている");
+    if (!aiText || aiText.trim() === "") {
+      showWarningToast("送信するテキストが空です");
       return;
     }
 
-    // ▼ getURL メソッド存在チェック
-    console.log("③ typeof vw.getURL:", typeof vw.getURL);
+    dispatch(sendStart({ key: PROMPT_KEY }));
+    showInfoToast("ChatGPT に送信中…");
 
-    const url =
-      vw && typeof vw.getURL === "function" ? vw.getURL() : null;
-
-    console.log("④ getURL() の返値:", url);
-
-    // ▼ URL未取得の原因を細かく切り分け
-    if (url === null) {
-      console.warn("❌ getURL が取得できません (null)");
-      console.warn("原因の可能性:");
-      console.warn(" - vw.getURL が存在しない");
-      console.warn(" - webview の初期化がまだ");
-      console.warn(" - DOMReady 前の呼び出し");
-      return;
-    }
-
-    if (url === "") {
-      console.warn("❌ getURL が空文字 ('')");
-      console.warn("原因の可能性:");
-      console.warn(" - webview 読み込みがまだ開始されていない");
-      console.warn(" - 直前に Fileスキームや Blank に遷移している");
-      console.warn(" - リダイレクト途中");
-      console.warn(" - did-stop-loading 前");
-    }
-
-    // ▼ ChatGPT 判定前のログ
-    console.log("⑤ isChatGPT(url) 判定開始");
-    console.log("  url:", url);
-
-    const result = isChatGPT(url);
-    console.log("⑥ isChatGPT 判定結果:", result);
-
-    if (!result) {
-      console.warn("❌ ChatGPT のドメイン判定 false");
-
-      // ▼ 原因分類ログ
-      if (url.length === 0)
-        console.warn("原因: URL が空 → 読み込み前/リダイレクト中の可能性");
-      else if (!url.includes("chat"))
-        console.warn("原因: chatgpt/openai に関連しない URL");
-      else
-        console.warn("原因: ChatGPT 以外の openai ドメイン");
-
-      console.warn("詳細 URL:", url);
-
-      return;
-    }
-
-    console.log("⑦ ChatGPT ドメイン確認 OK");
-
-    console.log("⑧ webview isLoading:", vw.isLoading?.());
-
-    // --- ここから下はあなたの injection 処理 ---
-    const TextValue = `${text1}\n\n${aiText}`;
-
-    console.log("⑨ 注入テキスト:", TextValue);
-
-    console.log("⑩ executeJavaScript 開始");
     try {
-      const result = await vw.executeJavaScript("true");
-      console.log("⑪ executeJavaScript 完了:", result);
-    } catch (e) {
-      console.error("❌ executeJavaScript 例外:", e);
+      const success = await sendPromptToChatGPT({ textValue });
+
+      if (!success) {
+        throw new Error("sendPromptToChatGPT returned false");
+      }
+
+      dispatch(sendSuccess({ key: PROMPT_KEY }));
+      showSuccessToast("ChatGPT に送信しました");
+    } catch (error) {
+      console.error("送信エラー:", error);
+
+      dispatch(
+        sendError({
+          key: PROMPT_KEY,
+          error: error?.message ?? "送信に失敗しました",
+        })
+      );
+
+      showErrorToast("ChatGPT への送信に失敗しました");
     }
   };
 

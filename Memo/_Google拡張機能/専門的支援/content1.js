@@ -1,8 +1,16 @@
 (() => {
+  // ===============================
+  // URLパラメータ取得
+  // ===============================
   const params = new URLSearchParams(window.location.search);
   const SELECT_CHILD = params.get("select_child");
+
+  // パラメータが無ければ何もしない
   if (!SELECT_CHILD) return;
 
+  // ===============================
+  // 要素が出るまで待つ関数
+  // ===============================
   const waitForElement = (selector, timeout = 5000) => {
     return new Promise((resolve, reject) => {
       const start = Date.now();
@@ -20,6 +28,9 @@
     });
   };
 
+  // ===============================
+  // ① 既存の自動入力処理
+  // ===============================
   (async () => {
     try {
       const support = await waitForElement('select[name="adding_children_id"]');
@@ -32,15 +43,13 @@
 
       console.log("自動入力完了:", SELECT_CHILD);
 
+      // ===============================
+      // ② ★追加：新しいタブを開く
+      // ===============================
       const url =
         `https://www.hug-ayumu.link/hug/wm/addition_plan.php?select_child=${encodeURIComponent(SELECT_CHILD)}`;
 
-      // ★ 新しいウインドウで開く
-      window.open(
-        url,
-        "_blank",
-        "noopener,noreferrer,width=1200,height=800"
-      );
+      window.open(url, "_blank");
 
     } catch {
       console.warn("要素取得に失敗しました");

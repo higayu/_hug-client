@@ -1,0 +1,15 @@
+{
+  "manifest_version": 3,
+  "name": "加算計画一覧 児童ID自動検索",
+  "version": "1.0.0",
+  "description": "addition_plan.php で select_child を使って自動検索を行う",
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.hug-ayumu.link/hug/wm/addition_plan.php*"
+      ],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}
