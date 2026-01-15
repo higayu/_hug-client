@@ -13,17 +13,9 @@ export const PersonalinjectText = async (vw, text) => {
   }
 
   const TARGET_URL = "https://www.hug-ayumu.link/hug/wm/contact_book.php";
-  const isPersonalRecord = (url_string) => {
-    const result = typeof url_string === "string" && url_string.includes(TARGET_URL);
-    return result;
-  };
 
   const url = vw && typeof vw.getURL === "function" ? vw.getURL() : "";
-
-  if(!isPersonalRecord(url)){
-      console.warn("❌ 個人記録のURLが取得できない");
-      return false;
-   }
+  console.log('url',url);
 
   return await vw.executeJavaScript(`
     (() => {

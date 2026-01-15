@@ -12,15 +12,9 @@ export const ProfessionalInjectText = async (vw, text) => {
     return false;
   }
   const TARGET_URL = "https://www.hug-ayumu.link/hug/wm/record_proceedings.php?mode=edit";
-  const isProfessional = (url_string) => {
-    const result = typeof url_string === "string" && url_string.includes(TARGET_URL);
-    return result;
-  };
+
   const url = vw && typeof vw.getURL === "function" ? vw.getURL() : "";
-  if(!isProfessional(url)){
-    console.warn("❌ 専門的支援加算のURLが取得できない");
-    return false;
-  }
+  console.log('url',url);
 
   return await vw.executeJavaScript(`
     (() => {

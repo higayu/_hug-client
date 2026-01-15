@@ -11,19 +11,11 @@ export const RecordProceedingsDraftSave = async (vw) => {
     return false;
   }
 
-  const TARGET_URL =
-    'https://www.hug-ayumu.link/hug/wm/contact_book.php';
+  const TARGET_URL ='https://www.hug-ayumu.link/hug/wm/contact_book.php';
 
-  const isTargetPage = (url) =>
-    typeof url === 'string' && url.includes(TARGET_URL);
+  const url = vw && typeof vw.getURL === 'function' ? vw.getURL() : '';
+  console.log('url',url);
 
-  const url =
-    vw && typeof vw.getURL === 'function' ? vw.getURL() : '';
-
-  if (!isTargetPage(url)) {
-    console.warn('❌ 個人記録ページではありません');
-    return false;
-  }
 
   return await vw.executeJavaScript(`
     (() => {

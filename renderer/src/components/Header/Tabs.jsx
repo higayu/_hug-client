@@ -3,8 +3,11 @@
 
 import { useEffect } from 'react'
 import { useTabs } from '@/hooks/useTabs'
+import { activateHugViewFirstButton } from '@/hooks/useTabs/common/index'
+import { useToast } from  '@/components/common/ToastContext.jsx'
 
 function Tabs() {
+  const { showErrorToast, showSuccessToast,showWarningToast } = useToast();
   useTabs() // タブ機能の初期化
 
   // 初期アクティブタブの設定
@@ -19,12 +22,21 @@ function Tabs() {
     }
   }, [])
 
+    const handlehugviewFirst = (e) => {
+      e.stopPropagation()
+      // 専用タブ（hugview-first-button）を強制的にアクティブにする
+      activateHugViewFirstButton();
+      showSuccessToast('アクティブを切り替える');
+    }
+    
+
   return (
     <div id="tabs" className="bg-[#555] p-1 flex-none">
       <button 
         id="hugview-first-button"
         data-target="hugview" 
         className="active-tab mr-1 px-2.5 py-1 border-none cursor-pointer bg-[#777] text-black rounded font-bold shadow-sm"
+        onClick={handlehugviewFirst}
       >
         今日の利用者
       </button>
