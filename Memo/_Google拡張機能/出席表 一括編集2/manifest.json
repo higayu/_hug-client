@@ -6,7 +6,7 @@
   "content_scripts": [
     {
       "matches": [
-        "https://www.hug-ayumu.link/hug/wm/attendance.php?mode=detail&f_id=3*"
+        "https://www.hug-ayumu.link/hug/wm/attendance.php*"
       ],
       "js": ["content.js"],
       "css": ["style.css"]
