@@ -12,7 +12,7 @@ export const PersonalinjectText = async (vw, text) => {
     return false;
   }
 
-  const TARGET_URL = "https://www.hug-ayumu.link/hug/wm/contact_book.php";
+  //const TARGET_URL = "https://www.hug-ayumu.link/hug/wm/contact_book.php";
 
   const url = vw && typeof vw.getURL === "function" ? vw.getURL() : "";
   console.log('url',url);
@@ -47,7 +47,10 @@ export const PersonalinjectText = async (vw, text) => {
       }
 
       textarea.focus();
-      textarea.value = TARGET_TEXT;
+      const current = textarea.value ?? "";
+      const separator = current.endsWith("\n") || current === "" ? "" : "\n";
+
+      textarea.value = current + separator + TARGET_TEXT;
 
       // 入力イベント発火
       textarea.dispatchEvent(new Event('input', { bubbles: true }));

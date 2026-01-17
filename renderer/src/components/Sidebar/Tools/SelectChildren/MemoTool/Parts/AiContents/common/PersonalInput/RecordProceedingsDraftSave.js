@@ -11,7 +11,7 @@ export const RecordProceedingsDraftSave = async (vw) => {
     return false;
   }
 
-  const TARGET_URL ='https://www.hug-ayumu.link/hug/wm/contact_book.php';
+  //const TARGET_URL ='https://www.hug-ayumu.link/hug/wm/contact_book.php';
 
   const url = vw && typeof vw.getURL === 'function' ? vw.getURL() : '';
   console.log('url',url);

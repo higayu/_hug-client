@@ -1,6 +1,6 @@
 // renderer/src/components/Sidebar/TabsContainer.jsx
 import { useState, useMemo } from 'react'
-import ToolContent from '../Tools/SelectChildren/ToolContent.jsx'
+import ToolContent from '../Tools/SelectChildren/index.jsx'
 import SQLManager from '../Tools/SQLManager/index.jsx'
 import ChildrenTable from '../Tools/InsertManageChildren/index.jsx'
 import UpdateManager from '../Tools/UpdateManager/index.jsx'

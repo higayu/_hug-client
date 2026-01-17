@@ -93,54 +93,74 @@ function Sidebar() {
   // =============================================================
   return (
     <div ref={sidebarRef} className="text-black bg-gray-50 flex flex-col h-full">
-      {/* ヘッダー */}
-      <div className="sidebar-header flex-shrink-0 pb-2.5 border-b border-gray-200 mb-2.5 flex gap-5 items-start">
+
+    
+    {/* ヘッダー */}
+    <div
+      className="
+        sidebar-header
+        flex-shrink-0
+        p-2
+        border border-gray-200
+        flex items-start
+        max-h-none overflow-visible
+        rounded
+        justify-center
+      "
+    >
+
+      {/* 日付と曜日 */}
+      <div className="flex gap-6 bg-gray-200 w-[70%] justify-center">
         {/* 日付入力 */}
-        <div className="date-weekday-section flex-1 flex flex-col">
-          <label className="font-bold text-sm text-black mt-2.5 mb-1.5">
+        <div className="flex flex-col items-center justify-center">
+          <label className="font-bold text-sm text-black mb-1.5">
             日付:（個人記録）
           </label>
-            <input
-              type="date"
-              value={CURRENT_YMD ?? ""}
-              onChange={handleDateChange}
-              className="w-full p-2 border border-gray-300 rounded text-sm bg-white text-black max-w-[200px] cursor-pointer"
-            />
+          <input
+            type="date"
+            value={CURRENT_YMD ?? ""}
+            onChange={handleDateChange}
+            className="w-full max-w-[200px] p-2 border border-gray-300 rounded text-sm bg-white text-black cursor-pointer"
+          />
         </div>
 
-        {/* 曜日 Select（完全委譲） */}
-        <div className="date-weekday-section flex-1 flex flex-col">
-          <label className="font-bold text-sm text-black mt-2.5 mb-1.5">
-            曜日別（対応児童）:
+        {/* 曜日 */}
+        <div className="flex flex-col items-center justify-center">
+          <label className="font-bold text-sm text-black mb-1.5">
+            曜日別：（対応児童）
           </label>
           <WeekdaySelect />
         </div>
+      </div>
 
-        {/* 固定ボタン */}
-        <button
-          onClick={() => setIsPinned(!isPinned)}
-          className={`p-1.5 rounded ${
-            isPinned ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-600"
-          }`}
-        >
-          {isPinned ? "📌" : "📍"}
-        </button>
+      {/* サブボタン群 */}
+      <div className="flex flex-col gap-2 bg-sky-100 w-[30%] items-center">
+      {DEBUG_FLG && (
+        <div className="flex gap-2 bg-sky-400 justify-center">
 
-        <div className="flex flex-col gap-1 items-start">
+            <button
+              onClick={() => setIsPinned(!isPinned)}
+              className={`px-1.5 py-0.5 rounded ${
+                isPinned ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-600"
+              }`}
+            >
+              {isPinned ? "📌" : "📍"}
+            </button>
+
+
           <button
-            className="mt-1 px-2 py-1 text-xs rounded bg-blue-500 text-white"
+            className="px-2 py-1 text-xs rounded bg-blue-500 text-white"
             onClick={loadChildren}
           >
             再取得
           </button>
-
-          {/* ★ DEBUG_FLG が true のときだけ描画 */}
-          {DEBUG_FLG  && (
-            <TableDataGetButton />
-          )}
-
         </div>
+      )}
+
+        <TableDataGetButton />
       </div>
+
+    </div>
 
       {/* メインコンテンツ */}
       <div className="flex flex-1 min-h-0 overflow-hidden">

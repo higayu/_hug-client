@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useState } from "react";
 import { FaTable } from "react-icons/fa";
 import { useDispatch } from "react-redux";
 //import { useAppState } from "@/contexts/AppStateContext.jsx";
@@ -14,6 +14,7 @@ export default function TableDataGetButton() {
   const dispatch = useDispatch();
   const { appState, updateAppState } = useAppState();
   const { showInfoToast } = useToast();
+  const [open, setOpen] = useState(false);
 
   const handleOpenAttendance = useCallback(async () => {
     // 専用タブ（hugview-first-button）を強制的にアクティブにする
@@ -98,13 +99,45 @@ export default function TableDataGetButton() {
   
 
   return (
-    <div className="items-center justify-center">
-      <button
-        onClick={handleOpenAttendance}
-        className="items-center justify-center p-3 gap-2 bg-green-600 hover:bg-green-700 text-white rounded-xl shadow-md"
+    <div className="flex items-center justify-center">
+      <div
+        className="relative"
+        onMouseEnter={() => setOpen(true)}
+        onMouseLeave={() => setOpen(false)}
       >
-        <FaTable size={18} />
-      </button>
+        {/* Tooltip */}
+        {open && (
+          <div
+            className="
+              absolute
+              bottom-full
+              left-1/2
+              -translate-x-1/2
+              mb-2
+              whitespace-nowrap
+              rounded-md
+              bg-black
+              px-3
+              py-1
+              text-xs
+              text-white
+              shadow-lg
+              z-50
+            "
+          >
+            今日の利用者のデータ取得
+          </div>
+        )}
+  
+        <button
+          onClick={handleOpenAttendance}
+          className="flex items-center justify-center px-7 py-2 gap-2 bg-green-600 hover:bg-green-700 text-white rounded-xl shadow-md"
+        >
+          <FaTable size={16} />
+        </button>
+      </div>
     </div>
   );
+  
 }
+

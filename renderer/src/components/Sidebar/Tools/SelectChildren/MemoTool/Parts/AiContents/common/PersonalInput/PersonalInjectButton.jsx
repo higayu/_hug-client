@@ -53,7 +53,7 @@ export default function PersonalInjectButton() {
       onClick={clickEnterButton}
       type="button"
     >
-      <span>個人記録の入力</span>
+      <span>個人記録の追記</span>
       <ArrowRightIcon
         className="
           w-4 h-4

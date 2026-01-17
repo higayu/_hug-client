@@ -11,7 +11,7 @@ export const ProfessionalInjectText = async (vw, text) => {
     console.warn('❌ webview が不正です');
     return false;
   }
-  const TARGET_URL = "https://www.hug-ayumu.link/hug/wm/record_proceedings.php?mode=edit";
+  //const TARGET_URL = "https://www.hug-ayumu.link/hug/wm/record_proceedings.php?mode=edit";
 
   const url = vw && typeof vw.getURL === "function" ? vw.getURL() : "";
   console.log('url',url);
