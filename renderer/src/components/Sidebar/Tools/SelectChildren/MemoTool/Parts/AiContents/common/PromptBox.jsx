@@ -25,7 +25,10 @@ export default function PromptBox() {
   const ActiveComponent = COMPONENT_MAP[activeKey].component;
 
   return (
-    <div className="flex flex-col bg-gray-400 gap-4 p-3 w-full">
+    <div className="flex flex-col bg-gray-400 gap-4 p-1 w-full">
+      {/* ===== 表示 ===== */}
+      <ActiveComponent />
+
       {/* ===== タブ ===== */}
       <div className="flex gap-2 flex-wrap">
         {Object.entries(COMPONENT_MAP).map(([key, { label }]) => (
@@ -42,9 +45,7 @@ export default function PromptBox() {
           </button>
         ))}
       </div>
-
-      {/* ===== 表示 ===== */}
-      <ActiveComponent />
     </div>
   );
 }
+
