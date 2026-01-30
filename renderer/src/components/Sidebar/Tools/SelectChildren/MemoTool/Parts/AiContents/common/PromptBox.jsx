@@ -25,19 +25,19 @@ export default function PromptBox() {
   const ActiveComponent = COMPONENT_MAP[activeKey].component;
 
   return (
-    <div className="flex flex-col bg-gray-400 gap-4 p-1 w-full">
+    <div className="flex flex-col bg-gray-400 gap-4 p-1 w-full rounded-br-md">
       {/* ===== 表示 ===== */}
       <ActiveComponent />
 
       {/* ===== タブ ===== */}
-      <div className="flex gap-2 flex-wrap">
+      <div className="flex flex-wrap bg-gray-700">
         {Object.entries(COMPONENT_MAP).map(([key, { label }]) => (
           <button
             key={key}
-            className={`px-3 py-1 rounded text-sm ${
+            className={`min-w-[100px] px-3 py-2 border-gray-500 rounded-b-lg text-sm ${
               activeKey === key
                 ? "bg-sky-400 text-white"
-                : "bg-gray-200"
+                : "bg-gray-200 hover:bg-blue-400"
             }`}
             onClick={() => setActiveKey(key)}
           >

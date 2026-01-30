@@ -1,6 +1,5 @@
-// renderer/src/components/Sidebar/Tools/MemoTool/Parts/AiInputBox.jsx
+// renderer\src\components\Sidebar\Tools\SelectChildren\MemoTool\Parts\MemoInputBox.jsx
 import React, { useState, useEffect, useRef } from "react";
-//import { useAppState } from "@/contexts/AppStateContext.jsx";
 import { useAppState } from '@/contexts/appState';
 import { useToast } from  '@/components/common/ToastContext.jsx'
 import { useNote } from "@/hooks/useNote.js";
