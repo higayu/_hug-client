@@ -88,6 +88,12 @@ contextBridge.exposeInMainWorld("electronAPI", {
   saveTempNote: (data) =>
     ipcRenderer.invoke("sqlite:saveTempNote", data),
 
+  saveTempNote1: (data) =>
+    ipcRenderer.invoke("sqlite:saveTempNote1", data),
+
+  saveTempNote2: (data) =>
+    ipcRenderer.invoke("sqlite:saveTempNote2", data),
+
   getTempNote: ({ children_id, staff_id, day_of_week_id }) =>
     ipcRenderer.invoke("sqlite:getTempNote", {
       children_id,

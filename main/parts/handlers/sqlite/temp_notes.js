@@ -64,6 +64,66 @@ module.exports = {
         }
       );
     });
+  },
+
+    // =====================================
+  // memo1 upsert（修正）
+  // =====================================
+  upsert1(data) {
+    const { children_id, staff_id, day_of_week_id, memo1 } = data;
+
+    return new Promise((resolve, reject) => {
+      const db = connect();
+
+      const sql = `
+          INSERT INTO temp_notes (children_id, staff_id, day_of_week_id, memo1)
+          VALUES (?, ?, ?, ?)
+          ON CONFLICT(children_id, day_of_week_id) DO UPDATE SET
+            staff_id = excluded.staff_id,
+            memo1 = excluded.memo1,
+            updated_at = CURRENT_TIMESTAMP
+      `;
+
+      db.run(
+        sql,
+        [children_id, staff_id, day_of_week_id, memo1 || ""],
+        function (err) {
+          db.close();
+          if (err) return reject(err);
+          resolve({ success: true, changes: this.changes });
+        }
+      );
+    });
+  },
+
+    // =====================================
+  // メモ2 upsert（修正）
+  // =====================================
+  upsert2(data) {
+    const { children_id, staff_id, day_of_week_id, memo2 } = data;
+
+    return new Promise((resolve, reject) => {
+      const db = connect();
+
+      const sql = `
+          INSERT INTO temp_notes (children_id, staff_id, day_of_week_id, memo2)
+          VALUES (?, ?, ?, ?)
+          ON CONFLICT(children_id, day_of_week_id) DO UPDATE SET
+            staff_id = excluded.staff_id,
+            memo2 = excluded.memo2,
+            updated_at = CURRENT_TIMESTAMP
+      `;
+
+      db.run(
+        sql,
+        [children_id, staff_id, day_of_week_id, memo2 || ""],
+        function (err) {
+          db.close();
+          if (err) return reject(err);
+          resolve({ success: true, changes: this.changes });
+        }
+      );
+    });
   }
 };
 

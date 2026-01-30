@@ -1,5 +1,5 @@
 // main/parts/handlers/sqliteHandler.js
-// main/parts/handlers/sqliteHandler.js
+
 const fs = require("fs");
 const path = require("path");
 const { getDbPath } = require("../utils/pathResolver");
@@ -134,6 +134,24 @@ function registerSqliteHandlers(ipcMain) {
       return await temp_notes.upsert(data);
     } catch (err) {
       console.error("❌ SQLite saveTempNote エラー:", err);
+      throw err;
+    }
+  });
+
+  ipcMain.handle("sqlite:saveTempNote1", async (_, data) => {
+    try {
+      return await temp_notes.upsert1(data);
+    } catch (err) {
+      console.error("❌ SQLite saveTempNote1 エラー:", err);
+      throw err;
+    }
+  });
+
+  ipcMain.handle("sqlite:saveTempNote2", async (_, data) => {
+    try {
+      return await temp_notes.upsert2(data);
+    } catch (err) {
+      console.error("❌ SQLite saveTempNote2 エラー:", err);
       throw err;
     }
   });
