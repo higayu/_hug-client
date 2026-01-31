@@ -1,21 +1,50 @@
 // renderer/src/components/Sidebar/Tools/SelectChildren/MemoTool/Parts/MemoEditor.jsx
-import React, { useRef } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { useToast } from "@/components/common/ToastContext.jsx";
+import { useAppState } from "@/contexts/appState";
+import { useNote } from "@/hooks/useNote.js";
 
 export default function MemoEditor({
+  memoType, // ← 1 or 2
   label,
-  value,
-  onChange,
-  onSave,
-  disabled,
   minHeight = 100,
 }) {
   const ref = useRef(null);
   const { showSuccessToast, showErrorToast } = useToast();
+  const { SELECT_CHILD } = useAppState();
+  const { saveTemp1, saveTemp2, loadTemp } = useNote();
+
+  const [value, setValue] = useState("");
+
+  // 🔄 読み込み
+  useEffect(() => {
+    if (!SELECT_CHILD) {
+      setValue("");
+      return;
+    }
+
+    const proxy = {
+      set value(v) {
+        if (typeof v === "object" && v !== null) {
+          setValue(memoType === 1 ? v.memo1 || "" : v.memo2 || "");
+        } else {
+          setValue(v || "");
+        }
+      },
+    };
+
+    loadTemp(SELECT_CHILD, proxy);
+  }, [SELECT_CHILD, loadTemp, memoType]);
 
   const handleSave = async () => {
+    if (!SELECT_CHILD) return;
+
     try {
-      const result = await onSave();
+      const result =
+        memoType === 1
+          ? await saveTemp1(SELECT_CHILD, value)
+          : await saveTemp2(SELECT_CHILD, value);
+
       if (result) {
         showSuccessToast(`${label} を保存しました`);
       } else {
@@ -50,12 +79,13 @@ export default function MemoEditor({
                    focus:ring-2 focus:ring-blue-200"
         style={{ minHeight }}
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={(e) => setValue(e.target.value)}
+        disabled={!SELECT_CHILD}
       />
 
       <button
         onClick={handleSave}
-        disabled={disabled}
+        disabled={!SELECT_CHILD}
         className="mt-2 w-full px-3 py-2 bg-blue-600 text-white rounded
                    text-xs hover:bg-blue-700 disabled:opacity-50"
       >
