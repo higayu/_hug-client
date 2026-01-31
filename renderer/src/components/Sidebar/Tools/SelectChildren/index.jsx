@@ -1,9 +1,10 @@
 // renderer/src/components/Sidebar/ToolContent.jsx
 
 import { useEffect, useState } from 'react'
-import TodayChildrenList from './TodayChildrenList.jsx'
-import ChildMemoPanel from './ChildMemoPanel.jsx'
-import MemoContainer from './MemoTool/MemoContainer.jsx'
+import TodayChildrenList from './TodayChildrenList'
+import ChildMemoPanel from './ChildMemoPanel'
+//import MemoContainer from './MemoContainer'
+import AiContents from "./AiContents";
 
 function ToolContent() {
   const [activeTool, setActiveTool] = useState('default')
@@ -25,7 +26,7 @@ function ToolContent() {
       </div>
       {/* AI + メモツール */}
       <div className="mt-4 border-t rounded bg-gray-200 border-gray-300 pt-3">
-        <MemoContainer />
+        <AiContents />
       </div>
     </div>
 

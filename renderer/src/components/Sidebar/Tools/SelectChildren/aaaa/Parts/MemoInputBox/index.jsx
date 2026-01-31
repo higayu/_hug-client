@@ -1,10 +1,10 @@
-// renderer/src/components/Sidebar/Tools/SelectChildren/MemoTool/Parts/MemoEditor.jsx
+// renderer/src/components/Sidebar/Tools/SelectChildren/MemoTool/Parts/MemoInput/index.jsx
 import React, { useRef, useState, useEffect } from "react";
 import { useToast } from "@/components/common/ToastContext.jsx";
 import { useAppState } from "@/contexts/appState";
 import { useNote } from "@/hooks/useNote.js";
 
-export default function MemoEditor({
+export default function MemoInputBox({
   memoType, // ← 1 or 2
   label,
   minHeight = 100,

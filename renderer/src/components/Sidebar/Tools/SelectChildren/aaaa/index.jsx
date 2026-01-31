@@ -11,7 +11,20 @@ export default function MemoContainer() {
     <div className="flex h-full">
       {/* ===== 左：中身 ===== */}
       <div className="flex-1 overflow-auto">
-        {!isAi && <MemoInputBox />}
+        {!isAi && 
+          <div>
+            <MemoInputBox
+              memoType={1}
+              label="一時メモ１（編集可能）"
+              minHeight={120}
+            />
+            <MemoInputBox
+              memoType={2}
+              label="一時メモ２（編集可能）"
+              minHeight={100}
+            />
+          </div>
+        }
         {isAi && <AiContents />}
       </div>
 
