@@ -7,7 +7,7 @@ import ProfessionalDraftSaveButton from './ProfessionalInput/ProfessionalDraftSa
 import MemoInputBox from './MemoInputBox';
 
 export default function ProfessionalPrompt2() {
-  const { appState, PROMPTS } = useAppState();
+  const { appState, PROMPTS,DEBUG_FLG } = useAppState();
 
   const [text1, setText1] = useState("");
   const [aiText, setAiText] = useState("");
@@ -65,11 +65,13 @@ export default function ProfessionalPrompt2() {
         >
           実行
         </button>
-
+        
+        {DEBUG_FLG && (
          <div className="flex flex-col justify-end">
             <ProfessionalDraftSaveButton/>
             <ProfessionalInjectButton />
          </div>
+        )}
 
       </div>
       <MemoInputBox

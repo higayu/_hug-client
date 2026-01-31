@@ -18,7 +18,7 @@ import RecordProceedingsDraftSaveButton from './PersonalInput/RecordProceedingsD
 import MemoInputBox from './MemoInputBox';
 
 export default function PersonalRecordPrompt() {
-  const { appState, PROMPTS } = useAppState();
+  const { appState, PROMPTS,DEBUG_FLG } = useAppState();
 
   // "personalRecord" と "professional" のプロンプトを2つの textarea に対応
   const [text1, setText1] = useState("");
@@ -133,11 +133,12 @@ export default function PersonalRecordPrompt() {
           >
             実行
           </button>
-
+          {DEBUG_FLG && (
           <div className="flex flex-col justify-end">
             <RecordProceedingsDraftSaveButton />
             <PersonalInjectButton />
           </div>
+          )}
         </div>
 
         <MemoInputBox
