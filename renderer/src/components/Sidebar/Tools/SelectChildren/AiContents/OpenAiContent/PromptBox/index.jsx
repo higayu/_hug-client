@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import PersonalRecordPrompt from "./PersonalRecordPrompt";
 import ProfessionalPrompt1 from "./ProfessionalPrompt1";
 import ProfessionalPrompt2 from "./ProfessionalPrompt2";
-import MemoInputBox from "./Parts/MemoInputBox";
+
 
 const COMPONENT_MAP = {
   personal: {

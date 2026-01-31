@@ -4,6 +4,7 @@ import { useAppState } from "@/contexts/appState";
 import { sendPromptToChatGPT } from "./send/sendPromptToChatGPT";
 import ProfessionalInjectButton from "./ProfessionalInput/ProfessionalInjectButton";
 import ProfessionalDraftSaveButton from './ProfessionalInput/ProfessionalDraftSaveButton';
+import MemoInputBox from './MemoInputBox';
 
 export default function ProfessionalPrompt2() {
   const { appState, PROMPTS } = useAppState();
@@ -71,6 +72,11 @@ export default function ProfessionalPrompt2() {
          </div>
 
       </div>
+      <MemoInputBox
+          memoType={2}
+          label="一時メモ２（編集可能）"
+          minHeight={200}
+        />
     </div>
   );
 }

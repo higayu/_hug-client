@@ -15,6 +15,7 @@ import {
 } from '@/store/slices/sendTextSlice'
 import PersonalInjectButton from './PersonalInput/PersonalInjectButton';
 import RecordProceedingsDraftSaveButton from './PersonalInput/RecordProceedingsDraftSaveButton';
+import MemoInputBox from './MemoInputBox';
 
 export default function PersonalRecordPrompt() {
   const { appState, PROMPTS } = useAppState();
@@ -138,6 +139,12 @@ export default function PersonalRecordPrompt() {
             <PersonalInjectButton />
           </div>
         </div>
+
+        <MemoInputBox
+              memoType={1}
+              label="一時メモ１（編集可能）"
+              minHeight={200}
+          />
 
       </div>
     </div>
