@@ -41,6 +41,10 @@ export function useTabs() {
       addProfessionalSupportListAction(appState)
     }, [appState])
 
+    const addProfessionalSupportCheckTab = useCallback(() => {
+      addProfessionalSupportNewAction(appState)
+    }, [appState])
+
     // 専門的支援-新規タブ追加
     const addProfessionalSupportNewTab = useCallback(() => {
       //addProfessionalSupportNewAction(appState)
@@ -177,6 +181,7 @@ export function useTabs() {
     addPersonalRecordTab,
     addProfessionalSupportListTab,
     addProfessionalSupportNewTab,
+    addProfessionalSupportCheckTab,
     addWebManagerAction: addWebManagerActionTab,
     activateTab,
     closeTab,

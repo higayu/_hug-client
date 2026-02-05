@@ -4,12 +4,14 @@ import { useAppState } from "@/contexts/appState";
 import { sendPromptToChatGPT } from "./send/sendPromptToChatGPT";
 import ProfessionalInjectButton from "./ProfessionalInput/ProfessionalInjectButton";
 import ProfessionalDraftSaveButton from './ProfessionalInput/ProfessionalDraftSaveButton';
+import { useTabs } from "@/hooks/useTabs/index.js";
 
 export default function ProfessionalPrompt2() {
   const { appState, PROMPTS } = useAppState();
 
   const [text1, setText1] = useState("");
   const [aiText, setAiText] = useState("");
+  const { addProfessionalSupportCheckTab } = useTabs();
 
   // 🔥 初期値セット
   useEffect(() => {
@@ -63,6 +65,13 @@ export default function ProfessionalPrompt2() {
           disabled={!aiText}
         >
           実行
+        </button>
+
+        <button
+          className="btn-purple mt-2 p-2"
+          onClick={addProfessionalSupportCheckTab}
+        >
+          専門的支援チェック
         </button>
 
          <div className="flex flex-col justify-end">
