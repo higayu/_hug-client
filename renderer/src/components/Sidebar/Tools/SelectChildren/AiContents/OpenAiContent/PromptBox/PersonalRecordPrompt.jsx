@@ -47,6 +47,7 @@ export default function PersonalRecordPrompt() {
   };
 
 
+
   // 🔥 初期化時ログ & 初期値セット
   useEffect(() => {
     console.log("🟦 PromptBox 初期化（マウント）");
@@ -128,11 +129,12 @@ export default function PersonalRecordPrompt() {
 
         <div className="flex flex-row justify-between items-center">
           <button
-            className="w-[250px] bg-green-500 hover:bg-green-600 p-2 rounded text-white"
+            className="w-full bg-green-500 hover:bg-green-600 p-2 rounded text-white"
             onClick={() => clickEnterButton()}
           >
             実行
           </button>
+
           {DEBUG_FLG && (
           <div className="flex flex-col justify-end">
             <RecordProceedingsDraftSaveButton />

@@ -10,7 +10,7 @@ import { createWebview, createTabButton, activateTab, closeTab,clearActiveWebvie
 import { addNormalTabAction } from './actions/normal.js'
 import { addPersonalRecordTabAction3, addPersonalRecordTabAction4 } from './actions/personalRecord.js'
 import { addProfessionalSupportListAction } from './actions/professionalList.js'
-import { addProfessionalSupportNewAction, addProfessionalSupportNewAction2 } from './actions/professionalNew.js'
+import { addProfessionalSupportNewAction, addProfessionalSupportNewAction2, addProfessionalSupportCheckAction } from './actions/professionalNew.js'
 import { addWebManagerAction } from './actions/WebManager.js'
 
 
@@ -42,7 +42,7 @@ export function useTabs() {
     }, [appState])
 
     const addProfessionalSupportCheckTab = useCallback(() => {
-      addProfessionalSupportNewAction(appState)
+      addProfessionalSupportCheckAction(appState)
     }, [appState])
 
     // 専門的支援-新規タブ追加

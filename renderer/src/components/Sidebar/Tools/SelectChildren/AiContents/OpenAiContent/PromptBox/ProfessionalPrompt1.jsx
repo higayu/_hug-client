@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { useAppState } from "@/contexts/appState";
 import { useChildrenList } from "@/hooks/useChildrenList.js";
 import { sendPromptToChatGPT } from "./send/sendPromptToChatGPT";
+import { useTabs } from "@/hooks/useTabs/index.js";
 
 export default function ProfessionalPrompt1() {
   const { appState, PROMPTS, SELECT_CHILD } = useAppState();
@@ -37,6 +38,8 @@ export default function ProfessionalPrompt1() {
       setText1(PROMPTS.professional1?.content ?? "");
     }
   }, []);
+
+  const { addProfessionalSupportCheckTab } = useTabs();
 
   // ★ 送信する文字列を組み立てるだけ
   const textValue = `${dbNote}\n\n\n${text1}\n\n\n${aiText}`;
@@ -83,13 +86,21 @@ export default function ProfessionalPrompt1() {
         />
       </div>
 
-      <button
-        className="bg-green-500 hover:bg-green-600 p-2 rounded text-white"
-        onClick={clickEnterButton}
-        disabled={!aiText}
-      >
-        実行
-      </button>
+      <div className="flex flex-row justify-between items-center">
+          <button
+            className="w-[70%] bg-green-500 hover:bg-green-600 p-2 rounded text-white"
+            onClick={clickEnterButton}
+            disabled={!aiText}
+          >
+            実行
+          </button>
+          <button
+            className="btn-purple hover:bg-purple-600 p-2 rounded text-white"
+            onClick={addProfessionalSupportCheckTab}
+          >
+            専門的支援チェック
+          </button>
+      </div>
     </div>
   );
 }
