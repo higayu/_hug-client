@@ -54,6 +54,7 @@ export default function OpenAiContent() {
     tabButton.addEventListener("click", () => {
       console.log("🟩 タブアクティブ切り替え:", newId)
       activateTab(newId)
+      
     })
 
     const closeBtn = tabButton.querySelector(".close-btn")

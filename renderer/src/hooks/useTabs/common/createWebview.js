@@ -11,6 +11,7 @@
 export function createWebview(id, src, attributes = {}) {
   const webview = document.createElement('webview')
   webview.id = id
+  // webviewのURLを設定
   webview.src = src
   webview.setAttribute('allowpopups', 'true')
   webview.setAttribute('disablewebsecurity', 'true')
