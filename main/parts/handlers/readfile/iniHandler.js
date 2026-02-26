@@ -48,10 +48,10 @@ function loadDefaultIni() {
     },
     apiSettings: {
       baseURL: "http://192.168.1.229",
-      staffId: "73",
+      staffId: "",
       facilityId: "3",
       databaseType: "mariadb",
-      useAI: "gemini",
+      useAI: "chatGPT",
       debugFlg:"false"
     },
   };

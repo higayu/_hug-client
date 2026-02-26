@@ -339,9 +339,9 @@ export function useSettingsModalLogic(isOpen) {
           apiSettings: {
             baseURL: "http://192.168.1.229",
             staffId: "",
-            facilityId: "",
+            facilityId: "3",
             databaseType: "mariadb",
-            useAI: "gemini",
+            useAI: "chatGPT",
           },
         }
 

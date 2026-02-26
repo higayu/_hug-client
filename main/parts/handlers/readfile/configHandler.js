@@ -14,6 +14,8 @@ function handleConfigAccess(ipcMain) {
           HUG_USERNAME: "",
           HUG_PASSWORD: "",
           GEMINI_API_KEY: "",
+          OPENAI_MAIL : "",
+          OPENAI_PASSWORD: ""
         };
 
         const dir = path.dirname(filePath);
