@@ -2,37 +2,33 @@
 
 import { createWebview, createTabButton, activateTab, closeTab } from '../common/index.js'
 
-// ★ iniState を引数で受け取るように変更
-export function addWebManagerAction(appState, iniState) {
+function getWebManagerUrl(iniState) {
+  return `${iniState?.apiSettings?.baseURL}/houday/build-file/yoshijima/childkadai-table`
+}
 
+export function addWebManagerAction(appState, iniState) {
   const tabsContainer = document.getElementById('tabs')
   const webviewContainer = document.getElementById('webview-container')
 
   if (!tabsContainer || !webviewContainer) {
-    console.error('❌ tabs または webview-container が見つかりません')
+    console.error('tabs または webview-container が見つかりません')
     return
   }
 
   const newId = `hugview-${appState.CURRENT_YMD}-${document.querySelectorAll('webview').length}`
-
-  // ★ Hook をここで使わないので、iniState は外から渡された値を使う
-  const newWebview = createWebview(
-    newId,
-    `${iniState?.apiSettings?.baseURL}/houday/build-file/`
-  )
+  const newWebview = createWebview(newId, getWebManagerUrl(iniState))
 
   webviewContainer.appendChild(newWebview)
 
   const tabButton = createTabButton(
     newId,
-    `データ管理`,
+    'データ確認',
     appState.closeButtonsVisible
   )
 
   if (!tabButton) return
 
   tabsContainer.appendChild(tabButton)
-
   tabButton.addEventListener('click', () => activateTab(newId))
 
   const closeBtn = tabButton.querySelector('.close-btn')
@@ -44,29 +40,37 @@ export function addWebManagerAction(appState, iniState) {
     })
   }
 
-  // --- 初回ロード処理 ---
   let initialized = false
 
   newWebview.addEventListener('did-finish-load', () => {
     if (initialized) return
     initialized = true
 
-    // 日付を日本語へ変換
-    const parts = appState.CURRENT_YMD.split('-')
-    const jpDate = `${parts[0]}年${parseInt(parts[1])}月${parseInt(parts[2])}日`
-
-    const parseTime = (s) => {
-      if (!s) return null
-      const m = s.match(/^(\d{2}):(\d{2})$/)
-      return m ? { h: String(parseInt(m[1])), m: String(parseInt(m[2])) } : null
-    }
-
-    const st = parseTime(appState.SELECTED_CHILD_COLUMN5)
-    const et = parseTime(appState.SELECTED_CHILD_COLUMN6)
-
     newWebview.executeJavaScript(`
     `)
   }, { once: true })
 
   activateTab(newId)
+}
+
+export function addWebManagerAction_OutWindow(appState, iniState) {
+  const url = getWebManagerUrl(iniState)
+
+  if (!url || url.includes('undefined')) {
+    console.error('WebManager URL の生成に失敗しました', {
+      baseURL: iniState?.apiSettings?.baseURL,
+      currentYmd: appState?.CURRENT_YMD,
+    })
+    return
+  }
+
+  if (window.electronAPI?.openWebManagerPage) {
+    window.electronAPI.openWebManagerPage({
+      url,
+      title: 'Webページ',
+    })
+    return
+  }
+
+  window.open(url, '_blank', 'noopener,noreferrer')
 }

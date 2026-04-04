@@ -1,14 +1,13 @@
-// main/parts/planWindows.js
+// main/parts/window/planWindows.js
 const { BrowserWindow } = require("electron");
 const path = require("path");
 
-let isRegistered = false; // ✅ 二重登録防止フラグ
+let isRegistered = false;
 
 function registerPlanWindows(ipcMain) {
-  if (isRegistered) return; // ← 2回目以降は無視
+  if (isRegistered) return;
   isRegistered = true;
 
-  // 専門的支援計画
   ipcMain.on("open-specialized-support-plan", (event, childId) => {
     openPlanWindow(
       "https://www.hug-ayumu.link/hug/wm/addition_plan.php",
@@ -17,7 +16,6 @@ function registerPlanWindows(ipcMain) {
     );
   });
 
-  // 個別支援計画
   ipcMain.on("open-individual-support-plan", (event, childId) => {
     openPlanWindow(
       "https://www.hug-ayumu.link/hug/wm/individual_care-plan-main.php",
@@ -27,34 +25,40 @@ function registerPlanWindows(ipcMain) {
   });
 
   ipcMain.on("Open_NowDayPage", (event, { facilityId, dateStr }) => {
-    openSimpleWindow(facilityId, dateStr, "今日の利用者");
+    openSimpleWindow(facilityId, dateStr, "当日の利用画面");
+  });
+
+  ipcMain.on("open-web-manager-page", (event, { url, title }) => {
+    openExternalPageWindow(url, title || "Webページ");
+  });
+}
+
+function createWindowOptions(title) {
+  return {
+    width: 1200,
+    height: 900,
+    title,
+    webPreferences: {
+      preload: path.join(__dirname, "../../preload.js"),
+    },
+  };
+}
+
+function attachConsoleLogging(win) {
+  win.webContents.on("console-message", (event, level, message) => {
+    console.log(`${message}`);
   });
 }
 
 function openPlanWindow(url, childId, label) {
-  const win = new BrowserWindow({
-    width: 1200,
-    height: 900,
-    webPreferences: {
-      preload: path.join(__dirname, "../../preload.js"),
-    },
-  });
-
+  const win = new BrowserWindow(createWindowOptions(label));
   win.loadURL(url);
-
-  // 🔍 子ウィンドウのログをメインコンソールでも見られるようにする
-  win.webContents.on("console-message", (event, level, message) => {
-    console.log(`${message}`);
-  });
+  attachConsoleLogging(win);
 
   win.webContents.once("did-finish-load", () => {
-    console.log(`did-finish-load`);
-
-    // 🕒 DOM生成の遅延対策
     setTimeout(() => {
       win.webContents.executeJavaScript(`
         try {
-        
           const select = document.querySelector('#name_list');
           if (!select) throw new Error("#name_list not found");
           select.value = "${childId}";
@@ -66,42 +70,30 @@ function openPlanWindow(url, childId, label) {
             if (btn.disabled) throw new Error("search button is disabled");
             btn.click();
           }, 1500);
-
         } catch (e) {
           console.error("error:", e);
         }
       `);
-    }, 2000); // ← DOM構築待ち
+    }, 2000);
   });
 }
 
-/**
- * Hug「今日の利用者」ページなどを別ウィンドウで開く関数
- * @param {string} FACILITY_ID - 施設ID
- * @param {string} DATE_STR - 日付（YYYY-MM-DD）
- * @param {string} label - ウィンドウのラベル（任意）
- */
-function openSimpleWindow(FACILITY_ID, DATE_STR, label = "今日の利用者") {
-  const url = `https://www.hug-ayumu.link/hug/wm/attendance.php?mode=detail&f_id=${FACILITY_ID}&date=${DATE_STR}`;
-
-  const win = new BrowserWindow({
-    width: 1200,
-    height: 900,
-    webPreferences: {
-      preload: path.join(__dirname, "../../preload.js"),
-    },
-  });
-
+function openSimpleWindow(facilityId, dateStr, label = "当日の利用画面") {
+  const url = `https://www.hug-ayumu.link/hug/wm/attendance.php?mode=detail&f_id=${facilityId}&date=${dateStr}`;
+  const win = new BrowserWindow(createWindowOptions(label));
   win.loadURL(url);
+  attachConsoleLogging(win);
+}
 
-  // 子ウィンドウの console.log をメイン側にも表示
-  win.webContents.on("console-message", (event, level, message) => {
-    console.log(`${message}`);
-  });
+function openExternalPageWindow(url, title = "Webページ") {
+  if (!url) {
+    console.error("[openExternalPageWindow] url is required");
+    return;
+  }
 
-  win.webContents.once("did-finish-load", () => {
-    console.log(`did-finish-load`);
-  });
+  const win = new BrowserWindow(createWindowOptions(title));
+  win.loadURL(url);
+  attachConsoleLogging(win);
 }
 
 module.exports = { registerPlanWindows };

@@ -1,62 +1,55 @@
-// src/components/Sidebar/ChildMemoPanel.jsx
 import { useEffect, useState } from 'react'
+import { GlobeAltIcon } from '@heroicons/react/24/outline'
 import { useAppState } from '@/contexts/appState'
 import { useChildrenList } from '@/hooks/useChildrenList.js'
 import { useTabs } from '@/hooks/useTabs/index.js'
-import { GlobeAltIcon } from "@heroicons/react/24/outline";
-
 import {
   clickEnterButton,
   clickAbsenceButton,
   clickExitButton,
-} from "@/utils/attendance/index.js";
-
-import { useToast } from "@/components/common/ToastContext.jsx";
+} from '@/utils/attendance/index.js'
+import { useToast } from '@/components/common/ToastContext.jsx'
 
 function ChildMemoPanel() {
   const {
     appState,
     attendanceData,
     setSelectedChildColumns,
-    DEBUG_FLG,
   } = useAppState()
 
-  const { addPersonalRecordTab, addProfessionalSupportNewTab,addWebManagerAction } = useTabs()
-
+  const {
+    addPersonalRecordTab,
+    addProfessionalSupportNewTab,
+    addWebManagerAction_OutWindow,
+  } = useTabs()
 
   const {
     showSuccessToast,
     showErrorToast,
-    showWarningToast,
-    showInfoToast,
-  } = useToast();
+  } = useToast()
 
-  const IS_STOP = false;//停止を解除 !DEBUG_FLG // まだ不完全のため停止
-  const SELECT_CHILD = appState.SELECT_CHILD
+  const isStop = false
+  const selectChild = appState.SELECT_CHILD
 
   const {
     childrenData,
     waitingChildrenData,
-    experienceChildrenData
+    experienceChildrenData,
   } = useChildrenList()
-
 
   const [selectedChildData, setSelectedChildData] = useState(null)
   const [attendanceItem, setAttendanceItem] = useState(null)
   const [isUIEnabled, setIsUIEnabled] = useState(false)
 
-  /* ===============================
-   * 出欠データ解決
-   * =============================== */
   useEffect(() => {
-    if (!SELECT_CHILD) {
+    if (!selectChild) {
       setAttendanceItem(null)
       setIsUIEnabled(false)
       setSelectedChildColumns({
         column5: null,
         column5Html: null,
         column6: null,
-        column6Html: null
+        column6Html: null,
       })
       return
     }
@@ -69,7 +62,7 @@ function ChildMemoPanel() {
     }
 
     const item = list.find(
-      i => String(i.children_id) === String(SELECT_CHILD)
+      i => String(i.children_id) === String(selectChild)
     )
 
     setAttendanceItem(item || null)
@@ -80,154 +73,113 @@ function ChildMemoPanel() {
         column5: item.column5 ?? null,
         column5Html: item.column5Html ?? null,
         column6: item.column6 ?? null,
-        column6Html: item.column6Html ?? null
+        column6Html: item.column6Html ?? null,
       })
     }
-  }, [SELECT_CHILD, attendanceData, setSelectedChildColumns])
+  }, [selectChild, attendanceData, setSelectedChildColumns])
 
-  /* ===============================
-   * 子どもデータ解決
-   * =============================== */
   useEffect(() => {
-    if (!SELECT_CHILD) {
+    if (!selectChild) {
       setSelectedChildData(null)
       return
     }
 
     const child =
-      childrenData.find(c => String(c.children_id) === String(SELECT_CHILD)) ||
-      waitingChildrenData.find(c => String(c.children_id) === String(SELECT_CHILD)) ||
-      experienceChildrenData.find(c => String(c.children_id) === String(SELECT_CHILD))
+      childrenData.find(c => String(c.children_id) === String(selectChild)) ||
+      waitingChildrenData.find(c => String(c.children_id) === String(selectChild)) ||
+      experienceChildrenData.find(c => String(c.children_id) === String(selectChild))
 
     setSelectedChildData(child || null)
-  }, [SELECT_CHILD, childrenData, waitingChildrenData, experienceChildrenData])
+  }, [selectChild, childrenData, waitingChildrenData, experienceChildrenData])
 
-  /* ===============================
-   * 未選択表示
-   * =============================== */
-  if (!SELECT_CHILD || !selectedChildData) {
+  if (!selectChild || !selectedChildData) {
     return (
       <div className="child-memo-panel flex-1 border-l bg-gray-50 p-4 overflow-y-auto">
         <div className="text-sm text-gray-500 text-center mt-8">
-          要素を選択してください
+          Please select a child.
         </div>
       </div>
     )
   }
 
-  /* ===============================
-   * UI判定
-   * =============================== */
   const column5 = attendanceItem?.column5 ?? null
   const column5Html = attendanceItem?.column5Html ?? null
   const column6 = attendanceItem?.column6 ?? null
   const column6Html = attendanceItem?.column6Html ?? null
 
   const isTimeFormat = (v) => /^\d{2}:\d{2}$/.test(v || '')
-
-  // ★ 修正ポイント：欠席系をすべて拾う
   const isAbsent =
     typeof column5 === 'string' && column5.startsWith('欠席')
 
   const hasEntered = isTimeFormat(column5)
   const hasExited = isTimeFormat(column6)
-
   const disabledBtnClass = 'grayscale opacity-50 cursor-not-allowed'
 
+  const nyushituButton = async (value) => {
+    const cid = selectChild
 
-  /* ===============================
-  * 入室ボタン
-  * =============================== */
-  const nyushituButton = async (column5Html) => {
-    const cid = SELECT_CHILD;
-    console.group("🟦 入室クリック");
-
-    if (!column5Html) {
-      showErrorToast("入室情報が取得できません");
-      console.groupEnd();
-      return;
+    if (!value) {
+      showErrorToast('Enter action data was not found.')
+      return
     }
 
     try {
-      const res = await clickEnterButton(column5Html, Number(cid));
+      const res = await clickEnterButton(value, Number(cid))
       if (res?.success === true) {
-        showSuccessToast("入室　実行完了");
+        showSuccessToast('Enter action completed.')
       } else {
-        showErrorToast("入室　失敗");
+        showErrorToast('Enter action failed.')
       }
     } catch (e) {
-      console.error("入室処理例外:", e);
-      showErrorToast("入室　例外発生");
-    } finally {
-      console.groupEnd();
+      console.error('Enter action error', e)
+      showErrorToast('Enter action error.')
     }
-  };
+  }
 
-  /* ===============================
-  * 退室ボタン
-  * =============================== */
-  const taishituButton = async (column6Html) => {
-    const cid = SELECT_CHILD;
-    console.group("🟥 退室クリック");
+  const taishituButton = async (value) => {
+    const cid = selectChild
 
-    if (!column6Html) {
-      showErrorToast("退室情報が取得できません");
-      console.groupEnd();
-      return;
+    if (!value) {
+      showErrorToast('Exit action data was not found.')
+      return
     }
 
     try {
-      const res = await clickExitButton(column6Html, Number(cid));
+      const res = await clickExitButton(value, Number(cid))
       if (res?.success === true) {
-        showSuccessToast("退室　実行完了");
+        showSuccessToast('Exit action completed.')
       } else {
-        showErrorToast("退室　失敗");
+        showErrorToast('Exit action failed.')
       }
     } catch (e) {
-      console.error("退室処理例外:", e);
-      showErrorToast("退室　例外発生");
-    } finally {
-      console.groupEnd();
+      console.error('Exit action error', e)
+      showErrorToast('Exit action error.')
     }
-  };
+  }
 
-  /* ===============================
-  * 欠席ボタン
-  * =============================== */
-  const kessekiButton = async (column5Html) => {
-    const cid = SELECT_CHILD;
-    console.group("🟨 欠席クリック");
+  const kessekiButton = async (value) => {
+    const cid = selectChild
 
-    if (!column5Html) {
-      showErrorToast("欠席情報が取得できません");
-      console.groupEnd();
-      return;
+    if (!value) {
+      showErrorToast('Absence action data was not found.')
+      return
     }
 
     try {
-      const res = await clickAbsenceButton(column5Html, Number(cid));
+      const res = await clickAbsenceButton(value, Number(cid))
       if (res?.success === true) {
-        showSuccessToast("欠席　実行完了");
+        showSuccessToast('Absence action completed.')
       } else {
-        showErrorToast("欠席　失敗");
+        showErrorToast('Absence action failed.')
       }
     } catch (e) {
-      console.error("欠席処理例外:", e);
-      showErrorToast("欠席　例外発生");
-    } finally {
-      console.groupEnd();
+      console.error('Absence action error', e)
+      showErrorToast('Absence action error.')
     }
-  };
+  }
 
-
-
-  /* ===============================
-   * Render
-   * =============================== */
   return (
     <div className="child-memo-panel flex-1 min-h-0 border-l border-gray-300 bg-gray-50 flex flex-col">
-
-      {/* スクロール領域 */}
       <div className="flex-1 min-h-0 overflow-y-auto p-2">
         <div
           className={`flex flex-col rounded bg-gray-200 gap-2 p-2 ${
@@ -249,10 +201,10 @@ function ChildMemoPanel() {
               {!hasExited && (
                 <button
                   className={`btn-green mt-2 ${
-                    !isUIEnabled || IS_STOP ? disabledBtnClass : ''
+                    !isUIEnabled || isStop ? disabledBtnClass : ''
                   }`}
                   onClick={() => taishituButton(column6Html)}
-                  disabled={!isUIEnabled || IS_STOP}
+                  disabled={!isUIEnabled || isStop}
                 >
                   退室
                 </button>
@@ -274,20 +226,20 @@ function ChildMemoPanel() {
             <>
               <button
                 className={`btn-blue p-2 w-[80px] ${
-                  !isUIEnabled || IS_STOP ? disabledBtnClass : ''
+                  !isUIEnabled || isStop ? disabledBtnClass : ''
                 }`}
                 onClick={() => nyushituButton(column5Html)}
-                disabled={!isUIEnabled || IS_STOP}
+                disabled={!isUIEnabled || isStop}
               >
                 入室
               </button>
 
               <button
                 className={`btn-red mt-2 p-2 w-[80px] ${
-                  !isUIEnabled || IS_STOP ? disabledBtnClass : ''
+                  !isUIEnabled || isStop ? disabledBtnClass : ''
                 }`}
                 onClick={() => kessekiButton(column5Html)}
-                disabled={!isUIEnabled || IS_STOP}
+                disabled={!isUIEnabled || isStop}
               >
                 欠席
               </button>
@@ -298,9 +250,9 @@ function ChildMemoPanel() {
         <div className="flex items-center justify-center gap-2">
           <button
             id="professional-support-new"
-            onClick={addWebManagerAction}
-            title="Webページを開く"
-            aria-label="Webページを開く"
+            onClick={addWebManagerAction_OutWindow}
+            title="Open web page"
+            aria-label="Open web page"
             className="
               flex items-center justify-center
               bg-blue-300 rounded
@@ -314,7 +266,7 @@ function ChildMemoPanel() {
             <GlobeAltIcon className="h-5 w-5" />
           </button>
 
-          <button 
+          <button
             id="kojin-kiroku"
             onClick={addPersonalRecordTab}
             className="
@@ -330,8 +282,6 @@ function ChildMemoPanel() {
             個人記録
           </button>
         </div>
-
-
       </div>
     </div>
   )

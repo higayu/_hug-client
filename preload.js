@@ -120,6 +120,9 @@ contextBridge.exposeInMainWorld("electronAPI", {
   Open_NowDayPage: (args) =>
     ipcRenderer.send("Open_NowDayPage", args),
 
+  openWebManagerPage: (args) =>
+    ipcRenderer.send("open-web-manager-page", args),
+
   open_addition_compare_btn: (facility_id, date_str) =>
     ipcRenderer.send("open-addition-compare-btn", {
       facility_id,
