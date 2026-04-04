@@ -8,9 +8,9 @@
 const DEFAULT_API_SETTINGS = {
   baseURL: 'http://192.168.1.229',
   staffId: '',
-  facilityId: '',
+  facilityId: '3',
   databaseType: 'mariadb',
-  useAI: 'gemini',
+  useAI: 'chatGPT',
 }
 
 // 必須キーが欠けている場合にデフォルトで補完
