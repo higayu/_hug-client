@@ -1,0 +1,35 @@
+/* ===== 雪コンテナ ===== */
+#snow-container {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 999999;
+  overflow: hidden;
+}
+
+/* ===== 雪 ===== */
+.snow {
+  position: absolute;
+  top: -10px;
+  background-color: white;
+  border-radius: 50%;
+  opacity: 0;
+  animation-name: snow-fall;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+
+/* ===== アニメーション ===== */
+@keyframes snow-fall {
+  0% {
+    transform: translateY(0);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(110vh);
+    opacity: 0;
+  }
+}

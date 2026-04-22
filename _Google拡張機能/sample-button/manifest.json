@@ -1,0 +1,18 @@
+{
+  "manifest_version": 3,
+  "name": "Add Button to Attendance Page",
+  "version": "1.0",
+  "description": "指定ページにボタンを追加する拡張機能",
+  "permissions": [
+    "activeTab"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.hug-ayumu.link/*"
+      ],
+      "js": ["content.js"],
+      "css": ["style.css"]
+    }
+  ]
+}
