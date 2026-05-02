@@ -1,5 +1,5 @@
 (async () => {
-  const url = "https://www.hug-ayumu.link/hug/wm/addition_plan.php?c_id=139";
+  const url = "https://www.hug-ayumu.link/hug/wm/addition_plan_situation.php?mode=list&c_id=92";
 
 
 try {
