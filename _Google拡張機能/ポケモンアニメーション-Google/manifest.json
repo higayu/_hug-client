@@ -1,0 +1,29 @@
+{
+  "manifest_version": 3,
+  "name": "Poke Fall Overlay",
+  "version": "1.0",
+  "description": "body直下にポケモン SVGアニメーションを追加",
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.google.com/search*",
+        "https://www.google.co.jp/search*"
+      ],
+
+      "js": ["content.js"],
+      "css": ["pokemon.css"]
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "images/poke-1.svg",
+        "images/poke-2.svg",
+        "images/poke-3.svg",
+        "images/poke-4.svg",
+        "images/poke-5.svg"
+      ],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}

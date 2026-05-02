@@ -113,6 +113,7 @@ export function getActiveWebview() {
  * アクティブwebviewを更新（タブ切り替え時などに使用）
  */
 export function setActiveWebview(vw) {
+  console.log('🔵 setActiveWebview 実行');
   if (!vw || !document.contains(vw)) {
     activeWebview = null;
     console.warn("⚠ setActiveWebview: vw が無効（null または DOM外）");

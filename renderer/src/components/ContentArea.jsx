@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import Sidebar from './Sidebar/Sidebar.jsx'
+import Sidebar from './Sidebar'
 
 function ContentArea({ preloadPath }) {
   useEffect(() => {

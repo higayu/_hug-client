@@ -8,6 +8,7 @@ import { setActiveWebview } from '@/utils/webviewState.js'
  * @param {string} targetId - アクティブにするwebviewのID
  */
 export function activateTab(targetId) {
+  console.log('🔵 タブをアクティブにする実行');
   const tabsContainer = document.getElementById('tabs')
   const content = document.getElementById('content')
 
@@ -63,6 +64,7 @@ export function activateTab(targetId) {
  * 強制的にアクティブにする関数
  */
 export function activateHugViewFirstButton() {
+  console.log('🔵 強制で今日の利用者タブをアクティブにする実行');
   const hugButton = document.getElementById('hugview-first-button')
 
   if (!hugButton) {
