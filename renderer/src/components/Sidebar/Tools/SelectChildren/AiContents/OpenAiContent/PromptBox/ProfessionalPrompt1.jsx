@@ -4,6 +4,7 @@ import { useAppState } from "@/contexts/appState";
 import { useChildrenList } from "@/hooks/useChildrenList.js";
 import { sendPromptToChatGPT } from "./send/sendPromptToChatGPT";
 import { useTabs } from "@/hooks/useTabs/index.js";
+import ProfessionalPlan from "@/components/common/PageRequestGet/ProfessionalPlan.jsx";
 
 export default function ProfessionalPrompt1() {
   const { appState, PROMPTS, SELECT_CHILD } = useAppState();
@@ -11,6 +12,7 @@ export default function ProfessionalPrompt1() {
     childrenData,
     waitingChildrenData,
     experienceChildrenData,
+    loadChildren,
   } = useChildrenList();
 
   const [text1, setText1] = useState("");
@@ -55,9 +57,16 @@ export default function ProfessionalPrompt1() {
 
       {/* --- DB保存済みメモ --- */}
       <div className="mt-4">
-        <h4 className="text-xs font-bold text-gray-700 mb-2">
-          保存済みメモ（専門支援内容 / DB）
-        </h4>
+        <div className="flex flex-row justify-between items-center">
+            <h4 className="text-xs font-bold text-gray-700 mb-2">
+              保存済みメモ（専門支援内容 / DB）
+            </h4>
+            <ProfessionalPlan
+              onFetched={setDbNote}
+              reloadChildren={loadChildren}
+            />
+        </div>
+
         <div className="text-xs bg-gray-700 text-white p-2 rounded whitespace-pre-wrap">
           {dbNote || "メモがありません"}
         </div>
