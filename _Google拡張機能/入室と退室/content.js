@@ -143,9 +143,25 @@ window.addEventListener("load", () => {
         return;
       }
 
-      // 退室時間がある場合は対象外
+      // 退室時間がある場合
+      // 点滅中かどうかに関係なく、退室ボタンが残っていれば退室時間に置き換える
       if (leaveTime) {
-        console.log(`【CHECK】row[${rowIndex}] 退室済み → 対象外`);
+        const leaveButton = getLeaveButton(leaveTd);
+
+        if (leaveButton) {
+          leaveTd.textContent = leaveTime;
+
+          console.log(
+            `【CHECK】row[${rowIndex}] 退室時間あり → 残っていた退室ボタンを退室時間に置き換え`,
+            {
+              c_id,
+              leaveTime
+            }
+          );
+        } else {
+          console.log(`【CHECK】row[${rowIndex}] 退室済み → ボタンなし`);
+        }
+
         return;
       }
 
