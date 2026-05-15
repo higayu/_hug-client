@@ -1,10 +1,12 @@
 // renderer/src/components/Sidebar/Tools/MemoTool/Parts/AiContents/common/ProfessionalPrompt1.jsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useAppState } from "@/contexts/appState";
 import { useChildrenList } from "@/hooks/useChildrenList.js";
 import { sendPromptToChatGPT } from "./send/sendPromptToChatGPT";
-import { useTabs } from "@/hooks/useTabs/index.js";
+import { addProfessionalSupportCheckAction } from "@/hooks/useTabs/actions/professionalNew.js";
 import ProfessionalPlan from "@/components/common/PageRequestGet/ProfessionalPlan.jsx";
+
+const DBG = 'ProfessionalPrompt1';
 
 export default function ProfessionalPrompt1() {
   const { appState, PROMPTS, SELECT_CHILD } = useAppState();
@@ -19,9 +21,19 @@ export default function ProfessionalPrompt1() {
   const [aiText, setAiText] = useState("");
   const [dbNote, setDbNote] = useState("");
 
+  const logDbg = (field, msg, extra = {}) => {
+    console.log(`[${DBG}:${field}]`, msg, {
+      SELECT_CHILD,
+      aiTextLen: aiText.length,
+      dbNoteLen: dbNote.length,
+      ...extra,
+    });
+  };
+
   // 🔍 SELECT_CHILD 変更 → DBメモ読み込み
   useEffect(() => {
     if (!SELECT_CHILD) {
+      logDbg('dbNote', 'useEffect: SELECT_CHILD なし → dbNote クリア', {});
       setDbNote("");
       return;
     }
@@ -31,17 +43,26 @@ export default function ProfessionalPrompt1() {
       waitingChildrenData.find(c => c.children_id === SELECT_CHILD) ||
       experienceChildrenData.find(c => c.children_id === SELECT_CHILD);
 
-    setDbNote(child?.notes || "");
+    const next = child?.notes || "";
+    logDbg('dbNote', 'useEffect: 一覧からメモ反映', {
+      found: !!child,
+      nextLength: next.length,
+    });
+    setDbNote(next);
   }, [SELECT_CHILD, childrenData, waitingChildrenData, experienceChildrenData]);
 
   // 🔥 初期値セット
   useEffect(() => {
     if (PROMPTS) {
-      setText1(PROMPTS.professional1?.content ?? "");
+      const next = PROMPTS.professional1?.content ?? "";
+      logDbg('promptText1', 'mount: PROMPTS から text1 初期化', { nextLength: next.length });
+      setText1(next);
     }
   }, []);
 
-  const { addProfessionalSupportCheckTab } = useTabs();
+  const addProfessionalSupportCheckTab = useCallback(() => {
+    addProfessionalSupportCheckAction(appState);
+  }, [appState]);
 
   // ★ 送信する文字列を組み立てるだけ
   const textValue = `${dbNote}\n\n\n${text1}\n\n\n${aiText}`;
@@ -79,6 +100,18 @@ export default function ProfessionalPrompt1() {
           className="w-full h-20 bg-gray-900 text-white rounded p-2"
           value={text1}
           readOnly
+          onFocus={(e) =>
+            logDbg('promptText1', 'focus（readOnly: 仕様上ここでは編集不可）', {
+              readOnly: e.target.readOnly,
+              valueLength: e.target.value?.length ?? 0,
+            })
+          }
+          onKeyDown={(e) =>
+            logDbg('promptText1', 'keydown', {
+              key: e.key,
+              defaultPrevented: e.defaultPrevented,
+            })
+          }
         />
       </div>
 
@@ -91,7 +124,42 @@ export default function ProfessionalPrompt1() {
           className="w-full h-40 bg-gray-700 text-white rounded p-2"
           value={aiText}
           placeholder="AIに送信する内容を入力..."
-          onChange={(e) => setAiText(e.target.value)}
+          onFocus={(e) =>
+            logDbg('aiText', 'focus', {
+              readOnly: e.target.readOnly,
+              disabled: e.target.disabled,
+              valueLength: e.target.value?.length ?? 0,
+              activeElementIsSelf: document.activeElement === e.target,
+            })
+          }
+          onBlur={() => logDbg('aiText', 'blur', {})}
+          onKeyDown={(e) =>
+            logDbg('aiText', 'keydown', {
+              key: e.key,
+              code: e.code,
+              defaultPrevented: e.defaultPrevented,
+              isComposing: e.nativeEvent?.isComposing,
+            })
+          }
+          onBeforeInput={(e) =>
+            logDbg('aiText', 'beforeinput', {
+              inputType: e.inputType,
+              data: e.data,
+              defaultPrevented: e.defaultPrevented,
+            })
+          }
+          onCompositionStart={() => logDbg('aiText', 'compositionstart', {})}
+          onCompositionEnd={(e) =>
+            logDbg('aiText', 'compositionend', { data: e.data })
+          }
+          onChange={(e) => {
+            const next = e.target.value;
+            logDbg('aiText', 'onChange', {
+              prevLength: aiText.length,
+              nextLength: next.length,
+            });
+            setAiText(next);
+          }}
         />
       </div>
 

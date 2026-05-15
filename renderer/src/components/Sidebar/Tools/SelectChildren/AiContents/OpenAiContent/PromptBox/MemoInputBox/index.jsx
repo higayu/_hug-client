@@ -10,30 +10,74 @@ export default function MemoInputBox({
   minHeight = 100,
 }) {
   const ref = useRef(null);
+  const loadSeqRef = useRef(0);
   const { showSuccessToast, showErrorToast } = useToast();
   const { SELECT_CHILD } = useAppState();
   const { saveTemp1, saveTemp2, loadTemp } = useNote();
 
   const [value, setValue] = useState("");
 
+  const log = (...args) => {
+    console.log("[MemoInputBox]", { label, memoType, SELECT_CHILD }, ...args);
+  };
+
   // 🔄 読み込み
   useEffect(() => {
     if (!SELECT_CHILD) {
+      log("useEffect: SELECT_CHILD なし → value を空にリセット");
       setValue("");
       return;
     }
 
+    const seq = ++loadSeqRef.current;
+    log("useEffect: loadTemp 開始", {
+      seq,
+      loadTempRef: loadTemp?.name || String(loadTemp).slice(0, 40),
+    });
+
     const proxy = {
       set value(v) {
-        if (typeof v === "object" && v !== null) {
-          setValue(memoType === 1 ? v.memo1 || "" : v.memo2 || "");
-        } else {
-          setValue(v || "");
-        }
+        const branch =
+          typeof v === "object" && v !== null ? "object(memo1/memo2)" : "primitive";
+        const next =
+          typeof v === "object" && v !== null
+            ? memoType === 1
+              ? v.memo1 || ""
+              : v.memo2 || ""
+            : v || "";
+        log("proxy.value 適用（DBまたは空の反映）", {
+          seq,
+          branch,
+          nextLength: next.length,
+          memo1Len: v?.memo1?.length,
+          memo2Len: v?.memo2?.length,
+        });
+        setValue(next);
       },
     };
 
-    loadTemp(SELECT_CHILD, proxy);
+    const p = loadTemp(SELECT_CHILD, proxy);
+    if (p && typeof p.then === "function") {
+      p.then(
+        (ok) => {
+          const stale = seq !== loadSeqRef.current;
+          log("loadTemp Promise resolved", {
+            seq,
+            ok,
+            activeSeq: loadSeqRef.current,
+            stale,
+          });
+        },
+        (err) => {
+          console.error("[MemoInputBox] loadTemp Promise rejected", {
+            label,
+            memoType,
+            seq,
+            err,
+          });
+        }
+      );
+    }
   }, [SELECT_CHILD, loadTemp, memoType]);
 
   const handleSave = async () => {
@@ -79,8 +123,42 @@ export default function MemoInputBox({
                    focus:ring-2 focus:ring-blue-200"
         style={{ minHeight }}
         value={value}
-        onChange={(e) => setValue(e.target.value)}
         disabled={!SELECT_CHILD}
+        onFocus={() => {
+          log("textarea focus", {
+            disabled: !SELECT_CHILD,
+            valueLength: value.length,
+            activeElementIsSelf: document.activeElement === ref.current,
+          });
+        }}
+        onBlur={() => log("textarea blur")}
+        onKeyDown={(e) => {
+          log("textarea keydown", {
+            key: e.key,
+            code: e.code,
+            defaultPrevented: e.defaultPrevented,
+            isComposing: e.nativeEvent?.isComposing,
+          });
+        }}
+        onBeforeInput={(e) => {
+          log("textarea beforeinput", {
+            inputType: e.inputType,
+            data: e.data,
+            defaultPrevented: e.defaultPrevented,
+          });
+        }}
+        onCompositionStart={() => log("IME compositionstart")}
+        onCompositionEnd={(e) => {
+          log("IME compositionend", { data: e.data });
+        }}
+        onChange={(e) => {
+          const next = e.target.value;
+          log("textarea onChange", {
+            prevLength: value.length,
+            nextLength: next.length,
+          });
+          setValue(next);
+        }}
       />
 
       <button

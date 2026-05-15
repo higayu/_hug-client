@@ -6,20 +6,29 @@ import ProfessionalInjectButton from "./ProfessionalInput/ProfessionalInjectButt
 import ProfessionalDraftSaveButton from './ProfessionalInput/ProfessionalDraftSaveButton';
 import MemoInputBox from './MemoInputBox';
 
+const DBG = 'ProfessionalPrompt2';
+
 export default function ProfessionalPrompt2() {
   const { appState, PROMPTS,DEBUG_FLG } = useAppState();
 
   const [text1, setText1] = useState("");
   const [aiText, setAiText] = useState("");
 
+  const logDbg = (field, msg, extra = {}) => {
+    console.log(`[${DBG}:${field}]`, msg, {
+      aiTextLen: aiText.length,
+      ...extra,
+    });
+  };
+
   // 🔥 初期値セット
   useEffect(() => {
-    console.log("🟦 PromptBox 初期化（マウント）");
-    console.log(" appState:", appState);
-    console.log(" PROMPTS:", PROMPTS);
+    console.log(`[${DBG}] mount`, { appState, PROMPTS });
 
     if (PROMPTS) {
-      setText1(PROMPTS.professional2?.content ?? "");
+      const next = PROMPTS.professional2?.content ?? "";
+      logDbg('promptText1', 'PROMPTS から text1 初期化', { nextLength: next.length });
+      setText1(next);
     }
   }, []);
 
@@ -41,6 +50,18 @@ export default function ProfessionalPrompt2() {
           className="w-full h-20 bg-gray-900 text-white rounded-lg p-2"
           value={text1}
           readOnly
+          onFocus={(e) =>
+            logDbg('promptText1', 'focus（readOnly: 仕様上ここでは編集不可）', {
+              readOnly: e.target.readOnly,
+              valueLength: e.target.value?.length ?? 0,
+            })
+          }
+          onKeyDown={(e) =>
+            logDbg('promptText1', 'keydown', {
+              key: e.key,
+              defaultPrevented: e.defaultPrevented,
+            })
+          }
         />
       </div>
 
@@ -53,7 +74,42 @@ export default function ProfessionalPrompt2() {
           className="w-full h-40 bg-gray-700 text-white rounded-lg p-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
           value={aiText}
           placeholder="AIに送信する内容を入力..."
-          onChange={(e) => setAiText(e.target.value)}
+          onFocus={(e) =>
+            logDbg('aiText', 'focus', {
+              readOnly: e.target.readOnly,
+              disabled: e.target.disabled,
+              valueLength: e.target.value?.length ?? 0,
+              activeElementIsSelf: document.activeElement === e.target,
+            })
+          }
+          onBlur={() => logDbg('aiText', 'blur', {})}
+          onKeyDown={(e) =>
+            logDbg('aiText', 'keydown', {
+              key: e.key,
+              code: e.code,
+              defaultPrevented: e.defaultPrevented,
+              isComposing: e.nativeEvent?.isComposing,
+            })
+          }
+          onBeforeInput={(e) =>
+            logDbg('aiText', 'beforeinput', {
+              inputType: e.inputType,
+              data: e.data,
+              defaultPrevented: e.defaultPrevented,
+            })
+          }
+          onCompositionStart={() => logDbg('aiText', 'compositionstart', {})}
+          onCompositionEnd={(e) =>
+            logDbg('aiText', 'compositionend', { data: e.data })
+          }
+          onChange={(e) => {
+            const next = e.target.value;
+            logDbg('aiText', 'onChange', {
+              prevLength: aiText.length,
+              nextLength: next.length,
+            });
+            setAiText(next);
+          }}
         />
       </div>
 
