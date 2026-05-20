@@ -3,8 +3,9 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useAppState } from "@/contexts/appState";
 import { useChildrenList } from "@/hooks/useChildrenList.js";
 import { sendPromptToChatGPT } from "./send/sendPromptToChatGPT";
-import { addProfessionalSupportCheckAction } from "@/hooks/useTabs/actions/professionalNew.js";
 import ProfessionalPlan from "@/components/common/PageRequestGet/ProfessionalPlan.jsx";
+import { getActiveWebview } from "@/utils/webviewState";
+import { fetchProfessionalSupportUseDaysInWebview } from "@/utils/fetchProfessionalSupportUseDaysInWebview.js";
 
 const DBG = 'ProfessionalPrompt1';
 
@@ -60,9 +61,39 @@ export default function ProfessionalPrompt1() {
     }
   }, []);
 
-  const addProfessionalSupportCheckTab = useCallback(() => {
-    addProfessionalSupportCheckAction(appState);
-  }, [appState]);
+  const runProfessionalSupportCheck = useCallback(async () => {
+    if (!SELECT_CHILD) {
+      alert("子どもを選択してください");
+      return;
+    }
+
+    const webview = getActiveWebview();
+    if (!webview) {
+      alert("Webview が見つかりません。HUG を表示したタブで試してください。");
+      return;
+    }
+
+    const facilityId = appState.FACILITY_ID || "3";
+
+    try {
+      const result = await fetchProfessionalSupportUseDaysInWebview(webview, {
+        childId: String(SELECT_CHILD),
+        facilityId: String(facilityId)
+      });
+
+      if (!result.ok) {
+        console.error("[ProfessionalPrompt1] 専門的支援チェック失敗:", result.error);
+        alert(result.error || "利用日数の取得に失敗しました");
+        return;
+      }
+
+      console.log("[HUG WM] 専門的支援 利用日数チェック（renderer）", result);
+      console.log("[HUG WM] 新規作成時の利用日数:", result.days, "日");
+    } catch (e) {
+      console.error("[ProfessionalPrompt1] 専門的支援チェック例外:", e);
+      alert(String(e?.message || e));
+    }
+  }, [SELECT_CHILD, appState.FACILITY_ID]);
 
   // ★ 送信する文字列を組み立てるだけ
   const textValue = `${dbNote}\n\n\n${text1}\n\n\n${aiText}`;
@@ -173,7 +204,7 @@ export default function ProfessionalPrompt1() {
           </button>
           <button
             className="btn-purple hover:bg-purple-600 p-2 rounded text-white"
-            onClick={addProfessionalSupportCheckTab}
+            onClick={runProfessionalSupportCheck}
           >
             専門的支援チェック
           </button>
