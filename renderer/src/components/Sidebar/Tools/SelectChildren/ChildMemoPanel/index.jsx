@@ -9,7 +9,7 @@ import {
   clickExitButton,
 } from '@/utils/attendance/index.js'
 import { useToast } from '@/components/common/ToastContext.jsx'
-import ProfessionalSupportCheckPanel from '@/components/common/ProfessionalSupportCheckPanel.jsx'
+import ProfessionalSupportCheckPanel from '@/components/common/ProfessionalSupportCheckPanel'
 
 function ChildMemoPanel() {
   const {

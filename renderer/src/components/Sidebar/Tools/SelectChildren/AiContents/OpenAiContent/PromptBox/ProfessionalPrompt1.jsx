@@ -4,7 +4,7 @@ import { useAppState } from "@/contexts/appState";
 import { useChildrenList } from "@/hooks/useChildrenList.js";
 import { sendPromptToChatGPT } from "./send/sendPromptToChatGPT";
 import ProfessionalPlan from "@/components/common/PageRequestGet/ProfessionalPlan.jsx";
-import { useProfessionalSupportCheck } from "@/hooks/useProfessionalSupportCheck.js";
+import ProfessionalSupportCheckPanel from "@/components/common/ProfessionalSupportCheckPanel/index.jsx";
 
 const DBG = 'ProfessionalPrompt1';
 
@@ -59,8 +59,6 @@ export default function ProfessionalPrompt1() {
       setText1(next);
     }
   }, []);
-
-  const { useDays, runCheck } = useProfessionalSupportCheck("ProfessionalPrompt1");
 
   // ★ 送信する文字列を組み立てるだけ
   const textValue = `${dbNote}\n\n\n${text1}\n\n\n${aiText}`;
@@ -162,7 +160,7 @@ export default function ProfessionalPrompt1() {
       </div>
 
       <div className="flex flex-col gap-2">
-        <div className="flex flex-row justify-between items-center gap-2">
+        <div className="flex flex-row justify-between items-start gap-2">
           <button
             className="w-[70%] bg-green-500 hover:bg-green-600 p-2 rounded text-white"
             onClick={clickEnterButton}
@@ -170,24 +168,15 @@ export default function ProfessionalPrompt1() {
           >
             実行
           </button>
-          <button
-            type="button"
-            className="btn-purple hover:bg-purple-600 p-2 rounded text-white shrink-0"
-            onClick={runCheck}
-          >
-            専門的支援チェック
-          </button>
+          <div className="w-[30%]">
+            <ProfessionalSupportCheckPanel
+              logTag="ProfessionalPrompt1"
+              className="w-full"
+              buttonClassName="w-full text-xs"
+              labelClassName="w-full"
+            />
+          </div>
         </div>
-        <label className="max-w-[200px] bg-white text-xs text-gray-500 p-2 rounded">
-          利用日数:{" "}
-          {useDays != null ? (
-            <span>
-              <span className="font-bold text-xl text-blue-500">{useDays}</span>日
-            </span>
-          ) : (
-            "未取得"
-          )}
-        </label>
       </div>
     </div>
   );

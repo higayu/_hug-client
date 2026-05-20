@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "HUG 専門的支援 保存済み確認（テスト）",
   "version": "1.0.0",
-  "description": "固定児童が専門的支援を新規作成した場合の保存済みを確認",
+  "description": "固定条件で record_proceedings.php をPOST検索し、一覧テーブルをコンソール出力",
   "content_scripts": [
     {
       "matches": [

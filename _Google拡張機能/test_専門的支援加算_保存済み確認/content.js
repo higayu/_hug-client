@@ -1,221 +1,194 @@
 (() => {
-  /** 確認したい児童の c_id（必要に応じて変更） */
-  const FIXED_CHILD_ID = "99";
-
-  /** 利用施設 f_id（HTML未選択時の既定。施設に合わせて変更） */
-  const DEFAULT_F_ID = "3";
-
-  const ADDING_CHILDREN_ID = "55"; // 専門的支援実施加算
   const RECORD_PROCEEDINGS_URL =
     "https://www.hug-ayumu.link/hug/wm/record_proceedings.php";
-  const AJAX_URL =
-    "https://www.hug-ayumu.link/hug/wm/ajax/ajax_record_proceedings.php";
 
-  const parseUseDaysNumber = (text) => {
-    if (!text) return null;
-    const match = String(text).match(/利用日数[：:]\s*(\d+)\s*日/);
-    return match ? Number(match[1]) : null;
+  /** メモ.md 固定値 */
+  const FIXED_C_ID = "99";
+  const FIXED_INTERVIEW_DATE = "2026年05月16日";
+  const FIXED_INTERVIEW_DATE_END = "2026年05月16日";
+  const FIXED_F_ID = "3";
+  const ADDING_CHILDREN_ID = "55";
+
+  const TABLE_SELECTOR =
+    "div.contents div.ibox div.mb40 table.table";
+
+  const normalizeText = (el) =>
+    (el?.textContent ?? "").replace(/\s+/g, " ").trim();
+
+  const extractRecordId = (onclick) => {
+    const match = String(onclick || "").match(/[?&]id=(\d+)/);
+    return match ? match[1] : null;
   };
 
-  const postAjax = async (params, label) => {
-    const body = new URLSearchParams(params);
+  const getCsrfToken = (doc) =>
+    doc.querySelector('[name="csrf_token_from_client"]')?.value?.trim() || "";
 
-    const response = await fetch(AJAX_URL, {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
-        "X-Requested-With": "XMLHttpRequest"
-      },
-      body: body.toString()
-    });
+  const getModeToken = (doc) =>
+    doc.querySelector('[name="mode_token"]')?.value?.trim() || "nomode";
 
-    const text = await response.text();
-
-    if (!response.ok) {
-      throw new Error(`${label} HTTP error: ${response.status}`);
-    }
-
-    if (!text.trim()) {
-      throw new Error(`${label} が空レスポンスです`);
-    }
-
-    try {
-      return JSON.parse(text);
-    } catch {
-      throw new Error(
-        `${label} JSON解析失敗: ${text.slice(0, 300)}`
-      );
-    }
-  };
-
-  const parseCountParamsFromChildrenInfo = (html, cId, interview_date, f_id) => {
-    if (!html) return null;
-
-    const infoDoc = new DOMParser().parseFromString(
-      `<div>${html}</div>`,
-      "text/html"
-    );
-    const s_id = infoDoc.querySelector(".js_c_s_id")?.value || "";
-
-    if (!s_id || !f_id) return null;
-
-    return {
-      c_id: String(cId),
-      s_id: String(s_id),
-      f_id: String(f_id),
-      interview_date
-    };
-  };
-
-  const parseFidFromFacilityDom = (html) => {
-    if (!html) return "";
-
-    const facilityDoc = new DOMParser().parseFromString(html, "text/html");
-    const selected = facilityDoc.querySelector("option[selected]");
-    if (selected?.value) return selected.value;
-
-    return facilityDoc.querySelector("option")?.value || "";
-  };
-
-  const fetchCountParamsViaGetData = async (doc, cId) => {
-    const interview_date =
-      doc.querySelector("[name=interview_date]")?.value?.trim() || "";
-    const rp_id = doc.querySelector("[name=id]")?.value || "insert";
-
-    if (!interview_date) {
-      throw new Error("面談日がHTMLから取得できません");
-    }
-
-    const data = await postAjax(
-      {
-        mode: "getData",
-        rp_id,
-        change_type: "children",
-        interview_date,
-        adding_children_id: ADDING_CHILDREN_ID,
-        [`c_id_list[${cId}]`]: cId,
-        [`f_id_list[${cId}]`]: DEFAULT_F_ID
-      },
-      "getData"
-    );
-
-    const f_id =
-      parseFidFromFacilityDom(data.facility_dom?.[cId]) || DEFAULT_F_ID;
-
-    const fromInfo = parseCountParamsFromChildrenInfo(
-      data.children_info?.[cId],
-      cId,
-      interview_date,
-      f_id
-    );
-
-    if (fromInfo) return fromInfo;
-
-    if (!data.children_array?.[cId]) {
-      throw new Error(
-        `児童ID ${cId} は面談日・専門的支援の条件で選択できません`
-      );
-    }
-
-    throw new Error("getData から s_id を取得できませんでした");
-  };
-
-  const fetchUseDays = async (countParams) => {
-    const data = await postAjax(
-      {
-        mode: "getcount",
-        c_id: countParams.c_id,
-        s_id: countParams.s_id,
-        f_id_list: countParams.f_id,
-        interview_date: countParams.interview_date
-      },
-      "getcount"
-    );
-
-    const days = parseUseDaysNumber(data.use_days);
-
-    if (days === null) {
-      throw new Error(`利用日数の解析に失敗: ${data.use_days}`);
-    }
-
-    return { days, label: data.use_days };
-  };
-
-  const fetchFormHtml = async (cId = FIXED_CHILD_ID) => {
-    const formUrl =
-      `${RECORD_PROCEEDINGS_URL}?mode=edit&select_child=${encodeURIComponent(cId)}`;
-
-    const formResponse = await fetch(formUrl, {
+  const fetchSearchFormDoc = async () => {
+    const response = await fetch(RECORD_PROCEEDINGS_URL, {
       method: "GET",
       credentials: "include"
     });
 
-    const html = await formResponse.text();
-    return { formUrl, formResponse, html };
-  };
+    const html = await response.text();
 
-  const fetchSpecialSupportUseDays = async (cId = FIXED_CHILD_ID) => {
-    const { formResponse, html } = await fetchFormHtml(cId);
-
-    if (!formResponse.ok) {
-      throw new Error(`フォーム取得 HTTP error: ${formResponse.status}`);
+    if (!response.ok) {
+      throw new Error(`検索フォーム取得 HTTP error: ${response.status}`);
     }
 
     const doc = new DOMParser().parseFromString(html, "text/html");
 
-    if (!doc.querySelector("#form_id")) {
+    if (!doc.querySelector("#form_id") && !getCsrfToken(doc)) {
       throw new Error(
-        "登録フォームが取得できません。HUGへのログイン状態を確認してください"
+        "検索フォームが取得できません。HUGへのログイン状態を確認してください"
       );
     }
 
-    if (!doc.querySelector(`.js_c_list option[value="${cId}"]`)) {
-      throw new Error(`児童ID ${cId} が児童一覧に存在しません`);
+    return doc;
+  };
+
+  const buildSearchParams = (doc) => {
+    const csrf = getCsrfToken(doc);
+
+    if (!csrf) {
+      throw new Error("csrf_token_from_client が取得できません");
     }
 
-    const selectedChild = doc.querySelector(".js_c_list")?.value;
-    const fIdOptions = doc.querySelector(".js_c_f_id")?.options?.length ?? 0;
+    const params = new URLSearchParams();
+    params.set("mode", "search");
+    params.set("mode_token", getModeToken(doc));
+    params.set("csrf_token_from_client", csrf);
+    params.set(`f_ary[${FIXED_F_ID}]`, FIXED_F_ID);
+    params.set("c_id", FIXED_C_ID);
+    params.append("search", "");
+    params.set("interview_date", FIXED_INTERVIEW_DATE);
+    params.set("interview_date_end", FIXED_INTERVIEW_DATE_END);
+    params.set("s_ary[1]", "放課後等デイサービス");
+    params.set("s_ary[2]", "児童発達支援");
+    params.set("adding_children_id", ADDING_CHILDREN_ID);
+    params.set("recorder", "");
 
-    console.log("[HUG WM] HTML上の児童選択:", selectedChild || "未選択");
-    console.log("[HUG WM] HTML上の利用施設 option数:", fIdOptions);
+    return params;
+  };
 
-    const countParams = await fetchCountParamsViaGetData(doc, cId);
-    const useDays = await fetchUseDays(countParams);
+  const parseResultTable = (doc) => {
+    const table = doc.querySelector(TABLE_SELECTOR);
+
+    if (!table) {
+      return { table: null, headers: [], rows: [] };
+    }
+
+    const headers = [...table.querySelectorAll("thead th")].map((th) =>
+      normalizeText(th)
+    );
+
+    const rows = [...table.querySelectorAll("tbody tr")].map((tr) => {
+      const cells = [...tr.querySelectorAll("td")];
+      const detailOnclick =
+        cells[0]?.querySelector("[onclick]")?.getAttribute("onclick") || "";
+
+      return {
+        recordId: extractRecordId(detailOnclick),
+        児童名: normalizeText(cells[1]),
+        加算名: normalizeText(cells[2]),
+        施設名: normalizeText(cells[3]),
+        利用サービス: normalizeText(cells[4]),
+        記録者: normalizeText(cells[5]),
+        実施日: normalizeText(cells[6]),
+        ステータス:
+          cells[7]?.querySelector(".label")?.textContent?.trim() ||
+          normalizeText(cells[7]),
+        サイン済: normalizeText(cells[8]),
+        最終更新: normalizeText(cells[9])
+      };
+    });
+
+    return { table, headers, rows };
+  };
+
+  const searchSavedRecords = async () => {
+    const formDoc = await fetchSearchFormDoc();
+    const body = buildSearchParams(formDoc);
+
+    console.log("[HUG WM] POST検索 URL:", RECORD_PROCEEDINGS_URL);
+    console.log("[HUG WM] POST payload:", Object.fromEntries(body));
+
+    const response = await fetch(RECORD_PROCEEDINGS_URL, {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"
+      },
+      body: body.toString()
+    });
+
+    const html = await response.text();
+
+    if (!response.ok) {
+      throw new Error(`検索POST HTTP error: ${response.status}`);
+    }
+
+    const resultDoc = new DOMParser().parseFromString(html, "text/html");
+    const { table, headers, rows } = parseResultTable(resultDoc);
 
     return {
-      cId,
-      countParams,
-      currentDays: useDays.days,
-      nextDay: useDays.days + 1,
-      label: useDays.label
+      cId: FIXED_C_ID,
+      interviewDate: FIXED_INTERVIEW_DATE,
+      interviewDateEnd: FIXED_INTERVIEW_DATE_END,
+      table,
+      headers,
+      rows,
+      rowCount: rows.length,
+      responseHtml: html
     };
   };
 
-  window.HugSpecialSupportUseDays = {
-    FIXED_CHILD_ID,
-    DEFAULT_F_ID,
-    fetchFormHtml,
-    fetchSpecialSupportUseDays
+  window.HugRecordProceedingsSearchTest = {
+    FIXED_C_ID,
+    FIXED_INTERVIEW_DATE,
+    FIXED_INTERVIEW_DATE_END,
+    searchSavedRecords,
+    parseResultTable
   };
 
   (async () => {
     try {
-      const result = await fetchSpecialSupportUseDays();
-
-      console.log("[HUG WM] 専門的支援 利用日数チェック");
-      console.log("[HUG WM] 児童ID:", result.cId);
-      console.log("[HUG WM] 面談日:", result.countParams.interview_date);
+      console.log("[HUG WM] 専門的支援 保存済み確認（POST検索テスト）");
+      console.log("[HUG WM] 固定 c_id:", FIXED_C_ID);
       console.log(
-        "[HUG WM] s_id / f_id:",
-        result.countParams.s_id,
-        "/",
-        result.countParams.f_id
+        "[HUG WM] 固定 実施日:",
+        FIXED_INTERVIEW_DATE,
+        "〜",
+        FIXED_INTERVIEW_DATE_END
       );
-      console.log("[HUG WM] 新規作成時の利用日数:", result.currentDays, "日");
 
+      const result = await searchSavedRecords();
+
+      if (!result.table) {
+        console.warn("[HUG WM] 結果テーブルが見つかりません");
+        console.log(
+          "[HUG WM] レスポンス先頭:",
+          result.responseHtml.slice(0, 500)
+        );
+        return;
+      }
+
+      console.log("[HUG WM] テーブル列:", result.headers);
+      console.log("[HUG WM] 取得件数:", result.rowCount);
+      if (result.rowCount > 0) {
+        console.log("[HUG WM] 保存済み確認: 保存済み");
+      } else {
+        console.log("[HUG WM] 保存済み確認: 保存なし");
+      }
+      console.table(result.rows);
+
+      result.rows.forEach((row, index) => {
+        console.log(`[HUG WM] [${index + 1}]`, row);
+      });
     } catch (error) {
-      console.error("[HUG WM] 利用日数取得エラー:", error);
+      console.error("[HUG WM] 保存済み確認エラー:", error);
     }
   })();
 })();
