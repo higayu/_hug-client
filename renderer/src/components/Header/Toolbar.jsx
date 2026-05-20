@@ -234,14 +234,6 @@ function Toolbar() {
       className="bg-[#616161] text-white flex-none flex flex-nowrap items-center gap-2.5 overflow-x-auto whitespace-nowrap relative z-[1000] pointer-events-auto"
     >
       <button 
-        id="menuToggle" 
-        className="bg-transparent border-none text-white text-xl cursor-pointer mr-2 whitespace-nowrap flex-shrink-0 hover:scale-110 transition-transform relative z-[1001]"
-      >
-        <i className="fa-solid fa-bars text-xl text-white min-w-[40px]"></i>
-      </button>
-
-
-      <button 
         id="professional-support"
         onClick={addProfessionalSupportListTab}
         className="rounded-lg block text-left border-none bg-[#f8461f] text-white px-4 py-2 text-sm cursor-pointer transition-all hover:bg-[#e3f2fd]"

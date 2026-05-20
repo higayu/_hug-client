@@ -1,6 +1,6 @@
 // src/components/Sidebar/SelectChildrenList/TodayChildrenList.jsx
 // 子どもリストを表示するコンポーネント
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import { useChildrenList } from "@/hooks/useChildrenList.js"
 import { useAppState } from "@/contexts/appState"
 import { ELEMENT_IDS, MESSAGES } from "@/utils/constants.js"
@@ -45,6 +45,23 @@ function TodayChildrenList() {
       temporaryChildren: base.filter(c => Number(c.priority) === 2),
     }
   }, [childrenData])
+
+  // ==============================
+  // 初期選択: 通常タブの最初の児童
+  // ==============================
+  useEffect(() => {
+    if (SELECT_CHILD || normalChildren.length === 0) return
+
+    const first = normalChildren[0]
+    setSelectedChild(first.children_id, first.children_name)
+    setSelectedPcName(first.pc_name || "")
+
+    if (window.AppState) {
+      window.AppState.SELECT_CHILD = first.children_id
+      window.AppState.SELECT_CHILD_NAME = first.children_name
+      window.AppState.SELECT_PC_NAME = first.pc_name || ""
+    }
+  }, [normalChildren, SELECT_CHILD, setSelectedChild, setSelectedPcName])
 
   // ==============================
   // 子ども選択

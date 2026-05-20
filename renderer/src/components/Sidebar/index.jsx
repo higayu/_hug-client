@@ -1,5 +1,5 @@
 
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef } from "react"
 import { useChildrenList } from "@/hooks/useChildrenList.js"
 import { useAppState } from "@/contexts/appState"
 import {
@@ -10,6 +10,7 @@ import {
   getTodayYmdString,
 } from "@/utils/dateYMD.js"
 import { useToast } from "@/components/common/ToastContext.jsx"
+import { useAttendanceFetch } from "@/hooks/useAttendanceFetch.js"
 import TabsContainer from "./common/TabsContainer.jsx"
 import TableDataGetButton from "./common/TableDataGetButon.jsx"
 import WeekdaySelect from "@/components/common/WeekdaySelect.jsx"
@@ -28,9 +29,10 @@ function Sidebar() {
   } = useAppState()
 
   const { loadChildren } = useChildrenList()
+  const { runFetch, autoFetchEnabled, toggleAutoFetch } =
+    useAttendanceFetch("Sidebar")
 
   const sidebarRef = useRef(null)
-  const [isPinned, setIsPinned] = useState(false)
 
   // =============================================================
   // 初期化（日付・曜日ID）
@@ -136,17 +138,6 @@ function Sidebar() {
       <div className="flex flex-col gap-2 bg-sky-100 w-[30%] items-center">
       {DEBUG_FLG && (
         <div className="flex gap-2 bg-sky-400 justify-center">
-
-            <button
-              onClick={() => setIsPinned(!isPinned)}
-              className={`px-1.5 py-0.5 rounded ${
-                isPinned ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-600"
-              }`}
-            >
-              {isPinned ? "📌" : "📍"}
-            </button>
-
-
           <button
             className="px-2 py-1 text-xs rounded bg-blue-500 text-white"
             onClick={loadChildren}
@@ -156,8 +147,12 @@ function Sidebar() {
         </div>
       )}
 
-        <TableDataGetButton />
 
+        <TableDataGetButton
+          onFetch={runFetch}
+          autoFetchEnabled={autoFetchEnabled}
+          onToggleAutoFetch={toggleAutoFetch}
+        />
 
       </div>
 

@@ -1,0 +1,20 @@
+{
+  "manifest_version": 3,
+  "name": "HUG 専門的支援 保存済み確認（テスト）",
+  "version": "1.0.0",
+  "description": "固定児童が専門的支援を新規作成した場合の保存済みを確認",
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.hug-ayumu.link/hug/wm/*"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "host_permissions": [
+    "https://www.hug-ayumu.link/hug/wm/*"
+  ]
+}

@@ -139,19 +139,6 @@ export function useChildrenList() {
   }, [loadChildren])
 
   // =============================================================
-  // 最初の子どもを自動選択
-  // =============================================================
-  useEffect(() => {
-    if (childrenData.length > 0 && !SELECT_CHILD) {
-      const firstChild = childrenData[0]
-      setSelectedChild(firstChild.children_id, firstChild.children_name)
-      if (firstChild.pc_name) {
-        setSelectedPcName(firstChild.pc_name)
-      }
-    }
-  }, [childrenData, SELECT_CHILD, setSelectedChild, setSelectedPcName])
-
-  // =============================================================
   // 専門的支援 利用日数（useSpeDate）を該当児童だけ更新
   // =============================================================
   const patchChildUseSpeDate = useCallback(

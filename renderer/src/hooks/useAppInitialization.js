@@ -40,53 +40,6 @@ export function useAppInitialization() {
         return
       }
 
-      // ===== 2️⃣ サイドバー & タブ初期化 =====
-      // サイドバーの開閉機能を設定
-      const settingsEl = document.getElementById("settings")
-      const menuToggle = document.getElementById("menuToggle")
-
-      // サイドバーの固定状態を管理
-      let isSidebarPinned = false
-
-      if (settingsEl && menuToggle) {
-        menuToggle.addEventListener("click", (e) => {
-          e.stopPropagation()
-          e.preventDefault()
-          const isOpen = settingsEl.classList.toggle("open")
-          console.log(isOpen ? "📂 サイドバーを開いた" : "📁 サイドバーを閉じた")
-        }, true) // captureフェーズで処理
-
-        // サイドバーの固定状態変更イベントをリスニング
-        window.addEventListener("sidebar-pin-changed", (e) => {
-          isSidebarPinned = e.detail?.pinned || false
-          console.log(isSidebarPinned ? "📌 サイドバー固定状態: ON" : "📍 サイドバー固定状態: OFF")
-        })
-
-        // 外側クリックでサイドバーを閉じる処理（固定時は無効化）
-        document.addEventListener("click", (e) => {
-          if (isSidebarPinned) {
-            // 固定時は外側クリックで閉じない
-            return
-          }
-          
-          // webviewのクリックは除外（webviewは外側クリックとして扱わない）
-          const isWebviewClick = e.target.tagName === 'WEBVIEW' || e.target.closest('webview')
-          
-          if (
-            settingsEl.classList.contains("open") &&
-            !settingsEl.contains(e.target) &&
-            !menuToggle.contains(e.target) &&
-            !isWebviewClick
-          ) {
-            settingsEl.classList.remove("open")
-            console.log("📁 サイドバーを閉じました（外側クリック）")
-          }
-        })
-
-        console.log("✅ サイドバーの開閉機能を設定しました")
-      }
-
-
       // ===== 5️⃣ 設定エディター初期化 =====
       // 少し遅延させて確実に初期化
       setTimeout(async () => {

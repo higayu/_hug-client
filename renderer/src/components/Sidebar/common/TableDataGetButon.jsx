@@ -1,15 +1,41 @@
 import React, { useState } from "react";
 import { FaTable } from "react-icons/fa";
-import { useAttendanceFetch } from "@/hooks/useAttendanceFetch.js";
 
 /**
- * 今日の利用者（勤怠）データ取得ボタン
+ * 勤怠データ取得 UI（自動取得トグル + 手動取得）
+ * @param {{
+ *   onFetch?: () => void | Promise<void>,
+ *   autoFetchEnabled?: boolean,
+ *   onToggleAutoFetch?: () => void,
+ * }} props
  */
-export default function TableDataGetButton() {
-  const { runFetch } = useAttendanceFetch("TableDataGetButton");
+export default function TableDataGetButton({
+  onFetch,
+  autoFetchEnabled,
+  onToggleAutoFetch,
+}) {
   const [open, setOpen] = useState(false);
 
+  if (!onFetch) {
+    console.warn("[TableDataGetButton] onFetch が未指定です");
+  }
+
   return (
+    <div className="flex flex-col gap-2 items-center justify-center">
+      {onToggleAutoFetch != null && (
+        <button
+          type="button"
+          className={
+            autoFetchEnabled
+              ? "btn-purple hover:bg-purple-600 p-2 rounded text-white shrink-0"
+              : "bg-gray-400 hover:bg-gray-500 p-2 rounded text-white shrink-0"
+          }
+          onClick={onToggleAutoFetch}
+        >
+          自動取得: {autoFetchEnabled ? "ON" : "OFF"}
+        </button>
+      )}
+
     <div className="flex items-center justify-center">
       <div
         className="relative"
@@ -41,12 +67,13 @@ export default function TableDataGetButton() {
 
         <button
           type="button"
-          onClick={runFetch}
+          onClick={() => onFetch?.()}
           className="flex items-center justify-center px-7 py-2 gap-2 bg-green-600 hover:bg-green-700 text-white rounded-xl shadow-md"
         >
           <FaTable size={16} />
         </button>
       </div>
+    </div>
     </div>
   );
 }

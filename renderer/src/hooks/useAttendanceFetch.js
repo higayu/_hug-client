@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useDispatch } from "react-redux";
 import { useAppState } from "@/contexts/appState";
 import { useToast } from "@/components/common/ToastContext.jsx";
@@ -9,6 +9,8 @@ import {
   setTableData,
 } from "@/store/slices/attendanceSlice.js";
 
+const AUTO_FETCH_INTERVAL_MS = 60_000;
+
 /**
  * 勤怠データ取得（Cookie 付きリクエスト）の共通ロジック
  * @param {string} [logTag]
@@ -17,13 +19,25 @@ export function useAttendanceFetch(logTag = "AttendanceFetch") {
   const dispatch = useDispatch();
   const { showInfoToast } = useToast();
   const { FACILITY_ID, CURRENT_YMD, updateAppState } = useAppState();
+  const [autoFetchEnabled, setAutoFetchEnabled] = useState(false);
+  const isFetchingRef = useRef(false);
 
-  const runFetch = useCallback(async () => {
+  const runFetch = useCallback(async (options = {}) => {
+    const { silent = false } = options;
     const facilityId = FACILITY_ID || "1";
     const dateStr = CURRENT_YMD || new Date().toISOString().slice(0, 10);
 
+    if (isFetchingRef.current) {
+      console.log(`[${logTag}] 取得中のためスキップ`);
+      return;
+    }
+
+    isFetchingRef.current = true;
+
     try {
-      showInfoToast("📥 勤怠データ取得中...");
+      if (!silent) {
+        showInfoToast("📥 勤怠データ取得中...");
+      }
 
       const result = await fetchAttendanceViaHugTab({ facilityId, dateStr });
 
@@ -62,10 +76,12 @@ export function useAttendanceFetch(logTag = "AttendanceFetch") {
         updateAppState({ attendanceData });
         if (window.AppState) window.AppState.attendanceData = attendanceData;
 
-        showInfoToast(
-          `✅ 勤怠データを抽出・保存しました。\n行数: ${attendanceData.rowCount || "不明"}`
-        );
-      } else {
+        if (!silent) {
+          showInfoToast(
+            `✅ 勤怠データを抽出・保存しました。\n行数: ${attendanceData.rowCount || "不明"}`
+          );
+        }
+      } else if (!silent) {
         showInfoToast("⚠️ データ抽出に失敗しました（テーブルは取得済み）");
       }
 
@@ -73,10 +89,13 @@ export function useAttendanceFetch(logTag = "AttendanceFetch") {
         facilityId,
         dateStr,
         rowCount: result.rowCount,
+        silent,
       });
     } catch (e) {
       console.error(`[${logTag}] 勤怠データ取得例外:`, e);
       showInfoToast(`❌ エラー: ${e?.message || e}`);
+    } finally {
+      isFetchingRef.current = false;
     }
   }, [
     FACILITY_ID,
@@ -87,5 +106,24 @@ export function useAttendanceFetch(logTag = "AttendanceFetch") {
     logTag,
   ]);
 
-  return { runFetch };
+  const runFetchRef = useRef(runFetch);
+  runFetchRef.current = runFetch;
+
+  useEffect(() => {
+    if (!autoFetchEnabled) return;
+
+    runFetchRef.current({ silent: true });
+
+    const intervalId = setInterval(() => {
+      runFetchRef.current({ silent: true });
+    }, AUTO_FETCH_INTERVAL_MS);
+
+    return () => clearInterval(intervalId);
+  }, [autoFetchEnabled]);
+
+  const toggleAutoFetch = useCallback(() => {
+    setAutoFetchEnabled((prev) => !prev);
+  }, []);
+
+  return { runFetch, autoFetchEnabled, toggleAutoFetch };
 }

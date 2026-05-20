@@ -46,18 +46,11 @@ body {
   display: block;
 }
 
-/* === サイドバー === */
+/* === サイドバー（常時表示） === */
 .settings-sidebar {
-  width: 0;
-  padding: 0;
-  border-right: 0;
-  transition: width 0.3s ease, padding 0.3s ease, border-width 0.3s ease;
-}
-
-.settings-sidebar.open {
-  width: 50vw !important; /* 画面幅の50% */
-  padding: 15px !important;
-  border-right: 1px solid #ccc !important;
+  width: 50vw;
+  padding: 15px;
+  border-right: 1px solid #ccc;
 }
 
 
