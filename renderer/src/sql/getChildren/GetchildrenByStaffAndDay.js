@@ -92,6 +92,9 @@ export async function GetchildrenByStaffAndDay({
         pc_day_of_week: ptc?.day_of_week ?? "",
 
         notes: child.notes ?? "",
+
+        /** 専門的支援の利用日数（HUG取得前は null） */
+        useSpeDate: null,
       }
     })
     .filter(Boolean)

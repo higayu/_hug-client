@@ -3,14 +3,15 @@
  * （renderer の fetch では Cookie が付かないため webview 内で実行）
  *
  * @param {Electron.WebviewTag} webview
- * @param {{ childId: string, facilityId?: string }} opts
+ * @param {{ childId: string, facilityId?: string, interviewDate?: string }} opts
+ *   interviewDate 指定時はフォームHTMLのGETを省略（ページ遷移不要）
  * @returns {Promise<
  *   | { ok: true; cId: string; interview_date: string; s_id: string; f_id: string; days: number; label: string }
  *   | { ok: false; error: string }
  * >}
  */
 export async function fetchProfessionalSupportUseDaysInWebview(webview, opts) {
-  const { childId, facilityId = "3" } = opts || {};
+  const { childId, facilityId = "3", interviewDate = "" } = opts || {};
 
   if (!webview) {
     return { ok: false, error: "webview がありません" };
@@ -23,6 +24,7 @@ export async function fetchProfessionalSupportUseDaysInWebview(webview, opts) {
     (async () => {
       const C_ID = ${JSON.stringify(String(childId))};
       const DEFAULT_F_ID = ${JSON.stringify(String(facilityId))};
+      const INTERVIEW_DATE = ${JSON.stringify(String(interviewDate || ""))};
       const ADDING_CHILDREN_ID = "55";
       const RECORD_PROCEEDINGS_URL = "https://www.hug-ayumu.link/hug/wm/record_proceedings.php";
       const AJAX_URL = "https://www.hug-ayumu.link/hug/wm/ajax/ajax_record_proceedings.php";
@@ -83,19 +85,14 @@ export async function fetchProfessionalSupportUseDaysInWebview(webview, opts) {
         return first && first.value ? first.value : "";
       };
 
-      const fetchCountParamsViaGetData = async (doc) => {
-        const interviewEl = doc.querySelector("[name=interview_date]");
-        const interview_date = (interviewEl && interviewEl.value && interviewEl.value.trim()) || "";
-        const idEl = doc.querySelector("[name=id]");
-        const rp_id = (idEl && idEl.value) || "insert";
-
+      const fetchCountParamsViaGetData = async (interview_date, rp_id) => {
         if (!interview_date) {
-          throw new Error("面談日がHTMLから取得できません");
+          throw new Error("面談日がありません");
         }
 
         const getDataParams = {
           mode: "getData",
-          rp_id: rp_id,
+          rp_id: rp_id || "insert",
           change_type: "children",
           interview_date: interview_date,
           adding_children_id: ADDING_CHILDREN_ID
@@ -149,43 +146,49 @@ export async function fetchProfessionalSupportUseDaysInWebview(webview, opts) {
       };
 
       try {
-        const formUrl =
-          RECORD_PROCEEDINGS_URL +
-          "?mode=edit&select_child=" +
-          encodeURIComponent(C_ID);
+        let countParams;
 
-        const formResponse = await fetch(formUrl, {
-          method: "GET",
-          credentials: "include",
-          cache: "no-store"
-        });
+        if (INTERVIEW_DATE) {
+          console.log("[HUG WM] リクエストのみ取得（面談日:", INTERVIEW_DATE, ")");
+          countParams = await fetchCountParamsViaGetData(INTERVIEW_DATE, "insert");
+        } else {
+          const formUrl =
+            RECORD_PROCEEDINGS_URL +
+            "?mode=edit&select_child=" +
+            encodeURIComponent(C_ID);
 
-        if (!formResponse.ok) {
-          throw new Error("フォーム取得 HTTP error: " + formResponse.status);
+          const formResponse = await fetch(formUrl, {
+            method: "GET",
+            credentials: "include",
+            cache: "no-store"
+          });
+
+          if (!formResponse.ok) {
+            throw new Error("フォーム取得 HTTP error: " + formResponse.status);
+          }
+
+          const html = await formResponse.text();
+          const doc = new DOMParser().parseFromString(html, "text/html");
+
+          if (!doc.querySelector("#form_id")) {
+            throw new Error(
+              "登録フォームが取得できません。HUGへのログイン状態を確認してください"
+            );
+          }
+
+          if (!doc.querySelector('.js_c_list option[value="' + C_ID + '"]')) {
+            throw new Error("児童ID " + C_ID + " が児童一覧に存在しません");
+          }
+
+          const interviewEl = doc.querySelector("[name=interview_date]");
+          const interview_date =
+            (interviewEl && interviewEl.value && interviewEl.value.trim()) || "";
+          const idEl = doc.querySelector("[name=id]");
+          const rp_id = (idEl && idEl.value) || "insert";
+
+          countParams = await fetchCountParamsViaGetData(interview_date, rp_id);
         }
 
-        const html = await formResponse.text();
-        const doc = new DOMParser().parseFromString(html, "text/html");
-
-        if (!doc.querySelector("#form_id")) {
-          throw new Error(
-            "登録フォームが取得できません。HUGへのログイン状態を確認してください"
-          );
-        }
-
-        if (!doc.querySelector('.js_c_list option[value="' + C_ID + '"]')) {
-          throw new Error("児童ID " + C_ID + " が児童一覧に存在しません");
-        }
-
-        const sel = doc.querySelector(".js_c_list");
-        const fWrap = doc.querySelector(".js_c_f_id");
-        console.log("[HUG WM] HTML上の児童選択:", (sel && sel.value) || "未選択");
-        console.log(
-          "[HUG WM] HTML上の利用施設 option数:",
-          fWrap && fWrap.options ? fWrap.options.length : 0
-        );
-
-        const countParams = await fetchCountParamsViaGetData(doc);
         const useDays = await fetchUseDays(countParams);
 
         console.log("[HUG WM] 専門的支援 利用日数チェック");

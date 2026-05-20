@@ -152,6 +152,31 @@ export function useChildrenList() {
   }, [childrenData, SELECT_CHILD, setSelectedChild, setSelectedPcName])
 
   // =============================================================
+  // 専門的支援 利用日数（useSpeDate）を該当児童だけ更新
+  // =============================================================
+  const patchChildUseSpeDate = useCallback(
+    (childId, useSpeDate) => {
+      const patchList = (list) =>
+        list.map((c) =>
+          String(c.children_id) === String(childId)
+            ? { ...c, useSpeDate }
+            : c
+        );
+
+      setLocalChildrenData((prev) => {
+        const next = patchList(prev);
+        setChildrenData(next);
+        updateAppState({ childrenData: next });
+        return next;
+      });
+
+      setWaitingChildrenData((prev) => patchList(prev));
+      setExperienceChildrenData((prev) => patchList(prev));
+    },
+    [setChildrenData, updateAppState]
+  );
+
+  // =============================================================
   // return
   // =============================================================
   return {
@@ -159,6 +184,7 @@ export function useChildrenList() {
     waitingChildrenData,
     experienceChildrenData,
     loadChildren,
+    patchChildUseSpeDate,
 
     SELECT_CHILD,
     extractedData,

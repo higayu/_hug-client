@@ -27,7 +27,6 @@ function Sidebar() {
     DEBUG_FLG,
   } = useAppState()
 
-  // 再取得（手動）
   const { loadChildren } = useChildrenList()
 
   const sidebarRef = useRef(null)
@@ -158,6 +157,8 @@ function Sidebar() {
       )}
 
         <TableDataGetButton />
+
+
       </div>
 
     </div>

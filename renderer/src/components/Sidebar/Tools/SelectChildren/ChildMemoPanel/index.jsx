@@ -9,6 +9,7 @@ import {
   clickExitButton,
 } from '@/utils/attendance/index.js'
 import { useToast } from '@/components/common/ToastContext.jsx'
+import ProfessionalSupportCheckPanel from '@/components/common/ProfessionalSupportCheckPanel.jsx'
 
 function ChildMemoPanel() {
   const {
@@ -282,6 +283,13 @@ function ChildMemoPanel() {
             個人記録
           </button>
         </div>
+
+        <ProfessionalSupportCheckPanel
+          logTag="ChildMemoPanel"
+          className="mt-2 w-full items-stretch px-0"
+          buttonClassName="w-full text-xs"
+          labelClassName="w-full"
+        />
       </div>
     </div>
   )

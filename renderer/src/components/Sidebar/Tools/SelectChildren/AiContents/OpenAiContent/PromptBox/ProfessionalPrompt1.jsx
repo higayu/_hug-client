@@ -4,8 +4,7 @@ import { useAppState } from "@/contexts/appState";
 import { useChildrenList } from "@/hooks/useChildrenList.js";
 import { sendPromptToChatGPT } from "./send/sendPromptToChatGPT";
 import ProfessionalPlan from "@/components/common/PageRequestGet/ProfessionalPlan.jsx";
-import { getActiveWebview } from "@/utils/webviewState";
-import { fetchProfessionalSupportUseDaysInWebview } from "@/utils/fetchProfessionalSupportUseDaysInWebview.js";
+import { useProfessionalSupportCheck } from "@/hooks/useProfessionalSupportCheck.js";
 
 const DBG = 'ProfessionalPrompt1';
 
@@ -61,39 +60,7 @@ export default function ProfessionalPrompt1() {
     }
   }, []);
 
-  const runProfessionalSupportCheck = useCallback(async () => {
-    if (!SELECT_CHILD) {
-      alert("子どもを選択してください");
-      return;
-    }
-
-    const webview = getActiveWebview();
-    if (!webview) {
-      alert("Webview が見つかりません。HUG を表示したタブで試してください。");
-      return;
-    }
-
-    const facilityId = appState.FACILITY_ID || "3";
-
-    try {
-      const result = await fetchProfessionalSupportUseDaysInWebview(webview, {
-        childId: String(SELECT_CHILD),
-        facilityId: String(facilityId)
-      });
-
-      if (!result.ok) {
-        console.error("[ProfessionalPrompt1] 専門的支援チェック失敗:", result.error);
-        alert(result.error || "利用日数の取得に失敗しました");
-        return;
-      }
-
-      console.log("[HUG WM] 専門的支援 利用日数チェック（renderer）", result);
-      console.log("[HUG WM] 新規作成時の利用日数:", result.days, "日");
-    } catch (e) {
-      console.error("[ProfessionalPrompt1] 専門的支援チェック例外:", e);
-      alert(String(e?.message || e));
-    }
-  }, [SELECT_CHILD, appState.FACILITY_ID]);
+  const { useDays, runCheck } = useProfessionalSupportCheck("ProfessionalPrompt1");
 
   // ★ 送信する文字列を組み立てるだけ
   const textValue = `${dbNote}\n\n\n${text1}\n\n\n${aiText}`;
@@ -194,7 +161,8 @@ export default function ProfessionalPrompt1() {
         />
       </div>
 
-      <div className="flex flex-row justify-between items-center">
+      <div className="flex flex-col gap-2">
+        <div className="flex flex-row justify-between items-center gap-2">
           <button
             className="w-[70%] bg-green-500 hover:bg-green-600 p-2 rounded text-white"
             onClick={clickEnterButton}
@@ -203,11 +171,23 @@ export default function ProfessionalPrompt1() {
             実行
           </button>
           <button
-            className="btn-purple hover:bg-purple-600 p-2 rounded text-white"
-            onClick={runProfessionalSupportCheck}
+            type="button"
+            className="btn-purple hover:bg-purple-600 p-2 rounded text-white shrink-0"
+            onClick={runCheck}
           >
             専門的支援チェック
           </button>
+        </div>
+        <label className="max-w-[200px] bg-white text-xs text-gray-500 p-2 rounded">
+          利用日数:{" "}
+          {useDays != null ? (
+            <span>
+              <span className="font-bold text-xl text-blue-500">{useDays}</span>日
+            </span>
+          ) : (
+            "未取得"
+          )}
+        </label>
       </div>
     </div>
   );
