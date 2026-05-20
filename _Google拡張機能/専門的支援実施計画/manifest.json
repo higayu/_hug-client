@@ -1,0 +1,15 @@
+{
+  "manifest_version": 3,
+  "name": "専門的支援計画 ページ内リンク（アンカーリンク）",
+  "version": "1.0.0",
+  "description": "アンカーリンクに飛ぶ",
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.hug-ayumu.link/hug/wm/addition_plan.php?mode=detail&id=*"
+      ],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}

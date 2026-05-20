@@ -1,0 +1,107 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: light dark;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+#root {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* === グローバルユーティリティクラス === */
+.hidden {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* === ドロップダウンメニュー === */
+.navInner {
+  display: none;
+}
+
+.navInner.open,
+.navInner.open ul {
+  display: block;
+}
+
+/* === サイドバー === */
+.settings-sidebar {
+  width: 0;
+  padding: 0;
+  border-right: 0;
+  transition: width 0.3s ease, padding 0.3s ease, border-width 0.3s ease;
+}
+
+.settings-sidebar.open {
+  width: 50vw !important; /* 画面幅の50% */
+  padding: 15px !important;
+  border-right: 1px solid #ccc !important;
+}
+
+
+/* === アクティブタブ === */
+.active-tab {
+  background: linear-gradient(180deg, #b3e5fc, #4f79f7);
+  color: #ffffff;
+  font-weight: bold;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+/* === Toggle Switch === */
+.toggle-switch input:checked + .slider {
+  background-color: #4fc3f7;
+}
+
+.toggle-switch input:checked + .slider::before {
+  transform: translateX(18px);
+}
+
+/* === 共通ボタンスタイル === */
+@layer components {
+  .btn-blue {
+    @apply bg-blue-500 hover:bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded shadow-sm inline-block;
+  }
+
+  .btn-green {
+    @apply bg-green-500 hover:bg-green-600 text-white text-xs font-bold px-3 py-1 rounded shadow-sm inline-block;
+  }
+
+  .btn-red {
+    @apply bg-red-500 hover:bg-red-600 text-white text-xs font-bold px-3 py-1 rounded shadow-sm inline-block;
+  }
+
+  .btn-purple {
+    @apply bg-purple-500 hover:bg-purple-600 text-white text-xs font-bold px-3 py-1 rounded shadow-sm inline-block;
+  }
+
+  button:disabled {
+    background-color: #cccccc !important;
+    color: #666 !important;
+    border-color: #aaa !important;
+    opacity: 1 !important;
+    cursor: not-allowed !important;
+  }
+  
+}

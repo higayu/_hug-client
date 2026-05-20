@@ -1,0 +1,84 @@
+{
+  "name": "hug-client",
+  "version": "1.1.21",
+  "description": "FCC Hug Client",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "electron . --prod",
+    "start:dev": "electron . --dev",
+    "electron": "electron .",
+    "dev": "concurrently \"npm run dev:renderer\" \"wait-on http://localhost:5173 && electron . --dev\"",
+    "dev:renderer": "cd renderer && npm run dev",
+    "build:renderer": "cd renderer && npm run build",
+    "dist": "npm run build:renderer && electron-builder"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.12.2",
+    "better-sqlite3": "^12.4.1",
+    "dotenv": "^17.2.3",
+    "electron-log": "^5.4.3",
+    "electron-updater": "^6.6.2",
+    "iconv-lite": "^0.7.0",
+    "puppeteer": "^24.23.0",
+    "sqlite3": "^5.1.7"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "electron": "^38.2.0",
+    "electron-builder": "^26.0.12",
+    "wait-on": "^7.2.0"
+  },
+  "build": {
+    "appId": "com.example.hugclient",
+    "productName": "Hug Client",
+    "directories": {
+      "output": "dist",
+      "buildResources": "assets"
+    },
+    "files": [
+      "main.js",
+      "main/**/*",
+      "preload.js",
+      "renderer/dist/**/*",
+      "puppeteer/**/*",
+      "src/**/*",
+      "package.json"
+    ],
+    "icon": "assets/win/icon.ico",
+    "win": {
+      "target": "nsis",
+      "icon": "assets/win/icon_win.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "installerIcon": "assets/win/icon_win.ico",
+      "uninstallerIcon": "assets/win/icon_win.ico",
+      "installerHeaderIcon": "assets/win/icon_win.ico"
+    },
+    "mac": {},
+    "linux": {},
+    "extraResources": [
+      {
+        "from": "main/data",
+        "to": "data/",
+        "filter": [
+          "**/*",
+          "!config.json",
+          "!houday.db"
+        ]
+      }
+    ],
+    "publish": {
+      "provider": "github",
+      "owner": "higayu",
+      "repo": "hug-client",
+      "private": false,
+      "releaseType": "release"
+    }
+  }
+}

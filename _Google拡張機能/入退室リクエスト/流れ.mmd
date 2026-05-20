@@ -1,0 +1,10 @@
+flowchart TD
+  A[一覧取得] --> B{is_mail=1?}
+  B -->|Yes| C[バッジ表示]
+  B -->|No| D[通常の入室記録 POST]
+  C --> E[行の入室（本番）クリック]
+  E --> F{本番ボタンあり?}
+  F -->|Yes| G[sendEnterMail → #addtend_dialog_mail]
+  F -->|No| H[拡張メール確認 → POST mail_flg]
+  G --> I[通知する/しない → AttendanceSave]
+  I --> J[パネル「更新」で反映]
