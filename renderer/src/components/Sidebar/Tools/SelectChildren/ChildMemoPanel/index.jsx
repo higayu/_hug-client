@@ -10,6 +10,7 @@ import {
 } from '@/utils/attendance/index.js'
 import { useToast } from '@/components/common/ToastContext.jsx'
 import ProfessionalSupportCheckPanel from '@/components/common/ProfessionalSupportCheckPanel'
+import PersonalRecordGetBtn from '@/components/Sidebar/Tools/SelectChildren/PersonalRecordGetBtn'
 
 function ChildMemoPanel() {
   const {
@@ -248,7 +249,9 @@ function ChildMemoPanel() {
           )}
         </div>
 
-        <div className="flex items-center justify-center gap-2">
+        <div className="flex flex-wrap items-center justify-center gap-2 mt-2">
+          <PersonalRecordGetBtn />
+
           <button
             id="professional-support-new"
             onClick={addWebManagerAction_OutWindow}
