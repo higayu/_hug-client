@@ -230,6 +230,28 @@
     }
   };
 
+  const onFacilityFilterChange = (event) => {
+    const t = event.target;
+    if (!t?.classList?.contains("hug-facility-cb")) return;
+
+    const facilityId = t.getAttribute("data-f-id");
+    if (facilityId == null || facilityId === "") return;
+
+    if (typeof window.HugAttendance.setFacilityFilterChecked !== "function") {
+      return;
+    }
+
+    window.HugAttendance.setFacilityFilterChecked(facilityId, t.checked);
+
+    if (typeof window.HugAttendance.syncFacilityFilterToPage === "function") {
+      window.HugAttendance.syncFacilityFilterToPage();
+    }
+
+    if (typeof window.HugAttendance.runAttendanceUpdate === "function") {
+      void window.HugAttendance.runAttendanceUpdate({ force: true });
+    }
+  };
+
   const onShowLeftRecordsChange = (event) => {
     const t = event.target;
     if (!t?.classList?.contains("hug-show-left-select")) return;
@@ -299,6 +321,7 @@
     onRefreshClick,
     onAlertPrefChange,
     onHalfTimePersist,
-    onShowLeftRecordsChange
+    onShowLeftRecordsChange,
+    onFacilityFilterChange
   });
 })();

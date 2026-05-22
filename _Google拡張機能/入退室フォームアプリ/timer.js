@@ -138,10 +138,14 @@
     isRunning = true;
 
     try {
-      console.log("[HUG WM] 入退室データ更新開始");
+      console.log(
+        "[HUG WM] 入退室データ更新開始（POST search_detail / attendance.php）"
+      );
 
-      if (!window.HugAttendance.fetchAttendanceData) {
-        throw new Error("fetchAttendanceData が見つかりません");
+      if (typeof window.HugAttendance.fetchAttendanceData !== "function") {
+        throw new Error(
+          "fetchAttendanceData がありません。attendance-post-common.js を読み込んでください。"
+        );
       }
 
       if (!window.HugAttendance.renderAttendanceForm) {

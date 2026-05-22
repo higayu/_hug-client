@@ -64,6 +64,7 @@
   const ALERT_PREFS_STORAGE_KEY = "hugAttendanceAlertPrefs";
   const HALF_TIME_STORAGE_KEY = "hugAttendanceHalfTime";
   const SHOW_LEFT_RECORDS_STORAGE_KEY = "hugAttendanceShowLeftRecords";
+  const FACILITY_FILTER_STORAGE_KEY = "hugAttendanceFacilityFilter";
   const DEFAULT_ALERT_TYPE = 1;
   const DEFAULT_ALERT_AFTER_MINUTES = 120;
   /** 0=午前、1=午後 */
@@ -132,6 +133,211 @@
     } catch {
       /* ignore */
     }
+  };
+
+  /** 出席表 #facility_list の f_ary チェックボックス（id → 表示名） */
+  const FACILITY_FILTER_OPTIONS = [
+    { id: 3, value: "PD吉島", defaultChecked: true },
+    { id: 6, value: "PD光", defaultChecked: false },
+    { id: 7, value: "PD横川", defaultChecked: false },
+    { id: 8, value: "PD五日市駅前", defaultChecked: false }
+  ];
+
+  const SERVICE_FILTER_PARAMS = [
+    { id: 1, value: "放課後等デイサービス" },
+    { id: 2, value: "児童発達支援" }
+  ];
+
+  const getPageFacilityCheckboxes = () => {
+    const panel = document.querySelector("#hug-attendance-panel");
+    return [...document.querySelectorAll('input[type="checkbox"][name^="f_ary"]')].filter(
+      (cb) => !panel?.contains(cb)
+    );
+  };
+
+  const readFacilityFilterFromPageDom = () => {
+    const boxes = getPageFacilityCheckboxes();
+    if (!boxes.length) return null;
+
+    const map = {};
+    boxes.forEach((cb) => {
+      const m = String(cb.name || "").match(/f_ary\[(\d+)\]/);
+      if (!m) return;
+      map[m[1]] = Boolean(cb.checked);
+    });
+    return Object.keys(map).length ? map : null;
+  };
+
+  const loadRawFacilityFilter = () => {
+    try {
+      const raw = localStorage.getItem(FACILITY_FILTER_STORAGE_KEY);
+      if (!raw) return null;
+      const o = JSON.parse(raw);
+      return o && typeof o === "object" ? o : null;
+    } catch {
+      return null;
+    }
+  };
+
+  const saveRawFacilityFilter = (map) => {
+    try {
+      localStorage.setItem(FACILITY_FILTER_STORAGE_KEY, JSON.stringify(map));
+    } catch {
+      /* ignore */
+    }
+  };
+
+  const buildDefaultFacilityFilterMap = () => {
+    const map = {};
+    FACILITY_FILTER_OPTIONS.forEach((opt) => {
+      map[String(opt.id)] = Boolean(opt.defaultChecked);
+    });
+    return map;
+  };
+
+  const isFacilityFilterChecked = (map, id, defaultChecked) => {
+    const key = String(id);
+    if (Object.prototype.hasOwnProperty.call(map, key)) {
+      return Boolean(map[key]);
+    }
+    return Boolean(defaultChecked);
+  };
+
+  const getFacilityFilterChecked = () => {
+    const stored = loadRawFacilityFilter();
+    if (stored) return stored;
+
+    const fromPage = readFacilityFilterFromPageDom();
+    if (fromPage) {
+      saveRawFacilityFilter(fromPage);
+      return fromPage;
+    }
+
+    return buildDefaultFacilityFilterMap();
+  };
+
+  const setFacilityFilterChecked = (facilityId, checked) => {
+    const key = String(facilityId ?? "").trim();
+    if (!key) return;
+
+    const map = { ...getFacilityFilterChecked(), [key]: Boolean(checked) };
+    saveRawFacilityFilter(map);
+  };
+
+  const appendFacilityParamsToSearchParams = (params) => {
+    const map = getFacilityFilterChecked();
+    FACILITY_FILTER_OPTIONS.forEach((opt) => {
+      const id = String(opt.id);
+      if (!isFacilityFilterChecked(map, id, opt.defaultChecked)) return;
+      params.set(`f_ary[${id}]`, opt.value);
+    });
+  };
+
+  const normalizeAttendanceSearchDate = (raw) => {
+    const s = String(raw ?? "").trim();
+    if (!s) return "";
+    const m = s.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})$/);
+    if (!m) return s;
+    const mo = String(m[2]).padStart(2, "0");
+    const d = String(m[3]).padStart(2, "0");
+    return `${m[1]}/${mo}/${d}`;
+  };
+
+  const getAttendanceSearchDate = () => {
+    const fromPage =
+      document.querySelector('input[name="s_date"]')?.value?.trim() ||
+      document.querySelector('input[name="date"]')?.value?.trim() ||
+      "";
+    const fromUrl =
+      new URLSearchParams(location.search).get("s_date") ||
+      new URLSearchParams(location.search).get("date") ||
+      "";
+    const normalized = normalizeAttendanceSearchDate(fromPage || fromUrl);
+    if (normalized) return normalized;
+
+    const now = new Date();
+    const y = now.getFullYear();
+    const mo = String(now.getMonth() + 1).padStart(2, "0");
+    const d = String(now.getDate()).padStart(2, "0");
+    return `${y}/${mo}/${d}`;
+  };
+
+  /** attendance.php 検索 POST（mode=search_detail）用ボディ */
+  const buildAttendanceSearchPostParams = () => {
+    const params = new URLSearchParams();
+    params.set("mode", "search_detail");
+    appendFacilityParamsToSearchParams(params);
+    SERVICE_FILTER_PARAMS.forEach((opt) => {
+      params.set(`s_ary[${opt.id}]`, opt.value);
+    });
+    params.set("s_date", getAttendanceSearchDate());
+    return params;
+  };
+
+  const ATTENDANCE_URL =
+    "https://www.hug-ayumu.link/hug/wm/attendance.php";
+
+  /**
+   * 出席表を POST 検索して一覧 HTML から入退室データを抽出
+   * （手動更新・timer.js 定期実行の共通入口）
+   */
+  const fetchAttendanceData = async () => {
+    const body = buildAttendanceSearchPostParams();
+    console.log("[HUG WM] POST検索開始:", ATTENDANCE_URL);
+    console.log("[HUG WM] POST body:", body.toString());
+
+    const response = await fetch(ATTENDANCE_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"
+      },
+      body: body.toString(),
+      credentials: "include"
+    });
+
+    console.log("[HUG WM] status:", response.status);
+    console.log("[HUG WM] ok:", response.ok);
+    console.log("[HUG WM] response URL:", response.url);
+
+    if (!response.ok) {
+      throw new Error(`HTTP error: ${response.status}`);
+    }
+
+    const html = await response.text();
+
+    const extract = window.HugAttendance.extractAttendanceDataFromHtml;
+    if (typeof extract !== "function") {
+      throw new Error(
+        "extractAttendanceDataFromHtml がありません。content.js を読み込んでください。"
+      );
+    }
+
+    const attendanceList = extract(html);
+
+    console.log("[HUG WM] 入室・退室時間一覧:");
+    console.table(attendanceList);
+
+    return attendanceList;
+  };
+
+  const syncFacilityFilterToPage = () => {
+    const map = getFacilityFilterChecked();
+    const boxes = getPageFacilityCheckboxes();
+    if (!boxes.length) return;
+
+    boxes.forEach((cb) => {
+      const m = String(cb.name || "").match(/f_ary\[(\d+)\]/);
+      if (!m) return;
+      const opt = FACILITY_FILTER_OPTIONS.find(
+        (o) => String(o.id) === m[1]
+      );
+      if (!opt) return;
+      const next = isFacilityFilterChecked(map, m[1], opt.defaultChecked);
+      if (cb.checked !== next) {
+        cb.checked = next;
+        cb.dispatchEvent(new Event("change", { bubbles: true }));
+      }
+    });
   };
 
   const parseDetailPageDate = (detailPageDate) => {
@@ -251,4 +457,14 @@
   window.HugAttendance.setHalfTime = setHalfTime;
   window.HugAttendance.getShowLeftRecords = getShowLeftRecords;
   window.HugAttendance.setShowLeftRecords = setShowLeftRecords;
+  window.HugAttendance.FACILITY_FILTER_OPTIONS = FACILITY_FILTER_OPTIONS;
+  window.HugAttendance.getFacilityFilterChecked = getFacilityFilterChecked;
+  window.HugAttendance.setFacilityFilterChecked = setFacilityFilterChecked;
+  window.HugAttendance.appendFacilityParamsToSearchParams =
+    appendFacilityParamsToSearchParams;
+  window.HugAttendance.buildAttendanceSearchPostParams =
+    buildAttendanceSearchPostParams;
+  window.HugAttendance.getAttendanceSearchDate = getAttendanceSearchDate;
+  window.HugAttendance.fetchAttendanceData = fetchAttendanceData;
+  window.HugAttendance.syncFacilityFilterToPage = syncFacilityFilterToPage;
 })();

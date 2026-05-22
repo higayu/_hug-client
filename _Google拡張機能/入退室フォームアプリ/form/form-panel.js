@@ -275,6 +275,7 @@
     contentBody.addEventListener("change", Form.onHalfTimePersist);
     contentBody.addEventListener("focusout", Form.onHalfTimePersist);
     contentBody.addEventListener("change", Form.onShowLeftRecordsChange);
+    contentBody.addEventListener("change", Form.onFacilityFilterChange);
 
     toggleButton.addEventListener("click", (event) => {
       event.stopPropagation();

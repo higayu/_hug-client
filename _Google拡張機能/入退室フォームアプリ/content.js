@@ -1,8 +1,9 @@
 (() => {
-  const DETAIL_URL = "https://www.hug-ayumu.link/hug/wm/attendance.php?mode=detail";
+  const ATTENDANCE_URL =
+    "https://www.hug-ayumu.link/hug/wm/attendance.php";
 
   /** ajax 等とパスを揃える基準URL（末尾スラッシュあり） */
-  const WM_BASE_URL = new URL(".", DETAIL_URL).href;
+  const WM_BASE_URL = new URL(".", ATTENDANCE_URL).href;
 
   /*
     HUG用の共通オブジェクトを作成
@@ -123,7 +124,9 @@
     }
 
     const detailPageDate =
+      doc.querySelector('input[name="s_date"]')?.value ||
       doc.querySelector('input[name="date"]')?.value ||
+      doc.querySelector('[name="s_date"]')?.value ||
       doc.querySelector('[name="date"]')?.value ||
       "";
 
@@ -192,41 +195,9 @@
   };
 
   /*
-    入退室データを取得
-  */
-  const fetchAttendanceData = async () => {
-    console.log("[HUG WM] fetch開始:", DETAIL_URL);
-
-    const response = await fetch(DETAIL_URL, {
-      method: "GET",
-      credentials: "include"
-    });
-
-    console.log("[HUG WM] status:", response.status);
-    console.log("[HUG WM] ok:", response.ok);
-    console.log("[HUG WM] response URL:", response.url);
-
-    if (!response.ok) {
-      throw new Error(`HTTP error: ${response.status}`);
-    }
-
-    const html = await response.text();
-
-    console.log("[HUG WM] HTMLデータ:");
-    console.log(html);
-
-    const attendanceList = extractAttendanceDataFromHtml(html);
-
-    console.log("[HUG WM] 入室・退室時間一覧:");
-    console.table(attendanceList);
-
-    return attendanceList;
-  };
-
-  /*
     外部ファイルから使えるように登録
+    fetchAttendanceData（POST search_detail）は attendance-post-common.js
   */
-  window.HugAttendance.fetchAttendanceData = fetchAttendanceData;
   window.HugAttendance.extractAttendanceDataFromHtml = extractAttendanceDataFromHtml;
   window.HugAttendance.parseEnterIsMailFromOnclick = parseEnterIsMailFromOnclick;
   window.HugAttendance.resolveEnterIsMail = resolveEnterIsMail;

@@ -621,6 +621,39 @@
         font-size: 12px;
         flex-shrink: 0;
       }
+
+      #hug-attendance-panel .hug-facility-settings-bar {
+        flex-wrap: wrap;
+        align-items: flex-start;
+      }
+
+      #hug-attendance-panel .hug-settings-label.hug-settings-label-facility {
+        color: #6a1b9a;
+        align-self: flex-start;
+        padding-top: 2px;
+      }
+
+      #hug-attendance-panel .hug-facility-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px 12px;
+        align-items: center;
+      }
+
+      #hug-attendance-panel .hug-facility-label {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-weight: normal;
+        cursor: pointer;
+        white-space: nowrap;
+      }
+
+      #hug-attendance-panel .hug-facility-cb {
+        width: auto;
+        margin: 0;
+        cursor: pointer;
+      }
     `;
 
     document.head.appendChild(style);

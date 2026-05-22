@@ -247,6 +247,27 @@
 
     const showLeftSel = showLeftFlag === 1 ? "1" : "0";
 
+    const facilityOptions =
+      typeof window.HugAttendance.getFacilityFilterChecked === "function" &&
+      Array.isArray(window.HugAttendance.FACILITY_FILTER_OPTIONS)
+        ? window.HugAttendance.FACILITY_FILTER_OPTIONS
+        : [];
+    const facilityCheckedMap =
+      typeof window.HugAttendance.getFacilityFilterChecked === "function"
+        ? window.HugAttendance.getFacilityFilterChecked()
+        : {};
+
+    const facilityLabelsHtml = facilityOptions
+      .map((opt) => {
+        const id = String(opt.id);
+        const checked =
+          Object.prototype.hasOwnProperty.call(facilityCheckedMap, id)
+            ? Boolean(facilityCheckedMap[id])
+            : Boolean(opt.defaultChecked);
+        return `<label class="hug-facility-label"><input type="checkbox" class="hug-facility-cb" data-f-id="${Form.escapeHtml(id)}" name="f_ary[${Form.escapeHtml(id)}]" value="${Form.escapeHtml(opt.value)}"${checked ? " checked" : ""}>${Form.escapeHtml(opt.value)}</label>`;
+      })
+      .join("");
+
     const tableBodyHtml =
       rowsHtml ||
       `<tr><td colspan="11">表示対象の児童がいません（退室済み・欠席 ${hiddenClosedCount}件を非表示中）。</td></tr>`;
@@ -264,6 +285,15 @@
             <option value="1"${showLeftSel === "1" ? " selected" : ""}>表示</option>
             <option value="0"${showLeftSel === "0" ? " selected" : ""}>非表示</option>
           </select>
+        </div>
+      </div>
+
+      <div class="hug-panel-settings-bar hug-facility-settings-bar">
+        <div class="hug-settings-group hug-facility-settings-group">
+          <span class="hug-settings-label hug-settings-label-facility">施設</span>
+          <div class="hug-facility-list col clear">
+            ${facilityLabelsHtml}
+          </div>
         </div>
       </div>
 
