@@ -3,6 +3,7 @@ import React, { useRef, useState, useEffect } from "react";
 import { useToast } from "@/components/common/ToastContext.jsx";
 import { useAppState } from "@/contexts/appState";
 import { useNote } from "@/hooks/useNote.js";
+import { useTabs } from "@/hooks/useTabs/index.js";
 
 export default function MemoInputBox({
   memoType, // ← 1 or 2
@@ -14,6 +15,7 @@ export default function MemoInputBox({
   const { showSuccessToast, showErrorToast } = useToast();
   const { SELECT_CHILD } = useAppState();
   const { saveTemp1, saveTemp2, loadTemp } = useNote();
+  const { addPersonalRecordTab } = useTabs();
 
   const [value, setValue] = useState("");
 
@@ -153,14 +155,37 @@ export default function MemoInputBox({
         }}
       />
 
-      <button
-        onClick={handleSave}
-        disabled={!SELECT_CHILD}
-        className="mt-2 w-full px-3 py-2 bg-blue-600 text-white rounded
-                   text-xs hover:bg-blue-700 disabled:opacity-50"
-      >
-        このメモを保存
-      </button>
+      <div className="mt-2 flex gap-2 items-stretch">
+        <button
+          type="button"
+          onClick={handleSave}
+          disabled={!SELECT_CHILD}
+          className="flex-1 px-3 py-2 bg-blue-600 text-white rounded
+                     text-xs hover:bg-blue-700 disabled:opacity-50"
+        >
+          このメモを保存
+        </button>
+        {memoType === 1 && (
+          <button
+            type="button"
+            id="kojin-kiroku"
+            onClick={addPersonalRecordTab}
+            disabled={!SELECT_CHILD}
+            className="
+              flex items-center justify-center shrink-0
+              bg-[#4CAF50] text-white
+              px-3 py-2
+              rounded-lg font-bold text-xs
+              cursor-pointer transition-all whitespace-nowrap
+              hover:bg-[#66BB6A] hover:scale-105
+              active:bg-[#43A047] active:scale-[0.97]
+              disabled:grayscale disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100
+            "
+          >
+            個人記録
+          </button>
+        )}
+      </div>
     </div>
   );
 }

@@ -14,7 +14,7 @@ import {
 import { useToast } from "@/components/common/ToastContext.jsx"
 import { useAttendanceFetch } from "@/hooks/useAttendanceFetch.js"
 import TabsContainer from "./common/TabsContainer.jsx"
-import TableDataGetButton from "./common/TableDataGetButon"
+import TableDataGetButton from "@/components/common/TableDataGetButon"
 import WeekdaySelect from "@/components/common/WeekdaySelect.jsx"
 
 function Sidebar() {

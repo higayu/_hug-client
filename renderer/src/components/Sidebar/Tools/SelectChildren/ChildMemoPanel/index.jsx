@@ -10,7 +10,6 @@ import {
 } from '@/utils/attendance/index.js'
 import { useToast } from '@/components/common/ToastContext.jsx'
 import ProfessionalSupportCheckPanel from '@/components/common/ProfessionalSupportCheckPanel'
-import PersonalRecordGetBtn from '@/components/Sidebar/Tools/SelectChildren/PersonalRecordGetBtn'
 import AttendanceActionSection from './AttendanceActionSection.jsx'
 import './attendanceForm.css'
 
@@ -25,10 +24,7 @@ function ChildMemoPanel() {
     FACILITY_ID,
   } = useAppState()
 
-  const {
-    addPersonalRecordTab,
-    addProfessionalSupportNewTab,
-  } = useTabs()
+  const { addProfessionalSupportNewTab } = useTabs()
 
   const {
     showSuccessToast,
@@ -226,26 +222,6 @@ function ChildMemoPanel() {
             onAbsence={runAbsence}
             onProfessionalSupport={addProfessionalSupportNewTab}
           />
-        </div>
-
-        <div className="flex flex-wrap items-center justify-center gap-2 mt-2">
-          <PersonalRecordGetBtn />
-
-          <button
-            id="kojin-kiroku"
-            onClick={addPersonalRecordTab}
-            className="
-              flex items-center justify-center
-              bg-[#4CAF50] text-white
-              px-3 py-2
-              rounded-lg font-bold
-              cursor-pointer transition-all whitespace-nowrap
-              hover:bg-[#66BB6A] hover:scale-105
-              active:bg-[#43A047] active:scale-[0.97]
-            "
-          >
-            個人記録
-          </button>
         </div>
 
         <ProfessionalSupportCheckPanel

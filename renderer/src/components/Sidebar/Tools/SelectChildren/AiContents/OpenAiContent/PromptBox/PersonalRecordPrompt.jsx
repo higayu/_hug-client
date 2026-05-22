@@ -16,12 +16,13 @@ import {
 import PersonalInjectButton from './PersonalInput/PersonalInjectButton';
 import RecordProceedingsDraftSaveButton from './PersonalInput/RecordProceedingsDraftSaveButton';
 import MemoInputBox from './MemoInputBox';
+import TabPanel from './TabPanel';
+import PersonalRecordGetBtn from '@/components/common/PersonalRecordGetBtn';
 
 const DBG = 'PersonalRecordPrompt';
 
 export default function PersonalRecordPrompt() {
-  const { appState, PROMPTS,DEBUG_FLG } = useAppState();
-
+  const { appState, PROMPTS, DEBUG_FLG } = useAppState();
   // "personalRecord" と "professional" のプロンプトを2つの textarea に対応
   const [text1, setText1] = useState("");
   const dispatch = useDispatch()
@@ -197,11 +198,16 @@ export default function PersonalRecordPrompt() {
           )}
         </div>
 
-        <MemoInputBox
-              memoType={1}
-              label="一時メモ１（編集可能）"
-              minHeight={200}
+        <TabPanel tabs={["一時メモ", "記録"]} className="mt-2">
+          <MemoInputBox
+            memoType={1}
+            label="一時メモ１（編集可能）"
+            minHeight={200}
           />
+          <div className="flex flex-wrap items-center justify-center gap-2">
+            <PersonalRecordGetBtn />
+          </div>
+        </TabPanel>
 
       </div>
     </div>
