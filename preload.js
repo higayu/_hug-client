@@ -174,6 +174,9 @@ contextBridge.exposeInMainWorld("electronAPI", {
   saveAttendanceColumnData: (data) =>
     ipcRenderer.invoke("saveAttendanceColumnData", data),
 
+  mariadb_service_record_insert: (data) =>
+    ipcRenderer.invoke("mariadb:service_record:insert", data),
+
   // ---- CRUD API 展開 ----
   ...tableAPIs,
 });

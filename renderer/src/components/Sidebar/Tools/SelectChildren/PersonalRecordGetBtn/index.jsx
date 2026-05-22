@@ -1,6 +1,7 @@
 import { useCallback, useRef, useState } from "react";
 import { useAppState } from "@/contexts/appState";
 import { fetchContactBookViaHugTab } from "@/utils/personalRecord/fetchContactBookViaHugTab.js";
+import { postServiceRecordsToLocalApi } from "@/utils/personalRecord/postServiceRecordsToLocalApi.js";
 
 const LOG_TAG = "PersonalRecordGet";
 
@@ -62,6 +63,22 @@ export default function PersonalRecordGetBtn() {
           noteError: row.noteError,
           editPath: row.editPath,
         });
+      });
+
+      const postResult = await postServiceRecordsToLocalApi(result.records, {
+        childrenId: SELECT_CHILD,
+        facilityId,
+      });
+
+      console.log(`[${LOG_TAG}] ローカルDB保存`, postResult);
+      postResult.results?.forEach((row) => {
+        if (row.ok) {
+          console.log(`[${LOG_TAG}] POST成功 ${row.date}`, row.payload);
+        } else if (row.skipped) {
+          console.warn(`[${LOG_TAG}] POSTスキップ ${row.date}:`, row.error);
+        } else {
+          console.error(`[${LOG_TAG}] POST失敗 ${row.date}:`, row.error);
+        }
       });
     } catch (e) {
       console.error(`[${LOG_TAG}] 例外:`, e);

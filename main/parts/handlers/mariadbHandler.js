@@ -38,6 +38,7 @@ function registerMariadbHandlers(ipcMain) {
     "pronunciation",
     "children_type",
     "day_of_week",
+    "service_record",
   ];
 
   for (const table of tables) {

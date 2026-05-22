@@ -106,14 +106,6 @@ export default function MemoInputBox({
         <label className="px-2 py-1 text-xs font-bold text-gray-700">
           {label}
         </label>
-        <button
-          type="button"
-          onMouseDown={(e) => e.preventDefault()}
-          onClick={() => ref.current?.focus()}
-          className="px-2 py-1 text-xs bg-sky-200 rounded hover:bg-gray-300"
-        >
-          入力に戻す
-        </button>
       </div>
 
       <textarea
