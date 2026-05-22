@@ -12,7 +12,9 @@
         "editpage.js",
         "personallist.js",
         "content.js",
-        "form.js"
+        "form/form-styles.js",
+        "form/form-panel.js",
+        "form/form.js"
       ],
       "run_at": "document_idle"
     }
