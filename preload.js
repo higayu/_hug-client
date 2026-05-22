@@ -22,6 +22,7 @@ const tables = [
   "staffs",
   "temp_notes",
   "ai_temp_notes",
+  "service_record",
 ];
 
 // ============================================

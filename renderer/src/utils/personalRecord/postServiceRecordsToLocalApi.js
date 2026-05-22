@@ -67,7 +67,7 @@ export function buildServiceRecordPayload(record, { childrenId, facilityId }) {
     children_id: Number(childrenId),
     item_id: SERVICE_RECORD_ITEM_ID,
     facility_id: Number(facilityId),
-    served_time: `${dateStr} 00:00:00`,
+    served_date: dateStr,
     day_of_week_id: dayOfWeekId,
     note,
     is_copy: 0,

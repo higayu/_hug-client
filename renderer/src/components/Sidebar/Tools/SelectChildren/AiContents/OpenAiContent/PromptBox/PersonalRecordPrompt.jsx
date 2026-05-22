@@ -17,8 +17,7 @@ import PersonalInjectButton from './PersonalInput/PersonalInjectButton';
 import RecordProceedingsDraftSaveButton from './PersonalInput/RecordProceedingsDraftSaveButton';
 import MemoInputBox from './MemoInputBox';
 import TabPanel from './TabPanel';
-import PersonalRecordGetBtn from '@/components/common/PersonalRecordGetBtn';
-
+import PersonalRecordManagerPanel from '@/components/common/PersonalRecordManagerPanel';
 const DBG = 'PersonalRecordPrompt';
 
 export default function PersonalRecordPrompt() {
@@ -30,10 +29,12 @@ export default function PersonalRecordPrompt() {
   const aiText = useSelector(
     state => state.sendText[PROMPT_KEY].aiText
   )
+  const sending = useSelector(
+    state => state.sendText[PROMPT_KEY].sending
+  )
   const {
     showSuccessToast,
     showErrorToast,
-    showWarningToast,
     showInfoToast,
   } = useToast()
 
@@ -70,12 +71,10 @@ export default function PersonalRecordPrompt() {
   }, []);
 
   const clickEnterButton = async () => {
-    const textValue = `${text1}\n\n${aiText}`;
+    if (!aiText || aiText.trim() === "") return;
+    if (sending) return;
 
-    if (!aiText || aiText.trim() === "") {
-      showWarningToast("送信するテキストが空です");
-      return;
-    }
+    const textValue = `${text1}\n\n${aiText}`;
 
     dispatch(sendStart({ key: PROMPT_KEY }));
     showInfoToast("ChatGPT に送信中…");
@@ -184,10 +183,11 @@ export default function PersonalRecordPrompt() {
 
         <div className="flex flex-row justify-between items-center">
           <button
-            className="w-full bg-green-500 hover:bg-green-600 p-2 rounded text-white"
-            onClick={() => clickEnterButton()}
+            className="w-full bg-green-500 hover:bg-green-600 p-2 rounded text-white disabled:opacity-50 disabled:cursor-not-allowed"
+            onClick={clickEnterButton}
+            disabled={!aiText || sending}
           >
-            実行
+            {sending ? "送信中…" : "実行"}
           </button>
 
           {DEBUG_FLG && (
@@ -205,7 +205,7 @@ export default function PersonalRecordPrompt() {
             minHeight={200}
           />
           <div className="flex flex-wrap items-center justify-center gap-2">
-            <PersonalRecordGetBtn />
+            <PersonalRecordManagerPanel />
           </div>
         </TabPanel>
 

@@ -8,7 +8,7 @@ const LOG_TAG = "PersonalRecordGet";
 /**
  * 選択中児童の個人記録（活動内容 note）を hugview 経由で取得し、コンソールに出力する（テスト用）
  */
-export default function PersonalRecordGetBtn() {
+export default function PersonalRecordUpdateBtn({ dateStr }) {
   const { SELECT_CHILD, FACILITY_ID, CURRENT_YMD } = useAppState();
   const [fetching, setFetching] = useState(false);
   const isFetchingRef = useRef(false);
@@ -26,7 +26,7 @@ export default function PersonalRecordGetBtn() {
 
     const facilityId = FACILITY_ID || "3";
     const currentYmd =
-      CURRENT_YMD || new Date().toISOString().slice(0, 10);
+      dateStr || CURRENT_YMD || new Date().toISOString().slice(0, 10);
 
     isFetchingRef.current = true;
     setFetching(true);
@@ -86,14 +86,14 @@ export default function PersonalRecordGetBtn() {
       isFetchingRef.current = false;
       setFetching(false);
     }
-  }, [SELECT_CHILD, FACILITY_ID, CURRENT_YMD]);
+  }, [SELECT_CHILD, FACILITY_ID, CURRENT_YMD, dateStr]);
 
   return (
     <button
       type="button"
       id="personal-record-get"
       onClick={runFetch}
-      disabled={!SELECT_CHILD || fetching}
+      disabled={!SELECT_CHILD || !(dateStr || CURRENT_YMD) || fetching}
       className="
         flex items-center justify-center
         bg-amber-500 text-white

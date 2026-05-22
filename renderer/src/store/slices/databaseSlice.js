@@ -15,7 +15,8 @@ const tableKeys = [
   'pc_to_children',
   'pronunciation',
   'children_type',
-  'day_of_week'
+  'day_of_week',
+  'service_record',
 ]
 
 const applyPayloadToState = (state, payload = {}) => {
@@ -43,6 +44,7 @@ const initialState = {
   pronunciation: [],
   children_type: [],
   day_of_week: [],
+  service_record: [],
   loading: false,
   error: null,
   metadata: {
@@ -93,4 +95,7 @@ const databaseSlice = createSlice({
 })
 
 export const { setAllTables, clearSqliteData, clearError } = databaseSlice.actions
+
+export const selectServiceRecord = (state) => state.database?.service_record ?? []
+
 export default databaseSlice.reducer

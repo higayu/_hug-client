@@ -30,6 +30,7 @@ export const sqliteApi = {
         pronunciation,
         children_type,
         day_of_week,
+        service_record,
       ] = await Promise.all([
         window.electronAPI.sqlite_children_getAll?.() ?? [],
         window.electronAPI.sqlite_staffs_getAll?.() ?? [],
@@ -42,6 +43,7 @@ export const sqliteApi = {
         window.electronAPI.sqlite_pronunciation_getAll?.() ?? [],
         window.electronAPI.sqlite_children_type_getAll?.() ?? [],
         window.electronAPI.sqlite_day_of_week_getAll?.() ?? [],
+        window.electronAPI.sqlite_service_record_getAll?.() ?? [],
       ]);
 
       console.timeEnd(timerName);
@@ -58,7 +60,8 @@ export const sqliteApi = {
         pc_to_children: pc_to_children?.length ?? 0,
         pronunciation: pronunciation?.length ?? 0,
         children_type: children_type?.length ?? 0,
-        day_of_week: day_of_week?.length ?? 0, // ★ 追加
+        day_of_week: day_of_week?.length ?? 0,
+        service_record: service_record?.length ?? 0,
       });
 
       // ===== 取得データログ =====
@@ -73,7 +76,8 @@ export const sqliteApi = {
         pc_to_children,
         pronunciation,
         children_type,
-        day_of_week, // ★ 追加
+        day_of_week,
+        service_record,
       });
 
       console.groupEnd();
@@ -90,7 +94,8 @@ export const sqliteApi = {
         pc_to_children,
         pronunciation,
         children_type,
-        day_of_week, // ★ 追加
+        day_of_week,
+        service_record,
       };
     } catch (error) {
       console.error("❌ [sqliteApi] getAllTables エラー:", error);
