@@ -8,6 +8,30 @@
     { id: 8, name: "PD五日市駅前" }
   ];
 
+  const normalizeListDate = (text) => {
+    const s = String(text || "")
+      .trim()
+      .replace(/\s+/g, "");
+    const m = s.match(/(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/);
+    if (!m) return "";
+    const y = m[1];
+    const mo = String(m[2]).padStart(2, "0");
+    const d = String(m[3]).padStart(2, "0");
+    return `${y}-${mo}-${d}`;
+  };
+
+  const normalizeAttendance = (text) =>
+    String(text || "")
+      .trim()
+      .replace(/\s+/g, " ");
+
+  const extractEditPathFromOnclick = (onclick) => {
+    if (!onclick) return "";
+
+    const m = onclick.match(/location\.href\s*=\s*['"]([^'"]+)['"]/);
+    return m?.[1] || "";
+  };
+
   const parsePersonalRecordRows = (listDoc) => {
     const table = listDoc.querySelector(
       'table.table.lh1_5[data-api-url="contact_book.php"][data-concurrent-edit-target="ContactBook"]'
@@ -21,25 +45,24 @@
       .map((row) => {
         const cells = row.querySelectorAll("td");
 
-        const dateText = cells[0]?.textContent.trim();
-        const childName = cells[1]?.textContent.trim().replace(/\s+/g, " ");
-        const attendanceText = cells[4]?.textContent.trim();
+        const dateText = cells[0]?.textContent.trim() ?? "";
+        const dateNorm = normalizeListDate(dateText);
+        const childName = (cells[1]?.textContent ?? "")
+          .trim()
+          .replace(/\s+/g, " ");
+        const attendanceText = normalizeAttendance(cells[4]?.textContent);
 
-        if (attendanceText !== "出席") {
+        const editButton = row.querySelector("button.edit");
+        const onclick = editButton?.getAttribute("onclick") ?? "";
+        const editPath = extractEditPathFromOnclick(onclick);
+
+        if (!editPath) {
           return null;
         }
-
-        const editButton = cells[7]?.querySelector("button.edit");
-        const onclick = editButton?.getAttribute("onclick");
-
-        if (!onclick) {
-          return null;
-        }
-
-        const editPath = onclick.match(/location\.href='([^']+)'/)?.[1];
 
         return {
           date: dateText,
+          dateNorm,
           childName,
           attendance: attendanceText,
           onclick,
@@ -47,6 +70,31 @@
         };
       })
       .filter(Boolean);
+  };
+
+  const findRecordForDate = (rows, targetDate) => {
+    const target = normalizeListDate(targetDate);
+    if (!target) {
+      return null;
+    }
+
+    let fallback = null;
+
+    for (const row of rows) {
+      if (row.dateNorm !== target) {
+        continue;
+      }
+
+      if (row.attendance === "出席") {
+        return row;
+      }
+
+      if (!fallback) {
+        fallback = row;
+      }
+    }
+
+    return fallback;
   };
 
   const fetchPersonalRecordList = async ({
@@ -76,7 +124,10 @@
     const parser = new DOMParser();
     const listDoc = parser.parseFromString(listHtml, "text/html");
 
-    return parsePersonalRecordRows(listDoc);
+    const rows = parsePersonalRecordRows(listDoc);
+    console.log("[HUG WM] 一覧行数:", rows.length, rows);
+
+    return rows;
   };
 
   const fetchPersonalRecords = async ({
@@ -84,7 +135,6 @@
     date,
     dateEnd,
     childId,
-    childName,
     withNotes = true
   }) => {
     const rows = await fetchPersonalRecordList({
@@ -94,29 +144,37 @@
       childId
     });
 
-    const filtered = childName
-      ? rows.filter((row) => row.childName === childName)
-      : rows;
+    const targetDate = dateEnd || date;
+    const row = findRecordForDate(rows, targetDate);
 
-    if (!withNotes || !window.HugEditPage?.fetchContactBookNote) {
-      return filtered;
+    if (!row) {
+      throw new Error(
+        `日付=${targetDate} の編集行が見つかりません（一覧 ${rows.length} 行。出席・編集ボタンを確認してください）`
+      );
     }
 
-    const results = [];
-
-    for (const item of filtered) {
-      const note = item.editPath
-        ? await window.HugEditPage.fetchContactBookNote(item.editPath)
-        : null;
-
-      results.push({ ...item, note });
+    if (!withNotes) {
+      return [row];
     }
 
-    return results;
+    const fetchNote = window.HugEditPage?.fetchContactBookNote;
+    if (!fetchNote) {
+      throw new Error("HugEditPage が読み込まれていません（editpage.js）");
+    }
+
+    console.log("[HUG WM] 編集ページ取得:", row.editPath);
+
+    const note = await fetchNote(row.editPath);
+
+    const result = { ...row, note };
+    console.log("[HUG WM] 取得完了:", result);
+
+    return [result];
   };
 
   window.HugPersonalList = {
     FACILITIES,
+    normalizeListDate,
     fetchPersonalRecordList,
     fetchPersonalRecords
   };

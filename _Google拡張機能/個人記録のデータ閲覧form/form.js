@@ -15,6 +15,12 @@
     return `${y}-${m}-${d}`;
   };
 
+  const defaultDate = () => {
+    const d = new Date();
+    d.setDate(d.getDate() - 7);
+    return formatDateInput(d);
+  };
+
   const createPanel = () => {
     const panel = document.createElement("div");
     panel.id = "hug-personal-record-form";
@@ -42,13 +48,9 @@
         施設
         <select id="hug-form-facility" style="display:block;width:100%;margin-top:2px;"></select>
       </label>
-      <label style="display:block;margin-bottom:6px;">
-        日付（開始）
-        <input type="date" id="hug-form-date" style="display:block;width:100%;margin-top:2px;box-sizing:border-box;">
-      </label>
       <label style="display:block;margin-bottom:8px;">
-        日付（終了）
-        <input type="date" id="hug-form-date-end" style="display:block;width:100%;margin-top:2px;box-sizing:border-box;">
+        日付
+        <input type="date" id="hug-form-date" style="display:block;width:100%;margin-top:2px;box-sizing:border-box;">
       </label>
       <button type="button" id="hug-form-fetch" style="width:100%;padding:6px 0;cursor:pointer;">個人記録を取得</button>
       <div id="hug-form-status" style="margin-top:8px;font-size:12px;color:#666;"></div>
@@ -85,12 +87,9 @@
     const childSelect = document.getElementById("hug-form-child");
     const facilitySelect = document.getElementById("hug-form-facility");
     const dateInput = document.getElementById("hug-form-date");
-    const dateEndInput = document.getElementById("hug-form-date-end");
     const fetchBtn = document.getElementById("hug-form-fetch");
 
-    const today = formatDateInput(new Date());
-    dateInput.value = today;
-    dateEndInput.value = today;
+    dateInput.value = defaultDate();
 
     fillSelect(
       facilitySelect,
@@ -131,13 +130,9 @@
 
     fetchBtn.addEventListener("click", async () => {
       const childId = childSelect.value;
-      const childOption = childSelect.selectedOptions[0];
-      const childLabel = childOption?.textContent ?? "";
-      const childName = childLabel.replace(/\s*\(\d+\)\s*$/, "").trim();
-
       const facilityId = Number(facilitySelect.value);
       const date = dateInput.value;
-      const dateEnd = dateEndInput.value || date;
+      const dateEnd = date;
 
       if (!childId) {
         setStatus("児童を選択してください", true);
@@ -161,7 +156,6 @@
           date,
           dateEnd,
           childId,
-          childName,
           withNotes: true
         });
 
