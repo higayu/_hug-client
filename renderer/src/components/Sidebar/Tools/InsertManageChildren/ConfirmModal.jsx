@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useAppState } from "@/contexts/appState";
 import { store } from "@/store/store.js";
 import { useSelector } from "react-redux";
-import { updateManager, getManagerRecord } from "@/utils/managersUtils.js";
+import { updateManager, getManagerRecord } from "@/utils/managers/managersUtils.js";
 
 /**
  * 確認モーダルコンポーネント

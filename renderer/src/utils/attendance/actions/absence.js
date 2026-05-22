@@ -1,20 +1,26 @@
-// src/utils/attendance/absence.js
+// 欠席: 非表示 hugview に出席詳細を読込み、モーダル表示（タブ active なし）
 
-import { useDedicatedTabAndNavigate } from "./_shared/webview.js";
-import { extractAbsenceButtonId, assertAbsenceChildId } from "./_shared/extractors.js";
+import { resolveAttendanceWebview } from "../_shared/webview.js";
+import {
+  extractAbsenceButtonId,
+  assertAbsenceChildId,
+} from "../_shared/extractors.js";
 
 /**
  * 欠席ボタン → モーダル表示まで（児童ID一致チェック付き）
  */
 export async function clickAbsenceButton(column5Html, targetChildrenId) {
   try {
-    console.log("🔘 [ATTENDANCE] 欠席モーダル表示 START", { targetChildrenId });
+    console.log("🔘 [ATTENDANCE] 欠席モーダル表示 START (Cache)", {
+      targetChildrenId,
+    });
 
-    // ✅ 入室/退室と同じく「専用タブへ遷移」して成功率を揃える
-    const webview = await useDedicatedTabAndNavigate();
+    const webview = await resolveAttendanceWebview({ loadDetailPage: true });
 
     const absenceId = extractAbsenceButtonId(column5Html);
-    if (!absenceId) throw new Error("欠席ボタンID(absence_...)を抽出できませんでした");
+    if (!absenceId) {
+      throw new Error("欠席ボタンID(absence_...)を抽出できませんでした");
+    }
 
     assertAbsenceChildId(absenceId, targetChildrenId);
 

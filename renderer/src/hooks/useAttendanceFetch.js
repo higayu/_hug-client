@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useDispatch } from "react-redux";
 import { useAppState } from "@/contexts/appState";
 import { useToast } from "@/components/common/ToastContext.jsx";
-import { fetchAttendanceViaHugTab } from "@/utils/attendance/fetchAttendanceViaHugTab.js";
+import { fetchAttendanceViaHugTab } from "@/utils/attendance/fetch/fetchAttendanceViaHugTab.js";
 import { extractColumnData } from "@/utils/ToDayChildrenList/attendanceTable.js";
 import {
   setExtractedData,

@@ -1,6 +1,6 @@
 //import { useAppState } from "@/contexts/AppStateContext.jsx";
 import { useAppState } from '@/contexts/appState';
-import { saveTempNote,saveTempNote1,saveTempNote2, loadTempNote as loadFn } from "@/utils/noteUtils.js";
+import { saveTempNote,saveTempNote1,saveTempNote2, loadTempNote as loadFn } from "@/utils/app/noteUtils.js";
 import { useCallback } from "react";
 
 export function useNote() {

@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect } from "react"
 import { useChildrenList } from "@/hooks/useChildrenList.js"
 import { useAppState } from "@/contexts/appState"
-import { ELEMENT_IDS, MESSAGES } from "@/utils/constants.js"
+import { ELEMENT_IDS, MESSAGES } from "@/utils/app/constants.js"
 
 const TABS = {
   NORMAL: "normal",

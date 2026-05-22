@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useAppState } from '@/contexts/appState'
 import { useCustomButtons } from '@/components/common/CustomButtonsContext.jsx'
-import { loadConfig } from '@/utils/configUtils.js'
+import { loadConfig } from '@/utils/config/configUtils.js'
 
 export function useSettingsModal(isOpen) {
   const [isLoading, setIsLoading] = useState(false)

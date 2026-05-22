@@ -1,26 +1,25 @@
-// src/utils/attendance/_shared/webview.js
+// hugview Cache 用: タブ active なしで dom-ready / 出席詳細のバックグラウンド読込
 
-import { getActiveWebview, setActiveWebview } from "@/utils/webviewState.js";
+import { getHugWebviewForCache } from "@/hooks/useHugCache/getHugCache.js";
 import store from "@/store/store.js";
-import { activateHugViewFirstButton } from "@/hooks/useTabs/common/index.js";
 
 /* WebView が dom-ready になるまで待つ */
 export async function waitForWebviewReady(webview) {
   return new Promise((resolve) => {
     if (!webview) return resolve(false);
 
-    // 既にreadyっぽい
     if (webview.isConnected && !webview.isLoading?.()) {
       resolve(true);
       return;
     }
 
-    // DOM接続待ち
     if (!webview.isConnected) {
       const observer = new MutationObserver(() => {
         if (webview.isConnected) {
           observer.disconnect();
-          webview.addEventListener("dom-ready", () => resolve(true), { once: true });
+          webview.addEventListener("dom-ready", () => resolve(true), {
+            once: true,
+          });
         }
       });
       observer.observe(document.body, { childList: true, subtree: true });
@@ -32,49 +31,68 @@ export async function waitForWebviewReady(webview) {
 }
 
 /**
- * 専用タブで attendance.php を表示し WebView を返す
- * - 入室/退室/欠席すべてこれを使う（成功率を揃える）
+ * 非表示 hugview に出席詳細 URL を読み込む（タブ切替なし・欠席モーダル用）
+ * @param {Electron.WebviewTag} webview
+ * @param {string|number} facilityId
+ * @param {string} dateStr
  */
-export async function useDedicatedTabAndNavigate() {
-  const state = store.getState();
-  const facilityId = state.appState?.FACILITY_ID;
-  const dateStr = state.appState?.CURRENT_YMD;
-   console.log("入退室ボタンの起動",state);
-
+export async function loadAttendanceDetailInWebview(webview, facilityId, dateStr) {
+  if (!webview) throw new Error("webview がありません");
   if (!facilityId || !dateStr) {
     throw new Error("FACILITY_ID または DATE_STR がありません");
   }
 
-  activateHugViewFirstButton();
-
-  const webview = document.getElementById("hugview");
-  if (!webview) throw new Error("hugview WebView が見つかりません");
-
   const url = `https://www.hug-ayumu.link/hug/wm/attendance.php?mode=detail&f_id=${facilityId}&date=${dateStr}`;
-  const now = webview.getURL?.() || "";
+  const now = webview.getURL?.() || webview.getAttribute?.("src") || "";
 
-  if (!now.includes(url)) {
+  const alreadyLoaded =
+    now.includes("attendance.php") &&
+    now.includes(`f_id=${facilityId}`) &&
+    now.includes(`date=${dateStr}`);
+
+  if (!alreadyLoaded) {
     webview.src = url;
   }
 
-  setActiveWebview(webview);
-
   await waitForWebviewReady(webview);
 
-  // did-finish-load を確実に待つ
   await new Promise((resolve) => {
-    const wait = () => {
+    const attach = () => {
       webview.addEventListener(
         "did-finish-load",
         () => {
           const loaded = webview.getURL?.() || "";
-          loaded.includes(url) ? resolve() : wait();
+          if (
+            loaded.includes("attendance.php") &&
+            loaded.includes(`f_id=${facilityId}`)
+          ) {
+            resolve();
+          } else {
+            attach();
+          }
         },
         { once: true }
       );
     };
-    webview.isLoading?.() ? wait() : resolve();
+    if (webview.isLoading?.()) attach();
+    else resolve();
   });
+
+  return webview;
+}
+
+/**
+ * 入退室・欠席用: hugview を Cache で確保し、必要なら出席詳細をバックグラウンド読込
+ * @param {{ loadDetailPage?: boolean }} [opts]
+ */
+export async function resolveAttendanceWebview({ loadDetailPage = false } = {}) {
+  const webview = await getHugWebviewForCache();
+
+  if (loadDetailPage) {
+    const facilityId = store.getState().appState?.FACILITY_ID;
+    const dateStr = store.getState().appState?.CURRENT_YMD;
+    await loadAttendanceDetailInWebview(webview, facilityId, dateStr);
+  }
 
   return webview;
 }

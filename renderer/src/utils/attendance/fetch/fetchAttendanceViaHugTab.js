@@ -1,12 +1,12 @@
-import { ensureHugWebviewSession } from "@/utils/professionalSupport/ensureHugWebview.js";
-import { fetchAttendanceTableInWebview } from "@/utils/fetchAttendanceTableInWebview.js";
+import { getHugWebviewForCache } from "@/hooks/useHugCache/getHugCache.js";
+import { fetchAttendanceTableInWebview } from "@/utils/ToDayChildrenList/fetchAttendanceTableInWebview.js";
 
 /**
  * hugview の Cookie だけ使い、ページ遷移なしで勤怠テーブルを取得する
  * @param {{ facilityId: string|number, dateStr: string }} opts
  */
 export async function fetchAttendanceViaHugTab({ facilityId, dateStr }) {
-  const webview = await ensureHugWebviewSession();
+  const webview = await getHugWebviewForCache();
 
   if (!facilityId || !dateStr) {
     return {

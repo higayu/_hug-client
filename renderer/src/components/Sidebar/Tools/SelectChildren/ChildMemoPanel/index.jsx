@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { GlobeAltIcon } from '@heroicons/react/24/outline'
+import { useDispatch } from 'react-redux'
 import { useAppState } from '@/contexts/appState'
 import { useChildrenList } from '@/hooks/useChildrenList.js'
 import { useTabs } from '@/hooks/useTabs/index.js'
@@ -11,18 +11,23 @@ import {
 import { useToast } from '@/components/common/ToastContext.jsx'
 import ProfessionalSupportCheckPanel from '@/components/common/ProfessionalSupportCheckPanel'
 import PersonalRecordGetBtn from '@/components/Sidebar/Tools/SelectChildren/PersonalRecordGetBtn'
+import AttendanceActionSection from './AttendanceActionSection.jsx'
+import './attendanceForm.css'
 
 function ChildMemoPanel() {
+  const dispatch = useDispatch()
   const {
     appState,
     attendanceData,
     setSelectedChildColumns,
+    updateAppState,
+    CURRENT_YMD,
+    FACILITY_ID,
   } = useAppState()
 
   const {
     addPersonalRecordTab,
     addProfessionalSupportNewTab,
-    addWebManagerAction_OutWindow,
   } = useTabs()
 
   const {
@@ -42,6 +47,7 @@ function ChildMemoPanel() {
   const [selectedChildData, setSelectedChildData] = useState(null)
   const [attendanceItem, setAttendanceItem] = useState(null)
   const [isUIEnabled, setIsUIEnabled] = useState(false)
+  const [loadingAction, setLoadingAction] = useState(null)
 
   useEffect(() => {
     if (!selectChild) {
@@ -115,68 +121,81 @@ function ChildMemoPanel() {
 
   const hasEntered = isTimeFormat(column5)
   const hasExited = isTimeFormat(column6)
-  const disabledBtnClass = 'grayscale opacity-50 cursor-not-allowed'
 
-  const nyushituButton = async (value) => {
-    const cid = selectChild
+  const facilityId = FACILITY_ID || appState?.FACILITY_ID || '1'
+  const dateStr = CURRENT_YMD || appState?.CURRENT_YMD
+  const childName = selectedChildData?.children_name || ''
 
-    if (!value) {
-      showErrorToast('Enter action data was not found.')
+  const runEnter = async () => {
+    if (!column5Html) {
+      showErrorToast('入室ボタン情報がありません')
       return
     }
-
+    setLoadingAction('enter')
     try {
-      const res = await clickEnterButton(value, Number(cid))
-      if (res?.success === true) {
-        showSuccessToast('Enter action completed.')
-      } else {
-        showErrorToast('Enter action failed.')
-      }
+      const res = await clickEnterButton(column5Html, Number(selectChild), {
+        children_name: childName,
+        column5,
+        column6,
+        column6Html,
+        facilityId,
+        dateStr,
+        dispatch,
+        updateAppState,
+      })
+      if (res?.cancelled) return
+      if (!res?.success) showErrorToast(res?.error || '入室に失敗しました')
     } catch (e) {
       console.error('Enter action error', e)
-      showErrorToast('Enter action error.')
+      showErrorToast(String(e?.message || e))
+    } finally {
+      setLoadingAction(null)
     }
   }
 
-  const taishituButton = async (value) => {
-    const cid = selectChild
-
-    if (!value) {
-      showErrorToast('Exit action data was not found.')
+  const runLeave = async () => {
+    if (!column6Html) {
+      showErrorToast('退室ボタン情報がありません')
       return
     }
-
+    setLoadingAction('leave')
     try {
-      const res = await clickExitButton(value, Number(cid))
-      if (res?.success === true) {
-        showSuccessToast('Exit action completed.')
-      } else {
-        showErrorToast('Exit action failed.')
-      }
+      const res = await clickExitButton(column6Html, Number(selectChild), {
+        enterTime: column5,
+        children_name: childName,
+        column5,
+        column5Html,
+        column6,
+        facilityId,
+        dateStr,
+        dispatch,
+        updateAppState,
+      })
+      if (res?.cancelled) return
+      if (!res?.success) showErrorToast(res?.error || '退室に失敗しました')
     } catch (e) {
       console.error('Exit action error', e)
-      showErrorToast('Exit action error.')
+      showErrorToast(String(e?.message || e))
+    } finally {
+      setLoadingAction(null)
     }
   }
 
-  const kessekiButton = async (value) => {
-    const cid = selectChild
-
-    if (!value) {
-      showErrorToast('Absence action data was not found.')
+  const runAbsence = async () => {
+    if (!column5Html) {
+      showErrorToast('欠席ボタン情報がありません')
       return
     }
-
+    setLoadingAction('absence')
     try {
-      const res = await clickAbsenceButton(value, Number(cid))
-      if (res?.success === true) {
-        showSuccessToast('Absence action completed.')
-      } else {
-        showErrorToast('Absence action failed.')
-      }
+      const res = await clickAbsenceButton(column5Html, Number(selectChild))
+      if (res?.success) showSuccessToast('欠席モーダルを開きました')
+      else showErrorToast(res?.error || '欠席モーダル表示に失敗しました')
     } catch (e) {
       console.error('Absence action error', e)
-      showErrorToast('Absence action error.')
+      showErrorToast(String(e?.message || e))
+    } finally {
+      setLoadingAction(null)
     }
   }
 
@@ -184,91 +203,33 @@ function ChildMemoPanel() {
     <div className="child-memo-panel flex-1 min-h-0 border-l border-gray-300 bg-gray-50 flex flex-col">
       <div className="flex-1 min-h-0 overflow-y-auto p-2">
         <div
-          className={`flex flex-col rounded bg-gray-200 gap-2 p-2 ${
+          className={`child-memo-attendance-form flex flex-col rounded bg-white border border-gray-300 gap-2 p-2 ${
             !isUIEnabled ? 'opacity-60' : ''
           }`}
         >
-          {isAbsent ? (
-            <div className="text-xs font-bold text-red-600">
-              {column5}
-            </div>
-          ) : hasEntered ? (
-            <>
-              <div>入室: {column5}</div>
-
-              {hasExited && (
-                <div>退室: {column6}</div>
-              )}
-
-              {!hasExited && (
-                <button
-                  className={`btn-green mt-2 ${
-                    !isUIEnabled || isStop ? disabledBtnClass : ''
-                  }`}
-                  onClick={() => taishituButton(column6Html)}
-                  disabled={!isUIEnabled || isStop}
-                >
-                  退室
-                </button>
-              )}
-
-              {hasExited && (
-                <button
-                  className={`btn-purple mt-2 p-2 ${
-                    !isUIEnabled ? disabledBtnClass : ''
-                  }`}
-                  onClick={addProfessionalSupportNewTab}
-                  disabled={!isUIEnabled}
-                >
-                  専門的支援
-                </button>
-              )}
-            </>
-          ) : (
-            <>
-              <button
-                className={`btn-blue p-2 w-[80px] ${
-                  !isUIEnabled || isStop ? disabledBtnClass : ''
-                }`}
-                onClick={() => nyushituButton(column5Html)}
-                disabled={!isUIEnabled || isStop}
-              >
-                入室
-              </button>
-
-              <button
-                className={`btn-red mt-2 p-2 w-[80px] ${
-                  !isUIEnabled || isStop ? disabledBtnClass : ''
-                }`}
-                onClick={() => kessekiButton(column5Html)}
-                disabled={!isUIEnabled || isStop}
-              >
-                欠席
-              </button>
-            </>
-          )}
+          <AttendanceActionSection
+            childId={selectChild}
+            childName={childName}
+            dateStr={dateStr}
+            column5={column5}
+            column5Html={column5Html}
+            column6={column6}
+            column6Html={column6Html}
+            isAbsent={isAbsent}
+            hasEntered={hasEntered}
+            hasExited={hasExited}
+            isUIEnabled={isUIEnabled}
+            isStop={isStop}
+            loadingAction={loadingAction}
+            onEnter={runEnter}
+            onLeave={runLeave}
+            onAbsence={runAbsence}
+            onProfessionalSupport={addProfessionalSupportNewTab}
+          />
         </div>
 
         <div className="flex flex-wrap items-center justify-center gap-2 mt-2">
           <PersonalRecordGetBtn />
-
-          <button
-            id="professional-support-new"
-            onClick={addWebManagerAction_OutWindow}
-            title="Open web page"
-            aria-label="Open web page"
-            className="
-              flex items-center justify-center
-              bg-blue-300 rounded
-              text-black
-              px-3 py-2
-              cursor-pointer
-              transition-all
-              hover:bg-[#e3f2fd]
-            "
-          >
-            <GlobeAltIcon className="h-5 w-5" />
-          </button>
 
           <button
             id="kojin-kiroku"

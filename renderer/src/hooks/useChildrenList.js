@@ -1,8 +1,8 @@
 // src/hooks/useChildrenList.js
-import { useEffect, useState, useCallback } from "react"
+import { useEffect, useState, useCallback, useRef } from "react"
 import { useDispatch, useSelector } from "react-redux"
 import { useAppState } from "@/contexts/appState"
-import { ELEMENT_IDS } from "@/utils/constants.js"
+import { ELEMENT_IDS } from "@/utils/app/constants.js"
 
 import { mariadbApi } from "@/sql/mariadbApi.js"
 import { sqliteApi } from "@/sql/sqliteApi.js"
@@ -41,6 +41,11 @@ export function useChildrenList() {
   const [childrenData, setLocalChildrenData] = useState([])
   const [waitingChildrenData, setWaitingChildrenData] = useState([])
   const [experienceChildrenData, setExperienceChildrenData] = useState([])
+  const childrenDataRef = useRef(childrenData)
+
+  useEffect(() => {
+    childrenDataRef.current = childrenData
+  }, [childrenData])
 
   // =============================================================
   // 子どもデータ取得
@@ -101,6 +106,7 @@ export function useChildrenList() {
       })
 
       // local
+      childrenDataRef.current = weekChildren
       setLocalChildrenData(weekChildren)
       setWaitingChildrenData(waiting)
       setExperienceChildrenData(experience)
@@ -150,12 +156,11 @@ export function useChildrenList() {
             : c
         );
 
-      setLocalChildrenData((prev) => {
-        const next = patchList(prev);
-        setChildrenData(next);
-        updateAppState({ childrenData: next });
-        return next;
-      });
+      const nextWeek = patchList(childrenDataRef.current);
+      childrenDataRef.current = nextWeek;
+      setLocalChildrenData(nextWeek);
+      setChildrenData(nextWeek);
+      updateAppState({ childrenData: nextWeek });
 
       setWaitingChildrenData((prev) => patchList(prev));
       setExperienceChildrenData((prev) => patchList(prev));

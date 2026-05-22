@@ -1,7 +1,7 @@
 // renderer/src/components/common/PageRequestGet/ProfessionalPlan.jsx
 import React from "react";
 import { useAppState } from "@/contexts/appState";
-import { getActiveWebview } from "@/utils/webviewState";
+import { getActiveWebview } from "@/utils/webview/webviewState.js";
 import { ArrowPathIcon } from "@heroicons/react/24/solid";
 /**
  * アクティブ webview の Cookie 付きセッションで URL の HTML を取得する

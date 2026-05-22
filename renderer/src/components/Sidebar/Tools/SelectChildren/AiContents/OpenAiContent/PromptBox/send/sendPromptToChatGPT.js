@@ -1,5 +1,5 @@
 // renderer/src/components/Sidebar/Tools/MemoTool/Parts/AiContents/common/send/sendPromptToChatGPT.js
-import { getActiveWebview } from "@/utils/webviewState.js";
+import { getActiveWebview } from "@/utils/webview/webviewState.js";
 
 const OPEN_AI_DOMAIN = "chatgpt.com";
 

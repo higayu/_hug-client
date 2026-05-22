@@ -1,13 +1,9 @@
 /**
- * アクティブ webview の HUG セッションで勤怠テーブル HTML を取得する。
- * （renderer の fetch では Cookie が付かないため webview 内で実行）
+ * hugview（非表示可）の Cookie 付きセッションで勤怠テーブル HTML を取得する。
+ * Google拡張「入退室リクエスト」content.js の fetchAttendanceData と同様の GET fetch。
  *
  * @param {Electron.WebviewTag} webview
  * @param {{ facilityId: string, dateStr: string }} opts
- * @returns {Promise<
- *   | { ok: true; html: string; rowCount: number; pageTitle: string; pageUrl: string }
- *   | { ok: false; error: string }
- * >}
  */
 export async function fetchAttendanceTableInWebview(webview, opts) {
   const { facilityId, dateStr } = opts || {};
@@ -23,17 +19,15 @@ export async function fetchAttendanceTableInWebview(webview, opts) {
     (async () => {
       const F_ID = ${JSON.stringify(String(facilityId))};
       const DATE_STR = ${JSON.stringify(String(dateStr))};
-      // Google拡張（ページリクエスト/content2.js）と同じベースURL + 施設・日付
+      const DETAIL_BASE = "https://www.hug-ayumu.link/hug/wm/attendance.php";
       const params = new URLSearchParams({
         mode: "detail",
         f_id: F_ID,
         date: DATE_STR
       });
-      const TARGET_URL =
-        "https://www.hug-ayumu.link/hug/wm/attendance.php?" + params.toString();
+      const TARGET_URL = DETAIL_BASE + "?" + params.toString();
 
       const extractTableFromDocument = (doc) => {
-        // content1.js と同じ一覧テーブル（なければフォールバック）
         let table = doc.querySelector(
           "table.sortTable01:not(.sortTableAdding):not(.js_adding_table)"
         );
@@ -55,15 +49,10 @@ export async function fetchAttendanceTableInWebview(webview, opts) {
       try {
         console.log("[HUG WM] fetch開始:", TARGET_URL);
 
-        // content2.js と同じリクエスト形（GET + credentials: include のみ）
         const response = await fetch(TARGET_URL, {
           method: "GET",
           credentials: "include"
         });
-
-        console.log("[HUG WM] status:", response.status);
-        console.log("[HUG WM] ok:", response.ok);
-        console.log("[HUG WM] response URL:", response.url);
 
         if (!response.ok) {
           throw new Error("HTTP error: " + response.status);
@@ -88,12 +77,6 @@ export async function fetchAttendanceTableInWebview(webview, opts) {
           throw new Error("テーブルが見つかりません");
         }
 
-        console.log("[HUG WM] 勤怠テーブル取得（拡張機能と同様の fetch）", {
-          facilityId: F_ID,
-          dateStr: DATE_STR,
-          rowCount: tableResult.rowCount
-        });
-
         return {
           ok: true,
           html: tableResult.html,
@@ -117,7 +100,7 @@ export async function fetchAttendanceTableInWebview(webview, opts) {
   } catch (e) {
     return {
       ok: false,
-      error: e && e.message ? String(e.message) : String(e),
+      error: e?.message ? String(e.message) : String(e),
     };
   }
 }

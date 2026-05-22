@@ -25,7 +25,7 @@ import {
   setCurrentYmd as setCurrentYmdRedux,   // ★ 追加
 } from '@/store/slices/appStateSlice'
 
-import { loadIni as loadIniFromUtils } from '@/utils/iniUtils'
+import { loadIni as loadIniFromUtils } from '@/utils/config/iniUtils'
 
 const AppStateContext = createContext(null)
 

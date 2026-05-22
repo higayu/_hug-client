@@ -1,14 +1,14 @@
 import { useEffect, useRef } from 'react'
 // initTabs は React側の useTabs() フックに移行済み
-import { updateButtonVisibility } from '../utils/buttonVisibility.js'
+import { updateButtonVisibility } from '../utils/app/buttonVisibility.js'
 // initChildrenList は React側の useChildrenList() フックに移行済み
 import { useHugActions } from './useHugActions.js'
-import { loadAllReload } from '../utils/reloadSettings.js'
+import { loadAllReload } from '../utils/config/reloadSettings.js'
 // updateUI は React側の useUpdateUI() フックに移行済み
 import { useUpdateUI } from './useUpdateUI.js'
 import { useCustomButtonManager } from './useCustomButtonManager.js'
 // buttonVisibilityManager は削除されました（機能が空のため）
-import { getActiveWebview } from '../utils/webviewState.js'
+import { getActiveWebview } from '../utils/webview/webviewState.js'
 import { useToast } from  '@/components/common/ToastContext.jsx'
 
 export function useAppInitialization() {

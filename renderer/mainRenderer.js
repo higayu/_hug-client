@@ -1,9 +1,9 @@
 // ===== モジュール読み込み =====
-import { updateButtonVisibility } from "./src/utils/buttonVisibility.js";
+import { updateButtonVisibility } from "./src/utils/app/buttonVisibility.js";
 
-import { loadAllReload } from "./src/utils/reloadSettings.js";
+import { loadAllReload } from "./src/utils/config/reloadSettings.js";
 
-import { getActiveWebview } from "./src/utils/webviewState.js";
+import { getActiveWebview } from "./src/utils/webview/webviewState.js";
 import { 
   fetchAttendanceTableData, 
   fetchAttendanceData, 

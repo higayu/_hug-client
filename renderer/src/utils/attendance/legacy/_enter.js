@@ -1,6 +1,6 @@
 // src/utils/attendance/enter.js
 
-import { useDedicatedTabAndNavigate } from "./_shared/webview.js";
+import { useDedicatedTabAndNavigate } from "./_webview.js";
 
 /**
  * column5Html から sendEnterMail(...) 呼び出し文字列を抽出

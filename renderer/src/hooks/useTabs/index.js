@@ -1,7 +1,7 @@
 // renderer/src/hooks/useTabs/index.js
 import { useEffect, useCallback, useRef } from 'react'
 import { useAppState } from '@/contexts/appState'
-import { setActiveWebview } from '@/utils/webviewState.js'
+import { setActiveWebview } from '@/utils/webview/webviewState.js'
 import { activateTab, closeTab, clearActiveWebviewCache } from './common/index.js'
 import { addNormalTabAction } from './actions/normal.js'
 import { addPersonalRecordTabAction3 } from './actions/personalRecord.js'

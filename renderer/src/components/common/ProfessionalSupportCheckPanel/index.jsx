@@ -9,8 +9,8 @@ import { useProfessionalSupportCheck } from "@/hooks/useProfessionalSupportCheck
 const todayRegisteredLabel = (registered, checking) => {
   if (checking) return "確認中…";
   if (registered === true) return "登録済み";
-  if (registered === false) return "未登録";
-  return "未取得";
+  if (registered === false) return "未";
+  return "未";
 };
 
 export default function ProfessionalSupportCheckPanel({
@@ -54,7 +54,7 @@ export default function ProfessionalSupportCheckPanel({
               <span className="font-bold text-lg text-blue-500">{useDays}</span>日
             </span>
           ) : (
-            "未取得"
+            "未"
           )}
         </label>
         <label
@@ -62,7 +62,7 @@ export default function ProfessionalSupportCheckPanel({
             `flex-1 bg-white text-xs text-gray-500 p-1.5 rounded text-center ${labelClassName}`.trim()
           }
         >
-          本日の支援加算:{" "}
+          本日の登録:{" "}
           <span className={`font-bold ${registeredClass}`}>{registeredText}</span>
           {todayRecordCount != null && todayRecordCount > 0 ? (
             <span className="text-gray-400">（{todayRecordCount}件）</span>

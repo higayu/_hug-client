@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { getActiveWebview } from "@/utils/webviewState.js";
+import { getActiveWebview } from "@/utils/webview/webviewState.js";
 import { setCurrentUrl } from "@/store/slices/webviewSlice";
 
 export default function UrlContent() {

@@ -1,6 +1,6 @@
 // src/utils/attendance/exit.js
 
-import { useDedicatedTabAndNavigate } from "./_shared/webview.js";
+import { useDedicatedTabAndNavigate } from "./_webview.js";
 
 /**
  * column6Html から sendLeaveMail(...) 呼び出し文字列を抽出

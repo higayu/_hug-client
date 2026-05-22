@@ -10,7 +10,7 @@ import { useToast } from "@/components/common/ToastContext.jsx";
 import { useChildrenList } from "@/hooks/useChildrenList.js";
 import { selectManagersFull } from "./selectManagersFull.js";
 
-import { DAY_OF_WEEK_MASTER } from "@/utils/dateUtils.js"
+import { DAY_OF_WEEK_MASTER } from "@/utils/date/dateUtils.js"
 
 const MODAL_COMPONENTS = {
   edit: EditModal,

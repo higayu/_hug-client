@@ -1,10 +1,9 @@
 /**
- * 入退室と同様、hugview-first タブをアクティブにして
- * HUG の Cookie 付き webview で fetch できる状態にする。
+ * 画面操作が必要なときは hugview-first をアクティブにする。
+ * データ取得のみは @/hooks/useHugCache/getHugCache.js の getHugWebviewForCache を使う。
  */
 
-import { activateHugViewFirstButton } from "@/hooks/useTabs/common/index.js";
-import { setActiveWebview } from "@/utils/webviewState.js";
+import { resolveHugWebview } from "@/hooks/useHugCache/getHugCache.js";
 import { waitForWebviewReady } from "@/utils/attendance/_shared/webview.js";
 
 const HUG_WM_BASE = "https://www.hug-ayumu.link/hug/wm";
@@ -37,29 +36,12 @@ async function waitForWebviewUrl(webview, url) {
 }
 
 /**
- * hugview-first をアクティブにするだけ（URL は変えない）。
- * fetch は webview 内の Cookie 付きセッションで実行する。
+ * hugview-first をアクティブにして HUG セッションを使える状態にする（画面表示あり）
+ * @param {{ activateTab?: boolean }} [opts]
  * @returns {Promise<Electron.WebviewTag>}
  */
-export async function ensureHugWebviewSession() {
-  activateHugViewFirstButton();
-
-  const webview = document.getElementById("hugview");
-  if (!webview) {
-    throw new Error("hugview WebView が見つかりません");
-  }
-
-  setActiveWebview(webview);
-  await waitForWebviewReady(webview);
-
-  const origin = webview.getURL?.() || webview.getAttribute?.("src") || "";
-  if (!origin.includes("hug-ayumu.link")) {
-    throw new Error(
-      "HUG にログインした hugview タブを開いてから実行してください"
-    );
-  }
-
-  return webview;
+export async function ensureHugWebviewSession({ activateTab = true } = {}) {
+  return resolveHugWebview({ activateTab });
 }
 
 /**
@@ -72,12 +54,7 @@ export async function ensureHugWebviewForRecordProceedings(childId) {
     throw new Error("児童IDがありません");
   }
 
-  activateHugViewFirstButton();
-
-  const webview = document.getElementById("hugview");
-  if (!webview) {
-    throw new Error("hugview WebView が見つかりません");
-  }
+  const webview = await resolveHugWebview({ activateTab: true });
 
   const url =
     `${HUG_WM_BASE}/record_proceedings.php?mode=edit&select_child=${encodeURIComponent(String(childId))}`;
@@ -86,8 +63,6 @@ export async function ensureHugWebviewForRecordProceedings(childId) {
   if (!now.includes(`select_child=${childId}`)) {
     webview.src = url;
   }
-
-  setActiveWebview(webview);
 
   await waitForWebviewReady(webview);
   await waitForWebviewUrl(webview, url);

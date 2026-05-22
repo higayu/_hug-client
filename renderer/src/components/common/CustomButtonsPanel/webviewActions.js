@@ -1,6 +1,6 @@
 // src/components/CustomButtonsPanel/webviewActions.js
 
-import { getActiveWebview, setActiveWebview } from '@/utils/webviewState'
+import { getActiveWebview, setActiveWebview } from '@/utils/webview/webviewState.js'
 
 
 export async function handleCustomAction1(buttonConfig, appState) {

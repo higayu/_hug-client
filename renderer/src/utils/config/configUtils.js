@@ -1,8 +1,8 @@
 // src/utils/configUtils.js
 // 設定ファイル（config.json）の読み書きユーティリティ
 
-import { MESSAGES, ELEMENT_IDS } from './constants.js'
-import { getDateString, getTodayWeekdayId } from './dateUtils.js'
+import { MESSAGES, ELEMENT_IDS } from '../app/constants.js'
+import { getDateString, getTodayWeekdayId } from '../date/dateUtils.js'
 
 /**
  * config.jsonを保存

@@ -3,13 +3,13 @@ import { useEffect, useRef, useCallback, useState } from 'react'
 import { useAppState } from '@/contexts/appState'
 import { useCustomButtons } from '@/components/common/CustomButtonsContext.jsx'
 // AppState は window.AppState または useAppState() フック経由でアクセス可能
-import { saveConfig } from '@/utils/configUtils.js'
+import { saveConfig } from '@/utils/config/configUtils.js'
 import { useToast } from  '@/components/common/ToastContext.jsx'
-import { loadAllReload } from '@/utils/reloadSettings.js'
-import { updateButtonVisibility } from '@/utils/buttonVisibility.js'
+import { loadAllReload } from '@/utils/config/reloadSettings.js'
+import { updateButtonVisibility } from '@/utils/app/buttonVisibility.js'
 import { useCustomButtonManager } from './useCustomButtonManager.js'
 // buttonVisibilityManager は削除されました（機能が空のため）
-import { getActiveWebview } from '@/utils/webviewState.js'
+import { getActiveWebview } from '@/utils/webview/webviewState.js'
 import { getJoinedStaffFacilityData } from "@/sql/staff_facility_v/staffDispatcher.js";
 import { sqliteApi } from "@/sql/sqliteApi.js";
 import { mariadbApi } from "@/sql/mariadbApi.js";

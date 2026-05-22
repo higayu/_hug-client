@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react'
 import { useCustomButtons } from '@/components/common/CustomButtonsContext.jsx'
 //import { useAppState } from '@/contexts/AppStateContext.jsx'
 import { useAppState } from '@/contexts/appState'
-import { getActiveWebview, setActiveWebview } from '@/utils/webviewState.js'
+import { getActiveWebview, setActiveWebview } from '@/utils/webview/webviewState.js'
 import { useSelector } from "react-redux";
 
 function CustomButtonsPanel() {

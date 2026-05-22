@@ -1,7 +1,7 @@
 // renderer/src/hooks/useTabs/actions/professionalList.js
 
 import { createWebview, createTabButton, activateTab, closeTab } from '../common/index.js'
-import { getDateString } from '@/utils/dateUtils.js'
+import { getDateString } from '@/utils/date/dateUtils.js'
 
 export function addProfessionalSupportListAction(appState) {
   const tabsContainer = document.getElementById('tabs')

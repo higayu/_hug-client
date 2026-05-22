@@ -44,7 +44,7 @@ export function extractEnterButtonOnclick(column5Html) {
   export function assertAbsenceChildId(absenceId, expectedChildId) {
     const parsed = parseAbsenceId(absenceId);
     if (!parsed) throw new Error(`absenceId の形式が不正です: ${absenceId}`);
-  
+
     if (String(parsed.c_id) !== String(expectedChildId)) {
       throw new Error(
         `児童ID不一致: expected=${expectedChildId}, absenceId.c_id=${parsed.c_id}, absenceId=${absenceId}`
@@ -52,4 +52,29 @@ export function extractEnterButtonOnclick(column5Html) {
     }
     return parsed;
   }
-  
+
+const RE_SEND_ENTER =
+  /sendEnterMail\s*\(\s*['"]?[^'",)]+['"]?\s*,\s*([^,]+)\s*,\s*([^,]+)\s*,\s*([^,]+)/;
+
+const RE_SEND_LEAVE =
+  /sendLeaveMail\s*\(\s*['"]?[^'",)]+['"]?\s*,\s*([^,]+)\s*,\s*([^,]+)\s*,\s*([^,]+)/;
+
+/** sendEnterMail onclick から is_mail, c_id 等を粗くパース */
+export function parseEnterArgsFromOnclick(onclickAttr) {
+  const m = String(onclickAttr || "").match(RE_SEND_ENTER);
+  if (!m) return null;
+  return {
+    is_mail: Number(String(m[1]).trim()),
+    c_id: String(m[3]).trim().replace(/^'|'$/g, ""),
+  };
+}
+
+/** sendLeaveMail onclick から is_mail, c_id 等を粗くパース */
+export function parseLeaveArgsFromOnclick(onclickAttr) {
+  const m = String(onclickAttr || "").match(RE_SEND_LEAVE);
+  if (!m) return null;
+  return {
+    is_mail: Number(String(m[1]).trim()),
+    c_id: String(m[3]).trim().replace(/^'|'$/g, ""),
+  };
+}

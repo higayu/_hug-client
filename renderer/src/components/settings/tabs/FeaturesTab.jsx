@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { getActiveWebview } from '@/utils/webviewState.js'
+import { getActiveWebview } from '@/utils/webview/webviewState.js'
 //import { useIniState } from '@/contexts/IniStateContext.jsx'
 //import { useAppState } from '@/contexts/AppStateContext.jsx'
 import { useAppState } from '@/contexts/appState'

@@ -1,6 +1,6 @@
 // renderer/src/hooks/useTabs/actions/personalRecord.js
 
-import { getDateString } from '@/utils/dateUtils.js'
+import { getDateString } from '@/utils/date/dateUtils.js'
 import { createWebview, createTabButton, activateTab, closeTab } from '../common/index.js'
 
 

@@ -3,8 +3,8 @@
 
 import { loadConfig } from './configUtils.js'
 import { loadIni as loadIniFromUtils,loadPrompt } from './iniUtils.js'
-import { sqliteApi } from '../sql/sqliteApi.js'
-import { mariadbApi } from '../sql/mariadbApi.js'
+import { sqliteApi } from '../../sql/sqliteApi.js'
+import { mariadbApi } from '../../sql/mariadbApi.js'
 /**
  * config.json と ini.json の両方を再読み込みしてUIに反映
  * @returns {Promise<boolean>} 成功なら true

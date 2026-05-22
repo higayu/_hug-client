@@ -1,6 +1,6 @@
 // src/sql/getChildren/GetchildrenByStaffAndDay.js
 
-import { DAY_OF_WEEK_MASTER } from "@/utils/dateUtils.js"
+import { DAY_OF_WEEK_MASTER } from "@/utils/date/dateUtils.js"
 
 /**
  * スタッフ・曜日で子ども一覧を取得（managers2 対応）

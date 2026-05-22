@@ -68,6 +68,7 @@ export async function fetchProfessionalSupportSavedRecordsInWebview(
       };
 
       const fetchSearchFormDoc = async () => {
+        console.log("[HUG WM] 保存済み確認 GET URL:", RECORD_PROCEEDINGS_URL);
         const response = await fetch(RECORD_PROCEEDINGS_URL, {
           method: "GET",
           credentials: "include",
@@ -107,12 +108,27 @@ export async function fetchProfessionalSupportSavedRecordsInWebview(
         return params;
       };
 
+      const isMeaningfulRow = (row) => {
+        if (row.recordId) return true;
+        const keys = [
+          "childName",
+          "additionName",
+          "facilityName",
+          "service",
+          "recorder",
+          "interviewDate",
+          "status",
+          "signed",
+          "lastUpdated",
+        ];
+        return keys.some((k) => String(row[k] || "").trim() !== "");
+      };
+
       const parseResultTable = (doc) => {
         const table = doc.querySelector(TABLE_SELECTOR);
         if (!table) return { rows: [] };
 
-        return {
-          rows: [...table.querySelectorAll("tbody tr")].map((tr) => {
+        const rows = [...table.querySelectorAll("tbody tr")].map((tr) => {
             const cells = [...tr.querySelectorAll("td")];
             const detailOnclick =
               (cells[0] &&
@@ -138,21 +154,19 @@ export async function fetchProfessionalSupportSavedRecordsInWebview(
               signed: normalizeText(cells[8]),
               lastUpdated: normalizeText(cells[9])
             };
-          })
-        };
+          });
+
+        return { rows: rows.filter(isMeaningfulRow) };
       };
 
       try {
         const formDoc = await fetchSearchFormDoc();
         const body = buildSearchParams(formDoc);
 
-        console.log("[HUG WM] 保存済み確認 POST検索");
-        console.log("[HUG WM] c_id:", C_ID);
+        console.log("[HUG WM] 保存済み確認 POST URL:", RECORD_PROCEEDINGS_URL);
         console.log(
-          "[HUG WM] 実施日:",
-          INTERVIEW_DATE,
-          "〜",
-          INTERVIEW_DATE_END
+          "[HUG WM] 保存済み確認 POST params:",
+          Object.fromEntries(body)
         );
 
         const response = await fetch(RECORD_PROCEEDINGS_URL, {

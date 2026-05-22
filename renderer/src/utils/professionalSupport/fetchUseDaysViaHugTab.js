@@ -1,6 +1,6 @@
-import { ensureHugWebviewSession } from "./ensureHugWebview.js";
+import { getHugWebviewForCache } from "@/hooks/useHugCache/getHugCache.js";
 import { formatYmdToHugInterviewDate } from "./formatInterviewDate.js";
-import { fetchProfessionalSupportUseDaysInWebview } from "@/utils/fetchProfessionalSupportUseDaysInWebview.js";
+import { fetchProfessionalSupportUseDaysInWebview } from "@/utils/professionalSupport/fetchProfessionalSupportUseDaysInWebview.js";
 
 /**
  * hugview の Cookie だけ使い、ページ遷移なしで利用日数を取得する
@@ -12,7 +12,7 @@ export async function fetchProfessionalSupportUseDaysViaHugTab({
   interviewDate,
   currentYmd,
 }) {
-  const webview = await ensureHugWebviewSession();
+  const webview = await getHugWebviewForCache();
 
   const resolvedInterviewDate =
     interviewDate || formatYmdToHugInterviewDate(currentYmd);

@@ -1,6 +1,6 @@
 // @/components/Sidebar/Tools/SelectChildren/PersonalInput/PersonalInjectButton.jsx
 import React from 'react';
-import { getActiveWebview } from '@/utils/webviewState.js';
+import { getActiveWebview } from '@/utils/webview/webviewState.js';
 import { useToast } from "@/components/common/ToastContext.jsx";
 import { ProfessionalDraftSave } from './ProfessionalDraftSave.js';
 import { ArrowRightIcon } from '@heroicons/react/24/solid';

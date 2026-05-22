@@ -2,7 +2,7 @@
 import React from "react"
 import { useAppState } from "@/contexts/appState"
 import { useToast } from "@/components/common/ToastContext.jsx"
-import { DAY_OF_WEEK_MASTER } from "@/utils/dateUtils.js"
+import { DAY_OF_WEEK_MASTER } from "@/utils/date/dateUtils.js"
 
 function WeekdaySelect({
   id = "weekdaySelect",

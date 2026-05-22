@@ -1,5 +1,5 @@
-import { ensureHugWebviewSession } from "@/utils/professionalSupport/ensureHugWebview.js";
-import { fetchContactBookRecordsInWebview } from "@/utils/fetchContactBookRecordsInWebview.js";
+import { getHugWebviewForCache } from "@/hooks/useHugCache/getHugCache.js";
+import { fetchContactBookRecordsInWebview } from "@/utils/personalRecord/fetchContactBookRecordsInWebview.js";
 
 /**
  * hugview の Cookie だけ使い、ページ遷移なしで個人記録（活動内容 note）を取得する
@@ -22,7 +22,7 @@ export async function fetchContactBookViaHugTab({
   currentYmd,
   onlyPresent = true,
 }) {
-  const webview = await ensureHugWebviewSession();
+  const webview = await getHugWebviewForCache();
 
   const resolvedStart = dateStart || currentYmd;
   const resolvedEnd = dateEnd || dateStart || currentYmd;

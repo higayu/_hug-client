@@ -1,7 +1,7 @@
 // renderer\src\hooks\useTabs\common\clearCacheTab.js
 // アクティブな WebView のキャッシュを削除する共通関数
 
-import { getActiveWebview } from "@/utils/webviewState.js";
+import { getActiveWebview } from "@/utils/webview/webviewState.js";
 
 export async function clearActiveWebviewCache() {
   const activeView = getActiveWebview();

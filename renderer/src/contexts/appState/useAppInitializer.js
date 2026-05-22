@@ -1,5 +1,5 @@
-import { loadConfig } from '@/utils/configUtils'
-import { loadIni, loadPrompt } from '@/utils/iniUtils'
+import { loadConfig } from '@/utils/config/configUtils'
+import { loadIni, loadPrompt } from '@/utils/config/iniUtils'
 import { updateAppState, setPrompts } from '@/store/slices/appStateSlice'
 
 // 旧 AppStateContext 互換の初期化フロー
