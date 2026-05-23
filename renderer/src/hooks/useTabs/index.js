@@ -107,29 +107,15 @@ export function useTabs() {
     }
     addTabBtn.addEventListener('contextmenu', handleContextMenu)
 
-    const kojinButton = document.getElementById('kojin-kiroku')
-    if (kojinButton) {
-      kojinButton.addEventListener('click', addPersonalRecordTab)
-    }
-
-    const professionalSupportBtn = document.getElementById('professional-support')
-    if (professionalSupportBtn) {
-      professionalSupportBtn.addEventListener('click', addProfessionalSupportListTab)
-    }
+    // #kojin-kiroku / #professional-support は各コンポーネントの onClick で処理（DOM リスナー併用で二重発火する）
 
     return () => {
       if (addTabBtn) {
         addTabBtn.removeEventListener('click', addNormalTab)
         addTabBtn.removeEventListener('contextmenu', handleContextMenu)
       }
-      if (kojinButton) {
-        kojinButton.removeEventListener('click', addPersonalRecordTab)
-      }
-      if (professionalSupportBtn) {
-        professionalSupportBtn.removeEventListener('click', addProfessionalSupportListTab)
-      }
     }
-  }, [addNormalTab, addPersonalRecordTab, addProfessionalSupportListTab, appState.FACILITY_ID, appState.CURRENT_YMD])
+  }, [addNormalTab, appState.FACILITY_ID, appState.CURRENT_YMD])
 
   return {
     addNormalTab,

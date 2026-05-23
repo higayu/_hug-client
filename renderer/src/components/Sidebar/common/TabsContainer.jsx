@@ -5,7 +5,7 @@ import SQLManager from '../Tools/SQLManager/index.jsx'
 import ChildrenTable from '../Tools/InsertManageChildren/index.jsx'
 import UpdateManager from '../Tools/UpdateManager/index.jsx'
 //import { useAppState } from '@/contexts/AppStateContext.jsx'
-import GetKojinkiroku from '@/components/Sidebar/Tools/TestTool/GetKojinkiroku.jsx';
+import GetKojinkiroku from './GetKojinkiroku.jsx';
 import { useAppState } from '@/contexts/appState'
 //import { FaTable } from "react-icons/fa";
 
