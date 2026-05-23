@@ -99,10 +99,12 @@
 
     bodyEl.innerHTML = `
       <section class="hug-form-section hug-form-section-attendance" style="${SECTION_ATTENDANCE_STYLE}">
-        <div style="${SECTION_TITLE_STYLE}">出席表・児童一覧</div>
-        <div style="margin-bottom:6px;">
-          <div style="font-size:11px;color:#666;margin-bottom:2px;">入退室フォーム（localStorage・出席表POST）</div>
-          <div id="hug-form-attendance-wm-facilities" style="font-size:10px;color:#444;line-height:1.4;word-break:break-all;"></div>
+        <div style="display:flex;align-items:center;gap:margin-bottom:6px;">
+          <div style="${SECTION_TITLE_STYLE};">出席表・児童一覧</div>
+          <div
+            id="hug-form-attendance-wm-facilities"
+            style="font-size:10px;word-break:break-all;"
+          ></div>
         </div>
         <div style="display:flex;gap:8px;margin-bottom:0;align-items:flex-end;">
           <label style="flex:2;min-width:0;margin:0;">
@@ -128,7 +130,10 @@
             <input type="date" id="hug-form-date" title="個人記録一覧・編集の取得日" style="display:block;width:100%;margin-top:2px;box-sizing:border-box;">
           </label>
         </div>
-        <button type="button" id="hug-form-fetch" style="width:100%;padding:6px 0;cursor:pointer;">個人記録を取得</button>
+        <div style="display:flex;gap:8px;margin-bottom:0;">
+          <button type="button" id="hug-form-fetch-month" style="flex:1;padding:6px 0;cursor:pointer;" title="過去分のみ（当日は除く）。今月1日〜昨日から最大6か月さかのぼって1件見つかるまで取得">過去の検索</button>
+          <button type="button" id="hug-form-fetch" style="flex:1;padding:6px 0;cursor:pointer;">個人記録を取得</button>
+        </div>
         <div id="hug-form-status" style="margin-top:8px;font-size:12px;color:#666;"></div>
         <label style="display:block;margin-top:10px;font-size:12px;color:#444;">
           活動内容（note）
@@ -203,6 +208,7 @@
     );
     const facilitySelect = document.getElementById("hug-form-facility");
     const dateInput = document.getElementById("hug-form-date");
+    const fetchMonthBtn = document.getElementById("hug-form-fetch-month");
     const fetchBtn = document.getElementById("hug-form-fetch");
 
     attendanceDateInput.value = todayDate();
@@ -286,16 +292,101 @@
       }
     };
 
-    fetchBtn.addEventListener("click", async () => {
+    const setFetchButtonsDisabled = (disabled) => {
+      fetchBtn.disabled = disabled;
+      fetchMonthBtn.disabled = disabled;
+    };
+
+    const readPersonalFetchContext = () => {
       const childId = childSelect.value;
       const facilityId = Number(facilitySelect.value);
+      if (!childId) {
+        setStatus("児童を選択してください", true);
+        return null;
+      }
+      return { childId, facilityId };
+    };
+
+    const applyFetchedRecord = (record, records, statusSuffix = "") => {
+      console.log("[HUG WM] 取得完了:", record);
+      console.table(records);
+
+      const dateNorm =
+        record?.dateNorm ||
+        window.HugPersonalList?.normalizeListDate?.(record?.date);
+      if (dateNorm && dateInput) {
+        dateInput.value = dateNorm;
+      }
+
+      setNoteDisplay(record);
+      const suffix = statusSuffix ? ` ${statusSuffix}` : "";
+      setStatus(
+        record?.note
+          ? `取得完了（${record.note.length} 文字）${suffix}`
+          : `取得完了: ${records.length} 件（note なし）${suffix}`
+      );
+    };
+
+    fetchMonthBtn.addEventListener("click", async () => {
+      const ctx = readPersonalFetchContext();
+      if (!ctx) {
+        return;
+      }
+
+      const fetchUntilFound =
+        window.HugPersonalForm?.MonthFetch?.fetchPersonalRecordsUntilFound;
+      if (!fetchUntilFound) {
+        setStatus(
+          "personal-record-month-fetch.js が読み込まれていません",
+          true
+        );
+        return;
+      }
+
+      setFetchButtonsDisabled(true);
+      setStatus("月ごとに個人記録を検索中…（今月から最大6か月）");
+      setNoteDisplay(null);
+
+      try {
+        const result = await fetchUntilFound({
+          facilityId: ctx.facilityId,
+          childId: ctx.childId,
+          withNotes: true,
+          onMonthAttempt: ({ phase, dateStart, dateEnd }) => {
+            if (phase === "list") {
+              setStatus(`${dateStart}〜${dateEnd} を一覧取得中…`);
+              return;
+            }
+            if (phase === "empty") {
+              setStatus(`${dateStart}〜${dateEnd} に該当なし。前月へ…`);
+              return;
+            }
+            if (phase === "note") {
+              setStatus(`${dateStart}〜${dateEnd} の note を取得中…`);
+            }
+          }
+        });
+
+        const { record, records, monthWindow } = result;
+        const rangeLabel = `${monthWindow.dateStart}〜${monthWindow.dateEnd}`;
+        applyFetchedRecord(record, records, `（${rangeLabel}）`);
+      } catch (err) {
+        console.error("[HUG WM] 月ごと個人記録取得エラー:", err);
+        setNoteDisplay(null);
+        setStatus(`取得エラー: ${err.message}`, true);
+      } finally {
+        setFetchButtonsDisabled(false);
+      }
+    });
+
+    fetchBtn.addEventListener("click", async () => {
+      const ctx = readPersonalFetchContext();
+      if (!ctx) {
+        return;
+      }
       const date = dateInput.value;
       const dateEnd = date;
 
-      if (!childId) {
-        setStatus("児童を選択してください", true);
-        return;
-      }
       if (!date) {
         setStatus("日付を入力してください", true);
         return;
@@ -305,36 +396,27 @@
         return;
       }
 
-      fetchBtn.disabled = true;
+      setFetchButtonsDisabled(true);
       setStatus("個人記録を取得中…");
       setNoteDisplay(null);
 
       try {
         const records = await window.HugPersonalList.fetchPersonalRecords({
-          facilityId,
+          facilityId: ctx.facilityId,
           date,
           dateEnd,
-          childId,
+          childId: ctx.childId,
           withNotes: true
         });
 
         const record = records[0] ?? null;
-
-        console.log("[HUG WM] 取得完了:", record);
-        console.table(records);
-
-        setNoteDisplay(record);
-        setStatus(
-          record?.note
-            ? `取得完了（${record.note.length} 文字）`
-            : `取得完了: ${records.length} 件（note なし）`
-        );
+        applyFetchedRecord(record, records);
       } catch (err) {
         console.error("[HUG WM] 個人記録取得エラー:", err);
         setNoteDisplay(null);
         setStatus(`取得エラー: ${err.message}`, true);
       } finally {
-        fetchBtn.disabled = false;
+        setFetchButtonsDisabled(false);
       }
     });
 
