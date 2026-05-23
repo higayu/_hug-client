@@ -94,29 +94,93 @@
   const SECTION_TITLE_STYLE =
     "font-size:11px;font-weight:bold;color:#555;margin:0 0 6px;letter-spacing:.02em;";
 
+  const ATTENDANCE_SECTION_COLLAPSED_KEY =
+    "hugPersonalFormAttendanceSectionCollapsed";
+
+  const wireAttendanceSectionCollapse = () => {
+    const section = document.querySelector(
+      ".hug-form-section-attendance"
+    );
+    const toggle = document.getElementById("hug-form-attendance-toggle");
+    const body = document.getElementById("hug-form-attendance-body");
+    if (!section || !toggle || !body) return;
+
+    const setCollapsed = (collapsed) => {
+      section.classList.toggle("hug-form-section-collapsed", collapsed);
+      toggle.setAttribute("aria-expanded", collapsed ? "false" : "true");
+      toggle.textContent = collapsed ? "開く" : "閉じる";
+      try {
+        localStorage.setItem(
+          ATTENDANCE_SECTION_COLLAPSED_KEY,
+          collapsed ? "1" : "0"
+        );
+      } catch {
+        /* ignore */
+      }
+    };
+
+    let initialCollapsed = false;
+    try {
+      initialCollapsed =
+        localStorage.getItem(ATTENDANCE_SECTION_COLLAPSED_KEY) === "1";
+    } catch {
+      /* ignore */
+    }
+    setCollapsed(initialCollapsed);
+
+    toggle.addEventListener("click", (event) => {
+      event.preventDefault();
+      setCollapsed(!section.classList.contains("hug-form-section-collapsed"));
+    });
+  };
+
   const renderPanelBody = (bodyEl) => {
     if (!bodyEl) return;
 
     bodyEl.innerHTML = `
-      <section class="hug-form-section hug-form-section-attendance" style="${SECTION_ATTENDANCE_STYLE}">
-        <div style="display:flex;align-items:center;gap:margin-bottom:6px;">
-          <div style="${SECTION_TITLE_STYLE};">出席表・児童一覧</div>
-          <div
-            id="hug-form-attendance-wm-facilities"
-            style="font-size:10px;word-break:break-all;"
-          ></div>
-        </div>
-        <div style="display:flex;gap:8px;margin-bottom:0;align-items:flex-end;">
-          <label style="flex:2;min-width:0;margin:0;">
+    <section class="hug-form-section hug-form-section-attendance" style="${SECTION_ATTENDANCE_STYLE}">
+      <div class="hug-form-section-header" style="display:flex;align-items:flex-start;gap:6px;margin-bottom:6px;">
+        <button
+          type="button"
+          id="hug-form-attendance-toggle"
+          class="hug-form-section-toggle"
+          aria-expanded="true"
+          aria-controls="hug-form-attendance-body"
+          title="出席表・児童一覧の表示を切り替え"
+        >閉じる</button>
+
+        <div style="flex:1;min-width:0;">
+          <div style="${SECTION_TITLE_STYLE}margin-bottom:4px;">出席表・児童一覧</div>
+
+          <div id="hug-form-attendance-body" class="hug-form-section-body">
+            <div
+              id="hug-form-attendance-wm-facilities"
+              style="font-size:10px;word-break:break-all;margin-bottom:6px;"
+            ></div>
+
+            <div style="display:flex;gap:8px;margin-bottom:6px;align-items:flex-end;">
+              <label style="flex:1;min-width:0;margin:0;">
+                出席表日付
+                <input
+                  type="date"
+                  id="hug-form-attendance-date"
+                  title="入退室データ取得 POST の s_date"
+                  style="display:block;width:100%;margin-top:2px;box-sizing:border-box;"
+                >
+              </label>
+            </div>
+          </div>
+
+          <label style="display:block;margin:0;">
             児童
-            <select id="hug-form-child" style="display:block;width:100%;margin-top:2px;box-sizing:border-box;"></select>
-          </label>
-          <label style="flex:1;min-width:0;margin:0;">
-            出席表日付
-            <input type="date" id="hug-form-attendance-date" title="入退室データ取得 POST の s_date" style="display:block;width:100%;margin-top:2px;box-sizing:border-box;">
+            <select
+              id="hug-form-child"
+              style="display:block;width:100%;margin-top:2px;box-sizing:border-box;"
+            ></select>
           </label>
         </div>
-      </section>
+      </div>
+    </section>
 
       <section class="hug-form-section hug-form-section-personal" style="${SECTION_PERSONAL_RECORD_STYLE}">
         <div style="${SECTION_TITLE_STYLE}">個人記録</div>
@@ -201,6 +265,7 @@
     }
 
     renderPanelBody(bodyEl);
+    wireAttendanceSectionCollapse();
 
     const childSelect = document.getElementById("hug-form-child");
     const attendanceDateInput = document.getElementById(

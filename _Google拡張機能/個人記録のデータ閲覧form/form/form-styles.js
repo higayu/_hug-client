@@ -116,6 +116,31 @@
         overflow: hidden;
         border: none;
       }
+
+      #hug-personal-record-form .hug-form-section-toggle {
+        flex-shrink: 0;
+        cursor: pointer;
+        padding: 2px 8px;
+        border: 1px solid #64b5f6;
+        border-radius: 4px;
+        background: #fff;
+        color: #1565c0;
+        font-size: 11px;
+        line-height: 1.3;
+        white-space: nowrap;
+      }
+
+      #hug-personal-record-form .hug-form-section-toggle:hover {
+        background: #e3f2fd;
+      }
+
+      #hug-personal-record-form .hug-form-section-attendance.hug-form-section-collapsed .hug-form-section-body {
+        display: none;
+      }
+
+      #hug-personal-record-form .hug-form-section-attendance.hug-form-section-collapsed .hug-form-section-header {
+        margin-bottom: 0;
+      }
     `;
 
     document.head.appendChild(style);
