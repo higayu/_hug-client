@@ -131,7 +131,7 @@
           </label>
         </div>
         <div style="display:flex;gap:8px;margin-bottom:0;">
-          <button type="button" id="hug-form-fetch-month" style="flex:1;padding:6px 0;cursor:pointer;" title="過去分のみ（当日は除く）。今月1日〜昨日から最大6か月さかのぼって1件見つかるまで取得">過去の検索</button>
+          <button type="button" id="hug-form-fetch-month" style="flex:1;padding:6px 0;cursor:pointer;" title="過去分のみ（当日は除く）。今月1日〜昨日から最大6か月さかのぼって1件見つかるまで取得">過去の自動探索</button>
           <button type="button" id="hug-form-fetch" style="flex:1;padding:6px 0;cursor:pointer;">個人記録を取得</button>
         </div>
         <div id="hug-form-status" style="margin-top:8px;font-size:12px;color:#666;"></div>
