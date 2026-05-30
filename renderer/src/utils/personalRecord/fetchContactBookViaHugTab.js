@@ -23,6 +23,7 @@ export async function fetchContactBookViaHugTab({
   onlyPresent = true,
 }) {
   const webview = await getHugWebviewForCache();
+  console.log('webviewの値', webview);
 
   const resolvedStart = dateStart || currentYmd;
   const resolvedEnd = dateEnd || dateStart || currentYmd;

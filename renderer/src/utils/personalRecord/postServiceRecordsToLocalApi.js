@@ -75,6 +75,12 @@ export function buildServiceRecordPayload(record, { childrenId, facilityId }) {
   };
 }
 
+/** ローカル API が重複（HTTP 409）で拒否したか */
+export function isServiceRecordDuplicateError(message) {
+  const text = String(message ?? "");
+  return /\b409\b/.test(text) || /status code 409/i.test(text);
+}
+
 /**
  * 取得した個人記録をローカル API（…/api/sql/houday/service_record）へ POST
  *
@@ -84,6 +90,7 @@ export function buildServiceRecordPayload(record, { childrenId, facilityId }) {
  *   ok: boolean;
  *   posted: number;
  *   skipped: number;
+ *   duplicated: number;
  *   failed: number;
  *   results: Array<{
  *     date?: string;
@@ -91,6 +98,8 @@ export function buildServiceRecordPayload(record, { childrenId, facilityId }) {
  *     payload?: object;
  *     data?: unknown;
  *     error?: string;
+ *     skipped?: boolean;
+ *     duplicate?: boolean;
  *   }>;
  * }>}
  */
@@ -102,6 +111,7 @@ export async function postServiceRecordsToLocalApi(records, ctx) {
       ok: false,
       posted: 0,
       skipped: 0,
+      duplicated: 0,
       failed: 0,
       results: [{ ok: false, error: "childrenId / facilityId が指定されていません" }],
     };
@@ -112,6 +122,7 @@ export async function postServiceRecordsToLocalApi(records, ctx) {
       ok: false,
       posted: 0,
       skipped: 0,
+      duplicated: 0,
       failed: 0,
       results: [
         { ok: false, error: "mariadb_service_record_insert が利用できません" },
@@ -123,6 +134,7 @@ export async function postServiceRecordsToLocalApi(records, ctx) {
   const results = [];
   let posted = 0;
   let skipped = 0;
+  let duplicated = 0;
   let failed = 0;
 
   for (const record of list) {
@@ -149,6 +161,14 @@ export async function postServiceRecordsToLocalApi(records, ctx) {
       if (isSkip) {
         skipped += 1;
         results.push({ date: dateLabel, ok: false, error: message, skipped: true });
+      } else if (isServiceRecordDuplicateError(message)) {
+        duplicated += 1;
+        results.push({
+          date: dateLabel,
+          ok: false,
+          error: message,
+          duplicate: true,
+        });
       } else {
         failed += 1;
         results.push({ date: dateLabel, ok: false, error: message });
@@ -160,6 +180,7 @@ export async function postServiceRecordsToLocalApi(records, ctx) {
     ok: failed === 0,
     posted,
     skipped,
+    duplicated,
     failed,
     results,
   };

@@ -16,7 +16,7 @@ import {
 import PersonalInjectButton from './PersonalInput/PersonalInjectButton';
 import RecordProceedingsDraftSaveButton from './PersonalInput/RecordProceedingsDraftSaveButton';
 import MemoInputBox from './MemoInputBox';
-import TabPanel from './TabPanel';
+import TabPanel from '@/components/Sidebar/common/TabPanel';
 import PersonalRecordManagerPanel from '@/components/common/PersonalRecordManagerPanel';
 const DBG = 'PersonalRecordPrompt';
 

@@ -1,11 +1,11 @@
 // renderer/src/components/Sidebar/TabsContainer.jsx
 import { useState, useMemo } from 'react'
-import ToolContent from '../Tools/SelectChildren/index.jsx'
-import SQLManager from '../Tools/SQLManager/index.jsx'
-import ChildrenTable from '../Tools/InsertManageChildren/index.jsx'
-import UpdateManager from '../Tools/UpdateManager/index.jsx'
+import ToolContent from '@/components/Sidebar/Tools/SelectChildren'
+import SQLManager from '@/components/Sidebar/Tools/SQLManager'
+import ChildrenTable from '@/components/Sidebar/Tools/InsertManageChildren'
+import UpdateManager from '@/components/Sidebar/Tools/UpdateManager'
 //import { useAppState } from '@/contexts/AppStateContext.jsx'
-import GetKojinkiroku from './GetKojinkiroku.jsx';
+import GetKojinkiroku from '@/components/Sidebar/common/GetKojinkiroku';
 import { useAppState } from '@/contexts/appState'
 //import { FaTable } from "react-icons/fa";
 

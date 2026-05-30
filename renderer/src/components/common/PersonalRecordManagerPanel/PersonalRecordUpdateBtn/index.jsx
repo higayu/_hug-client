@@ -1,15 +1,33 @@
 import { useCallback, useRef, useState } from "react";
 import { useAppState } from "@/contexts/appState";
+import { useToast } from "@/components/common/ToastContext.jsx";
 import { fetchContactBookViaHugTab } from "@/utils/personalRecord/fetchContactBookViaHugTab.js";
 import { postServiceRecordsToLocalApi } from "@/utils/personalRecord/postServiceRecordsToLocalApi.js";
 
 const LOG_TAG = "PersonalRecordGet";
+
+function notifyPostResultToasts(postResult, { showSuccessToast, showInfoToast, showErrorToast }) {
+  const { posted = 0, duplicated = 0, failed = 0 } = postResult ?? {};
+
+  if (posted > 0) {
+    showSuccessToast(
+      posted === 1 ? "個人記録を保存しました" : `${posted}件の個人記録を保存しました`
+    );
+  }
+  if (duplicated > 0) {
+    showInfoToast("登録済みです");
+  }
+  if (failed > 0) {
+    showErrorToast("個人記録の保存に失敗しました");
+  }
+}
 
 /**
  * 選択中児童の個人記録（活動内容 note）を hugview 経由で取得し、コンソールに出力する（テスト用）
  */
 export default function PersonalRecordUpdateBtn({ dateStr }) {
   const { SELECT_CHILD, FACILITY_ID, CURRENT_YMD } = useAppState();
+  const { showSuccessToast, showInfoToast, showErrorToast } = useToast();
   const [fetching, setFetching] = useState(false);
   const isFetchingRef = useRef(false);
 
@@ -46,6 +64,7 @@ export default function PersonalRecordUpdateBtn({ dateStr }) {
 
       if (!result.ok) {
         console.error(`[${LOG_TAG}] 取得失敗:`, result.error);
+        showErrorToast("個人記録の取得に失敗しました");
         return;
       }
 
@@ -71,22 +90,38 @@ export default function PersonalRecordUpdateBtn({ dateStr }) {
       });
 
       console.log(`[${LOG_TAG}] ローカルDB保存`, postResult);
+      notifyPostResultToasts(postResult, {
+        showSuccessToast,
+        showInfoToast,
+        showErrorToast,
+      });
       postResult.results?.forEach((row) => {
         if (row.ok) {
           console.log(`[${LOG_TAG}] POST成功 ${row.date}`, row.payload);
         } else if (row.skipped) {
           console.warn(`[${LOG_TAG}] POSTスキップ ${row.date}:`, row.error);
+        } else if (row.duplicate) {
+          console.warn(`[${LOG_TAG}] POST重複 ${row.date}:`, row.error);
         } else {
           console.error(`[${LOG_TAG}] POST失敗 ${row.date}:`, row.error);
         }
       });
     } catch (e) {
       console.error(`[${LOG_TAG}] 例外:`, e);
+      showErrorToast("個人記録の取得・保存でエラーが発生しました");
     } finally {
       isFetchingRef.current = false;
       setFetching(false);
     }
-  }, [SELECT_CHILD, FACILITY_ID, CURRENT_YMD, dateStr]);
+  }, [
+    SELECT_CHILD,
+    FACILITY_ID,
+    CURRENT_YMD,
+    dateStr,
+    showSuccessToast,
+    showInfoToast,
+    showErrorToast,
+  ]);
 
   return (
     <button
