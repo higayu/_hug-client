@@ -306,6 +306,16 @@
             </span>
           </span>
           <span id="hug-form-note-meta" style="display:block;font-weight:normal;color:#888;margin:2px 0 4px;"></span>
+          <label style="display:block;margin:0 0 8px;font-weight:normal;color:#444;">
+            記録者
+            <select
+              id="hug-form-record-staff"
+              name="record_staff"
+              style="display:block;width:100%;margin-top:2px;box-sizing:border-box;padding:4px;border:1px solid #ccc;border-radius:4px;background:#fff;"
+            >
+              <option value="">取得後に表示されます</option>
+            </select>
+          </label>
           <textarea id="hug-form-note" readonly rows="12" spellcheck="false" placeholder="取得後に表示されます" style="display:block;width:100%;margin-top:2px;box-sizing:border-box;padding:8px;line-height:1.45;border:1px solid #ccc;border-radius:4px;resize:vertical;min-height:160px;background:#fff;"></textarea>
         </label>
       </section>
@@ -337,6 +347,33 @@
     }
   };
 
+  const setRecordStaffDisplay = (recordStaff) => {
+    const selectEl = document.getElementById("hug-form-record-staff");
+    if (!selectEl) return;
+
+    selectEl.innerHTML = "";
+
+    if (!recordStaff?.options?.length) {
+      const option = document.createElement("option");
+      option.value = "";
+      option.textContent = recordStaff ? "（記録者なし）" : "取得後に表示されます";
+      selectEl.appendChild(option);
+      return;
+    }
+
+    recordStaff.options.forEach((item) => {
+      const option = document.createElement("option");
+      option.value = item.value;
+      option.textContent = item.text;
+      option.selected = Boolean(item.selected);
+      selectEl.appendChild(option);
+    });
+
+    if (recordStaff.value) {
+      selectEl.value = recordStaff.value;
+    }
+  };
+
   const setNoteDisplay = (record) => {
     const noteEl = document.getElementById("hug-form-note");
     const metaEl = document.getElementById("hug-form-note-meta");
@@ -345,10 +382,12 @@
     if (!record) {
       noteEl.value = "";
       if (metaEl) metaEl.textContent = "";
+      setRecordStaffDisplay(null);
       return;
     }
 
     noteEl.value = record.note ?? "";
+    setRecordStaffDisplay(record.recordStaff ?? null);
     if (metaEl) {
       const parts = [record.date, record.childName, record.attendance].filter(
         Boolean

@@ -36,7 +36,7 @@ const RECORD_STAFF_CELL_SELECTOR =
   "#form_id > div:nth-child(19) > div.ebox-content.careContent > table.mb10 > tbody > tr > td";
 const RECORD_STAFF_SELECT_SELECTOR = 'select[name="record_staff"]';
 
-function extractRecordStaffSelectFromEditDoc(editDoc) {
+function extractRecordStaffFromEditDoc(editDoc) {
   const cell = editDoc.querySelector(RECORD_STAFF_CELL_SELECTOR);
   const select =
     cell?.querySelector(RECORD_STAFF_SELECT_SELECTOR) ||
@@ -58,16 +58,27 @@ function extractRecordStaffSelectFromEditDoc(editDoc) {
   }));
   const selectedOption = select.selectedOptions[0];
 
+  const recordStaff = {
+    value: select.value,
+    text: selectedOption ? selectedOption.text.trim() : "",
+    options
+  };
+
   console.log("[HUG WM] 記録者 select:", select);
   console.log("[HUG WM] 記録者 name:", select.name);
-  console.log("[HUG WM] 記録者 value:", select.value);
-  console.log(
-    "[HUG WM] 記録者 text:",
-    selectedOption ? selectedOption.text.trim() : ""
-  );
+  console.log("[HUG WM] 記録者 value:", recordStaff.value);
+  console.log("[HUG WM] 記録者 text:", recordStaff.text);
   console.log("[HUG WM] 記録者 options:", options);
 
-  return select;
+  return recordStaff;
+}
+
+function extractRecordStaffSelectFromEditDoc(editDoc) {
+  const cell = editDoc.querySelector(RECORD_STAFF_CELL_SELECTOR);
+  const select =
+    cell?.querySelector(RECORD_STAFF_SELECT_SELECTOR) ||
+    editDoc.querySelector(RECORD_STAFF_SELECT_SELECTOR);
+  return select ?? null;
 }
 
 function extractRecordStaffSelectFromEditHtml(html) {
@@ -75,11 +86,7 @@ function extractRecordStaffSelectFromEditHtml(html) {
   return extractRecordStaffSelectFromEditDoc(editDoc);
 }
 
-function extractNoteFromEditHtml(html) {
-  const editDoc = new DOMParser().parseFromString(html, "text/html");
-  console.log("編集ページのHTML", editDoc);
-  extractRecordStaffSelectFromEditDoc(editDoc);
-
+function extractNoteFromEditDoc(editDoc) {
   const textarea = editDoc.querySelector(
     'textarea[name="note"][data-field-key="note"]'
   );
@@ -91,15 +98,34 @@ function extractNoteFromEditHtml(html) {
   return textarea.value.trim();
 }
 
-async function fetchContactBookNote(pathOrUrl) {
-  const html = await fetchContactBookEditHtml(pathOrUrl);
-  const note = extractNoteFromEditHtml(html);
+function extractEditPageDataFromHtml(html) {
+  const editDoc = new DOMParser().parseFromString(html, "text/html");
+  console.log("編集ページのHTML", editDoc);
 
-  if (note === null) {
+  return {
+    note: extractNoteFromEditDoc(editDoc),
+    recordStaff: extractRecordStaffFromEditDoc(editDoc)
+  };
+}
+
+function extractNoteFromEditHtml(html) {
+  return extractEditPageDataFromHtml(html).note;
+}
+
+async function fetchContactBookEditData(pathOrUrl) {
+  const html = await fetchContactBookEditHtml(pathOrUrl);
+  const data = extractEditPageDataFromHtml(html);
+
+  if (data.note === null) {
     throw new Error("note の textarea が見つかりませんでした");
   }
 
-  return note;
+  return data;
+}
+
+async function fetchContactBookNote(pathOrUrl) {
+  const data = await fetchContactBookEditData(pathOrUrl);
+  return data.note;
 }
 
 window.HugEditPage = {
@@ -108,8 +134,12 @@ window.HugEditPage = {
   RECORD_STAFF_SELECT_SELECTOR,
   resolveContactBookUrl,
   fetchContactBookEditHtml,
+  extractRecordStaffFromEditDoc,
   extractRecordStaffSelectFromEditDoc,
   extractRecordStaffSelectFromEditHtml,
+  extractNoteFromEditDoc,
+  extractEditPageDataFromHtml,
   extractNoteFromEditHtml,
+  fetchContactBookEditData,
   fetchContactBookNote
 };

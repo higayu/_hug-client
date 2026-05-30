@@ -157,16 +157,16 @@
       return [row];
     }
 
-    const fetchNote = window.HugEditPage?.fetchContactBookNote;
-    if (!fetchNote) {
+    const fetchEditData = window.HugEditPage?.fetchContactBookEditData;
+    if (!fetchEditData) {
       throw new Error("HugEditPage が読み込まれていません（editpage.js）");
     }
 
     console.log("[HUG WM] 編集ページ取得:", row.editPath);
 
-    const note = await fetchNote(row.editPath);
+    const { note, recordStaff } = await fetchEditData(row.editPath);
 
-    const result = { ...row, note };
+    const result = { ...row, note, recordStaff };
     console.log("[HUG WM] 取得完了:", result);
 
     return [result];
