@@ -10,6 +10,7 @@
       ],
       "js": [
         "editpage.js",
+        "edit-post.js",
         "personallist.js",
         "content.js",
         "form/form-styles.js",

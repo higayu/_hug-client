@@ -164,9 +164,11 @@
 
     console.log("[HUG WM] 編集ページ取得:", row.editPath);
 
-    const { note, recordStaff } = await fetchEditData(row.editPath);
+    const { note, recordStaff, editHtml, editPath } = await fetchEditData(
+      row.editPath
+    );
 
-    const result = { ...row, note, recordStaff };
+    const result = { ...row, note, recordStaff, editHtml, editPath };
     console.log("[HUG WM] 取得完了:", result);
 
     return [result];

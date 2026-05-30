@@ -116,8 +116,10 @@
       throw new Error("HugEditPage が読み込まれていません（editpage.js）");
     }
 
-    const { note, recordStaff } = await fetchEditData(row.editPath);
-    return { ...row, note, recordStaff };
+    const { note, recordStaff, editHtml, editPath } = await fetchEditData(
+      row.editPath
+    );
+    return { ...row, note, recordStaff, editHtml, editPath };
   };
 
   /**

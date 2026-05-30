@@ -316,13 +316,131 @@
               <option value="">取得後に表示されます</option>
             </select>
           </label>
-          <textarea id="hug-form-note" readonly rows="12" spellcheck="false" placeholder="取得後に表示されます" style="display:block;width:100%;margin-top:2px;box-sizing:border-box;padding:8px;line-height:1.45;border:1px solid #ccc;border-radius:4px;resize:vertical;min-height:160px;background:#fff;"></textarea>
+          <textarea id="hug-form-note" rows="12" spellcheck="false" placeholder="取得後に表示されます。編集して更新できます。" style="display:block;width:100%;margin-top:2px;box-sizing:border-box;padding:8px;line-height:1.45;border:1px solid #ccc;border-radius:4px;resize:vertical;min-height:160px;background:#fff;"></textarea>
         </label>
+        <div style="display:flex;gap:8px;margin-top:10px;">
+          <button
+            type="button"
+            id="hug-form-save-draft"
+            disabled
+            style="flex:1;padding:8px 0;cursor:pointer;border:1px solid #2e7d32;background:#e8f5e9;color:#1b5e20;border-radius:4px;font-weight:bold;"
+            title="取得済み編集ページをベースに note・記録者を下書き保存（state=1）"
+          >下書きで更新</button>
+          <button
+            type="button"
+            id="hug-form-save-publish"
+            disabled
+            hidden
+            style="flex:1;padding:8px 0;cursor:pointer;border:1px solid #1565c0;background:#e3f2fd;color:#0d47a1;border-radius:4px;font-weight:bold;"
+            title="取得済み編集ページをベースに note・記録者を保護者公開保存（state=2）"
+          >公開で更新</button>
+        </div>
       </section>
     `;
   };
 
   Form.renderPanelBody = renderPanelBody;
+
+  /** 最後に取得した編集ページ HTML（更新 POST で使用） */
+  let cachedRecord = null;
+
+  const getCachedRecord = () => cachedRecord;
+
+  const clearCachedRecord = () => {
+    cachedRecord = null;
+    updateSaveButtonsState();
+  };
+
+  const setCachedRecord = (record) => {
+    cachedRecord = record?.editHtml ? record : null;
+    updateSaveButtonsState();
+  };
+
+  const updateSaveButtonsState = () => {
+    const hasCache = Boolean(cachedRecord?.editHtml);
+    const saveDraftBtn = document.getElementById("hug-form-save-draft");
+    const savePublishBtn = document.getElementById("hug-form-save-publish");
+    if (saveDraftBtn) {
+      saveDraftBtn.disabled = !hasCache;
+    }
+    if (savePublishBtn) {
+      savePublishBtn.disabled = !hasCache;
+    }
+  };
+
+  const readFormFieldOverrides = () => {
+    const noteEl = document.getElementById("hug-form-note");
+    const recordStaffEl = document.getElementById("hug-form-record-staff");
+    const overrides = {
+      note: noteEl ? noteEl.value : ""
+    };
+    if (recordStaffEl?.value) {
+      overrides.recordStaff = recordStaffEl.value;
+    }
+    return overrides;
+  };
+
+  const formatPostResponsePreview = (text) => {
+    let preview = String(text ?? "").slice(0, 800);
+    if (text.length > 800) {
+      preview += "\n…(truncated)";
+    }
+    try {
+      return JSON.stringify(JSON.parse(text), null, 2);
+    } catch {
+      return preview;
+    }
+  };
+
+  const postCachedRecordUpdate = async (state) => {
+    const postApi = window.HugContactBookPost;
+    if (!postApi?.postContactBookUpdateFromEditHtml) {
+      throw new Error("edit-post.js が読み込まれていません");
+    }
+    if (!cachedRecord?.editHtml) {
+      throw new Error("先に個人記録を取得してください");
+    }
+
+    const fieldOverrides = {
+      ...readFormFieldOverrides(),
+      state: String(state)
+    };
+
+    const result = await postApi.postContactBookUpdateFromEditHtml(
+      cachedRecord.editHtml,
+      fieldOverrides
+    );
+
+    let parsed = null;
+    try {
+      parsed = JSON.parse(result.text);
+    } catch {
+      /* non-JSON */
+    }
+
+    if (parsed?.status === "conflict") {
+      throw new Error(
+        "同時編集の競合が発生しました。個人記録を再取得してから更新してください。"
+      );
+    }
+
+    if (!result.ok) {
+      throw new Error(`POST 失敗: HTTP ${result.status}`);
+    }
+
+    if (parsed && parsed.status && parsed.status !== "ok") {
+      throw new Error(`保存失敗: status=${parsed.status}`);
+    }
+
+    return {
+      result,
+      preview: formatPostResponsePreview(result.text)
+    };
+  };
+
+  Form.getCachedRecord = getCachedRecord;
+  Form.clearCachedRecord = clearCachedRecord;
+  Form.postCachedRecordUpdate = postCachedRecordUpdate;
 
   const fillSelect = (select, options, getValue, getLabel) => {
     select.innerHTML = "";
@@ -383,11 +501,13 @@
       noteEl.value = "";
       if (metaEl) metaEl.textContent = "";
       setRecordStaffDisplay(null);
+      clearCachedRecord();
       return;
     }
 
     noteEl.value = record.note ?? "";
     setRecordStaffDisplay(record.recordStaff ?? null);
+    setCachedRecord(record);
     if (metaEl) {
       const parts = [record.date, record.childName, record.attendance].filter(
         Boolean
@@ -420,6 +540,8 @@
     const fetchMonthBtn = document.getElementById("hug-form-fetch-month");
     const fetchBtn = document.getElementById("hug-form-fetch");
     const fetchChildrenBtn = document.getElementById("hug-form-fetch-children");
+    const saveDraftBtn = document.getElementById("hug-form-save-draft");
+    const savePublishBtn = document.getElementById("hug-form-save-publish");
 
     attendanceDateInput.value = todayDate();
     dateInput.value = defaultPersonalRecordDate();
@@ -524,6 +646,47 @@
       fetchMonthBtn.disabled = disabled;
     };
 
+    const setSaveButtonsDisabled = (disabled) => {
+      if (saveDraftBtn) {
+        saveDraftBtn.disabled = disabled || !cachedRecord?.editHtml;
+      }
+      if (savePublishBtn) {
+        savePublishBtn.disabled = disabled || !cachedRecord?.editHtml;
+      }
+    };
+
+    const runSave = async (state, label) => {
+      setSaveButtonsDisabled(true);
+      setFetchButtonsDisabled(true);
+      setStatus(`${label}を送信中…`);
+      try {
+        const { result, preview } = await postCachedRecordUpdate(state);
+        console.log(`[HUG WM] ${label} 完了:`, result, preview);
+        setStatus(`${label}完了（HTTP ${result.status}）`);
+      } catch (err) {
+        console.error(`[HUG WM] ${label}エラー:`, err);
+        setStatus(`${label}エラー: ${err.message}`, true);
+      } finally {
+        setFetchButtonsDisabled(false);
+        updateSaveButtonsState();
+      }
+    };
+
+    saveDraftBtn?.addEventListener("click", () => {
+      void runSave("1", "下書き更新");
+    });
+
+    savePublishBtn?.addEventListener("click", () => {
+      if (
+        !window.confirm(
+          "保護者公開（state=2）で更新します。よろしいですか？"
+        )
+      ) {
+        return;
+      }
+      void runSave("2", "公開更新");
+    });
+
     const readPersonalFetchContext = () => {
       const childId = childSelect.value;
       const facilityId = Number(facilitySelect.value);
@@ -571,6 +734,7 @@
       }
 
       setFetchButtonsDisabled(true);
+      setSaveButtonsDisabled(true);
       setStatus("月ごとに個人記録を検索中…（今月から最大6か月）");
       setNoteDisplay(null);
 
@@ -603,6 +767,7 @@
         setStatus(`取得エラー: ${err.message}`, true);
       } finally {
         setFetchButtonsDisabled(false);
+        updateSaveButtonsState();
       }
     });
 
@@ -624,6 +789,7 @@
       }
 
       setFetchButtonsDisabled(true);
+      setSaveButtonsDisabled(true);
       setStatus("個人記録を取得中…");
       setNoteDisplay(null);
 
@@ -644,6 +810,7 @@
         setStatus(`取得エラー: ${err.message}`, true);
       } finally {
         setFetchButtonsDisabled(false);
+        updateSaveButtonsState();
       }
     });
 

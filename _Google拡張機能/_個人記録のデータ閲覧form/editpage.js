@@ -120,7 +120,11 @@ async function fetchContactBookEditData(pathOrUrl) {
     throw new Error("note の textarea が見つかりませんでした");
   }
 
-  return data;
+  return {
+    ...data,
+    editHtml: html,
+    editPath: pathOrUrl
+  };
 }
 
 async function fetchContactBookNote(pathOrUrl) {
