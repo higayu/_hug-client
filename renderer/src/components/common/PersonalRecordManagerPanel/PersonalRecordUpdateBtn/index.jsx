@@ -6,16 +6,13 @@ import { postServiceRecordsToLocalApi } from "@/utils/personalRecord/postService
 
 const LOG_TAG = "PersonalRecordGet";
 
-function notifyPostResultToasts(postResult, { showSuccessToast, showInfoToast, showErrorToast }) {
-  const { posted = 0, duplicated = 0, failed = 0 } = postResult ?? {};
+function notifyPostResultToasts(postResult, { showSuccessToast, showErrorToast }) {
+  const { posted = 0, failed = 0 } = postResult ?? {};
 
   if (posted > 0) {
     showSuccessToast(
       posted === 1 ? "個人記録を保存しました" : `${posted}件の個人記録を保存しました`
     );
-  }
-  if (duplicated > 0) {
-    showInfoToast("登録済みです");
   }
   if (failed > 0) {
     showErrorToast("個人記録の保存に失敗しました");
@@ -26,8 +23,8 @@ function notifyPostResultToasts(postResult, { showSuccessToast, showInfoToast, s
  * 選択中児童の個人記録（活動内容 note）を hugview 経由で取得し、コンソールに出力する（テスト用）
  */
 export default function PersonalRecordUpdateBtn({ dateStr }) {
-  const { SELECT_CHILD, FACILITY_ID, CURRENT_YMD } = useAppState();
-  const { showSuccessToast, showInfoToast, showErrorToast } = useToast();
+  const { SELECT_CHILD, FACILITY_ID, STAFF_ID, CURRENT_YMD } = useAppState();
+  const { showSuccessToast, showErrorToast } = useToast();
   const [fetching, setFetching] = useState(false);
   const isFetchingRef = useRef(false);
 
@@ -87,23 +84,21 @@ export default function PersonalRecordUpdateBtn({ dateStr }) {
       const postResult = await postServiceRecordsToLocalApi(result.records, {
         childrenId: SELECT_CHILD,
         facilityId,
+        staffId: STAFF_ID,
       });
 
       console.log(`[${LOG_TAG}] ローカルDB保存`, postResult);
       notifyPostResultToasts(postResult, {
         showSuccessToast,
-        showInfoToast,
         showErrorToast,
       });
       postResult.results?.forEach((row) => {
         if (row.ok) {
-          console.log(`[${LOG_TAG}] POST成功 ${row.date}`, row.payload);
+          console.log(`[${LOG_TAG}] Upsert成功 ${row.date}`, row.payload);
         } else if (row.skipped) {
-          console.warn(`[${LOG_TAG}] POSTスキップ ${row.date}:`, row.error);
-        } else if (row.duplicate) {
-          console.warn(`[${LOG_TAG}] POST重複 ${row.date}:`, row.error);
+          console.warn(`[${LOG_TAG}] Upsertスキップ ${row.date}:`, row.error);
         } else {
-          console.error(`[${LOG_TAG}] POST失敗 ${row.date}:`, row.error);
+          console.error(`[${LOG_TAG}] Upsert失敗 ${row.date}:`, row.error);
         }
       });
     } catch (e) {
@@ -119,8 +114,8 @@ export default function PersonalRecordUpdateBtn({ dateStr }) {
     CURRENT_YMD,
     dateStr,
     showSuccessToast,
-    showInfoToast,
     showErrorToast,
+    STAFF_ID,
   ]);
 
   return (

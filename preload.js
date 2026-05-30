@@ -178,6 +178,9 @@ contextBridge.exposeInMainWorld("electronAPI", {
   mariadb_service_record_insert: (data) =>
     ipcRenderer.invoke("mariadb:service_record:insert", data),
 
+  mariadb_service_record_upsert: (data) =>
+    ipcRenderer.invoke("mariadb:service_record:upsert", data),
+
   // ---- CRUD API 展開 ----
   ...tableAPIs,
 });

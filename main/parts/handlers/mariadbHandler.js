@@ -1,5 +1,8 @@
 // main/parts/handlers/mariadbHandler.js
 const apiClient = require("../../../src/apiClient");
+const {
+  upsertServiceRecord,
+} = require("./mariadb/UpsertServiceRecord");
 
 /**
  * pk / values を MariaDB API 用に正規化
@@ -98,6 +101,10 @@ function registerMariadbHandlers(ipcMain) {
       }
     );
   }
+
+  ipcMain.handle("mariadb:service_record:upsert", async (_, data) => {
+    return upsertServiceRecord(data);
+  });
 }
 
 module.exports = { registerMariadbHandlers };
