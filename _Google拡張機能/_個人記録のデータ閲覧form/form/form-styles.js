@@ -9,7 +9,11 @@
     style.id = "hug-personal-record-form-style";
     style.textContent = `
       #hug-personal-record-form {
-        --hug-pr-panel-width-open: min(420px, calc(100vw - 16px));
+        --hug-pr-panel-width-default-open: 420px;
+        --hug-pr-panel-width-open: min(
+          var(--hug-pr-panel-width-default-open),
+          calc(100vw - 16px)
+        );
         --hug-pr-panel-width-collapsed: min(280px, calc(100vw - 16px));
         position: fixed;
         right: 12px;
@@ -23,6 +27,10 @@
         font: 14px/1.4 sans-serif;
         color: #222;
         overflow: hidden;
+        --hug-pr-panel-max-height: calc(100vh - 24px);
+        max-height: var(--hug-pr-panel-max-height);
+        display: flex;
+        flex-direction: column;
       }
 
       #hug-personal-record-form.hug-panel-positioned {
@@ -33,6 +41,7 @@
 
       #hug-personal-record-form.hug-collapsed {
         width: var(--hug-pr-panel-width-collapsed);
+        max-height: none;
         border-radius: 6px;
         box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
       }
@@ -48,6 +57,7 @@
         cursor: grab;
         user-select: none;
         touch-action: none;
+        flex-shrink: 0;
       }
 
       #hug-personal-record-form .hug-pr-header.hug-dragging {
@@ -103,10 +113,11 @@
       }
 
       #hug-personal-record-form .hug-pr-content {
-        max-height: 90vh;
+        flex: 1 1 auto;
+        min-height: 0;
         overflow: auto;
         padding: 12px 14px;
-        transition: max-height 0.25s ease, padding 0.25s ease;
+        transition: padding 0.25s ease;
       }
 
       #hug-personal-record-form.hug-collapsed .hug-pr-content {
@@ -140,6 +151,40 @@
 
       #hug-personal-record-form .hug-form-section-attendance.hug-form-section-collapsed .hug-form-section-header {
         margin-bottom: 0;
+      }
+
+      #hug-personal-record-form .hug-pr-resize-handle {
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 8px;
+        cursor: ew-resize;
+        z-index: 2;
+        touch-action: none;
+      }
+
+      #hug-personal-record-form .hug-pr-resize-handle::after {
+        content: "";
+        position: absolute;
+        left: 2px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 3px;
+        height: 36px;
+        border-radius: 2px;
+        background: rgba(0, 0, 0, 0.12);
+        opacity: 0;
+        transition: opacity 0.15s ease;
+      }
+
+      #hug-personal-record-form:hover .hug-pr-resize-handle::after,
+      #hug-personal-record-form .hug-pr-resize-handle.hug-resizing::after {
+        opacity: 1;
+      }
+
+      #hug-personal-record-form.hug-collapsed .hug-pr-resize-handle {
+        display: none;
       }
     `;
 

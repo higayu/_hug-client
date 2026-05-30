@@ -97,6 +97,83 @@
   const ATTENDANCE_SECTION_COLLAPSED_KEY =
     "hugPersonalFormAttendanceSectionCollapsed";
 
+  const NOTE_FONT_SIZE_STORAGE_KEY = "hugPersonalFormNoteFontSize";
+  const DEFAULT_NOTE_FONT_SIZE = 12;
+  const MIN_NOTE_FONT_SIZE = 10;
+  const MAX_NOTE_FONT_SIZE = 24;
+
+  const NOTE_FONT_BTN_STYLE = [
+    "padding:0 6px",
+    "cursor:pointer",
+    "line-height:1.4",
+    "border:1px solid #ccc",
+    "border-radius:3px",
+    "background:#fff",
+    "font-size:12px",
+    "min-width:24px"
+  ].join(";");
+
+  const clampNoteFontSize = (size) =>
+    Math.min(
+      MAX_NOTE_FONT_SIZE,
+      Math.max(MIN_NOTE_FONT_SIZE, Math.round(Number(size)))
+    );
+
+  const loadNoteFontSize = () => {
+    try {
+      const raw = localStorage.getItem(NOTE_FONT_SIZE_STORAGE_KEY);
+      if (!raw) return DEFAULT_NOTE_FONT_SIZE;
+      const size = Number(raw);
+      if (!Number.isFinite(size)) return DEFAULT_NOTE_FONT_SIZE;
+      return clampNoteFontSize(size);
+    } catch {
+      return DEFAULT_NOTE_FONT_SIZE;
+    }
+  };
+
+  const saveNoteFontSize = (size) => {
+    try {
+      localStorage.setItem(
+        NOTE_FONT_SIZE_STORAGE_KEY,
+        String(clampNoteFontSize(size))
+      );
+    } catch {
+      /* ignore */
+    }
+  };
+
+  const applyNoteFontSize = (size) => {
+    const noteEl = document.getElementById("hug-form-note");
+    const labelEl = document.getElementById("hug-form-note-font-size-label");
+    const nextSize = clampNoteFontSize(size);
+    if (noteEl) {
+      noteEl.style.fontSize = `${nextSize}px`;
+    }
+    if (labelEl) {
+      labelEl.textContent = `${nextSize}px`;
+    }
+    return nextSize;
+  };
+
+  const wireNoteFontSize = () => {
+    const noteEl = document.getElementById("hug-form-note");
+    const decBtn = document.getElementById("hug-form-note-font-dec");
+    const incBtn = document.getElementById("hug-form-note-font-inc");
+    if (!noteEl || !decBtn || !incBtn) return;
+
+    let size = applyNoteFontSize(loadNoteFontSize());
+
+    decBtn.addEventListener("click", () => {
+      size = applyNoteFontSize(size - 1);
+      saveNoteFontSize(size);
+    });
+
+    incBtn.addEventListener("click", () => {
+      size = applyNoteFontSize(size + 1);
+      saveNoteFontSize(size);
+    });
+  };
+
   const wireAttendanceSectionCollapse = () => {
     const section = document.querySelector(
       ".hug-form-section-attendance"
@@ -131,6 +208,8 @@
     toggle.addEventListener("click", (event) => {
       event.preventDefault();
       setCollapsed(!section.classList.contains("hug-form-section-collapsed"));
+      const panel = document.getElementById("hug-personal-record-form");
+      window.HugPersonalForm?.Form?.fitPanelToViewport?.(panel);
     });
   };
 
@@ -206,9 +285,28 @@
         </div>
         <div id="hug-form-status" style="margin-top:8px;font-size:12px;color:#666;"></div>
         <label style="display:block;margin-top:10px;font-size:12px;color:#444;">
-          活動内容（note）
+          <span style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:2px;">
+            <span>活動内容（note）</span>
+            <span style="display:flex;align-items:center;gap:4px;font-weight:normal;color:#666;font-size:11px;">
+              <button
+                type="button"
+                id="hug-form-note-font-dec"
+                title="文字を小さく"
+                aria-label="活動内容の文字を小さく"
+                style="${NOTE_FONT_BTN_STYLE}"
+              >−</button>
+              <span id="hug-form-note-font-size-label" aria-live="polite">${DEFAULT_NOTE_FONT_SIZE}px</span>
+              <button
+                type="button"
+                id="hug-form-note-font-inc"
+                title="文字を大きく"
+                aria-label="活動内容の文字を大きく"
+                style="${NOTE_FONT_BTN_STYLE}"
+              >＋</button>
+            </span>
+          </span>
           <span id="hug-form-note-meta" style="display:block;font-weight:normal;color:#888;margin:2px 0 4px;"></span>
-          <textarea id="hug-form-note" readonly rows="12" spellcheck="false" placeholder="取得後に表示されます" style="display:block;width:100%;margin-top:2px;box-sizing:border-box;padding:8px;font-size:12px;line-height:1.45;border:1px solid #ccc;border-radius:4px;resize:vertical;min-height:160px;background:#fff;"></textarea>
+          <textarea id="hug-form-note" readonly rows="12" spellcheck="false" placeholder="取得後に表示されます" style="display:block;width:100%;margin-top:2px;box-sizing:border-box;padding:8px;line-height:1.45;border:1px solid #ccc;border-radius:4px;resize:vertical;min-height:160px;background:#fff;"></textarea>
         </label>
       </section>
     `;
@@ -272,6 +370,7 @@
 
     renderPanelBody(bodyEl);
     wireAttendanceSectionCollapse();
+    wireNoteFontSize();
 
     const childSelect = document.getElementById("hug-form-child");
     const attendanceDateInput = document.getElementById(
@@ -510,6 +609,8 @@
     });
 
     await loadChildren();
+
+    window.HugPersonalForm?.Form?.fitPanelToViewport?.(panel);
 
     if (panel) {
       panel.dataset.hugContentWired = "1";

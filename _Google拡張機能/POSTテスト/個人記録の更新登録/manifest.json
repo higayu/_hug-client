@@ -1,0 +1,23 @@
+{
+  "manifest_version": 3,
+  "name": "HUG 個人記録・下書きPOSTテスト",
+  "version": "1.0.0",
+  "description": "一覧GET→編集GET→下書き保存POSTのテストパネル",
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.hug-ayumu.link/hug/wm/"
+      ],
+      "js": [
+        "editpage.js",
+        "edit-post.js",
+        "form.js",
+        "content.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "host_permissions": [
+    "https://www.hug-ayumu.link/hug/wm/*"
+  ]
+}
