@@ -168,6 +168,12 @@
                   style="display:block;width:100%;margin-top:2px;box-sizing:border-box;"
                 >
               </label>
+              <button
+                type="button"
+                id="hug-form-fetch-children"
+                style="padding:6px 10px;cursor:pointer;white-space:nowrap;align-self:flex-end;"
+                title="出席表 POST search_detail で児童一覧を再取得（リクエスト内容はコンソールに出力）"
+              >児童を再取得</button>
             </div>
           </div>
 
@@ -275,6 +281,7 @@
     const dateInput = document.getElementById("hug-form-date");
     const fetchMonthBtn = document.getElementById("hug-form-fetch-month");
     const fetchBtn = document.getElementById("hug-form-fetch");
+    const fetchChildrenBtn = document.getElementById("hug-form-fetch-children");
 
     attendanceDateInput.value = todayDate();
     dateInput.value = defaultPersonalRecordDate();
@@ -314,16 +321,25 @@
       void loadChildren();
     });
 
-    attendanceDateInput.addEventListener("change", () => {
-      void loadChildren();
-    });
+    const loadChildren = async ({ refreshFacilityFromWm = false } = {}) => {
+      if (refreshFacilityFromWm) {
+        window.HugPersonalRecord?.refreshFacilityFilterFromWmCache?.();
+        updateAttendanceWmFacilityHint();
 
-    const loadChildren = async () => {
-      updateAttendanceWmFacilityHint();
-
-      window.HugPersonalRecord?.setFacilityFilterSingle?.(
-        facilitySelect.value
-      );
+        const primaryId =
+          window.HugPersonalRecord?.getPrimaryFacilityId?.() ??
+          String(DEFAULT_FACILITY_ID);
+        if (
+          FACILITIES.some((f) => String(f.id) === primaryId)
+        ) {
+          facilitySelect.value = primaryId;
+        }
+      } else {
+        updateAttendanceWmFacilityHint();
+        window.HugPersonalRecord?.setFacilityFilterSingle?.(
+          facilitySelect.value
+        );
+      }
 
       const fetchList =
         window.HugPersonalRecord?.fetchAttendanceChildrenList ||
@@ -356,6 +372,14 @@
         setStatus(`児童一覧エラー: ${err.message}`, true);
       }
     };
+
+    attendanceDateInput.addEventListener("change", () => {
+      void loadChildren();
+    });
+
+    fetchChildrenBtn?.addEventListener("click", () => {
+      void loadChildren({ refreshFacilityFromWm: true });
+    });
 
     const setFetchButtonsDisabled = (disabled) => {
       fetchBtn.disabled = disabled;

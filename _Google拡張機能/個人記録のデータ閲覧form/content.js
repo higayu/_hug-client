@@ -7,6 +7,8 @@
    * 出席表 POST 用 f_ary の選択状態を保持する。
    */
   const PR_FACILITY_FILTER_STORAGE_KEY = "hugPersonalRecordFacilityFilter";
+  /** 入退室フォームアプリ attendance-post-common.js と同じ */
+  const ATTENDANCE_WM_FACILITY_STORAGE_KEY = "hugAttendanceFacilityFilter";
 
   /** 出席表 search_detail の f_ary（表示名）。contact_book の f_id とは別体系 */
   const PR_FACILITY_FILTER_OPTIONS = [
@@ -75,6 +77,68 @@
     saveRawFacilityFilter(map);
   };
 
+  const getPageFacilityCheckboxes = () => {
+    const attendancePanel = document.querySelector("#hug-attendance-panel");
+    const personalRecordPanel = document.querySelector("#hug-personal-record-form");
+    return [
+      ...document.querySelectorAll('input[type="checkbox"][name^="f_ary"]')
+    ].filter(
+      (cb) =>
+        !attendancePanel?.contains(cb) && !personalRecordPanel?.contains(cb)
+    );
+  };
+
+  const readFacilityFilterFromPageDom = () => {
+    const boxes = getPageFacilityCheckboxes();
+    if (!boxes.length) return null;
+
+    const map = {};
+    boxes.forEach((cb) => {
+      const m = String(cb.name || "").match(/f_ary\[(\d+)\]/);
+      if (!m) return;
+      map[m[1]] = Boolean(cb.checked);
+    });
+    return Object.keys(map).length ? map : null;
+  };
+
+  const loadRawWmFacilityFilter = () => {
+    try {
+      const raw = localStorage.getItem(ATTENDANCE_WM_FACILITY_STORAGE_KEY);
+      if (!raw) return null;
+      const o = JSON.parse(raw);
+      return o && typeof o === "object" ? o : null;
+    } catch {
+      return null;
+    }
+  };
+
+  /** 入退室フォームの施設キャッシュを再取得し、POST 用 PR キャッシュへ反映 */
+  const refreshFacilityFilterFromWmCache = () => {
+    const fromPage = readFacilityFilterFromPageDom();
+    const fromStorage = loadRawWmFacilityFilter();
+    const source = fromPage
+      ? "page-dom"
+      : fromStorage
+        ? ATTENDANCE_WM_FACILITY_STORAGE_KEY
+        : "default";
+    const map = fromPage ?? fromStorage ?? buildDefaultFacilityFilterMap();
+
+    if (fromPage) {
+      try {
+        localStorage.setItem(
+          ATTENDANCE_WM_FACILITY_STORAGE_KEY,
+          JSON.stringify(fromPage)
+        );
+      } catch {
+        /* ignore */
+      }
+    }
+
+    saveRawFacilityFilter(map);
+    console.log("[HUG PR] 施設キャッシュ再取得:", { source, map });
+    return map;
+  };
+
   const getPrimaryFacilityId = () => {
     const map = getFacilityFilterChecked();
     const hit = PR_FACILITY_FILTER_OPTIONS.find((opt) =>
@@ -141,6 +205,34 @@
     return params;
   };
 
+  const logAttendanceSearchRequest = (params) => {
+    const map = getFacilityFilterChecked();
+    const facilities = PR_FACILITY_FILTER_OPTIONS.filter((opt) =>
+      isFacilityFilterChecked(map, opt.id, opt.defaultChecked)
+    ).map((opt) => ({
+      key: `f_ary[${opt.id}]`,
+      value: opt.value
+    }));
+
+    console.group("[HUG PR] 児童一覧 POST リクエスト");
+    console.log("URL:", ATTENDANCE_URL);
+    console.log("method:", "POST");
+    console.log("Content-Type:", "application/x-www-form-urlencoded; charset=UTF-8");
+    console.log("s_date:", params.get("s_date"));
+    console.log("mode:", params.get("mode"));
+    console.log("施設 f_ary:", facilities);
+    console.log(
+      "サービス s_ary:",
+      SERVICE_FILTER_PARAMS.map((opt) => ({
+        key: `s_ary[${opt.id}]`,
+        value: opt.value
+      }))
+    );
+    console.log("body (raw):", params.toString());
+    console.log("body (parsed):", Object.fromEntries(params.entries()));
+    console.groupEnd();
+  };
+
   const extractTime = (cell) => {
     if (!cell) return "";
 
@@ -195,8 +287,7 @@
 
   const fetchAttendanceChildrenList = async () => {
     const body = buildAttendanceSearchPostParams();
-    console.log("[HUG PR] POST検索開始:", ATTENDANCE_URL);
-    console.log("[HUG PR] POST body:", body.toString());
+    logAttendanceSearchRequest(body);
 
     const response = await fetch(ATTENDANCE_URL, {
       method: "POST",
@@ -228,6 +319,7 @@
     PR_FACILITY_FILTER_OPTIONS,
     getFacilityFilterChecked,
     setFacilityFilterSingle,
+    refreshFacilityFilterFromWmCache,
     getPrimaryFacilityId,
     buildAttendanceSearchPostParams,
     fetchAttendanceChildrenList,
