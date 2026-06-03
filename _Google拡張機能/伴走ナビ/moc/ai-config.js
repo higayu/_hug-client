@@ -10,4 +10,5 @@ window.AI_CONFIG = {
   GEMINI_MODEL: '',
   OLLAMA_BASE_URL: 'http://localhost:11434',
   GEMINI_API_KEY: '',
+  API_BASE: 'http://192.168.3.35:3001/api/sql/hug_ai_support',
 };

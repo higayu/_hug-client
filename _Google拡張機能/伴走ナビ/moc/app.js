@@ -1,6 +1,8 @@
 /* 伴走ナビ - 静的HTMLモック (React App.tsx + pages の移植) */
 
-const API_BASE = 'http://192.168.1.229:3001/api/sql/hug_ai_support';
+const API_BASE =
+  window.AI_CONFIG?.API_BASE ||
+  'http://192.168.1.229:3001/api/sql/hug_ai_support';
 
 const CORRECTION_SYSTEM_PROMPT =
   'あなたは児童支援記録の校正アシスタントです。入力された記録を【S】【O】【A】【P】形式（状況・観察・評価・計画）で整理・校正し、日本語で出力してください。';
@@ -121,9 +123,21 @@ const MOCK_CHILDREN = {
 };
 
 const MOCK_RECORDS = [
-  { target_date: '2026-05-01T00:00:00.000Z', content: '公園で遊び、笑顔が多かった。' },
-  { target_date: '2026-05-02T00:00:00.000Z', content: '新しい職員に少し緊張した様子。' },
-  { target_date: '2026-05-03T00:00:00.000Z', content: '工作活動に積極的に参加。' },
+  {
+    record_id: 101,
+    target_date: '2026-05-01T00:00:00.000Z',
+    content: '公園で遊び、笑顔が多かった。',
+  },
+  {
+    record_id: 102,
+    target_date: '2026-05-02T00:00:00.000Z',
+    content: '新しい職員に少し緊張した様子。',
+  },
+  {
+    record_id: 103,
+    target_date: '2026-05-03T00:00:00.000Z',
+    content: '工作活動に積極的に参加。',
+  },
 ];
 
 const state = {
@@ -154,6 +168,16 @@ const state = {
     inputValue: '',
     isLoading: false,
   },
+  personalRecord: {
+    facilityId: '',
+    childId: '',
+    startDate: '',
+    endDate: '',
+    records: [],
+    selectedRecordId: null,
+    isLoading: false,
+    hasSearched: false,
+  },
 };
 
 function getFormattedDate(date) {
@@ -169,6 +193,8 @@ function initDates() {
   start.setMonth(start.getMonth() - 1);
   state.chat.endDate = getFormattedDate(end);
   state.chat.startDate = getFormattedDate(start);
+  state.personalRecord.endDate = state.chat.endDate;
+  state.personalRecord.startDate = state.chat.startDate;
 }
 
 function formatFetchError(response) {
@@ -240,6 +266,7 @@ async function loadFacilities() {
     const fid = state.facilities[0].facility_id;
     state.correction.facilityId = fid;
     state.chat.facilityId = fid;
+    state.personalRecord.facilityId = fid;
     await loadChildren(fid);
   }
 }
@@ -261,6 +288,12 @@ async function loadChildren(facilityId) {
     if (!state.chat.childId || !list.find((c) => c.child_id === state.chat.childId)) {
       state.chat.childId = list[0].child_id;
     }
+    if (
+      !state.personalRecord.childId ||
+      !list.find((c) => c.child_id === state.personalRecord.childId)
+    ) {
+      state.personalRecord.childId = list[0].child_id;
+    }
   }
 }
 
@@ -274,6 +307,26 @@ function getFacilityName(id) {
 
 function getChildName(facilityId, childId) {
   return getChildrenList(facilityId).find((c) => c.child_id === childId)?.name || '';
+}
+
+function formatRecordDate(targetDate) {
+  if (!targetDate) return '—';
+  return String(targetDate).split('T')[0];
+}
+
+function filterRecordsByDateRange(records, startDate, endDate) {
+  return records.filter((r) => {
+    const d = formatRecordDate(r.target_date);
+    return d >= startDate && d <= endDate;
+  });
+}
+
+function sortRecordsByDateDesc(records) {
+  return [...records].sort((a, b) => {
+    const da = formatRecordDate(a.target_date);
+    const db = formatRecordDate(b.target_date);
+    return db.localeCompare(da);
+  });
 }
 
 function navigate(path) {
@@ -434,6 +487,136 @@ function renderChat() {
   if (sendBtn) sendBtn.disabled = ch.isLoading;
 }
 
+function renderPersonalRecordDetail(pr) {
+  const selected = pr.records.find((r) => r.record_id === pr.selectedRecordId);
+  const detailCard = document.getElementById('pr-detail-card');
+  if (!detailCard) return;
+
+  if (!selected) {
+    detailCard.classList.add('hidden');
+    return;
+  }
+
+  detailCard.classList.remove('hidden');
+  const idEl = document.getElementById('pr-detail-id');
+  const dateEl = document.getElementById('pr-detail-date');
+  const childEl = document.getElementById('pr-detail-child');
+  const contentEl = document.getElementById('pr-detail-content');
+  if (idEl) idEl.textContent = selected.record_id ?? '—';
+  if (dateEl) dateEl.textContent = formatRecordDate(selected.target_date);
+  if (childEl) {
+    childEl.textContent = `${getChildName(pr.facilityId, pr.childId)}さん`;
+  }
+  if (contentEl) contentEl.textContent = selected.content || '';
+}
+
+function renderPersonalRecord() {
+  const pr = state.personalRecord;
+  fillSelect('pr-facility', state.facilities, 'facility_id', 'name', pr.facilityId);
+  fillSelect('pr-child', getChildrenList(pr.facilityId), 'child_id', 'name', pr.childId);
+
+  const startEl = document.getElementById('pr-start-date');
+  const endEl = document.getElementById('pr-end-date');
+  if (startEl) startEl.value = pr.startDate;
+  if (endEl) endEl.value = pr.endDate;
+
+  const searchBtn = document.getElementById('btn-pr-search');
+  if (searchBtn) searchBtn.disabled = pr.isLoading;
+
+  const badge = document.getElementById('pr-count-badge');
+  if (badge) badge.textContent = `${pr.records.length}件`;
+
+  const hint = document.getElementById('pr-status-hint');
+  const tableWrap = document.getElementById('pr-table-wrap');
+  const tbody = document.getElementById('pr-tbody');
+
+  if (pr.isLoading) {
+    if (hint) hint.textContent = '記録を読み込んでいます...';
+    tableWrap?.classList.add('hidden');
+  } else if (!pr.hasSearched) {
+    if (hint) hint.textContent = '条件を指定して「一覧を取得」を押してください。';
+    tableWrap?.classList.add('hidden');
+  } else if (pr.records.length === 0) {
+    if (hint) {
+      hint.textContent = `指定条件の記録は見つかりませんでした（${pr.startDate} ～ ${pr.endDate}）。`;
+    }
+    tableWrap?.classList.add('hidden');
+  } else {
+    if (hint) {
+      hint.textContent = `${getFacilityName(pr.facilityId)}：${getChildName(pr.facilityId, pr.childId)}さん（${pr.startDate} ～ ${pr.endDate}）`;
+    }
+    tableWrap?.classList.remove('hidden');
+  }
+
+  if (tbody) {
+    tbody.innerHTML = '';
+    pr.records.forEach((rec) => {
+      const tr = document.createElement('tr');
+      tr.dataset.recordId = String(rec.record_id ?? '');
+      if (pr.selectedRecordId === rec.record_id) tr.classList.add('selected');
+
+      const tdDate = document.createElement('td');
+      tdDate.textContent = formatRecordDate(rec.target_date);
+
+      const tdContent = document.createElement('td');
+      const preview = document.createElement('div');
+      preview.className = 'record-preview';
+      preview.textContent = rec.content || '';
+      tdContent.appendChild(preview);
+
+      const tdId = document.createElement('td');
+      tdId.textContent = rec.record_id != null ? String(rec.record_id) : '—';
+
+      tr.append(tdDate, tdContent, tdId);
+      tr.addEventListener('click', () => {
+        pr.selectedRecordId = rec.record_id;
+        renderPersonalRecord();
+        refreshIcons();
+      });
+      tbody.appendChild(tr);
+    });
+  }
+
+  renderPersonalRecordDetail(pr);
+}
+
+async function loadPersonalRecords() {
+  const pr = state.personalRecord;
+  if (!pr.childId) {
+    alert('児童を選択してください');
+    return;
+  }
+  if (!pr.startDate || !pr.endDate) {
+    alert('取得期間を指定してください');
+    return;
+  }
+  if (pr.startDate > pr.endDate) {
+    alert('開始日は終了日以前にしてください');
+    return;
+  }
+
+  pr.isLoading = true;
+  pr.selectedRecordId = null;
+  renderPersonalRecord();
+
+  let records = [];
+  try {
+    const all = await fetchJson(
+      `${API_BASE}/support_records/_search?pk=child_id&values=${pr.childId}`
+    );
+    records = filterRecordsByDateRange(all, pr.startDate, pr.endDate);
+  } catch (err) {
+    console.warn('[loadPersonalRecords] API取得に失敗、MOCKを使用:', err);
+    records = filterRecordsByDateRange(MOCK_RECORDS, pr.startDate, pr.endDate);
+  }
+
+  pr.records = sortRecordsByDateDesc(records);
+  pr.hasSearched = true;
+  pr.isLoading = false;
+  renderPersonalRecord();
+  refreshIcons();
+}
+
 function render() {
   state.route = getRouteFromHash();
   if (state.route === '/' || state.route === '') {
@@ -443,6 +626,7 @@ function render() {
   renderShell();
   if (state.route === '/correction') renderCorrection();
   if (state.route === '/chat') renderChat();
+  if (state.route === '/personal-record') renderPersonalRecord();
   refreshIcons();
 }
 
@@ -698,6 +882,29 @@ function bindEvents() {
       sendChatMessage();
     }
   });
+
+  document.getElementById('pr-facility')?.addEventListener('change', async (e) => {
+    state.personalRecord.facilityId = Number(e.target.value);
+    await loadChildren(state.personalRecord.facilityId);
+    state.personalRecord.selectedRecordId = null;
+    renderPersonalRecord();
+    refreshIcons();
+  });
+  document.getElementById('pr-child')?.addEventListener('change', (e) => {
+    state.personalRecord.childId = Number(e.target.value);
+    state.personalRecord.selectedRecordId = null;
+  });
+  document.getElementById('pr-start-date')?.addEventListener('change', (e) => {
+    state.personalRecord.startDate = e.target.value;
+  });
+  document.getElementById('pr-end-date')?.addEventListener('change', (e) => {
+    state.personalRecord.endDate = e.target.value;
+  });
+  document.getElementById('btn-pr-search')?.addEventListener('click', loadPersonalRecords);
+  document.getElementById('btn-pr-detail-close')?.addEventListener('click', () => {
+    state.personalRecord.selectedRecordId = null;
+    renderPersonalRecord();
+  });
 }
 
 async function init() {
@@ -705,6 +912,8 @@ async function init() {
   bindEvents();
   const ai = getAiSettings();
   console.log('[init] AI設定:', ai);
+  console.log('[init] API_BASE:', API_BASE);
+  console.log('[init] ai-config (window.AI_CONFIG):', window.AI_CONFIG);
   await loadFacilities();
   if (!window.location.hash) {
     window.location.hash = '#/chat';

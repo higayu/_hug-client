@@ -40,6 +40,10 @@
             <i data-lucide="layout-dashboard"></i>
             <span>ダッシュボード</span>
           </a>
+          <a href="#/personal-record" class="nav-link" data-route="/personal-record">
+            <i data-lucide="user-square"></i>
+            <span>個人記録</span>
+          </a>
         </nav>
         <div class="sidebar-footer">
           <div class="user-info">
@@ -299,6 +303,82 @@
               </div>
             </div>
           </div>
+        </div>
+      </section>
+
+      <!-- PersonalRecordListPage -->
+      <section id="page-personal-record" class="page">
+        <header class="mb-4">
+          <h1>個人記録一覧</h1>
+          <p style="color:var(--text-light);">児童ごとの支援記録（support_records）を期間指定で表示します。</p>
+        </header>
+
+        <div class="card" style="margin-bottom:1.5rem;">
+          <h2 class="mb-4" style="font-size:1.125rem;margin-bottom:1rem;">検索条件</h2>
+          <div class="responsive-flex" style="margin-bottom:1rem;">
+            <div style="flex:1;">
+              <label class="label">事業所</label>
+              <select id="pr-facility" class="input-field"></select>
+            </div>
+            <div style="flex:1;">
+              <label class="label">児童</label>
+              <select id="pr-child" class="input-field"></select>
+            </div>
+          </div>
+          <div style="margin-bottom:1rem;">
+            <label class="label">取得期間</label>
+            <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;">
+              <input type="date" id="pr-start-date" class="input-field" style="flex:1;min-width:10rem;" />
+              <span>～</span>
+              <input type="date" id="pr-end-date" class="input-field" style="flex:1;min-width:10rem;" />
+            </div>
+          </div>
+          <div class="flex justify-end">
+            <button id="btn-pr-search" type="button" class="btn btn-primary">
+              <i data-lucide="search"></i> 一覧を取得
+            </button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="flex justify-between items-center mb-4" style="margin-bottom:1rem;">
+            <h2 style="margin:0;font-size:1.125rem;">記録一覧</h2>
+            <span id="pr-count-badge" class="badge badge-primary">0件</span>
+          </div>
+          <p id="pr-status-hint" style="color:var(--text-light);font-size:0.875rem;margin-bottom:1rem;">
+            条件を指定して「一覧を取得」を押してください。
+          </p>
+          <div id="pr-table-wrap" class="table-wrap hidden">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th style="width:7rem;">支援日</th>
+                  <th>記録内容</th>
+                  <th style="width:5rem;">ID</th>
+                </tr>
+              </thead>
+              <tbody id="pr-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="pr-detail-card" class="card hidden" style="margin-top:1.5rem;">
+          <div class="flex justify-between items-center mb-4">
+            <h3 style="margin:0;">記録の詳細</h3>
+            <button id="btn-pr-detail-close" type="button" class="btn btn-secondary" style="padding:0.35rem 0.75rem;">
+              閉じる
+            </button>
+          </div>
+          <dl class="record-detail-dl">
+            <dt>記録ID</dt>
+            <dd id="pr-detail-id"></dd>
+            <dt>支援日</dt>
+            <dd id="pr-detail-date"></dd>
+            <dt>児童</dt>
+            <dd id="pr-detail-child"></dd>
+            <dt>記録内容</dt>
+            <dd id="pr-detail-content" class="record-detail-content"></dd>
+          </dl>
         </div>
       </section>
     </main>
