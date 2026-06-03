@@ -1,0 +1,21 @@
+{
+  "manifest_version": 3,
+  "name": "走るピカチュウ",
+  "version": "1.0",
+  "description": "ページ上をGIFキャラが歩く拡張",
+  "content_scripts": [
+    {
+      "matches": [
+         "https://www.hug-ayumu.link/*"
+      ],
+      "js": ["content.js"],
+      "css": ["style.css"]
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["Right.gif"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}

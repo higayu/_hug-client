@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>退室ボタン点滅サンプル</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f6f7f9;
+      padding: 32px;
+      color: #222;
+    }
+
+    h1 {
+      font-size: 24px;
+      margin-bottom: 8px;
+    }
+
+    .note {
+      margin-bottom: 20px;
+      color: #555;
+      line-height: 1.7;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    th {
+      background: #dcf4ff;
+      padding: 12px;
+      border: 1px solid #c9dce5;
+      text-align: center;
+      font-weight: 700;
+    }
+
+    td {
+      padding: 12px;
+      border: 1px solid #e1e5ea;
+      text-align: center;
+      vertical-align: middle;
+    }
+
+    tr:nth-child(even) {
+      background: #fafafa;
+    }
+
+    .realname {
+      text-align: left;
+      font-weight: 700;
+    }
+
+    .furigana {
+      display: block;
+      font-size: 12px;
+      color: #777;
+      font-weight: 400;
+    }
+
+    .green {
+      color: #008000;
+      font-weight: 700;
+      font-size: 16px;
+    }
+
+    .btn {
+      border: 1px solid #aaa;
+      background: #f5f5f5;
+      border-radius: 6px;
+      padding: 6px 14px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: 0.2s;
+    }
+
+    .btn:hover {
+      background: #e9e9e9;
+    }
+
+    @keyframes kasanBlink {
+      0% {
+        opacity: 1;
+        transform: scale(1);
+        box-shadow: 0 0 0 rgba(255, 0, 0, 0);
+      }
+      50% {
+        opacity: 0.35;
+        transform: scale(1.1);
+        box-shadow: 0 0 14px rgba(255, 0, 0, 0.95);
+      }
+      100% {
+        opacity: 1;
+        transform: scale(1);
+        box-shadow: 0 0 0 rgba(255, 0, 0, 0);
+      }
+    }
+
+    .kasan-blink-alert {
+      animation: kasanBlink 1s infinite;
+      color: #fff !important;
+      background: #e60000 !important;
+      border-color: #e60000 !important;
+      font-weight: bold !important;
+    }
+
+    .status-ok {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: #e8f7ec;
+      color: #16803a;
+      font-weight: 700;
+      font-size: 13px;
+    }
+
+    .status-wait {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: #fff3cd;
+      color: #8a6500;
+      font-weight: 700;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>退室ボタン点滅サンプル</h1>
+  <p class="note">
+    「入室時間から2時間以上経過」かつ「退室時間が空欄」の行だけ、退室ボタンが赤くチカチカ点滅します。<br>
+    このサンプルでは、分かりやすいように1行目の退室ボタンに最初からアニメーションクラスを付けています。
+  </p>
+
+  <table class="table sortTable01">
+    <thead>
+      <tr>
+        <th></th>
+        <th>児童名<br><small>ふりがな</small></th>
+        <th>サービス</th>
+        <th>利用施設</th>
+        <th>直接編集</th>
+        <th class="enter">入室時間</th>
+        <th class="leave">退室時間</th>
+        <th>利用時間</th>
+        <th>状態</th>
+      </tr>
+    </thead>
+    <tbody id="releasetable">
+      <tr>
+        <th>1</th>
+        <td class="realname">
+          <span class="furigana">あいうえお</span>
+          あいうえお さん
+        </td>
+        <td>放デ</td>
+        <td>PD吉島</td>
+        <td><button class="btn">編集</button></td>
+        <td class="enter"><b><span class="green">09:48</span></b></td>
+        <td class="leave">
+          <button class="btn kasan-blink-alert">退室</button>
+        </td>
+        <td>2時間以上</td>
+        <td><span class="status-wait">退室待ち</span></td>
+      </tr>
+
+      <tr>
+        <th>2</th>
+        <td class="realname">
+          <span class="furigana">かきくけこ</span>
+          かきくけこ さん
+        </td>
+        <td>放デ</td>
+        <td>PD吉島</td>
+        <td><button class="btn">編集</button></td>
+        <td class="enter"><b><span class="green">09:58</span></b></td>
+        <td class="leave"><b><span class="green">12:04</span></b></td>
+        <td>2時間6分</td>
+        <td><span class="status-ok">退室済み</span></td>
+      </tr>
+
+      <tr>
+        <th>3</th>
+        <td class="realname">
+          <span class="furigana">さしすせそ</span>
+          さしすせそ さん
+        </td>
+        <td>放デ</td>
+        <td>PD吉島</td>
+        <td><button class="btn">編集</button></td>
+        <td class="enter"><button class="btn">入室</button> <button class="btn">欠席</button></td>
+        <td class="leave"></td>
+        <td></td>
+        <td><span class="status-ok">未入室</span></td>
+      </tr>
+
+      <tr>
+        <th>4</th>
+        <td class="realname">
+          <span class="furigana">たちつてと</span>
+          たちつてと さん
+        </td>
+        <td>放デ</td>
+        <td>PD吉島</td>
+        <td><button class="btn">編集</button></td>
+        <td class="enter"><b><span class="green">13:30</span></b></td>
+        <td class="leave"><button class="btn">退室</button></td>
+        <td>2時間未満</td>
+        <td><span class="status-ok">通常</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+</body>
+</html>

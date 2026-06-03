@@ -1,0 +1,15 @@
+#gifBtn {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: white;
+  border: 2px solid #007bff;
+  border-radius: 8px;
+  padding: 5px;
+  cursor: pointer;
+}
+
+#gifBtn img {
+  width: 48px;
+  height: 48px;
+}

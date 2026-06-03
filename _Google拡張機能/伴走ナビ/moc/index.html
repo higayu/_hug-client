@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>伴走ナビ (HUG版) - モック</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-container">
+    <!-- Mobile Header (App.tsx) -->
+    <div id="mobile-header" class="mobile-header">
+      <h2>伴走ナビ</h2>
+      <button id="mobile-menu-btn" class="mobile-menu-btn" type="button" aria-label="メニュー">
+        <i data-lucide="menu"></i>
+      </button>
+    </div>
+
+    <div id="mobile-overlay" class="mobile-overlay"></div>
+
+    <!-- Sidebar (Sidebar.tsx) -->
+    <div id="sidebar-wrap">
+      <aside id="sidebar" class="sidebar-container">
+        <div class="sidebar-header">
+          <h2>伴走ナビ</h2>
+          <button id="sidebar-close" class="sidebar-close-btn" type="button" aria-label="閉じる">
+            <i data-lucide="x"></i>
+          </button>
+        </div>
+        <nav class="sidebar-nav">
+          <a href="#/correction" class="nav-link" data-route="/correction">
+            <i data-lucide="file-edit"></i>
+            <span>AI校正機能</span>
+          </a>
+          <a href="#/chat" class="nav-link" data-route="/chat">
+            <i data-lucide="message-square"></i>
+            <span>AI問い合わせ</span>
+          </a>
+          <a href="#/dashboard" class="nav-link" data-route="/dashboard">
+            <i data-lucide="layout-dashboard"></i>
+            <span>ダッシュボード</span>
+          </a>
+        </nav>
+        <div class="sidebar-footer">
+          <div class="user-info">
+            <div class="user-avatar"><i data-lucide="user"></i></div>
+            <div>
+              <div class="user-name">平野 義幸</div>
+              <div class="user-facility">吉島事業所</div>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <main id="main-content" class="main-content">
+      <!-- LoginPage 
+      <section id="page-login" class="page login-page">
+        <div class="card login-card">
+          <div class="login-header">
+            <div class="login-logo"><i data-lucide="log-in"></i></div>
+            <h1 style="margin:0;font-size:1.5rem;">伴走ナビ (HUG版)</h1>
+            <p style="color:var(--text-light);margin-top:0.5rem;font-size:0.875rem;">
+              アカウント情報を入力してログインしてください
+            </p>
+          </div>
+          <form id="login-form" class="login-form">
+            <div>
+              <label class="label">メールアドレス</label>
+              <input type="email" class="input-field" placeholder="name@example.com" required />
+            </div>
+            <div>
+              <div class="flex justify-between items-center mb-4" style="margin-bottom:0.5rem;">
+                <label class="label" style="margin:0;">パスワード</label>
+                <a href="#" class="forgot-link">パスワードを忘れた場合</a>
+              </div>
+              <input type="password" class="input-field" placeholder="••••••••" required />
+            </div>
+            <button type="submit" class="btn btn-primary" style="width:100%;padding:0.75rem;margin-top:0.5rem;font-size:1rem;">
+              ログイン
+            </button>
+          </form>
+          <div class="login-footer">© 2026 伴走ナビ. All rights reserved.</div>
+        </div>
+      </section>-->
+
+      <!-- ChatPage -->
+      <section id="page-chat" class="page">
+        <header class="mb-4">
+          <h1>AI問い合わせ機能（チャットボット）</h1>
+          <p style="color:var(--text-light);">過去のデータをもとにAIと対話を行います。</p>
+        </header>
+
+        <div id="chat-selection" class="card chat-selection-card">
+          <h2 class="mb-4">対象データ選択</h2>
+          <div style="display:flex;flex-direction:column;gap:1.5rem;margin-bottom:2rem;">
+            <div>
+              <label class="label">事業所</label>
+              <select id="chat-facility" class="input-field"></select>
+            </div>
+            <div>
+              <label class="label">児童</label>
+              <select id="chat-child" class="input-field"></select>
+            </div>
+            <div>
+              <label class="label">取得期間</label>
+              <div style="display:flex;align-items:center;gap:0.5rem;">
+                <input type="date" id="chat-start-date" class="input-field" />
+                <span>～</span>
+                <input type="date" id="chat-end-date" class="input-field" />
+              </div>
+            </div>
+          </div>
+          <div class="flex justify-end">
+            <button id="btn-chat-start" type="button" class="btn btn-primary">
+              <i data-lucide="search"></i> チャット開始
+            </button>
+          </div>
+        </div>
+
+        <div id="chat-room" class="card chat-container hidden">
+          <div class="chat-header">
+            <div style="display:flex;align-items:center;gap:0.5rem;min-width:0;">
+              <button id="btn-chat-back" type="button" class="btn btn-secondary" style="padding:0.4rem;flex-shrink:0;">
+                <i data-lucide="arrow-left"></i>
+              </button>
+              <h3 id="chat-room-title" class="chat-header-title"></h3>
+            </div>
+            <select class="input-field" style="padding:0.3rem;width:auto;font-size:0.875rem;">
+              <option>Gemini 3.1 Flash</option>
+              <option>Gemini 3.1 Pro (複雑用)</option>
+            </select>
+          </div>
+          <div id="chat-messages" class="chat-messages"></div>
+          <div class="chat-input-area">
+            <div class="chat-input-row">
+              <textarea id="chat-input" class="input-field" rows="2" style="flex:1;min-height:auto;resize:none;padding:0.75rem;" placeholder="質問や指示を入力..."></textarea>
+              <button id="btn-chat-send" type="button" class="btn btn-primary" style="padding:0 1rem;height:42px;flex-shrink:0;">
+                <i data-lucide="send"></i>
+              </button>
+            </div>
+            <p class="chat-hint">Shift + Enter で改行、Enter で送信</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- CorrectionPage -->
+      <section id="page-correction" class="page">
+        <header class="mb-4">
+          <h1>AI校正機能（入力支援）</h1>
+          <p style="color:var(--text-light);">支援記録をF-SOAIP形式などに校正します。</p>
+        </header>
+
+        <div class="tab-bar">
+          <button id="tab-simple" type="button" class="btn tab-btn">案1: シンプル重視</button>
+          <button id="tab-advanced" type="button" class="btn tab-btn">案2: 多機能・利便性重視</button>
+        </div>
+
+        <div class="card">
+          <div class="responsive-flex" style="margin-bottom:1.5rem;">
+            <div style="flex:1;">
+              <label class="label">事業所</label>
+              <select id="correction-facility" class="input-field"></select>
+            </div>
+            <div style="flex:1;">
+              <label class="label">児童</label>
+              <select id="correction-child" class="input-field"></select>
+            </div>
+            <div style="flex:1;">
+              <label class="label">支援日</label>
+              <input type="date" id="correction-date" class="input-field" />
+            </div>
+          </div>
+
+          <div id="correction-simple-panel">
+            <div class="prompt-box" style="margin-bottom:1.5rem;">
+              <label class="label">校正の仕方の指示プロンプト（編集不可）</label>
+              <p style="font-size:0.875rem;color:var(--text-light);margin:0;">
+                放課後等デイサービスの支援記録について、以下の文章をF-SOAIPに沿った形式に校正してください。
+              </p>
+            </div>
+          </div>
+
+          <div id="correction-advanced-panel" class="hidden">
+            <div style="display:flex;flex-direction:column;gap:1.5rem;margin-bottom:1.5rem;">
+              <div class="prompt-box">
+                <label class="label">校正の仕方の指示プロンプト（編集不可）</label>
+                <p style="font-size:0.875rem;color:var(--text-light);margin:0;">
+                  放課後等デイサービスの支援記録について、以下の文章をF-SOAIPに沿った形式に校正してください。
+                </p>
+              </div>
+              <div>
+                <label class="label">追加プロンプト（任意）</label>
+                <textarea id="correction-additional" class="input-field" rows="2" placeholder="例：保護者への感謝の気持ちを追加してください。"></textarea>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <label class="label">支援記録コメント欄に記載する文章</label>
+            <textarea id="correction-original" class="input-field" rows="6" placeholder="記録を入力してください..."></textarea>
+          </div>
+
+          <div class="flex justify-end gap-4 mt-4" style="margin-top:1rem;gap:1rem;">
+            <button id="btn-register" type="button" class="btn btn-secondary">
+              <i data-lucide="save"></i> 登録する
+            </button>
+            <button id="btn-correct" type="button" class="btn btn-primary">
+              <i data-lucide="wand-2"></i> AIで校正する
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- DashboardPage -->
+      <section id="page-dashboard" class="page">
+        <header class="flex justify-between items-center mb-4">
+          <div>
+            <h1>管理ダッシュボード</h1>
+            <p style="color:var(--text-light);">プロンプト管理とバッチ処理のステータスを確認します。</p>
+          </div>
+          <span class="badge badge-primary">管理者モード</span>
+        </header>
+
+        <div class="responsive-grid">
+          <div style="display:flex;flex-direction:column;gap:1.5rem;">
+            <div class="card">
+              <h3 class="flex items-center gap-2" style="margin:0 0 1rem;">
+                <i data-lucide="settings"></i> 📊 AIプロンプト（解析用）
+              </h3>
+              <textarea class="input-field mb-4">この児童のメンタル不調の傾向やデイを解約しそうな兆候がないか解析し、要約してください。</textarea>
+              <div class="flex justify-end gap-2">
+                <button type="button" class="btn btn-secondary"><i data-lucide="history"></i> 変更履歴</button>
+                <button type="button" class="btn btn-primary"><i data-lucide="save"></i> 保存</button>
+              </div>
+            </div>
+            <div class="card">
+              <h3 class="flex items-center gap-2" style="margin:0 0 1rem;">
+                <i data-lucide="settings"></i> 📊 AIプロンプト（校正用）
+              </h3>
+              <textarea class="input-field mb-4">放課後等デイサービスの支援記録について、以下の文章をF-SOAIPに沿った形式に校正してください。</textarea>
+              <div class="flex justify-end gap-2">
+                <button type="button" class="btn btn-secondary"><i data-lucide="history"></i> 変更履歴</button>
+                <button type="button" class="btn btn-primary"><i data-lucide="save"></i> 保存</button>
+              </div>
+            </div>
+            <div class="card">
+              <h3 class="flex items-center gap-2" style="margin:0 0 1rem;">
+                <i data-lucide="settings"></i> 📊 AIプロンプト（問い合わせ用）
+              </h3>
+              <textarea class="input-field mb-4">提供された過去の支援記録の事実のみに基づいて回答すること。推測で嘘をつかないこと。</textarea>
+              <div class="flex justify-end gap-2">
+                <button type="button" class="btn btn-secondary"><i data-lucide="history"></i> 変更履歴</button>
+                <button type="button" class="btn btn-primary"><i data-lucide="save"></i> 保存</button>
+              </div>
+            </div>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:1.5rem;">
+            <div class="card">
+              <h3 class="mb-4">⚙️ バッチ処理コントロール</h3>
+              <div style="padding:1rem;background:var(--bg-color);border-radius:var(--radius-md);margin-bottom:1rem;">
+                <div class="flex justify-between mb-4">
+                  <span class="label" style="margin:0;">現在のステータス</span>
+                  <span class="badge badge-success">🟢 待機中</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="label" style="margin:0;">前回の実行日時</span>
+                  <span style="font-size:0.875rem;">2026/03/01 02:00 (成功)</span>
+                </div>
+              </div>
+              <div class="flex justify-end">
+                <button type="button" class="btn btn-primary" style="width:100%;">
+                  <i data-lucide="play-circle"></i> バッチ起動
+                </button>
+              </div>
+            </div>
+            <div class="card">
+              <h3 class="mb-4">📊 AI API 使用状況（今月）</h3>
+              <div style="display:flex;flex-direction:column;gap:1rem;">
+                <div style="padding:1rem;border:1px solid var(--border-color);border-radius:var(--radius-md);">
+                  <div class="flex justify-between items-center mb-4">
+                    <span style="font-weight:600;">Gemini 3.1 Pro</span>
+                    <span style="font-size:1.25rem;font-weight:700;color:var(--primary-color);">$12.50</span>
+                  </div>
+                  <div class="progress-bar">
+                    <div class="progress-fill primary" style="width:40%;"></div>
+                  </div>
+                </div>
+                <div style="padding:1rem;border:1px solid var(--border-color);border-radius:var(--radius-md);">
+                  <div class="flex justify-between items-center mb-4">
+                    <span style="font-weight:600;">Gemini 3.1 Flash Lite</span>
+                    <span style="font-size:1.25rem;font-weight:700;color:var(--secondary-color);">$3.20</span>
+                  </div>
+                  <div class="progress-bar">
+                    <div class="progress-fill secondary" style="width:15%;"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Correction Modal -->
+  <div id="correction-modal" class="modal-backdrop">
+    <div class="card modal-content">
+      <div class="flex justify-between items-center mb-4">
+        <h2 style="margin:0;">校正結果の確認</h2>
+        <button id="modal-close" type="button" class="btn btn-secondary" style="padding:0.25rem;">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div id="modal-advanced-sections" class="hidden">
+          <div>
+            <button type="button" class="collapse-btn" data-collapse="original">
+              <label class="label">校正前、元になった文章（編集可能）</label>
+              <i data-lucide="chevron-down"></i>
+            </button>
+            <div id="collapse-original">
+              <textarea id="modal-original-textarea" class="input-field" rows="3"></textarea>
+            </div>
+          </div>
+          <div class="prompt-box">
+            <button type="button" class="collapse-btn" data-collapse="systemPrompt">
+              <label class="label">校正の仕方の指示プロンプト（編集不可）</label>
+              <i data-lucide="chevron-down"></i>
+            </button>
+            <div id="collapse-systemPrompt">
+              <p style="font-size:0.875rem;color:var(--text-light);margin:0;">
+                放課後等デイサービスの支援記録について、以下の文章をF-SOAIPに沿った形式に校正してください。
+              </p>
+            </div>
+          </div>
+          <div>
+            <button type="button" class="collapse-btn" data-collapse="additionalPrompt">
+              <label class="label">校正の仕方の指示追加プロンプト（編集可能）</label>
+              <i data-lucide="chevron-down"></i>
+            </button>
+            <div id="collapse-additionalPrompt">
+              <textarea id="modal-additional-textarea" class="input-field" rows="2"></textarea>
+            </div>
+          </div>
+        </div>
+        <div id="modal-simple-original" class="prompt-box">
+          <label class="label">元になった文章</label>
+          <p id="modal-original-text" style="margin:0;font-size:0.875rem;"></p>
+        </div>
+        <div>
+          <button type="button" class="collapse-btn" data-collapse="corrected">
+            <label class="label">校正後の文章（編集可能）</label>
+            <i data-lucide="chevron-down"></i>
+          </button>
+          <div id="collapse-corrected">
+            <textarea id="correction-corrected" class="input-field corrected-textarea" rows="8"></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="flex justify-end gap-2 modal-footer">
+        <button id="modal-advanced-clear" type="button" class="btn btn-secondary hidden">クリア</button>
+        <button id="modal-cancel" type="button" class="btn btn-secondary">キャンセル</button>
+        <button type="button" class="btn btn-secondary"><i data-lucide="refresh-cw"></i> 再校正</button>
+        <button id="modal-apply" type="button" class="btn btn-primary">
+          <i data-lucide="check"></i> 反映して閉じる
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="lucide.min.js"></script>
+  <script src="ai-config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,27 @@
+{
+  "manifest_version": 3,
+  "name": "HUG 個人記録のデータ閲覧",
+  "version": "1.0.0",
+  "description": "児童・施設・日付を選んで個人記録を取得する",
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.hug-ayumu.link/hug/wm/*"
+      ],
+      "js": [
+        "editpage.js",
+        "edit-post.js",
+        "personallist.js",
+        "content.js",
+        "form/form-styles.js",
+        "form/form-panel.js",
+        "form/personal-record-month-fetch.js",
+        "form/form.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "host_permissions": [
+    "https://www.hug-ayumu.link/hug/wm/*"
+  ]
+}

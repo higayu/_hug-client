@@ -1,0 +1,53 @@
+/* ===== ルート ===== */
+#poke-fall-root {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 999999;
+  overflow: hidden;
+}
+
+/* ===== 共通 poke ===== */
+.poke {
+  position: absolute;
+  top: -80px;
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-position: center;
+  animation-name: poke-fall;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+  opacity: 0;
+}
+
+/* ===== 画像（Chrome拡張専用書式）===== */
+.poke-1 {
+  background-image: url("chrome-extension://__MSG_@@extension_id__/images/poke-1.svg");
+}
+.poke-2 {
+  background-image: url("chrome-extension://__MSG_@@extension_id__/images/poke-2.svg");
+}
+.poke-3 {
+  background-image: url("chrome-extension://__MSG_@@extension_id__/images/poke-3.svg");
+}
+.poke-4 {
+  background-image: url("chrome-extension://__MSG_@@extension_id__/images/poke-4.svg");
+}
+.poke-5 {
+  background-image: url("chrome-extension://__MSG_@@extension_id__/images/poke-5.svg");
+}
+
+/* ===== アニメーション ===== */
+@keyframes poke-fall {
+  0% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(120vh) rotate(360deg);
+    opacity: 0;
+  }
+}

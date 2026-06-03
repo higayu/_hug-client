@@ -1,0 +1,14 @@
+{
+  "manifest_version": 3,
+  "name": "専門的支援と児童IDの自動選択",
+  "version": "1.0.0",
+  "description": "record_proceedings.php?mode=edit で自動入力を行う",
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.hug-ayumu.link/hug/wm/record_proceedings.php?mode=edit*"
+      ],
+      "js": ["content.js"]
+    }
+  ]
+}

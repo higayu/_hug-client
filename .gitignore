@@ -1,0 +1,9 @@
+node_modules
+.env
+.env.production
+dist/
+config.json
+dist.zip
+ini.json
+GitHub-Token.txt
+houday.db
