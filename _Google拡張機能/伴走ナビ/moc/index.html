@@ -44,6 +44,10 @@
             <i data-lucide="user-square"></i>
             <span>個人記録</span>
           </a>
+          <a href="#/hug-personal-record" class="nav-link" data-route="/hug-personal-record">
+            <i data-lucide="user-square"></i>
+            <span>hugから個人記録取得</span>
+          </a>
         </nav>
         <div class="sidebar-footer">
           <div class="user-info">
@@ -381,6 +385,66 @@
           </dl>
         </div>
       </section>
+
+      <!-- HugPersonalRecordPage -->
+      <section id="page-hug-personal-record" class="page">
+        <header class="mb-4">
+          <h1>hugから個人記録取得</h1>
+          <p style="color:var(--text-light);">
+            HUG WM の連絡帳一覧から「出席」の日のみ編集画面を開き、活動内容（note）を取得します。
+            ブラウザで <a href="https://www.hug-ayumu.link/hug/wm/" target="_blank" rel="noopener">HUG WM</a> にログインしたうえで実行してください。
+          </p>
+        </header>
+
+        <div class="card" style="margin-bottom:1.5rem;">
+          <h2 class="mb-4" style="font-size:1.125rem;margin-bottom:1rem;">検索条件</h2>
+          <div class="responsive-flex" style="margin-bottom:1rem;">
+            <div style="flex:1;">
+              <label class="label">事業所（f_id）</label>
+              <select id="hpr-facility" class="input-field"></select>
+            </div>
+            <div style="flex:1;">
+              <label class="label">児童（id）</label>
+              <select id="hpr-child" class="input-field"></select>
+            </div>
+          </div>
+          <div style="margin-bottom:1rem;">
+            <label class="label">取得期間</label>
+            <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;">
+              <input type="date" id="hpr-start-date" class="input-field" style="flex:1;min-width:10rem;" />
+              <span>～</span>
+              <input type="date" id="hpr-end-date" class="input-field" style="flex:1;min-width:10rem;" />
+            </div>
+          </div>
+          <div class="flex justify-end">
+            <button id="btn-hpr-fetch" type="button" class="btn btn-primary">
+              <i data-lucide="download"></i> HUGから取得
+            </button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="flex justify-between items-center mb-4" style="margin-bottom:1rem;">
+            <h2 style="margin:0;font-size:1.125rem;">取得結果（出席・活動内容）</h2>
+            <span id="hpr-count-badge" class="badge badge-primary">0件</span>
+          </div>
+          <p id="hpr-status-hint" style="color:var(--text-light);font-size:0.875rem;margin-bottom:1rem;">
+            条件を指定して「HUGから取得」を押してください。
+          </p>
+          <div id="hpr-table-wrap" class="table-wrap hidden">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th style="width:7rem;">日付</th>
+                  <th style="width:8rem;">児童名</th>
+                  <th>活動内容（note）</th>
+                </tr>
+              </thead>
+              <tbody id="hpr-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
     </main>
   </div>
 
@@ -452,6 +516,7 @@
 
   <script src="lucide.min.js"></script>
   <script src="ai-config.js"></script>
+  <script src="hug-wm.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

@@ -6,7 +6,7 @@ async function fetchContactBookNote(pathAndQuery) {
   const listUrl = new URL(pathAndQuery, HUG_WM_BASE_URL).href;
 
   try {
-    console.log("[HUG WM] 編集HTML fetch開始:", listUrl);
+   // console.log("[HUG WM] 編集HTML fetch開始:", listUrl);
 
     const response = await fetch(listUrl, {
       method: "GET",
@@ -35,7 +35,7 @@ async function fetchContactBookNote(pathAndQuery) {
 
     const noteText = textarea.value.trim();
 
-    console.log("[HUG WM] note取得成功:", noteText);
+    //console.log("[HUG WM] note取得成功:", noteText);
 
     return noteText;
 

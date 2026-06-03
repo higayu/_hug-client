@@ -23,6 +23,7 @@
     "http://192.168.1.229:3001/*",
     "http://localhost:3001/*",
     "http://localhost:11434/*",
-    "https://generativelanguage.googleapis.com/*"
+    "https://generativelanguage.googleapis.com/*",
+    "https://www.hug-ayumu.link/hug/wm/*"
   ]
 }

@@ -178,6 +178,16 @@ const state = {
     isLoading: false,
     hasSearched: false,
   },
+  hugPersonalRecord: {
+    facilityId: '',
+    childId: '',
+    startDate: '',
+    endDate: '',
+    records: [],
+    isLoading: false,
+    hasSearched: false,
+    statusMessage: '',
+  },
 };
 
 function getFormattedDate(date) {
@@ -195,6 +205,8 @@ function initDates() {
   state.chat.startDate = getFormattedDate(start);
   state.personalRecord.endDate = state.chat.endDate;
   state.personalRecord.startDate = state.chat.startDate;
+  state.hugPersonalRecord.endDate = state.chat.endDate;
+  state.hugPersonalRecord.startDate = state.chat.startDate;
 }
 
 function formatFetchError(response) {
@@ -267,6 +279,7 @@ async function loadFacilities() {
     state.correction.facilityId = fid;
     state.chat.facilityId = fid;
     state.personalRecord.facilityId = fid;
+    state.hugPersonalRecord.facilityId = fid;
     await loadChildren(fid);
   }
 }
@@ -293,6 +306,12 @@ async function loadChildren(facilityId) {
       !list.find((c) => c.child_id === state.personalRecord.childId)
     ) {
       state.personalRecord.childId = list[0].child_id;
+    }
+    if (
+      !state.hugPersonalRecord.childId ||
+      !list.find((c) => c.child_id === state.hugPersonalRecord.childId)
+    ) {
+      state.hugPersonalRecord.childId = list[0].child_id;
     }
   }
 }
@@ -580,6 +599,128 @@ function renderPersonalRecord() {
   renderPersonalRecordDetail(pr);
 }
 
+function renderHugPersonalRecord() {
+  const hpr = state.hugPersonalRecord;
+  fillSelect('hpr-facility', state.facilities, 'facility_id', 'name', hpr.facilityId);
+  fillSelect('hpr-child', getChildrenList(hpr.facilityId), 'child_id', 'name', hpr.childId);
+
+  const startEl = document.getElementById('hpr-start-date');
+  const endEl = document.getElementById('hpr-end-date');
+  if (startEl && startEl.value !== hpr.startDate) startEl.value = hpr.startDate;
+  if (endEl && endEl.value !== hpr.endDate) endEl.value = hpr.endDate;
+
+  const btn = document.getElementById('btn-hpr-fetch');
+  if (btn) {
+    btn.disabled = hpr.isLoading;
+    btn.innerHTML = hpr.isLoading
+      ? '<span>取得中…</span>'
+      : '<i data-lucide="download"></i> HUGから取得';
+  }
+
+  const badge = document.getElementById('hpr-count-badge');
+  if (badge) badge.textContent = `${hpr.records.length}件`;
+
+  const hint = document.getElementById('hpr-status-hint');
+  if (hint) {
+    if (hpr.isLoading && hpr.statusMessage) {
+      hint.textContent = hpr.statusMessage;
+    } else if (hpr.isLoading) {
+      hint.textContent = 'HUG WM からデータを取得しています…';
+    } else if (hpr.hasSearched) {
+      hint.textContent =
+        hpr.records.length > 0
+          ? '取得が完了しました。'
+          : '該当する出席日の記録は見つかりませんでした。';
+    } else {
+      hint.textContent = '条件を指定して「HUGから取得」を押してください。';
+    }
+  }
+
+  const wrap = document.getElementById('hpr-table-wrap');
+  const tbody = document.getElementById('hpr-tbody');
+  if (!wrap || !tbody) return;
+
+  if (!hpr.hasSearched || hpr.records.length === 0) {
+    wrap.classList.add('hidden');
+    tbody.innerHTML = '';
+    return;
+  }
+
+  wrap.classList.remove('hidden');
+  tbody.innerHTML = '';
+  hpr.records.forEach((row) => {
+    const tr = document.createElement('tr');
+    const noteCell = document.createElement('td');
+    noteCell.textContent = row.note || '（取得できませんでした）';
+    noteCell.style.whiteSpace = 'pre-wrap';
+    tr.innerHTML = `<td>${escapeHtml(row.date)}</td><td>${escapeHtml(row.childName)}</td>`;
+    tr.appendChild(noteCell);
+    tbody.appendChild(tr);
+  });
+}
+
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+async function loadHugPersonalRecords() {
+  const hpr = state.hugPersonalRecord;
+  if (!window.HugWm?.fetchHugPersonalRecordsFromWm) {
+    alert('hug-wm.js が読み込まれていません。');
+    return;
+  }
+  if (!hpr.childId) {
+    alert('児童を選択してください');
+    return;
+  }
+  if (!hpr.startDate || !hpr.endDate) {
+    alert('取得期間を指定してください');
+    return;
+  }
+  if (hpr.startDate > hpr.endDate) {
+    alert('開始日は終了日以前にしてください');
+    return;
+  }
+
+  hpr.isLoading = true;
+  hpr.records = [];
+  hpr.statusMessage = '';
+  renderHugPersonalRecord();
+
+  try {
+    hpr.records = await window.HugWm.fetchHugPersonalRecordsFromWm({
+      facilityId: Number(hpr.facilityId),
+      date: hpr.startDate,
+      dateEnd: hpr.endDate,
+      childId: Number(hpr.childId),
+      onProgress: (msg) => {
+        hpr.statusMessage = msg;
+        renderHugPersonalRecord();
+      },
+    });
+    hpr.hasSearched = true;
+  } catch (err) {
+    console.error('[loadHugPersonalRecords]', err);
+    alert(
+      `HUGからの取得に失敗しました: ${err.message}\n\n` +
+        '・伴走ナビ拡張機能から開いているか\n' +
+        '・HUG WM にログイン済みか\n' +
+        '・事業所・児童IDが HUG 上の f_id / id と一致しているか\nを確認してください。'
+    );
+    hpr.hasSearched = true;
+    hpr.records = [];
+  } finally {
+    hpr.isLoading = false;
+    hpr.statusMessage = '';
+    renderHugPersonalRecord();
+    refreshIcons();
+  }
+}
+
 async function loadPersonalRecords() {
   const pr = state.personalRecord;
   if (!pr.childId) {
@@ -627,6 +768,7 @@ function render() {
   if (state.route === '/correction') renderCorrection();
   if (state.route === '/chat') renderChat();
   if (state.route === '/personal-record') renderPersonalRecord();
+  if (state.route === '/hug-personal-record') renderHugPersonalRecord();
   refreshIcons();
 }
 
@@ -905,6 +1047,23 @@ function bindEvents() {
     state.personalRecord.selectedRecordId = null;
     renderPersonalRecord();
   });
+
+  document.getElementById('hpr-facility')?.addEventListener('change', async (e) => {
+    state.hugPersonalRecord.facilityId = Number(e.target.value);
+    await loadChildren(state.hugPersonalRecord.facilityId);
+    renderHugPersonalRecord();
+    refreshIcons();
+  });
+  document.getElementById('hpr-child')?.addEventListener('change', (e) => {
+    state.hugPersonalRecord.childId = Number(e.target.value);
+  });
+  document.getElementById('hpr-start-date')?.addEventListener('change', (e) => {
+    state.hugPersonalRecord.startDate = e.target.value;
+  });
+  document.getElementById('hpr-end-date')?.addEventListener('change', (e) => {
+    state.hugPersonalRecord.endDate = e.target.value;
+  });
+  document.getElementById('btn-hpr-fetch')?.addEventListener('click', loadHugPersonalRecords);
 }
 
 async function init() {
