@@ -56,7 +56,9 @@ function buildContactBookListUrl({ facilityId, date, dateEnd, childId, page }) {
   url.searchParams.set('f_id', String(facilityId));
   url.searchParams.set('date', date);
   url.searchParams.set('date_end', dateEnd);
-  url.searchParams.set('id', String(childId));
+  if (childId != null && childId !== '' && Number(childId) > 0) {
+    url.searchParams.set('id', String(childId));
+  }
   if (page != null) {
     url.searchParams.set('page', String(page));
   }
@@ -70,7 +72,7 @@ function getContactBookPageNumbers(doc) {
     return [1];
   }
 
-  const pages = new Set();
+  const pages = new Set([1]);
   for (const anchor of targetUl.querySelectorAll('a[href]')) {
     const match = anchor.getAttribute('href')?.match(/[?&]page=(\d+)/);
     if (match) {
@@ -78,8 +80,44 @@ function getContactBookPageNumbers(doc) {
     }
   }
 
-  const sorted = [...pages].sort((a, b) => a - b);
-  return sorted.length ? sorted : [1];
+  return [...pages].sort((a, b) => a - b);
+}
+
+/** URLパラメータで絞り込まれた一覧テーブルから児童を抽出（#name_list は使わない） */
+function extractChildrenFromContactBookTable(doc) {
+  const table = doc.querySelector(CONTACT_BOOK_TABLE_SELECTOR);
+  if (!table) {
+    throw new Error(
+      '対象テーブルが見つかりません（HUGにログイン済みか、日付・施設パラメータを確認してください）'
+    );
+  }
+
+  const byChildId = new Map();
+
+  for (const row of table.querySelectorAll('tbody tr')) {
+    const cells = row.querySelectorAll('td');
+    const nameCell = cells[1]?.textContent.trim().replace(/\s+/g, ' ') ?? '';
+    const name = nameCell.replace(/さん$/, '').trim();
+
+    const editOnclick = cells[7]?.querySelector('button.edit')?.getAttribute('onclick');
+    const previewHref = cells[8]?.querySelector('a[href]')?.getAttribute('href');
+    const cIdMatch = editOnclick?.match(/c_id=(\d+)/) ?? previewHref?.match(/c_id=(\d+)/);
+
+    if (!cIdMatch) {
+      continue;
+    }
+
+    const childId = Number(cIdMatch[1]);
+    if (!Number.isFinite(childId) || childId <= 0) {
+      continue;
+    }
+
+    if (!byChildId.has(childId)) {
+      byChildId.set(childId, { child_id: childId, name });
+    }
+  }
+
+  return [...byChildId.values()];
 }
 
 async function fetchContactBookListDoc(listUrl) {
@@ -88,30 +126,48 @@ async function fetchContactBookListDoc(listUrl) {
 }
 
 /**
- * 連絡帳一覧ページの #name_list から児童一覧を取得
- * （f_id はログイン文脈用。一覧は施設IDに依存せず全児童が返る）
- * @param {number} facilityId
+ * 連絡帳一覧テーブルから児童一覧を取得（URLパラメータで絞り込まれた結果）
+ * @param {{ facilityId: number, date: string, dateEnd: string, childId?: number }} params
  * @returns {Promise<Array<{ child_id: number, name: string }>>}
  */
-async function fetchChildrenFromHugWm(facilityId) {
-  const url = new URL(HUG_WM_CONTACT_BOOK_LIST_URL);
-  url.searchParams.set('f_id', String(facilityId));
+async function fetchChildrenFromHugWm(params) {
+  const today = new Date().toISOString().split('T')[0];
+  const normalized =
+    typeof params === 'number'
+      ? { facilityId: params, date: today, dateEnd: today }
+      : params;
 
-  const html = await hugWmFetchText(url.href);
-  const doc = new DOMParser().parseFromString(html, 'text/html');
-  const nameList = doc.querySelector('#name_list');
-
-  if (!nameList) {
-    throw new Error('#name_list が見つかりません（HUGにログイン済みか確認してください）');
+  const facilityId = normalized.facilityId;
+  const date = normalized.date || today;
+  const dateEnd = normalized.dateEnd || date;
+  const childId = normalized.childId;
+  if (!Number.isFinite(facilityId) || facilityId <= 0) {
+    throw new Error('facilityId が不正です');
   }
 
-  return [...nameList.options]
-    .filter((opt) => opt.value)
-    .map((opt) => ({
-      child_id: Number(opt.value),
-      name: opt.textContent.trim(),
-    }))
-    .filter((c) => Number.isFinite(c.child_id) && c.child_id > 0);
+  const listParams = {
+    facilityId,
+    date,
+    dateEnd,
+    childId: childId != null && childId > 0 ? childId : undefined,
+  };
+
+  const probeUrl = buildContactBookListUrl(listParams);
+  const probeDoc = await fetchContactBookListDoc(probeUrl);
+  const pages = getContactBookPageNumbers(probeDoc);
+  const byChildId = new Map();
+
+  for (let i = 0; i < pages.length; i++) {
+    const page = pages[i];
+    const listUrl = buildContactBookListUrl({ ...listParams, page });
+    const listDoc = i === 0 ? probeDoc : await fetchContactBookListDoc(listUrl);
+
+    for (const child of extractChildrenFromContactBookTable(listDoc)) {
+      byChildId.set(child.child_id, child);
+    }
+  }
+
+  return [...byChildId.values()];
 }
 
 function findContactBookTable(doc) {

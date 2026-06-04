@@ -290,6 +290,37 @@ function getFacilityIdFromSelect(facilitySelectId) {
   return Number.isFinite(facilityId) ? facilityId : null;
 }
 
+function getChildListFetchParams(facilitySelectId, facilityId) {
+  const today = getFormattedDate(new Date());
+
+  switch (facilitySelectId) {
+    case 'correction-facility': {
+      const d = state.correction.targetDate || today;
+      return { facilityId, date: d, dateEnd: d };
+    }
+    case 'chat-facility':
+      return {
+        facilityId,
+        date: state.chat.startDate || today,
+        dateEnd: state.chat.endDate || today,
+      };
+    case 'pr-facility':
+      return {
+        facilityId,
+        date: state.personalRecord.startDate || today,
+        dateEnd: state.personalRecord.endDate || today,
+      };
+    case 'hpr-facility':
+      return {
+        facilityId,
+        date: state.hugPersonalRecord.startDate || today,
+        dateEnd: state.hugPersonalRecord.endDate || today,
+      };
+    default:
+      return { facilityId, date: today, dateEnd: today };
+  }
+}
+
 async function loadChildren(facilitySelectId) {
   const facilityId = getFacilityIdFromSelect(facilitySelectId);
   if (!facilityId) {
@@ -298,9 +329,10 @@ async function loadChildren(facilitySelectId) {
   }
 
   try {
-    const data = await window.HugWm.fetchChildrenFromHugWm(facilityId);
+    const fetchParams = getChildListFetchParams(facilitySelectId, facilityId);
+    const data = await window.HugWm.fetchChildrenFromHugWm(fetchParams);
     state.childrenByFacility[facilityId] = data;
-    console.log('[loadChildren] HUG WMから取得:', facilitySelectId, facilityId, data);
+    console.log('[loadChildren] HUG WMから取得:', facilitySelectId, fetchParams, data);
   } catch (error) {
     console.warn('[loadChildren] HUG取得に失敗したため、MOCK_CHILDRENを使用します:', error);
     state.childrenByFacility[facilityId] = MOCK_CHILDREN[facilityId] || [];
@@ -961,8 +993,10 @@ function bindEvents() {
   document.getElementById('correction-child')?.addEventListener('change', (e) => {
     state.correction.childId = Number(e.target.value);
   });
-  document.getElementById('correction-date')?.addEventListener('change', (e) => {
+  document.getElementById('correction-date')?.addEventListener('change', async (e) => {
     state.correction.targetDate = e.target.value;
+    await loadChildren('correction-facility');
+    renderCorrection();
   });
   document.getElementById('correction-original')?.addEventListener('input', (e) => {
     state.correction.originalText = e.target.value;
@@ -1015,11 +1049,17 @@ function bindEvents() {
   document.getElementById('chat-child')?.addEventListener('change', (e) => {
     state.chat.childId = Number(e.target.value);
   });
-  document.getElementById('chat-start-date')?.addEventListener('change', (e) => {
+  document.getElementById('chat-start-date')?.addEventListener('change', async (e) => {
     state.chat.startDate = e.target.value;
+    await loadChildren('chat-facility');
+    renderChat();
+    refreshIcons();
   });
-  document.getElementById('chat-end-date')?.addEventListener('change', (e) => {
+  document.getElementById('chat-end-date')?.addEventListener('change', async (e) => {
     state.chat.endDate = e.target.value;
+    await loadChildren('chat-facility');
+    renderChat();
+    refreshIcons();
   });
   document.getElementById('btn-chat-start')?.addEventListener('click', startChat);
   document.getElementById('btn-chat-back')?.addEventListener('click', () => {
@@ -1048,11 +1088,17 @@ function bindEvents() {
     state.personalRecord.childId = Number(e.target.value);
     state.personalRecord.selectedRecordId = null;
   });
-  document.getElementById('pr-start-date')?.addEventListener('change', (e) => {
+  document.getElementById('pr-start-date')?.addEventListener('change', async (e) => {
     state.personalRecord.startDate = e.target.value;
+    await loadChildren('pr-facility');
+    renderPersonalRecord();
+    refreshIcons();
   });
-  document.getElementById('pr-end-date')?.addEventListener('change', (e) => {
+  document.getElementById('pr-end-date')?.addEventListener('change', async (e) => {
     state.personalRecord.endDate = e.target.value;
+    await loadChildren('pr-facility');
+    renderPersonalRecord();
+    refreshIcons();
   });
   document.getElementById('btn-pr-search')?.addEventListener('click', loadPersonalRecords);
   document.getElementById('btn-pr-detail-close')?.addEventListener('click', () => {
@@ -1069,11 +1115,17 @@ function bindEvents() {
   document.getElementById('hpr-child')?.addEventListener('change', (e) => {
     state.hugPersonalRecord.childId = Number(e.target.value);
   });
-  document.getElementById('hpr-start-date')?.addEventListener('change', (e) => {
+  document.getElementById('hpr-start-date')?.addEventListener('change', async (e) => {
     state.hugPersonalRecord.startDate = e.target.value;
+    await loadChildren('hpr-facility');
+    renderHugPersonalRecord();
+    refreshIcons();
   });
-  document.getElementById('hpr-end-date')?.addEventListener('change', (e) => {
+  document.getElementById('hpr-end-date')?.addEventListener('change', async (e) => {
     state.hugPersonalRecord.endDate = e.target.value;
+    await loadChildren('hpr-facility');
+    renderHugPersonalRecord();
+    refreshIcons();
   });
   document.getElementById('btn-hpr-fetch')?.addEventListener('click', loadHugPersonalRecords);
 }
