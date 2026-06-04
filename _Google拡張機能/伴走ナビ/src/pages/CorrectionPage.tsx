@@ -1,40 +1,61 @@
 import { useState, useEffect } from "react";
 import { Wand2, Save, X, RefreshCw, Check, ChevronDown, ChevronRight } from "lucide-react";
+import { fetchJson } from "../lib/api";
+import { getApiBase } from "../lib/aiConfig";
+import { buildCorrectionMessages, callAi } from "../lib/ai";
+import {
+  useFacilities,
+  useHugChildren,
+  getFacilityName,
+  getChildName,
+  pickValidChildId,
+} from "../hooks/useFacilityChildren";
+import {
+  loadPrefs,
+  savePrefs,
+  applyCorrectionPrefs,
+  mergePrefs,
+} from "../lib/prefs";
 
 const CorrectionPage = () => {
+  const defaultDate = new Date().toISOString().split("T")[0];
+  const correctionPrefs = applyCorrectionPrefs(loadPrefs().correction, {
+    targetDate: defaultDate,
+  });
+
   const [activeTab, setActiveTab] = useState<"simple" | "advanced">("simple");
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [targetDate, setTargetDate] = useState(
-    new Date().toISOString().split("T")[0],
-  );
-  const [facilities, setFacilities] = useState<any[]>([]);
-  const [childrenList, setChildrenList] = useState<any[]>([]);
-  const [facilityId, setFacilityId] = useState<number | "">("");
-  const [childId, setChildId] = useState<number | "">("");
+  const [targetDate, setTargetDate] = useState(correctionPrefs.targetDate);
+  const { facilities } = useFacilities();
+  const [facilityId, setFacilityId] = useState<number | "">(correctionPrefs.facilityId);
+  const [childId, setChildId] = useState<number | "">(correctionPrefs.childId);
+  const [isCorrecting, setIsCorrecting] = useState(false);
+
+  const { childrenList, loading: childrenLoading } = useHugChildren(facilityId, {
+    date: targetDate,
+    dateEnd: targetDate,
+  });
 
   useEffect(() => {
-    fetch("http://localhost:3000/api/facilities")
-      .then(res => res.json())
-      .then(data => {
-        setFacilities(data);
-        if (data.length > 0) setFacilityId(data[0].facility_id);
-      })
-      .catch(err => console.error("Failed to fetch facilities", err));
-  }, []);
-
-  useEffect(() => {
-    if (facilityId) {
-      fetch(`http://localhost:3000/api/children?facility_id=${facilityId}`)
-        .then(res => res.json())
-        .then(data => {
-          setChildrenList(data);
-          if (data.length > 0) setChildId(data[0].child_id);
-        })
-        .catch(err => console.error("Failed to fetch children", err));
-    } else {
-      setChildrenList([]);
+    if (facilities.length > 0 && !facilityId) {
+      setFacilityId(facilities[0].facility_id);
     }
-  }, [facilityId]);
+  }, [facilities, facilityId]);
+
+  useEffect(() => {
+    setChildId((prev) => pickValidChildId(childrenList, prev));
+  }, [childrenList]);
+
+  const persistPrefs = (overrides?: Record<string, unknown>) => {
+    savePrefs(
+      mergePrefs(loadPrefs(), "correction", {
+        facilityId: facilityId || undefined,
+        childId: childId || undefined,
+        targetDate,
+        ...overrides,
+      }),
+    );
+  };
   const [originalText, setOriginalText] = useState(
     "今日は公園で遊んだ。少し疲れた様子だった。",
   );
@@ -54,45 +75,65 @@ const CorrectionPage = () => {
     }));
   };
 
-  const handleCorrect = () => {
-    // モック：校正処理をシミュレート
-    setCorrectedText(
-      "【S】今日は公園で遊んだ。\n【O】少し疲れた様子で、夕方はベンチで休む時間が長かった。\n【A】体力が落ちている可能性がある。\n【P】明日は室内の活動を多めにする。",
-    );
-    setIsModalOpen(true);
+  const handleCorrect = async () => {
+    if (!originalText.trim()) {
+      alert("校正するテキストを入力してください");
+      return;
+    }
+
+    setIsCorrecting(true);
+    try {
+      const result = await callAi(
+        buildCorrectionMessages({ originalText, additionalPrompt }),
+      );
+      setCorrectedText(result);
+      setIsModalOpen(true);
+    } catch (err) {
+      console.error("[handleCorrect]", err);
+      alert(
+        `AI校正に失敗しました: ${(err as Error).message}\n\nOllama が起動しているか、.env の設定を確認してください。`,
+      );
+    } finally {
+      setIsCorrecting(false);
+    }
   };
 
   const handleRegister = async () => {
-    const selectedFacility = facilities.find(f => f.facility_id === facilityId)?.name || "";
-    const selectedChild = childrenList.find(c => c.child_id === childId)?.name || "";
+    const selectedFacility = getFacilityName(facilities, facilityId);
+    const selectedChild = getChildName(childrenList, childId);
+    const content = correctedText.trim() || originalText.trim();
+    const contentSource = correctedText.trim() ? "校正後の記録" : "原文";
+
+    if (!content) {
+      alert("登録する記録内容がありません。原文を入力するか、AI校正を行ってください。");
+      return;
+    }
+
     if (
       window.confirm(
-        `【登録内容の確認】\n・事業所: ${selectedFacility}\n・児童: ${selectedChild}\n・支援日: ${targetDate}\n\nこの内容で記録を登録します。よろしいですか？`,
+        `【登録内容の確認】\n・事業所: ${selectedFacility}\n・児童: ${selectedChild}\n・支援日: ${targetDate}\n・登録内容: ${contentSource}\n\nこの内容で記録を登録します。よろしいですか？`,
       )
     ) {
       try {
-        const response = await fetch("http://localhost:3000/api/support_records", {
+        await fetchJson(`${getApiBase()}/support_records`, {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             child_id: childId,
-            user_id: 1, // 仮のシステム管理者IDとして固定
-            content: originalText,
+            user_id: 1,
+            content,
             target_date: targetDate,
           }),
         });
 
-        if (!response.ok) {
-          throw new Error("Failed to save record");
-        }
-
         alert("DBへの登録が完了しました！");
-        setOriginalText(""); // 入力欄をクリアして次の入力を促す
+        setOriginalText("");
+        setCorrectedText("");
+        setIsModalOpen(false);
+        persistPrefs();
       } catch (error) {
         console.error("Error saving record:", error);
-        alert("登録に失敗しました。サーバーが起動しているか確認してください。");
+        alert(`登録に失敗しました: ${(error as Error).message}`);
       }
     }
   };
@@ -149,7 +190,10 @@ const CorrectionPage = () => {
             <select
               className="input-field"
               value={facilityId}
-              onChange={(e) => setFacilityId(Number(e.target.value))}
+              onChange={(e) => {
+                setFacilityId(Number(e.target.value));
+                persistPrefs({ facilityId: Number(e.target.value) });
+              }}
             >
               {facilities.map(f => (
                 <option key={f.facility_id} value={f.facility_id}>{f.name}</option>
@@ -158,10 +202,19 @@ const CorrectionPage = () => {
           </div>
           <div style={{ flex: 1 }}>
             <label className="label">児童</label>
+            {childrenLoading && (
+              <p className="child-fetch-status" role="status" aria-live="polite">
+                取得中…
+              </p>
+            )}
             <select
               className="input-field"
               value={childId}
-              onChange={(e) => setChildId(Number(e.target.value))}
+              disabled={childrenLoading}
+              onChange={(e) => {
+                setChildId(Number(e.target.value));
+                persistPrefs({ childId: Number(e.target.value) });
+              }}
             >
               {childrenList.map(c => (
                 <option key={c.child_id} value={c.child_id}>{c.name}</option>
@@ -174,7 +227,10 @@ const CorrectionPage = () => {
               type="date"
               className="input-field"
               value={targetDate}
-              onChange={(e) => setTargetDate(e.target.value)}
+              onChange={(e) => {
+                setTargetDate(e.target.value);
+                persistPrefs({ targetDate: e.target.value });
+              }}
             />
           </div>
         </div>
@@ -276,7 +332,7 @@ const CorrectionPage = () => {
           <button className="btn btn-secondary" onClick={handleRegister}>
             <Save size={18} /> 登録する
           </button>
-          <button className="btn btn-primary" onClick={handleCorrect}>
+          <button className="btn btn-primary" onClick={handleCorrect} disabled={isCorrecting}>
             <Wand2 size={18} /> AIで校正する
           </button>
         </div>

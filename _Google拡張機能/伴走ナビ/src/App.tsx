@@ -11,6 +11,8 @@ import Sidebar from "./components/Sidebar";
 import DashboardPage from "./pages/DashboardPage";
 import CorrectionPage from "./pages/CorrectionPage";
 import ChatPage from "./pages/ChatPage";
+import PersonalRecordPage from "./pages/PersonalRecordPage";
+import HugPersonalRecordPage from "./pages/HugPersonalRecordPage";
 import LoginPage from "./pages/LoginPage";
 import "./index.css";
 
@@ -66,6 +68,8 @@ const AppContent = () => {
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/correction" element={<CorrectionPage />} />
           <Route path="/chat" element={<ChatPage />} />
+          <Route path="/personal-record" element={<PersonalRecordPage />} />
+          <Route path="/hug-personal-record" element={<HugPersonalRecordPage />} />
         </Routes>
       </main>
     </div>

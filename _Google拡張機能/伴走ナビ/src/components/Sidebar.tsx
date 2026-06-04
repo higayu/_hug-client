@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, FileEdit, MessageSquare, User, X } from 'lucide-react';
+import { LayoutDashboard, FileEdit, MessageSquare, User, UserSquare, X } from 'lucide-react';
 
 type SidebarProps = {
   isOpenMobile?: boolean;
@@ -34,6 +34,8 @@ const Sidebar = ({ isOpenMobile, onCloseMobile }: SidebarProps) => {
         <NavItem to="/correction" icon={<FileEdit />} label="AI校正機能" onClick={onCloseMobile} />
         <NavItem to="/chat" icon={<MessageSquare />} label="AI問い合わせ" onClick={onCloseMobile} />
         <NavItem to="/dashboard" icon={<LayoutDashboard />} label="ダッシュボード" onClick={onCloseMobile} />
+        <NavItem to="/personal-record" icon={<UserSquare />} label="個人記録" onClick={onCloseMobile} />
+        <NavItem to="/hug-personal-record" icon={<UserSquare />} label="hugから個人記録取得" onClick={onCloseMobile} />
       </nav>
 
       <div style={{ padding: '1rem', borderTop: '1px solid rgba(255,255,255,0.1)' }}>

@@ -1,331 +1,281 @@
-import { useState, useRef, useEffect } from "react";
-import { Send, Search, Bot, User, ArrowLeft } from "lucide-react";
+import { useState, useRef, useEffect } from 'react';
+import { Send, Search, Bot, User, ArrowLeft } from 'lucide-react';
+import { fetchJson } from '../lib/api';
+import { getApiBase } from '../lib/aiConfig';
+import { buildChatMessages, callAi } from '../lib/ai';
+import {
+  useFacilities,
+  useHugChildren,
+  getFacilityName,
+  getChildName,
+  pickValidChildId,
+} from '../hooks/useFacilityChildren';
+import {
+  loadPrefs,
+  savePrefs,
+  applyPeriodPrefs,
+  mergePrefs,
+} from '../lib/prefs';
+import { getDefaultPeriod } from '../lib/records';
+import { MOCK_RECORDS, type SupportRecord } from '../lib/mockData';
 
 type Message = {
   id: string;
-  sender: "ai" | "user";
+  sender: 'ai' | 'user';
   text: string;
 };
 
-const getFormattedDate = (date: Date) => {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, "0");
-  const d = String(date.getDate()).padStart(2, "0");
-  return `${y}-${m}-${d}`;
-};
-
 const ChatPage = () => {
-  const [step, setStep] = useState<"selection" | "chat">("selection");
-  const [facilities, setFacilities] = useState<any[]>([]);
-  const [childrenList, setChildrenList] = useState<any[]>([]);
-  const [facilityId, setFacilityId] = useState<number | "">("");
-  const [childId, setChildId] = useState<number | "">("");
-  const [startDate, setStartDate] = useState(() => {
-    const d = new Date();
-    d.setMonth(d.getMonth() - 1);
-    return getFormattedDate(d);
-  });
-  const [endDate, setEndDate] = useState(() => getFormattedDate(new Date()));
+  const defaults = getDefaultPeriod();
+  const period = applyPeriodPrefs(loadPrefs().chat, defaults);
 
+  const { facilities } = useFacilities();
+  const [step, setStep] = useState<'selection' | 'chat'>('selection');
+  const [facilityId, setFacilityId] = useState<number | ''>(period.facilityId);
+  const [childId, setChildId] = useState<number | ''>(period.childId);
+  const [startDate, setStartDate] = useState(period.startDate);
+  const [endDate, setEndDate] = useState(period.endDate);
+
+  const { childrenList, loading: childrenLoading } = useHugChildren(facilityId, {
+    date: startDate,
+    dateEnd: endDate,
+  });
+
+  const [chatRecords, setChatRecords] = useState<SupportRecord[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
-  const [inputValue, setInputValue] = useState("");
+  const [inputValue, setInputValue] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    fetch("http://localhost:3000/api/facilities")
-      .then(res => res.json())
-      .then(data => {
-        setFacilities(data);
-        if (data.length > 0) setFacilityId(data[0].facility_id);
-      })
-      .catch(err => console.error("Failed to fetch facilities", err));
-  }, []);
+    if (facilities.length > 0 && !facilityId) {
+      setFacilityId(facilities[0].facility_id);
+    }
+  }, [facilities, facilityId]);
 
   useEffect(() => {
-    if (facilityId) {
-      fetch(`http://localhost:3000/api/children?facility_id=${facilityId}`)
-        .then(res => res.json())
-        .then(data => {
-          setChildrenList(data);
-          if (data.length > 0) setChildId(data[0].child_id);
-        })
-        .catch(err => console.error("Failed to fetch children", err));
-    } else {
-      setChildrenList([]);
-    }
-  }, [facilityId]);
+    setChildId((prev) => pickValidChildId(childrenList, prev));
+  }, [childrenList]);
 
-  const selectedFacilityName = facilities.find(f => f.facility_id === facilityId)?.name || "";
-  const selectedChildName = childrenList.find(c => c.child_id === childId)?.name || "";
+  const persistPrefs = (overrides?: Record<string, unknown>) => {
+    savePrefs(
+      mergePrefs(loadPrefs(), 'chat', {
+        facilityId: facilityId || undefined,
+        childId: childId || undefined,
+        startDate,
+        endDate,
+        ...overrides,
+      }),
+    );
+  };
+
+  const selectedFacilityName = getFacilityName(facilities, facilityId);
+  const selectedChildName = getChildName(childrenList, childId);
 
   const startChat = async () => {
+    let records: SupportRecord[] = [];
     try {
-      const response = await fetch(`http://localhost:3000/api/support_records?child_id=${childId}&start_date=${startDate}&end_date=${endDate}`);
-      const records = await response.json();
-      
-      let initialMessage = `${selectedFacilityName}：${selectedChildName}さんの支援記録データを取得しました（${records.length}件）。\n\n`;
-      
-      if (records.length > 0) {
-        initialMessage += "【取得した記録のプレビュー】\n";
-        records.slice(0, 5).forEach((r: any) => {
-           // target_dateは "2026-05-02T15:00:00.000Z" のような形式のため日付部分だけ切り出し
-           const dateStr = r.target_date ? r.target_date.split('T')[0] : '不明';
-           initialMessage += `・${dateStr}: ${r.content}\n`;
-        });
-        if (records.length > 5) {
-           initialMessage += "（他略）\n";
-        }
-      } else {
-        initialMessage += "※指定された期間の記録は見つかりませんでした。\n";
-      }
-      initialMessage += "\n記録の検索や要約作成が可能です。何をなさいますか？";
-
-      setMessages([
-        {
-          id: "1",
-          sender: "ai",
-          text: initialMessage,
-        },
-      ]);
-      setStep("chat");
-    } catch (error) {
-      console.error("Error fetching records:", error);
-      alert("データの取得に失敗しました。サーバーが起動しているか確認してください。");
+      const all = await fetchJson<SupportRecord[]>(
+        `${getApiBase()}/support_records/_search?pk=child_id&values=${childId}`,
+      );
+      records = all.filter((r) => {
+        const d = r.target_date ? r.target_date.split('T')[0] : '';
+        return d >= startDate && d <= endDate;
+      });
+    } catch {
+      records = MOCK_RECORDS.filter((r) => {
+        const d = r.target_date ? r.target_date.split('T')[0] : '';
+        return d >= startDate && d <= endDate;
+      });
     }
+
+    let initialMessage = `${selectedFacilityName}：${selectedChildName}さんの支援記録データを取得しました（${records.length}件）。\n\n`;
+
+    if (records.length > 0) {
+      initialMessage += '【取得した記録のプレビュー】\n';
+      records.slice(0, 5).forEach((r) => {
+        const dateStr = r.target_date ? r.target_date.split('T')[0] : '不明';
+        initialMessage += `・${dateStr}: ${r.content}\n`;
+      });
+      if (records.length > 5) initialMessage += '（他略）\n';
+    } else {
+      initialMessage += '※指定された期間の記録は見つかりませんでした。\n';
+    }
+    initialMessage += '\n記録の検索や要約作成が可能です。何をなさいますか？';
+
+    setChatRecords(records);
+    setMessages([{ id: '1', sender: 'ai', text: initialMessage }]);
+    setStep('chat');
+    persistPrefs();
   };
 
-  const handleSendMessage = () => {
-    if (!inputValue.trim()) return;
+  const handleSendMessage = async () => {
+    if (!inputValue.trim() || isLoading) return;
 
-    const newUserMsg: Message = {
-      id: Date.now().toString(),
-      sender: "user",
-      text: inputValue,
-    };
-    setMessages((prev) => [...prev, newUserMsg]);
-    setInputValue("");
+    const userText = inputValue;
+    setMessages((prev) => [...prev, { id: Date.now().toString(), sender: 'user', text: userText }]);
+    setInputValue('');
+    setIsLoading(true);
 
-    // モック応答
-    setTimeout(() => {
-      const newAiMsg: Message = {
-        id: (Date.now() + 1).toString(),
-        sender: "ai",
-        text: `【要約】\nここ1ヶ月の${selectedChildName}さんの記録を分析した結果、全体的に落ち着いて活動に参加できていますが、環境の変化（新しい職員や突然の予定変更）に対して少し不安を感じる傾向が見られます。`,
-      };
-      setMessages((prev) => [...prev, newAiMsg]);
-    }, 1000);
+    const loadingId = (Date.now() + 1).toString();
+    setMessages((prev) => [...prev, { id: loadingId, sender: 'ai', text: '考え中...' }]);
+
+    const apiMessages = buildChatMessages({
+      childName: selectedChildName,
+      startDate,
+      endDate,
+      records: chatRecords,
+      messages: [
+        ...messages.filter((m) => m.text !== '考え中...'),
+        { sender: 'user', text: userText },
+      ],
+    });
+
+    try {
+      const reply = await callAi(apiMessages);
+      setMessages((prev) =>
+        prev.map((m) => (m.id === loadingId ? { ...m, text: reply } : m)),
+      );
+    } catch (err) {
+      console.error('[sendChatMessage]', err);
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === loadingId
+            ? {
+                ...m,
+                text: `AI応答の取得に失敗しました: ${(err as Error).message}\n\nOllama が起動しているか、.env の設定を確認してください。`,
+              }
+            : m,
+        ),
+      );
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   useEffect(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
-    }
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
   return (
-    <div
-      className="w-full flex"
-      style={{ flexDirection: "column", height: "100%" }}
-    >
+    <div className="w-full flex" style={{ flexDirection: 'column', height: '100%' }}>
       <header className="mb-6">
         <h1>AI問い合わせ機能（チャットボット）</h1>
-        <p style={{ color: "var(--text-light)" }}>
-          過去のデータをもとにAIと対話を行います。
-        </p>
+        <p style={{ color: 'var(--text-light)' }}>過去のデータをもとにAIと対話を行います。</p>
       </header>
 
-      {step === "selection" ? (
-        <div
-          className="card"
-          style={{ maxWidth: "600px", margin: "30px auto" }}
-        >
+      {step === 'selection' ? (
+        <div className="card chat-selection-card">
           <h2 className="mb-4">対象データ選択</h2>
 
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              gap: "1.5rem",
-              marginBottom: "2rem",
-            }}
-          >
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', marginBottom: '2rem' }}>
             <div>
               <label className="label">事業所</label>
               <select
                 className="input-field"
                 value={facilityId}
-                onChange={(e) => setFacilityId(Number(e.target.value))}
+                onChange={(e) => {
+                  setFacilityId(Number(e.target.value));
+                  persistPrefs({ facilityId: Number(e.target.value) });
+                }}
               >
-                {facilities.map(f => (
-                  <option key={f.facility_id} value={f.facility_id}>{f.name}</option>
+                {facilities.map((f) => (
+                  <option key={f.facility_id} value={f.facility_id}>
+                    {f.name}
+                  </option>
                 ))}
               </select>
             </div>
 
             <div>
               <label className="label">児童</label>
+              {childrenLoading && (
+                <p className="child-fetch-status" role="status" aria-live="polite">
+                  取得中…
+                </p>
+              )}
               <select
                 className="input-field"
                 value={childId}
-                onChange={(e) => setChildId(Number(e.target.value))}
+                disabled={childrenLoading}
+                onChange={(e) => {
+                  setChildId(Number(e.target.value));
+                  persistPrefs({ childId: Number(e.target.value) });
+                }}
               >
-                {childrenList.map(c => (
-                  <option key={c.child_id} value={c.child_id}>{c.name}</option>
+                {childrenList.map((c) => (
+                  <option key={c.child_id} value={c.child_id}>
+                    {c.name}
+                  </option>
                 ))}
               </select>
             </div>
 
             <div>
               <label className="label">取得期間</label>
-              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <input
                   type="date"
                   className="input-field"
                   value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
+                  onChange={(e) => {
+                    setStartDate(e.target.value);
+                    persistPrefs({ startDate: e.target.value });
+                  }}
                 />
                 <span>～</span>
                 <input
                   type="date"
                   className="input-field"
                   value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
+                  onChange={(e) => {
+                    setEndDate(e.target.value);
+                    persistPrefs({ endDate: e.target.value });
+                  }}
                 />
               </div>
             </div>
           </div>
 
           <div className="flex justify-end">
-            <button className="btn btn-primary" onClick={startChat}>
+            <button type="button" className="btn btn-primary" onClick={startChat}>
               <Search size={18} /> チャット開始
             </button>
           </div>
         </div>
       ) : (
-        <div
-          className="card"
-          style={{
-            flex: 1,
-            display: "flex",
-            flexDirection: "column",
-            overflow: "hidden",
-            padding: 0,
-          }}
-        >
-          {/* チャットヘッダー */}
-          <div
-            style={{
-              padding: "0.75rem 1rem",
-              borderBottom: "1px solid var(--border-color)",
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              backgroundColor: "var(--bg-color)",
-              flexWrap: "wrap",
-              gap: "0.5rem",
-            }}
-          >
-            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", minWidth: 0 }}>
+        <div className="card chat-container">
+          <div className="chat-header">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', minWidth: 0 }}>
               <button
+                type="button"
                 className="btn btn-secondary"
-                style={{ padding: "0.4rem", flexShrink: 0 }}
-                onClick={() => setStep("selection")}
+                style={{ padding: '0.4rem', flexShrink: 0 }}
+                onClick={() => setStep('selection')}
               >
                 <ArrowLeft size={18} />
               </button>
-              <h3 style={{ margin: 0, fontSize: "1rem", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+              <h3 className="chat-header-title">
                 💬 {selectedFacilityName}：{selectedChildName}さん
               </h3>
             </div>
-            <div style={{ flexShrink: 0 }}>
-              <select
-                className="input-field"
-                style={{ padding: "0.3rem", width: "auto", fontSize: "0.875rem" }}
-              >
-                <option>Gemini 3.1 Flash</option>
-                <option>Gemini 3.1 Pro (複雑用)</option>
-              </select>
-            </div>
+            <select className="input-field" style={{ padding: '0.3rem', width: 'auto', fontSize: '0.875rem' }}>
+              <option>Gemini 3.1 Flash</option>
+              <option>Gemini 3.1 Pro (複雑用)</option>
+            </select>
           </div>
 
-          {/* チャットエリア */}
-          <div
-            style={{
-              flex: 1,
-              overflowY: "auto",
-              padding: "1rem",
-              display: "flex",
-              flexDirection: "column",
-              gap: "1.25rem",
-            }}
-          >
+          <div className="chat-messages">
             {messages.map((msg) => (
-              <div
-                key={msg.id}
-                style={{
-                  display: "flex",
-                  gap: "0.5rem",
-                  alignSelf: msg.sender === "user" ? "flex-end" : "flex-start",
-                  maxWidth: "95%",
-                }}
-              >
-                {msg.sender === "ai" && (
-                  <div
-                    style={{
-                      minWidth: "36px",
-                      width: "36px",
-                      height: "36px",
-                      flexShrink: 0,
-                      borderRadius: "50%",
-                      backgroundColor: "var(--primary-color)",
-                      color: "white",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                  >
+              <div key={msg.id} className={`chat-message ${msg.sender}`}>
+                {msg.sender === 'ai' && (
+                  <div className="msg-avatar ai">
                     <Bot size={24} />
                   </div>
                 )}
-
-                <div
-                  style={{
-                    padding: "0.75rem 1rem",
-                    borderRadius: "var(--radius-lg)",
-                    backgroundColor:
-                      msg.sender === "user"
-                        ? "var(--primary-light)"
-                        : "#f1f5f9",
-                    color:
-                      msg.sender === "user"
-                        ? "var(--primary-hover)"
-                        : "var(--text-main)",
-                    border:
-                      msg.sender === "user"
-                        ? "1px solid #bae6fd"
-                        : "1px solid var(--border-color)",
-                    whiteSpace: "pre-wrap",
-                    wordBreak: "break-word",
-                  }}
-                >
-                  {msg.text}
-                </div>
-
-                {msg.sender === "user" && (
-                  <div
-                    style={{
-                      minWidth: "36px",
-                      width: "36px",
-                      height: "36px",
-                      flexShrink: 0,
-                      borderRadius: "50%",
-                      backgroundColor: "var(--text-main)",
-                      color: "white",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                  >
+                <div className={`msg-bubble ${msg.sender}`}>{msg.text}</div>
+                {msg.sender === 'user' && (
+                  <div className="msg-avatar user">
                     <User size={24} />
                   </div>
                 )}
@@ -334,46 +284,34 @@ const ChatPage = () => {
             <div ref={messagesEndRef} />
           </div>
 
-          {/* 入力エリア */}
-          <div
-            style={{
-              padding: "1rem",
-              borderTop: "1px solid var(--border-color)",
-            }}
-          >
-            <div style={{ display: "flex", gap: "0.5rem", alignItems: "flex-end" }}>
+          <div className="chat-input-area">
+            <div className="chat-input-row">
               <textarea
                 className="input-field"
                 rows={2}
-                style={{ flex: 1, minHeight: "auto", resize: "none", padding: "0.75rem" }}
+                style={{ flex: 1, minHeight: 'auto', resize: 'none', padding: '0.75rem' }}
                 placeholder="質問や指示を入力..."
                 value={inputValue}
+                disabled={isLoading}
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
+                  if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
                     handleSendMessage();
                   }
                 }}
               />
               <button
+                type="button"
                 className="btn btn-primary"
-                style={{ padding: "0 1rem", height: "42px", flexShrink: 0 }}
+                style={{ padding: '0 1rem', height: '42px', flexShrink: 0 }}
                 onClick={handleSendMessage}
+                disabled={isLoading}
               >
                 <Send size={20} />
               </button>
             </div>
-            <p
-              style={{
-                fontSize: "0.75rem",
-                color: "var(--text-light)",
-                marginTop: "0.5rem",
-                textAlign: "center",
-              }}
-            >
-              Shift + Enter で改行、Enter で送信
-            </p>
+            <p className="chat-hint">Shift + Enter で改行、Enter で送信</p>
           </div>
         </div>
       )}
