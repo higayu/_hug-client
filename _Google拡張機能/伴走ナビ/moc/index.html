@@ -108,6 +108,7 @@
             </div>
             <div>
               <label class="label">児童</label>
+              <p id="chat-child-status" class="child-fetch-status hidden" role="status" aria-live="polite">取得中…</p>
               <select id="chat-child" class="input-field"></select>
             </div>
             <div>
@@ -172,6 +173,7 @@
             </div>
             <div style="flex:1;">
               <label class="label">児童</label>
+              <p id="correction-child-status" class="child-fetch-status hidden" role="status" aria-live="polite">取得中…</p>
               <select id="correction-child" class="input-field"></select>
             </div>
             <div style="flex:1;">
@@ -326,6 +328,7 @@
             </div>
             <div style="flex:1;">
               <label class="label">児童</label>
+              <p id="pr-child-status" class="child-fetch-status hidden" role="status" aria-live="polite">取得中…</p>
               <select id="pr-child" class="input-field"></select>
             </div>
           </div>
@@ -405,6 +408,7 @@
             </div>
             <div style="flex:1;">
               <label class="label">児童（id）</label>
+              <p id="hpr-child-status" class="child-fetch-status hidden" role="status" aria-live="polite">取得中…</p>
               <select id="hpr-child" class="input-field"></select>
             </div>
           </div>
@@ -514,6 +518,7 @@
     </div>
   </div>
 
+  <!-- 各画面の施設・児童・取得期間は app.js が localStorage に保持（キー: hug_bansou_navi_moc_selection） -->
   <script src="lucide.min.js"></script>
   <script src="ai-config.js"></script>
   <script src="hug-wm.js"></script>

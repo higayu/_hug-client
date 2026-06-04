@@ -122,6 +122,9 @@ const MOCK_CHILDREN = {
   2: [{ child_id: 3, name: '鈴木 一郎' }],
 };
 
+/** 施設・児童・取得期間（index.html 各画面の選択値） */
+const PREFS_STORAGE_KEY = 'hug_bansou_navi_moc_selection';
+
 const MOCK_RECORDS = [
   {
     record_id: 101,
@@ -209,6 +212,123 @@ function initDates() {
   state.hugPersonalRecord.startDate = state.chat.startDate;
 }
 
+function getStateSectionByFacilitySelect(facilitySelectId) {
+  const map = {
+    'correction-facility': state.correction,
+    'chat-facility': state.chat,
+    'pr-facility': state.personalRecord,
+    'hpr-facility': state.hugPersonalRecord,
+  };
+  return map[facilitySelectId] || null;
+}
+
+function applySavedNumber(value) {
+  if (value === undefined || value === null || value === '') {
+    return null;
+  }
+  const n = Number(value);
+  return Number.isFinite(n) && n > 0 ? n : null;
+}
+
+function applySavedString(value) {
+  if (value === undefined || value === null) {
+    return null;
+  }
+  const s = String(value).trim();
+  return s || null;
+}
+
+function loadPrefsFromStorage() {
+  try {
+    const raw = localStorage.getItem(PREFS_STORAGE_KEY);
+    if (!raw) {
+      return;
+    }
+    const prefs = JSON.parse(raw);
+
+    const c = prefs.correction;
+    if (c) {
+      const fid = applySavedNumber(c.facilityId);
+      const cid = applySavedNumber(c.childId);
+      const td = applySavedString(c.targetDate);
+      if (fid) state.correction.facilityId = fid;
+      if (cid) state.correction.childId = cid;
+      if (td) state.correction.targetDate = td;
+    }
+
+    const applyPeriodSection = (section, saved) => {
+      if (!saved) return;
+      const fid = applySavedNumber(saved.facilityId);
+      const cid = applySavedNumber(saved.childId);
+      const start = applySavedString(saved.startDate);
+      const end = applySavedString(saved.endDate);
+      if (fid) section.facilityId = fid;
+      if (cid) section.childId = cid;
+      if (start) section.startDate = start;
+      if (end) section.endDate = end;
+    };
+
+    applyPeriodSection(state.chat, prefs.chat);
+    applyPeriodSection(state.personalRecord, prefs.personalRecord);
+    applyPeriodSection(state.hugPersonalRecord, prefs.hugPersonalRecord);
+  } catch (error) {
+    console.warn('[prefs] localStorage の読み込みに失敗:', error);
+  }
+}
+
+function savePrefsToStorage() {
+  try {
+    const payload = {
+      v: 1,
+      correction: {
+        facilityId: state.correction.facilityId,
+        childId: state.correction.childId,
+        targetDate: state.correction.targetDate,
+      },
+      chat: {
+        facilityId: state.chat.facilityId,
+        childId: state.chat.childId,
+        startDate: state.chat.startDate,
+        endDate: state.chat.endDate,
+      },
+      personalRecord: {
+        facilityId: state.personalRecord.facilityId,
+        childId: state.personalRecord.childId,
+        startDate: state.personalRecord.startDate,
+        endDate: state.personalRecord.endDate,
+      },
+      hugPersonalRecord: {
+        facilityId: state.hugPersonalRecord.facilityId,
+        childId: state.hugPersonalRecord.childId,
+        startDate: state.hugPersonalRecord.startDate,
+        endDate: state.hugPersonalRecord.endDate,
+      },
+    };
+    localStorage.setItem(PREFS_STORAGE_KEY, JSON.stringify(payload));
+  } catch (error) {
+    console.warn('[prefs] localStorage の保存に失敗:', error);
+  }
+}
+
+function ensureFacilityIdsFromList() {
+  if (state.facilities.length === 0) {
+    return;
+  }
+  const defaultFid = state.facilities[0].facility_id;
+  const isValidFid = (fid) => state.facilities.some((f) => f.facility_id === fid);
+
+  for (const section of [
+    state.correction,
+    state.chat,
+    state.personalRecord,
+    state.hugPersonalRecord,
+  ]) {
+    if (!section.facilityId || !isValidFid(section.facilityId)) {
+      section.facilityId = defaultFid;
+    }
+  }
+}
+
 function formatFetchError(response) {
   const status = response?.status;
   const body = response?.body;
@@ -274,13 +394,7 @@ async function loadFacilities() {
     console.warn('[loadFacilities] API取得に失敗したため、MOCK_FACILITIESを使用します:', error);
     state.facilities = MOCK_FACILITIES;
   }
-  if (state.facilities.length > 0) {
-    const fid = state.facilities[0].facility_id;
-    state.correction.facilityId = fid;
-    state.chat.facilityId = fid;
-    state.personalRecord.facilityId = fid;
-    state.hugPersonalRecord.facilityId = fid;
-  }
+  ensureFacilityIdsFromList();
 }
 
 function getFacilityIdFromSelect(facilitySelectId) {
@@ -288,6 +402,27 @@ function getFacilityIdFromSelect(facilitySelectId) {
   if (!value) return null;
   const facilityId = Number(value);
   return Number.isFinite(facilityId) ? facilityId : null;
+}
+
+const CHILD_FETCH_STATUS_IDS = {
+  'correction-facility': 'correction-child-status',
+  'chat-facility': 'chat-child-status',
+  'pr-facility': 'pr-child-status',
+  'hpr-facility': 'hpr-child-status',
+};
+
+function setChildrenFetchLoading(facilitySelectId, isLoading) {
+  const statusId = CHILD_FETCH_STATUS_IDS[facilitySelectId];
+  const childSelectId = facilitySelectId.replace('-facility', '-child');
+  const statusEl = statusId ? document.getElementById(statusId) : null;
+  const selectEl = document.getElementById(childSelectId);
+
+  if (statusEl) {
+    statusEl.classList.toggle('hidden', !isLoading);
+  }
+  if (selectEl) {
+    selectEl.disabled = isLoading;
+  }
 }
 
 function getChildListFetchParams(facilitySelectId, facilityId) {
@@ -322,11 +457,21 @@ function getChildListFetchParams(facilitySelectId, facilityId) {
 }
 
 async function loadChildren(facilitySelectId) {
-  const facilityId = getFacilityIdFromSelect(facilitySelectId);
+  const section = getStateSectionByFacilitySelect(facilitySelectId);
+  const facilityId =
+    getFacilityIdFromSelect(facilitySelectId) ||
+    (section?.facilityId && Number(section.facilityId) > 0 ? Number(section.facilityId) : null);
+
   if (!facilityId) {
     console.warn('[loadChildren] 施設が未選択:', facilitySelectId);
     return;
   }
+
+  if (section) {
+    section.facilityId = facilityId;
+  }
+
+  setChildrenFetchLoading(facilitySelectId, true);
 
   try {
     const fetchParams = getChildListFetchParams(facilitySelectId, facilityId);
@@ -336,28 +481,18 @@ async function loadChildren(facilitySelectId) {
   } catch (error) {
     console.warn('[loadChildren] HUG取得に失敗したため、MOCK_CHILDRENを使用します:', error);
     state.childrenByFacility[facilityId] = MOCK_CHILDREN[facilityId] || [];
+  } finally {
+    setChildrenFetchLoading(facilitySelectId, false);
   }
+
   const list = state.childrenByFacility[facilityId] || [];
-  if (list.length > 0) {
-    if (!state.correction.childId || !list.find((c) => c.child_id === state.correction.childId)) {
-      state.correction.childId = list[0].child_id;
-    }
-    if (!state.chat.childId || !list.find((c) => c.child_id === state.chat.childId)) {
-      state.chat.childId = list[0].child_id;
-    }
-    if (
-      !state.personalRecord.childId ||
-      !list.find((c) => c.child_id === state.personalRecord.childId)
-    ) {
-      state.personalRecord.childId = list[0].child_id;
-    }
-    if (
-      !state.hugPersonalRecord.childId ||
-      !list.find((c) => c.child_id === state.hugPersonalRecord.childId)
-    ) {
-      state.hugPersonalRecord.childId = list[0].child_id;
+  if (section && list.length > 0) {
+    if (!section.childId || !list.find((c) => c.child_id === section.childId)) {
+      section.childId = list[0].child_id;
     }
   }
+
+  savePrefsToStorage();
 }
 
 function getChildrenList(facilityId) {
@@ -992,6 +1127,7 @@ function bindEvents() {
   });
   document.getElementById('correction-child')?.addEventListener('change', (e) => {
     state.correction.childId = Number(e.target.value);
+    savePrefsToStorage();
   });
   document.getElementById('correction-date')?.addEventListener('change', async (e) => {
     state.correction.targetDate = e.target.value;
@@ -1048,6 +1184,7 @@ function bindEvents() {
   });
   document.getElementById('chat-child')?.addEventListener('change', (e) => {
     state.chat.childId = Number(e.target.value);
+    savePrefsToStorage();
   });
   document.getElementById('chat-start-date')?.addEventListener('change', async (e) => {
     state.chat.startDate = e.target.value;
@@ -1087,6 +1224,7 @@ function bindEvents() {
   document.getElementById('pr-child')?.addEventListener('change', (e) => {
     state.personalRecord.childId = Number(e.target.value);
     state.personalRecord.selectedRecordId = null;
+    savePrefsToStorage();
   });
   document.getElementById('pr-start-date')?.addEventListener('change', async (e) => {
     state.personalRecord.startDate = e.target.value;
@@ -1114,6 +1252,7 @@ function bindEvents() {
   });
   document.getElementById('hpr-child')?.addEventListener('change', (e) => {
     state.hugPersonalRecord.childId = Number(e.target.value);
+    savePrefsToStorage();
   });
   document.getElementById('hpr-start-date')?.addEventListener('change', async (e) => {
     state.hugPersonalRecord.startDate = e.target.value;
@@ -1130,8 +1269,16 @@ function bindEvents() {
   document.getElementById('btn-hpr-fetch')?.addEventListener('click', loadHugPersonalRecords);
 }
 
+async function loadAllChildrenLists() {
+  await loadChildren('correction-facility');
+  await loadChildren('chat-facility');
+  await loadChildren('pr-facility');
+  await loadChildren('hpr-facility');
+}
+
 async function init() {
   initDates();
+  loadPrefsFromStorage();
   bindEvents();
   const ai = getAiSettings();
   console.log('[init] AI設定:', ai);
@@ -1143,8 +1290,11 @@ async function init() {
   }
   render();
   if (state.facilities.length > 0) {
-    await loadChildren('chat-facility');
+    await loadAllChildrenLists();
+    render();
+    refreshIcons();
   }
+  savePrefsToStorage();
 }
 
 document.addEventListener('DOMContentLoaded', init);

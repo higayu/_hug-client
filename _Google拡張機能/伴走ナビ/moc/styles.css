@@ -149,6 +149,13 @@ textarea.input-field {
   min-height: 100px;
 }
 
+.child-fetch-status {
+  font-size: 0.8125rem;
+  color: var(--primary-color);
+  margin: 0 0 0.35rem;
+  font-weight: 500;
+}
+
 .label {
   display: block;
   font-size: 0.875rem;
