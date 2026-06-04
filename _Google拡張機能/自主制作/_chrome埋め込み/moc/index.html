@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>入退室管理システム - モック</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="attendance/attendance-sidepanel.css" />
+</head>
+<body class="hug-attendance-primary-page">
+  <div class="app-container">
+    <!-- Mobile Header (App.tsx) -->
+    <div id="mobile-header" class="mobile-header">
+      <h2>入退室管理システム</h2>
+      <button id="mobile-menu-btn" class="mobile-menu-btn" type="button" aria-label="メニュー">
+        <i data-lucide="menu"></i>
+      </button>
+    </div>
+
+    <div id="mobile-overlay" class="mobile-overlay"></div>
+
+    <!-- Sidebar (Sidebar.tsx) -->
+    <div id="sidebar-wrap">
+      <aside id="sidebar" class="sidebar-container">
+        <div class="sidebar-header">
+          <h2>入退室管理システム</h2>
+          <button id="sidebar-close" class="sidebar-close-btn" type="button" aria-label="閉じる">
+            <i data-lucide="x"></i>
+          </button>
+        </div>
+        <nav class="sidebar-nav">
+          <a href="#/correction" class="nav-link" data-route="/correction">
+            <i data-lucide="file-edit"></i>
+            <span>入退室管理</span>
+          </a>
+          <a href="#/chat" class="nav-link" data-route="/chat">
+            <i data-lucide="message-square"></i>
+            <span>AI問い合わせ</span>
+          </a>
+          <a href="#/dashboard" class="nav-link" data-route="/dashboard">
+            <i data-lucide="layout-dashboard"></i>
+            <span>ダッシュボード</span>
+          </a>
+          <a href="#/personal-record" class="nav-link" data-route="/personal-record">
+            <i data-lucide="user-square"></i>
+            <span>個人記録</span>
+          </a>
+          <a href="#/hug-personal-record" class="nav-link" data-route="/hug-personal-record">
+            <i data-lucide="user-square"></i>
+            <span>hugから個人記録取得</span>
+          </a>
+        </nav>
+        <div class="sidebar-footer">
+          <div class="user-info">
+            <div class="user-avatar"><i data-lucide="user"></i></div>
+            <div>
+              <div class="user-name">平野 義幸</div>
+              <div class="user-facility">吉島事業所</div>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <main id="main-content" class="main-content">
+      <!-- LoginPage 
+      <section id="page-login" class="page login-page">
+        <div class="card login-card">
+          <div class="login-header">
+            <div class="login-logo"><i data-lucide="log-in"></i></div>
+            <h1 style="margin:0;font-size:1.5rem;">伴走ナビ (HUG版)</h1>
+            <p style="color:var(--text-light);margin-top:0.5rem;font-size:0.875rem;">
+              アカウント情報を入力してログインしてください
+            </p>
+          </div>
+          <form id="login-form" class="login-form">
+            <div>
+              <label class="label">メールアドレス</label>
+              <input type="email" class="input-field" placeholder="name@example.com" required />
+            </div>
+            <div>
+              <div class="flex justify-between items-center mb-4" style="margin-bottom:0.5rem;">
+                <label class="label" style="margin:0;">パスワード</label>
+                <a href="#" class="forgot-link">パスワードを忘れた場合</a>
+              </div>
+              <input type="password" class="input-field" placeholder="••••••••" required />
+            </div>
+            <button type="submit" class="btn btn-primary" style="width:100%;padding:0.75rem;margin-top:0.5rem;font-size:1rem;">
+              ログイン
+            </button>
+          </form>
+          <div class="login-footer">© 2026 伴走ナビ. All rights reserved.</div>
+        </div>
+      </section>-->
+
+      <!-- ChatPage -->
+      <section id="page-chat" class="page">
+        <header class="mb-4">
+          <h1>AI問い合わせ機能（チャットボット）</h1>
+          <p style="color:var(--text-light);">過去のデータをもとにAIと対話を行います。</p>
+        </header>
+
+        <div id="chat-selection" class="card chat-selection-card">
+          <h2 class="mb-4">対象データ選択</h2>
+          <div style="display:flex;flex-direction:column;gap:1.5rem;margin-bottom:2rem;">
+            <div>
+              <label class="label">事業所</label>
+              <select id="chat-facility" class="input-field"></select>
+            </div>
+            <div>
+              <label class="label">児童</label>
+              <select id="chat-child" class="input-field"></select>
+            </div>
+            <div>
+              <label class="label">取得期間</label>
+              <div style="display:flex;align-items:center;gap:0.5rem;">
+                <input type="date" id="chat-start-date" class="input-field" />
+                <span>～</span>
+                <input type="date" id="chat-end-date" class="input-field" />
+              </div>
+            </div>
+          </div>
+          <div class="flex justify-end">
+            <button id="btn-chat-start" type="button" class="btn btn-primary">
+              <i data-lucide="search"></i> チャット開始
+            </button>
+          </div>
+        </div>
+
+        <div id="chat-room" class="card chat-container hidden">
+          <div class="chat-header">
+            <div style="display:flex;align-items:center;gap:0.5rem;min-width:0;">
+              <button id="btn-chat-back" type="button" class="btn btn-secondary" style="padding:0.4rem;flex-shrink:0;">
+                <i data-lucide="arrow-left"></i>
+              </button>
+              <h3 id="chat-room-title" class="chat-header-title"></h3>
+            </div>
+            <select class="input-field" style="padding:0.3rem;width:auto;font-size:0.875rem;">
+              <option>Gemini 3.1 Flash</option>
+              <option>Gemini 3.1 Pro (複雑用)</option>
+            </select>
+          </div>
+          <div id="chat-messages" class="chat-messages"></div>
+          <div class="chat-input-area">
+            <div class="chat-input-row">
+              <textarea id="chat-input" class="input-field" rows="2" style="flex:1;min-height:auto;resize:none;padding:0.75rem;" placeholder="質問や指示を入力..."></textarea>
+              <button id="btn-chat-send" type="button" class="btn btn-primary" style="padding:0 1rem;height:42px;flex-shrink:0;">
+                <i data-lucide="send"></i>
+              </button>
+            </div>
+            <p class="chat-hint">Shift + Enter で改行、Enter で送信</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- CorrectionPage -->
+      <section id="page-correction" class="page">
+        <header class="mb-4">
+          <h1>AI校正機能（入力支援）</h1>
+          <p style="color:var(--text-light);">支援記録をF-SOAIP形式などに校正します。</p>
+        </header>
+
+        <div class="tab-bar">
+          <button id="tab-simple" type="button" class="btn tab-btn">案1: シンプル重視</button>
+          <button id="tab-advanced" type="button" class="btn tab-btn">案2: 多機能・利便性重視</button>
+        </div>
+
+        <div class="card">
+          <div class="responsive-flex" style="margin-bottom:1.5rem;">
+            <div style="flex:1;">
+              <label class="label">事業所</label>
+              <select id="correction-facility" class="input-field"></select>
+            </div>
+            <div style="flex:1;">
+              <label class="label">児童</label>
+              <select id="correction-child" class="input-field"></select>
+            </div>
+            <div style="flex:1;">
+              <label class="label">支援日</label>
+              <input type="date" id="correction-date" class="input-field" />
+            </div>
+          </div>
+
+          <div id="correction-simple-panel">
+            <div class="prompt-box" style="margin-bottom:1.5rem;">
+              <label class="label">校正の仕方の指示プロンプト（編集不可）</label>
+              <p style="font-size:0.875rem;color:var(--text-light);margin:0;">
+                放課後等デイサービスの支援記録について、以下の文章をF-SOAIPに沿った形式に校正してください。
+              </p>
+            </div>
+          </div>
+
+          <div id="correction-advanced-panel" class="hidden">
+            <div style="display:flex;flex-direction:column;gap:1.5rem;margin-bottom:1.5rem;">
+              <div class="prompt-box">
+                <label class="label">校正の仕方の指示プロンプト（編集不可）</label>
+                <p style="font-size:0.875rem;color:var(--text-light);margin:0;">
+                  放課後等デイサービスの支援記録について、以下の文章をF-SOAIPに沿った形式に校正してください。
+                </p>
+              </div>
+              <div>
+                <label class="label">追加プロンプト（任意）</label>
+                <textarea id="correction-additional" class="input-field" rows="2" placeholder="例：保護者への感謝の気持ちを追加してください。"></textarea>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <label class="label">支援記録コメント欄に記載する文章</label>
+            <textarea id="correction-original" class="input-field" rows="6" placeholder="記録を入力してください..."></textarea>
+          </div>
+
+          <div class="flex justify-end gap-4 mt-4" style="margin-top:1rem;gap:1rem;">
+            <button id="btn-register" type="button" class="btn btn-secondary">
+              <i data-lucide="save"></i> 登録する
+            </button>
+            <button id="btn-correct" type="button" class="btn btn-primary">
+              <i data-lucide="wand-2"></i> AIで校正する
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- DashboardPage -->
+      <section id="page-dashboard" class="page">
+        <header class="flex justify-between items-center mb-4">
+          <div>
+            <h1>管理ダッシュボード</h1>
+            <p style="color:var(--text-light);">プロンプト管理とバッチ処理のステータスを確認します。</p>
+          </div>
+          <span class="badge badge-primary">管理者モード</span>
+        </header>
+
+        <div class="responsive-grid">
+          <div style="display:flex;flex-direction:column;gap:1.5rem;">
+            <div class="card">
+              <h3 class="flex items-center gap-2" style="margin:0 0 1rem;">
+                <i data-lucide="settings"></i> 📊 AIプロンプト（解析用）
+              </h3>
+              <textarea class="input-field mb-4">この児童のメンタル不調の傾向やデイを解約しそうな兆候がないか解析し、要約してください。</textarea>
+              <div class="flex justify-end gap-2">
+                <button type="button" class="btn btn-secondary"><i data-lucide="history"></i> 変更履歴</button>
+                <button type="button" class="btn btn-primary"><i data-lucide="save"></i> 保存</button>
+              </div>
+            </div>
+            <div class="card">
+              <h3 class="flex items-center gap-2" style="margin:0 0 1rem;">
+                <i data-lucide="settings"></i> 📊 AIプロンプト（校正用）
+              </h3>
+              <textarea class="input-field mb-4">放課後等デイサービスの支援記録について、以下の文章をF-SOAIPに沿った形式に校正してください。</textarea>
+              <div class="flex justify-end gap-2">
+                <button type="button" class="btn btn-secondary"><i data-lucide="history"></i> 変更履歴</button>
+                <button type="button" class="btn btn-primary"><i data-lucide="save"></i> 保存</button>
+              </div>
+            </div>
+            <div class="card">
+              <h3 class="flex items-center gap-2" style="margin:0 0 1rem;">
+                <i data-lucide="settings"></i> 📊 AIプロンプト（問い合わせ用）
+              </h3>
+              <textarea class="input-field mb-4">提供された過去の支援記録の事実のみに基づいて回答すること。推測で嘘をつかないこと。</textarea>
+              <div class="flex justify-end gap-2">
+                <button type="button" class="btn btn-secondary"><i data-lucide="history"></i> 変更履歴</button>
+                <button type="button" class="btn btn-primary"><i data-lucide="save"></i> 保存</button>
+              </div>
+            </div>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:1.5rem;">
+            <div class="card">
+              <h3 class="mb-4">⚙️ バッチ処理コントロール</h3>
+              <div style="padding:1rem;background:var(--bg-color);border-radius:var(--radius-md);margin-bottom:1rem;">
+                <div class="flex justify-between mb-4">
+                  <span class="label" style="margin:0;">現在のステータス</span>
+                  <span class="badge badge-success">🟢 待機中</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="label" style="margin:0;">前回の実行日時</span>
+                  <span style="font-size:0.875rem;">2026/03/01 02:00 (成功)</span>
+                </div>
+              </div>
+              <div class="flex justify-end">
+                <button type="button" class="btn btn-primary" style="width:100%;">
+                  <i data-lucide="play-circle"></i> バッチ起動
+                </button>
+              </div>
+            </div>
+            <div class="card">
+              <h3 class="mb-4">📊 AI API 使用状況（今月）</h3>
+              <div style="display:flex;flex-direction:column;gap:1rem;">
+                <div style="padding:1rem;border:1px solid var(--border-color);border-radius:var(--radius-md);">
+                  <div class="flex justify-between items-center mb-4">
+                    <span style="font-weight:600;">Gemini 3.1 Pro</span>
+                    <span style="font-size:1.25rem;font-weight:700;color:var(--primary-color);">$12.50</span>
+                  </div>
+                  <div class="progress-bar">
+                    <div class="progress-fill primary" style="width:40%;"></div>
+                  </div>
+                </div>
+                <div style="padding:1rem;border:1px solid var(--border-color);border-radius:var(--radius-md);">
+                  <div class="flex justify-between items-center mb-4">
+                    <span style="font-weight:600;">Gemini 3.1 Flash Lite</span>
+                    <span style="font-size:1.25rem;font-weight:700;color:var(--secondary-color);">$3.20</span>
+                  </div>
+                  <div class="progress-bar">
+                    <div class="progress-fill secondary" style="width:15%;"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- PersonalRecordListPage -->
+      <section id="page-personal-record" class="page">
+        <header class="mb-4">
+          <h1>個人記録一覧</h1>
+          <p style="color:var(--text-light);">児童ごとの支援記録（support_records）を期間指定で表示します。</p>
+        </header>
+
+        <div class="card" style="margin-bottom:1.5rem;">
+          <h2 class="mb-4" style="font-size:1.125rem;margin-bottom:1rem;">検索条件</h2>
+          <div class="responsive-flex" style="margin-bottom:1rem;">
+            <div style="flex:1;">
+              <label class="label">事業所</label>
+              <select id="pr-facility" class="input-field"></select>
+            </div>
+            <div style="flex:1;">
+              <label class="label">児童</label>
+              <select id="pr-child" class="input-field"></select>
+            </div>
+          </div>
+          <div style="margin-bottom:1rem;">
+            <label class="label">取得期間</label>
+            <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;">
+              <input type="date" id="pr-start-date" class="input-field" style="flex:1;min-width:10rem;" />
+              <span>～</span>
+              <input type="date" id="pr-end-date" class="input-field" style="flex:1;min-width:10rem;" />
+            </div>
+          </div>
+          <div class="flex justify-end">
+            <button id="btn-pr-search" type="button" class="btn btn-primary">
+              <i data-lucide="search"></i> 一覧を取得
+            </button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="flex justify-between items-center mb-4" style="margin-bottom:1rem;">
+            <h2 style="margin:0;font-size:1.125rem;">記録一覧</h2>
+            <span id="pr-count-badge" class="badge badge-primary">0件</span>
+          </div>
+          <p id="pr-status-hint" style="color:var(--text-light);font-size:0.875rem;margin-bottom:1rem;">
+            条件を指定して「一覧を取得」を押してください。
+          </p>
+          <div id="pr-table-wrap" class="table-wrap hidden">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th style="width:7rem;">支援日</th>
+                  <th>記録内容</th>
+                  <th style="width:5rem;">ID</th>
+                </tr>
+              </thead>
+              <tbody id="pr-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="pr-detail-card" class="card hidden" style="margin-top:1.5rem;">
+          <div class="flex justify-between items-center mb-4">
+            <h3 style="margin:0;">記録の詳細</h3>
+            <button id="btn-pr-detail-close" type="button" class="btn btn-secondary" style="padding:0.35rem 0.75rem;">
+              閉じる
+            </button>
+          </div>
+          <dl class="record-detail-dl">
+            <dt>記録ID</dt>
+            <dd id="pr-detail-id"></dd>
+            <dt>支援日</dt>
+            <dd id="pr-detail-date"></dd>
+            <dt>児童</dt>
+            <dd id="pr-detail-child"></dd>
+            <dt>記録内容</dt>
+            <dd id="pr-detail-content" class="record-detail-content"></dd>
+          </dl>
+        </div>
+      </section>
+
+      <!-- HugPersonalRecordPage -->
+      <section id="page-hug-personal-record" class="page">
+        <header class="mb-4">
+          <h1>hugから個人記録取得</h1>
+          <p style="color:var(--text-light);">
+            HUG WM の連絡帳一覧から「出席」の日のみ編集画面を開き、活動内容（note）を取得します。
+            ブラウザで <a href="https://www.hug-ayumu.link/hug/wm/" target="_blank" rel="noopener">HUG WM</a> にログインしたうえで実行してください。
+          </p>
+        </header>
+
+        <div class="card" style="margin-bottom:1.5rem;">
+          <h2 class="mb-4" style="font-size:1.125rem;margin-bottom:1rem;">検索条件</h2>
+          <div class="responsive-flex" style="margin-bottom:1rem;">
+            <div style="flex:1;">
+              <label class="label">事業所（f_id）</label>
+              <select id="hpr-facility" class="input-field"></select>
+            </div>
+            <div style="flex:1;">
+              <label class="label">児童（id）</label>
+              <select id="hpr-child" class="input-field"></select>
+            </div>
+          </div>
+          <div style="margin-bottom:1rem;">
+            <label class="label">取得期間</label>
+            <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;">
+              <input type="date" id="hpr-start-date" class="input-field" style="flex:1;min-width:10rem;" />
+              <span>～</span>
+              <input type="date" id="hpr-end-date" class="input-field" style="flex:1;min-width:10rem;" />
+            </div>
+          </div>
+          <div class="flex justify-end">
+            <button id="btn-hpr-fetch" type="button" class="btn btn-primary">
+              <i data-lucide="download"></i> HUGから取得
+            </button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="flex justify-between items-center mb-4" style="margin-bottom:1rem;">
+            <h2 style="margin:0;font-size:1.125rem;">取得結果（出席・活動内容）</h2>
+            <span id="hpr-count-badge" class="badge badge-primary">0件</span>
+          </div>
+          <p id="hpr-status-hint" style="color:var(--text-light);font-size:0.875rem;margin-bottom:1rem;">
+            条件を指定して「HUGから取得」を押してください。
+          </p>
+          <div id="hpr-table-wrap" class="table-wrap hidden">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th style="width:7rem;">日付</th>
+                  <th style="width:8rem;">児童名</th>
+                  <th>活動内容（note）</th>
+                </tr>
+              </thead>
+              <tbody id="hpr-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- 入退室管理 / 個人記録（タブ切り替え） -->
+    <div id="hug-sidepanel-host" class="hug-sidepanel-host" aria-label="HUG業務パネル">
+      <nav class="hug-sidepanel-tabs" role="tablist" aria-label="機能切り替え">
+        <button
+          type="button"
+          class="hug-sidepanel-tab-btn active"
+          role="tab"
+          data-tab="attendance"
+          aria-selected="true"
+          aria-controls="hug-tab-attendance"
+        >入退室管理</button>
+        <button
+          type="button"
+          class="hug-sidepanel-tab-btn"
+          role="tab"
+          data-tab="personal-record"
+          aria-selected="false"
+          aria-controls="hug-tab-personal-record"
+        >個人記録</button>
+      </nav>
+      <div class="hug-sidepanel-panels">
+        <section
+          id="hug-tab-attendance"
+          class="hug-sidepanel-tab-panel active"
+          role="tabpanel"
+          data-tab-panel="attendance"
+          aria-labelledby="hug-tab-attendance"
+        >
+          <div
+            id="hug-attendance-panel"
+            class="hug-sidepanel-tab-mount hug-sidepanel-form-root"
+          ></div>
+        </section>
+        <section
+          id="hug-tab-personal-record"
+          class="hug-sidepanel-tab-panel"
+          role="tabpanel"
+          data-tab-panel="personal-record"
+          hidden
+          aria-labelledby="hug-tab-personal-record"
+        >
+          <div
+            id="hug-personal-record-form"
+            class="hug-sidepanel-tab-mount hug-sidepanel-form-root"
+          ></div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <!-- Correction Modal -->
+  <div id="correction-modal" class="modal-backdrop">
+    <div class="card modal-content">
+      <div class="flex justify-between items-center mb-4">
+        <h2 style="margin:0;">校正結果の確認</h2>
+        <button id="modal-close" type="button" class="btn btn-secondary" style="padding:0.25rem;">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div id="modal-advanced-sections" class="hidden">
+          <div>
+            <button type="button" class="collapse-btn" data-collapse="original">
+              <label class="label">校正前、元になった文章（編集可能）</label>
+              <i data-lucide="chevron-down"></i>
+            </button>
+            <div id="collapse-original">
+              <textarea id="modal-original-textarea" class="input-field" rows="3"></textarea>
+            </div>
+          </div>
+          <div class="prompt-box">
+            <button type="button" class="collapse-btn" data-collapse="systemPrompt">
+              <label class="label">校正の仕方の指示プロンプト（編集不可）</label>
+              <i data-lucide="chevron-down"></i>
+            </button>
+            <div id="collapse-systemPrompt">
+              <p style="font-size:0.875rem;color:var(--text-light);margin:0;">
+                放課後等デイサービスの支援記録について、以下の文章をF-SOAIPに沿った形式に校正してください。
+              </p>
+            </div>
+          </div>
+          <div>
+            <button type="button" class="collapse-btn" data-collapse="additionalPrompt">
+              <label class="label">校正の仕方の指示追加プロンプト（編集可能）</label>
+              <i data-lucide="chevron-down"></i>
+            </button>
+            <div id="collapse-additionalPrompt">
+              <textarea id="modal-additional-textarea" class="input-field" rows="2"></textarea>
+            </div>
+          </div>
+        </div>
+        <div id="modal-simple-original" class="prompt-box">
+          <label class="label">元になった文章</label>
+          <p id="modal-original-text" style="margin:0;font-size:0.875rem;"></p>
+        </div>
+        <div>
+          <button type="button" class="collapse-btn" data-collapse="corrected">
+            <label class="label">校正後の文章（編集可能）</label>
+            <i data-lucide="chevron-down"></i>
+          </button>
+          <div id="collapse-corrected">
+            <textarea id="correction-corrected" class="input-field corrected-textarea" rows="8"></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="flex justify-end gap-2 modal-footer">
+        <button id="modal-advanced-clear" type="button" class="btn btn-secondary hidden">クリア</button>
+        <button id="modal-cancel" type="button" class="btn btn-secondary">キャンセル</button>
+        <button type="button" class="btn btn-secondary"><i data-lucide="refresh-cw"></i> 再校正</button>
+        <button id="modal-apply" type="button" class="btn btn-primary">
+          <i data-lucide="check"></i> 反映して閉じる
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="lucide.min.js"></script>
+  <script src="ai-config.js"></script>
+  <script src="hug-wm.js"></script>
+  <script src="attendance/attendance-fetch-bridge.js"></script>
+  <script src="attendance/content.js"></script>
+  <script src="attendance/attendance-post-common.js"></script>
+  <script src="attendance/enter-post.js"></script>
+  <script src="attendance/leave-post.js"></script>
+  <script src="attendance/mail-dialog.js"></script>
+  <script src="attendance/enter-mail-export.js"></script>
+  <script src="attendance/native-delegate.js"></script>
+  <script src="attendance/alert-type2-popup.js"></script>
+  <script src="attendance/form/form-styles.js"></script>
+  <script src="attendance/form/form-helpers.js"></script>
+  <script src="attendance/form/form-state.js"></script>
+  <script src="attendance/form/form-events.js"></script>
+  <script src="attendance/form/personal-record-tab.js"></script>
+  <script src="attendance/form/form-panel.js"></script>
+  <script src="attendance/form/form-render.js"></script>
+  <script src="attendance/form/form.js"></script>
+  <script src="attendance/timer.js"></script>
+  <script src="personal-record/editpage.js"></script>
+  <script src="personal-record/edit-post.js"></script>
+  <script src="personal-record/personallist.js"></script>
+  <script src="personal-record/content.js"></script>
+  <script src="personal-record/form/form-styles.js"></script>
+  <script src="personal-record/form/form-panel.js"></script>
+  <script src="personal-record/form/personal-record-month-fetch.js"></script>
+  <script src="personal-record/form/form.js"></script>
+  <script src="attendance/attendance-sidepanel-init.js"></script>
+  <script src="sidepanel-tabs.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

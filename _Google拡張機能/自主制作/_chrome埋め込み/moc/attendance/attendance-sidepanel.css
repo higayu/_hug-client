@@ -1,0 +1,193 @@
+/* サイドパネル: タブ + フォーム本体を直接表示（入れ子パネルなし） */
+body.hug-attendance-primary-page {
+  background: #f5f5f5;
+  overflow: hidden;
+}
+
+body.hug-attendance-primary-page #mobile-header,
+body.hug-attendance-primary-page #mobile-overlay,
+body.hug-attendance-primary-page #sidebar-wrap,
+body.hug-attendance-primary-page #main-content,
+body.hug-attendance-primary-page #correction-modal {
+  display: none !important;
+}
+
+body.hug-attendance-primary-page .app-container {
+  display: block;
+  height: 100vh;
+  overflow: hidden;
+}
+
+#hug-sidepanel-host {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100vh;
+  background: #f5f5f5;
+  box-sizing: border-box;
+}
+
+.hug-sidepanel-tabs {
+  display: flex;
+  flex-shrink: 0;
+  gap: 0;
+  background: #263238;
+  border-bottom: 2px solid #111;
+}
+
+.hug-sidepanel-tab-btn {
+  flex: 1;
+  margin: 0;
+  padding: 10px 12px;
+  border: none;
+  border-bottom: 3px solid transparent;
+  background: transparent;
+  color: #b0bec5;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.hug-sidepanel-tab-btn:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: #eceff1;
+}
+
+.hug-sidepanel-tab-btn.active {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.08);
+  border-bottom-color: #4fc3f7;
+}
+
+.hug-sidepanel-tab-btn[data-tab="personal-record"].active {
+  border-bottom-color: #ce93d8;
+}
+
+.hug-sidepanel-panels {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.hug-sidepanel-tab-panel {
+  display: none;
+  height: 100%;
+  overflow: hidden;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.hug-sidepanel-tab-panel.active {
+  display: flex;
+  flex-direction: column;
+}
+
+/* タブ直下 = フォームルート（枠・影なし・全幅） */
+#hug-sidepanel-host .hug-sidepanel-form-root {
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  margin: 0;
+  position: static;
+  transform: none;
+  font-size: 13px;
+  color: #222;
+}
+
+/* 入退室: ツールバー + 本文 */
+#hug-sidepanel-host #hug-attendance-panel .hug-sidepanel-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-shrink: 0;
+  padding: 8px 10px;
+  background: #333;
+  color: #fff;
+}
+
+#hug-sidepanel-host #hug-attendance-panel .hug-sidepanel-toolbar-meta {
+  min-width: 0;
+  flex: 1;
+}
+
+#hug-sidepanel-host #hug-attendance-panel .hug-attendance-count {
+  font-size: 12px;
+  font-weight: bold;
+  opacity: 0.95;
+}
+
+#hug-sidepanel-host #hug-attendance-panel .hug-enter-mail-badge {
+  margin-top: 2px;
+  font-size: 11px;
+  color: #ffe082;
+}
+
+#hug-sidepanel-host #hug-attendance-panel .hug-leave-alert-collapsed-badge {
+  margin-top: 2px;
+  font-size: 11px;
+  font-weight: bold;
+  color: #ffab91;
+}
+
+#hug-sidepanel-host #hug-attendance-panel .hug-refresh-button {
+  cursor: pointer;
+  padding: 4px 10px;
+  border: 1px solid #fff;
+  border-radius: 4px;
+  background: transparent;
+  color: #fff;
+  font-size: 12px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+#hug-sidepanel-host #hug-attendance-panel .hug-refresh-button:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+#hug-sidepanel-host #hug-attendance-panel .hug-attendance-status {
+  flex-shrink: 0;
+  padding: 8px 10px 0;
+  font-size: 12px;
+  color: #555;
+}
+
+#hug-sidepanel-host #hug-attendance-panel .hug-attendance-body {
+  flex: 1;
+  min-height: 0;
+  padding: 8px 10px 10px;
+  overflow: auto;
+}
+
+#hug-sidepanel-host #hug-attendance-panel .hug-toggle-button,
+#hug-sidepanel-host #hug-attendance-panel .hug-attendance-header,
+#hug-sidepanel-host #hug-attendance-panel .hug-attendance-content {
+  display: none !important;
+}
+
+/* 個人記録: セクションをタブ全面に */
+#hug-sidepanel-host #hug-personal-record-form {
+  padding: 10px 12px 14px;
+  font: 14px/1.4 sans-serif;
+}
+
+#hug-sidepanel-host #hug-personal-record-form .hug-pr-header,
+#hug-sidepanel-host #hug-personal-record-form .hug-pr-resize-handle,
+#hug-sidepanel-host #hug-personal-record-form .hug-pr-toggle-button {
+  display: none !important;
+}
+
+#hug-sidepanel-host .hug-sidepanel-form-root button {
+  font-family: inherit;
+  line-height: normal;
+}

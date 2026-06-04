@@ -1,0 +1,29 @@
+{
+  "manifest_version": 3,
+  "name": "入退室管理システム (プロトタイプ)",
+  "version": "1.0.0",
+  "description": "入退室管理システム",
+  "action": {
+    "default_title": "入退室管理システムを開く",
+    "default_icon": {
+      "48": "icon.svg"
+    }
+  },
+  "side_panel": {
+    "default_path": "index.html"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "permissions": [
+    "sidePanel"
+  ],
+  "host_permissions": [
+    "http://192.168.3.35:3001/*",
+    "http://192.168.1.229:3001/*",
+    "http://localhost:3001/*",
+    "http://localhost:11434/*",
+    "https://generativelanguage.googleapis.com/*",
+    "https://www.hug-ayumu.link/hug/wm/*"
+  ]
+}
