@@ -87,6 +87,33 @@ async function fetchContactBookListDoc(listUrl) {
   return new DOMParser().parseFromString(listHtml, 'text/html');
 }
 
+/**
+ * 連絡帳一覧ページの #name_list から児童一覧を取得
+ * （f_id はログイン文脈用。一覧は施設IDに依存せず全児童が返る）
+ * @param {number} facilityId
+ * @returns {Promise<Array<{ child_id: number, name: string }>>}
+ */
+async function fetchChildrenFromHugWm(facilityId) {
+  const url = new URL(HUG_WM_CONTACT_BOOK_LIST_URL);
+  url.searchParams.set('f_id', String(facilityId));
+
+  const html = await hugWmFetchText(url.href);
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+  const nameList = doc.querySelector('#name_list');
+
+  if (!nameList) {
+    throw new Error('#name_list が見つかりません（HUGにログイン済みか確認してください）');
+  }
+
+  return [...nameList.options]
+    .filter((opt) => opt.value)
+    .map((opt) => ({
+      child_id: Number(opt.value),
+      name: opt.textContent.trim(),
+    }))
+    .filter((c) => Number.isFinite(c.child_id) && c.child_id > 0);
+}
+
 function findContactBookTable(doc) {
   const table = doc.querySelector(CONTACT_BOOK_TABLE_SELECTOR);
   if (!table) {
@@ -182,4 +209,5 @@ async function fetchHugPersonalRecordsFromWm(params) {
 window.HugWm = {
   fetchHugPersonalRecordsFromWm,
   buildContactBookListUrl,
+  fetchChildrenFromHugWm,
 };

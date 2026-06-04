@@ -280,17 +280,29 @@ async function loadFacilities() {
     state.chat.facilityId = fid;
     state.personalRecord.facilityId = fid;
     state.hugPersonalRecord.facilityId = fid;
-    await loadChildren(fid);
   }
 }
 
-async function loadChildren(facilityId) {
+function getFacilityIdFromSelect(facilitySelectId) {
+  const value = document.getElementById(facilitySelectId)?.value;
+  if (!value) return null;
+  const facilityId = Number(value);
+  return Number.isFinite(facilityId) ? facilityId : null;
+}
+
+async function loadChildren(facilitySelectId) {
+  const facilityId = getFacilityIdFromSelect(facilitySelectId);
+  if (!facilityId) {
+    console.warn('[loadChildren] 施設が未選択:', facilitySelectId);
+    return;
+  }
+
   try {
-    const data = await fetchJson(
-      `${API_BASE}/children/_search?pk=facility_id&values=${facilityId}`
-    );
+    const data = await window.HugWm.fetchChildrenFromHugWm(facilityId);
     state.childrenByFacility[facilityId] = data;
-  } catch {
+    console.log('[loadChildren] HUG WMから取得:', facilitySelectId, facilityId, data);
+  } catch (error) {
+    console.warn('[loadChildren] HUG取得に失敗したため、MOCK_CHILDRENを使用します:', error);
     state.childrenByFacility[facilityId] = MOCK_CHILDREN[facilityId] || [];
   }
   const list = state.childrenByFacility[facilityId] || [];
@@ -943,7 +955,7 @@ function bindEvents() {
 
   document.getElementById('correction-facility')?.addEventListener('change', async (e) => {
     state.correction.facilityId = Number(e.target.value);
-    await loadChildren(state.correction.facilityId);
+    await loadChildren('correction-facility');
     renderCorrection();
   });
   document.getElementById('correction-child')?.addEventListener('change', (e) => {
@@ -996,7 +1008,7 @@ function bindEvents() {
 
   document.getElementById('chat-facility')?.addEventListener('change', async (e) => {
     state.chat.facilityId = Number(e.target.value);
-    await loadChildren(state.chat.facilityId);
+    await loadChildren('chat-facility');
     renderChat();
     refreshIcons();
   });
@@ -1027,7 +1039,7 @@ function bindEvents() {
 
   document.getElementById('pr-facility')?.addEventListener('change', async (e) => {
     state.personalRecord.facilityId = Number(e.target.value);
-    await loadChildren(state.personalRecord.facilityId);
+    await loadChildren('pr-facility');
     state.personalRecord.selectedRecordId = null;
     renderPersonalRecord();
     refreshIcons();
@@ -1050,7 +1062,7 @@ function bindEvents() {
 
   document.getElementById('hpr-facility')?.addEventListener('change', async (e) => {
     state.hugPersonalRecord.facilityId = Number(e.target.value);
-    await loadChildren(state.hugPersonalRecord.facilityId);
+    await loadChildren('hpr-facility');
     renderHugPersonalRecord();
     refreshIcons();
   });
@@ -1078,6 +1090,9 @@ async function init() {
     window.location.hash = '#/chat';
   }
   render();
+  if (state.facilities.length > 0) {
+    await loadChildren('chat-facility');
+  }
 }
 
 document.addEventListener('DOMContentLoaded', init);
