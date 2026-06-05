@@ -65,7 +65,7 @@ class User extends Authenticatable implements FilamentUser, JWTSubject
 
     public function canAccessPanel(Panel $panel): bool
     {
-        return true;
+        return $this->role === 'admin';
     }
 
     public function facility(): BelongsTo
