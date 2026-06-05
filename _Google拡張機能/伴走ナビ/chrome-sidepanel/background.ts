@@ -5,6 +5,24 @@ chrome.sidePanel
   .catch((error) => console.error(error));
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+  if (message?.type === 'open-side-panel') {
+    const windowId = _sender.tab?.windowId;
+
+    if (typeof windowId !== 'number') {
+      sendResponse({ ok: false, error: 'Tab window was not found.' });
+      return;
+    }
+
+    chrome.sidePanel
+      .open({ windowId })
+      .then(() => sendResponse({ ok: true }))
+      .catch((error: Error) => {
+        sendResponse({ ok: false, error: error.message });
+      });
+
+    return true;
+  }
+
   if (message?.type !== 'api-fetch') return;
 
   fetch(message.url, message.options || {})
