@@ -1,3 +1,4 @@
+import { getToken } from './authStorage';
 import { getApiBase } from './aiConfig';
 import { MOCK_FACILITIES, type Facility } from './mockData';
 
@@ -30,7 +31,7 @@ export function formatFetchError(response: ApiFetchResponse & { url?: string }):
   if (/not allowed by cors/i.test(msg)) {
     return (
       'APIサーバーが Chrome 拡張機能からのリクエストを拒否しました (CORS)。\n' +
-      '192.168.1.229 の node-db-api/index.js で chrome-extension:// を許可してください。'
+      'Laravel backend の CorsMiddleware で chrome-extension:// を許可しているか確認してください。'
     );
   }
   if (status === 403 && /11434|ollama/i.test(msg + url)) {
@@ -45,15 +46,29 @@ export function formatFetchError(response: ApiFetchResponse & { url?: string }):
   return msg;
 }
 
+function withAuthHeaders(options: RequestInit = {}): RequestInit {
+  const headers = new Headers(options.headers);
+  if (!headers.has('Content-Type') && options.body) {
+    headers.set('Content-Type', 'application/json');
+  }
+  const token = getToken();
+  if (token) {
+    headers.set('Authorization', `Bearer ${token}`);
+  }
+  return { ...options, headers };
+}
+
 export async function fetchJson<T = unknown>(
   url: string,
   options: RequestInit = {},
 ): Promise<T> {
+  const requestOptions = withAuthHeaders(options);
+
   if (typeof chrome !== 'undefined' && chrome.runtime?.sendMessage) {
     const response = (await chrome.runtime.sendMessage({
       type: 'api-fetch',
       url,
-      options,
+      options: requestOptions,
     })) as ApiFetchResponse;
     if (!response?.ok) {
       throw new Error(formatFetchError({ ...response, url }));
@@ -61,7 +76,7 @@ export async function fetchJson<T = unknown>(
     return response.body as T;
   }
 
-  const res = await fetch(url, options);
+  const res = await fetch(url, requestOptions);
   if (!res.ok) {
     let body: unknown;
     try {

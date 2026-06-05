@@ -1,5 +1,6 @@
-import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, FileEdit, MessageSquare, User, UserSquare, X } from 'lucide-react';
+import { NavLink, useNavigate } from 'react-router-dom';
+import { LayoutDashboard, FileEdit, LogOut, MessageSquare, User, UserSquare, X } from 'lucide-react';
+import { clearAuth, getAuthUser } from '../lib/auth';
 
 type SidebarProps = {
   isOpenMobile?: boolean;
@@ -7,6 +8,14 @@ type SidebarProps = {
 };
 
 const Sidebar = ({ isOpenMobile, onCloseMobile }: SidebarProps) => {
+  const navigate = useNavigate();
+  const authUser = getAuthUser();
+
+  const handleLogout = () => {
+    clearAuth();
+    navigate('/login');
+  };
+
   return (
     <div className={`sidebar-container ${isOpenMobile ? 'open' : ''}`} style={{
       width: '260px',
@@ -43,10 +52,22 @@ const Sidebar = ({ isOpenMobile, onCloseMobile }: SidebarProps) => {
           <div style={{ minWidth: '32px', width: '32px', height: '32px', borderRadius: '50%', backgroundColor: 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>
             <User size={18} />
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-            <span style={{ fontSize: '0.875rem', fontWeight: 500, color: 'white', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>平野 義幸</span>
-            <span style={{ fontSize: '0.7rem', color: 'var(--text-light)', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>吉島事業所</span>
+          <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden', flex: 1 }}>
+            <span style={{ fontSize: '0.875rem', fontWeight: 500, color: 'white', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
+              {authUser?.name || '未ログイン'}
+            </span>
+            <span style={{ fontSize: '0.7rem', color: 'var(--text-light)', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
+              {authUser?.facility_name || '—'}
+            </span>
           </div>
+          <button
+            type="button"
+            onClick={handleLogout}
+            title="ログアウト"
+            style={{ background: 'none', border: 'none', color: 'var(--text-light)', cursor: 'pointer', padding: '0.25rem' }}
+          >
+            <LogOut size={18} />
+          </button>
         </div>
       </div>
     </div>

@@ -2,31 +2,63 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['name', 'email', 'password'])]
+#[Fillable(['user_id', 'facility_id', 'name', 'email', 'password', 'role'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
-    /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable;
+    protected $primaryKey = 'user_id';
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
+    public $incrementing = false;
+
+    protected $keyType = 'int';
+
+    protected static function booted(): void
+    {
+        static::creating(function (User $user): void {
+            if (empty($user->user_id)) {
+                $user->user_id = (int) (static::max('user_id') ?? 0) + 1;
+            }
+        });
+    }
+
     protected function casts(): array
     {
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'created_at' => 'datetime',
+            'updated_at' => 'datetime',
         ];
+    }
+
+    public function facility(): BelongsTo
+    {
+        return $this->belongsTo(Facility::class, 'facility_id', 'facility_id');
+    }
+
+    public function supportRecords(): HasMany
+    {
+        return $this->hasMany(SupportRecord::class, 'user_id', 'user_id');
+    }
+
+    public function aiCorrectionLogs(): HasMany
+    {
+        return $this->hasMany(AiCorrectionLog::class, 'user_id', 'user_id');
+    }
+
+    public function updatedAiPrompts(): HasMany
+    {
+        return $this->hasMany(AiPrompt::class, 'updated_by', 'user_id');
+    }
+
+    public function aiPromptHistories(): HasMany
+    {
+        return $this->hasMany(AiPromptHistory::class, 'created_by', 'user_id');
     }
 }

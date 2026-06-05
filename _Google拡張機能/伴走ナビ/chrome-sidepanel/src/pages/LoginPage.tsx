@@ -1,16 +1,28 @@
 import { useNavigate } from 'react-router-dom';
 import { LogIn } from 'lucide-react';
 import { useState } from 'react';
+import { login } from '../lib/auth';
 
 const LoginPage = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    // モックのため認証処理はスキップし、メイン機能(AI校正)へ遷移
-    navigate('/correction');
+    setError('');
+    setLoading(true);
+
+    try {
+      await login(email, password);
+      navigate('/correction');
+    } catch (err) {
+      setError((err as Error).message || 'ログインに失敗しました。');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -51,6 +63,18 @@ const LoginPage = () => {
         </div>
 
         <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+          {error && (
+            <div style={{
+              padding: '0.75rem',
+              borderRadius: '8px',
+              backgroundColor: 'rgba(239, 68, 68, 0.1)',
+              color: '#dc2626',
+              fontSize: '0.875rem',
+            }}>
+              {error}
+            </div>
+          )}
+
           <div>
             <label className="label">メールアドレス</label>
             <input 
@@ -60,15 +84,13 @@ const LoginPage = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              disabled={loading}
             />
           </div>
           
           <div>
             <div className="flex justify-between items-center mb-2">
               <label className="label" style={{ margin: 0 }}>パスワード</label>
-              <a href="#" style={{ fontSize: '0.75rem', color: 'var(--primary-color)', textDecoration: 'none' }}>
-                パスワードを忘れた場合
-              </a>
             </div>
             <input 
               type="password" 
@@ -77,11 +99,17 @@ const LoginPage = () => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
+              disabled={loading}
             />
           </div>
 
-          <button type="submit" className="btn btn-primary" style={{ width: '100%', padding: '0.75rem', marginTop: '0.5rem', fontSize: '1rem' }}>
-            ログイン
+          <button
+            type="submit"
+            className="btn btn-primary"
+            style={{ width: '100%', padding: '0.75rem', marginTop: '0.5rem', fontSize: '1rem' }}
+            disabled={loading}
+          >
+            {loading ? 'ログイン中...' : 'ログイン'}
           </button>
         </form>
 

@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
 import { loadFacilities } from '../lib/api';
-import { fetchChildrenFromHugWm } from '../lib/hugWm';
-import { MOCK_CHILDREN, type Child, type Facility } from '../lib/mockData';
+import { fetchChildrenFromHugWm, type HugChild } from '../lib/hugWm';
+import { MOCK_CHILDREN, type Facility } from '../lib/mockData';
+
+export type Child = HugChild;
 
 export function useFacilities() {
   const [facilities, setFacilities] = useState<Facility[]>([]);

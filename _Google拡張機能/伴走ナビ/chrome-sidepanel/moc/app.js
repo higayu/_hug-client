@@ -2,7 +2,7 @@
 
 const API_BASE =
   window.AI_CONFIG?.API_BASE ||
-  'http://192.168.1.229:3001/api/sql/hug_ai_support';
+  'http://127.0.0.1:8000/api';
 
 const CORRECTION_SYSTEM_PROMPT =
   'あなたは児童支援記録の校正アシスタントです。入力された記録を【S】【O】【A】【P】形式（状況・観察・評価・計画）で整理・校正し、日本語で出力してください。';

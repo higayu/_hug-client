@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Wand2, Save, X, RefreshCw, Check, ChevronDown, ChevronRight } from "lucide-react";
 import { fetchJson } from "../lib/api";
 import { getApiBase } from "../lib/aiConfig";
+import { getAuthUser } from "../lib/auth";
 import { buildCorrectionMessages, callAi } from "../lib/ai";
 import {
   useFacilities,
@@ -120,7 +121,7 @@ const CorrectionPage = () => {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             child_id: childId,
-            user_id: 1,
+            user_id: getAuthUser()?.user_id ?? 1,
             content,
             target_date: targetDate,
           }),

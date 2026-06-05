@@ -14,7 +14,15 @@ import ChatPage from "./pages/ChatPage";
 import PersonalRecordPage from "./pages/PersonalRecordPage";
 import HugPersonalRecordPage from "./pages/HugPersonalRecordPage";
 import LoginPage from "./pages/LoginPage";
+import { isAuthenticated } from "./lib/auth";
 import "./index.css";
+
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  if (!isAuthenticated()) {
+    return <Navigate to="/login" replace />;
+  }
+  return children;
+}
 
 const AppContent = () => {
   const location = useLocation();
@@ -63,13 +71,23 @@ const AppContent = () => {
         style={{ padding: isLoginPage ? 0 : undefined }}
       >
         <Routes>
-          <Route path="/" element={<Navigate to="/chat" replace />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/correction" element={<CorrectionPage />} />
-          <Route path="/chat" element={<ChatPage />} />
-          <Route path="/personal-record" element={<PersonalRecordPage />} />
-          <Route path="/hug-personal-record" element={<HugPersonalRecordPage />} />
+          <Route
+            path="/"
+            element={
+              <Navigate to={isAuthenticated() ? "/chat" : "/login"} replace />
+            }
+          />
+          <Route
+            path="/login"
+            element={
+              isAuthenticated() ? <Navigate to="/correction" replace /> : <LoginPage />
+            }
+          />
+          <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
+          <Route path="/correction" element={<ProtectedRoute><CorrectionPage /></ProtectedRoute>} />
+          <Route path="/chat" element={<ProtectedRoute><ChatPage /></ProtectedRoute>} />
+          <Route path="/personal-record" element={<ProtectedRoute><PersonalRecordPage /></ProtectedRoute>} />
+          <Route path="/hug-personal-record" element={<ProtectedRoute><HugPersonalRecordPage /></ProtectedRoute>} />
         </Routes>
       </main>
     </div>
