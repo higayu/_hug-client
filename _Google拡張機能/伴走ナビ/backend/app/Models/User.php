@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use Filament\Models\Contracts\FilamentUser;
+use Filament\Panel;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -20,7 +22,7 @@ use Tymon\JWTAuth\Contracts\JWTSubject;
     'role',
 ])]
 #[Hidden(['password', 'hug_password', 'remember_token'])]
-class User extends Authenticatable implements JWTSubject
+class User extends Authenticatable implements FilamentUser, JWTSubject
 {
     protected $primaryKey = 'user_id';
 
@@ -59,6 +61,11 @@ class User extends Authenticatable implements JWTSubject
             'facility_id' => $this->facility_id,
             'role' => $this->role,
         ];
+    }
+
+    public function canAccessPanel(Panel $panel): bool
+    {
+        return true;
     }
 
     public function facility(): BelongsTo
