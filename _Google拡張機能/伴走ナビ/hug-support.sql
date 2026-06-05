@@ -210,6 +210,7 @@ CREATE TABLE IF NOT EXISTS `users` (
   `user_id` int(11) NOT NULL,
   `facility_id` int(11) NOT NULL,
   `name` varchar(255) NOT NULL,
+  `login_id` varchar(255) DEFAULT NULL,
   `email` varchar(255) DEFAULT NULL,
   `email_verified_at` timestamp NULL DEFAULT NULL,
   `password` varchar(255) DEFAULT NULL,
@@ -219,6 +220,7 @@ CREATE TABLE IF NOT EXISTS `users` (
   `updated_at` datetime DEFAULT NULL,
   PRIMARY KEY (`user_id`),
   UNIQUE KEY `users_email_unique` (`email`),
+  UNIQUE KEY `login_id` (`login_id`),
   KEY `idx_users_facility_id` (`facility_id`),
   KEY `idx_users_role` (`role`),
   CONSTRAINT `fk_users_facility` FOREIGN KEY (`facility_id`) REFERENCES `facilities` (`facility_id`) ON UPDATE CASCADE
