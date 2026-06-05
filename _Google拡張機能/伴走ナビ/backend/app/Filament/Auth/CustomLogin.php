@@ -20,8 +20,9 @@ class CustomLogin extends BaseLogin
     {
         return $schema
             ->components([
-                TextInput::make('login_id')
-                    ->label('ログインID')
+                TextInput::make('email')
+                    ->label('メールアドレス')
+                    ->email()
                     ->required()
                     ->autofocus(),
 
@@ -36,7 +37,7 @@ class CustomLogin extends BaseLogin
     protected function getCredentialsFromFormData(#[SensitiveParameter] array $data): array
     {
         return [
-            'login_id' => $data['login_id'],
+            'email' => $data['email'],
             'password' => $data['password'],
         ];
     }
@@ -55,7 +56,7 @@ class CustomLogin extends BaseLogin
     protected function throwFailureValidationException(): never
     {
         throw ValidationException::withMessages([
-            'data.login_id' => 'ログインIDまたはパスワードが正しくありません。',
+            'data.email' => 'メールアドレスまたはパスワードが正しくありません。',
         ]);
     }
 }
