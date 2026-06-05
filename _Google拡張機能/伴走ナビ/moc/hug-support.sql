@@ -86,19 +86,6 @@ CREATE TABLE IF NOT EXISTS `batch_execution_logs` (
 
 -- エクスポートするデータが選択されていません
 
---  テーブル hug_ai_support.children の構造をダンプしています
-CREATE TABLE IF NOT EXISTS `children` (
-  `child_id` int(11) NOT NULL AUTO_INCREMENT,
-  `facility_id` int(11) NOT NULL,
-  `name` varchar(255) NOT NULL,
-  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
-  PRIMARY KEY (`child_id`),
-  KEY `idx_children_facility_id` (`facility_id`),
-  CONSTRAINT `fk_children_facility` FOREIGN KEY (`facility_id`) REFERENCES `facilities` (`facility_id`) ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=683 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='児童マスタ';
-
--- エクスポートするデータが選択されていません
-
 --  テーブル hug_ai_support.facilities の構造をダンプしています
 CREATE TABLE IF NOT EXISTS `facilities` (
   `facility_id` int(11) NOT NULL AUTO_INCREMENT,
@@ -119,12 +106,10 @@ CREATE TABLE IF NOT EXISTS `support_records` (
   `created_at` datetime NOT NULL DEFAULT current_timestamp(),
   `updated_at` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   PRIMARY KEY (`record_id`),
-  KEY `idx_support_records_child_date` (`child_id`,`target_date`),
   KEY `idx_support_records_user_id` (`user_id`),
   KEY `idx_support_records_target_date` (`target_date`),
-  CONSTRAINT `fk_support_records_child` FOREIGN KEY (`child_id`) REFERENCES `children` (`child_id`) ON UPDATE CASCADE,
   CONSTRAINT `fk_support_records_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='支援記録データ';
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='支援記録データ';
 
 -- エクスポートするデータが選択されていません
 
@@ -139,7 +124,7 @@ CREATE TABLE IF NOT EXISTS `users` (
   KEY `idx_users_facility_id` (`facility_id`),
   KEY `idx_users_role` (`role`),
   CONSTRAINT `fk_users_facility` FOREIGN KEY (`facility_id`) REFERENCES `facilities` (`facility_id`) ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ユーザー／スタッフマスタ';
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ユーザー／スタッフマスタ';
 
 -- エクスポートするデータが選択されていません
 

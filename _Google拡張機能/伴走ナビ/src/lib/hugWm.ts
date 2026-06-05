@@ -1,5 +1,6 @@
 const HUG_WM_BASE_URL = 'https://www.hug-ayumu.link/hug/wm/';
 const HUG_WM_CONTACT_BOOK_LIST_URL = `${HUG_WM_BASE_URL}contact_book.php`;
+const HUG_WM_CHILD_AGREEMENT_FILTER_URL = `${HUG_WM_BASE_URL}ajax/ajax_child_agreement_filter.php`;
 
 const PAGINATION_UL_SELECTOR =
   'body > div.contents > div.ibox > div:nth-child(7) > div > ul';
@@ -15,12 +16,12 @@ export type HugPersonalRecord = {
   note: string;
 };
 
-async function hugWmFetchText(url: string): Promise<string> {
+async function hugWmFetch(url: string, options: RequestInit = {}): Promise<string> {
   if (typeof chrome !== 'undefined' && chrome.runtime?.sendMessage) {
     const response = await chrome.runtime.sendMessage({
       type: 'api-fetch',
       url,
-      options: { method: 'GET', credentials: 'include' },
+      options,
     });
     if (!response?.ok) {
       const err =
@@ -31,11 +32,78 @@ async function hugWmFetchText(url: string): Promise<string> {
     return typeof response.body === 'string' ? response.body : JSON.stringify(response.body);
   }
 
-  const res = await fetch(url, { method: 'GET', credentials: 'include' });
+  const res = await fetch(url, options);
   if (!res.ok) {
-    throw new Error(`HTML取得エラー: ${res.status}`);
+    throw new Error(`HTTP取得エラー: ${res.status}`);
   }
   return res.text();
+}
+
+async function hugWmFetchText(url: string): Promise<string> {
+  return hugWmFetch(url, { method: 'GET', credentials: 'include' });
+}
+
+function buildChildAgreementFilterParams(facilityId: number, targetDate: string) {
+  const params = new URLSearchParams();
+  params.set(`f_ary[${facilityId}]`, String(facilityId));
+  params.set('furigana', '0');
+  params.set('parent_flg', 'false');
+  params.set('target_date', targetDate);
+  return params;
+}
+
+function parseChildrenFromAgreementFilterResponse(text: string): HugChild[] {
+  const trimmed = text.trim();
+
+  if (trimmed.startsWith('[') || trimmed.startsWith('{')) {
+    try {
+      const data = JSON.parse(trimmed) as
+        | HugChild[]
+        | { children?: HugChild[]; child_list?: HugChild[]; list?: HugChild[] };
+      const list = Array.isArray(data)
+        ? data
+        : data.children || data.child_list || data.list || [];
+
+      return list
+        .map((item) => ({
+          child_id: Number(
+            (item as { child_id?: number; id?: number; c_id?: number; value?: number }).child_id ??
+              (item as { id?: number }).id ??
+              (item as { c_id?: number }).c_id ??
+              (item as { value?: number }).value,
+          ),
+          name: String(
+            (item as { name?: string; child_name?: string; text?: string }).name ??
+              (item as { child_name?: string }).child_name ??
+              (item as { text?: string }).text ??
+              '',
+          ).trim(),
+        }))
+        .filter((c) => Number.isFinite(c.child_id) && c.child_id > 0);
+    } catch {
+      // HTML として続行
+    }
+  }
+
+  const parseOptions = (doc: Document) =>
+    [...doc.querySelectorAll('option')]
+      .map((opt) => ({
+        child_id: Number((opt as HTMLOptionElement).value),
+        name: opt.textContent?.trim() ?? '',
+      }))
+      .filter((c) => Number.isFinite(c.child_id) && c.child_id > 0);
+
+  const htmlDoc = new DOMParser().parseFromString(trimmed, 'text/html');
+  const fromHtml = parseOptions(htmlDoc);
+  if (fromHtml.length > 0) {
+    return fromHtml;
+  }
+
+  const wrappedDoc = new DOMParser().parseFromString(
+    `<select>${trimmed}</select>`,
+    'text/html',
+  );
+  return parseOptions(wrappedDoc);
 }
 
 async function fetchContactBookNote(pathAndQuery: string): Promise<string | null> {
@@ -95,82 +163,40 @@ function getContactBookPageNumbers(doc: Document) {
   return [...pages].sort((a, b) => a - b);
 }
 
-function extractChildrenFromContactBookTable(doc: Document): HugChild[] {
-  const table = doc.querySelector(CONTACT_BOOK_TABLE_SELECTOR);
-  if (!table) {
-    throw new Error(
-      '対象テーブルが見つかりません（HUGにログイン済みか、日付・施設パラメータを確認してください）',
-    );
-  }
-
-  const byChildId = new Map<number, HugChild>();
-
-  for (const row of table.querySelectorAll('tbody tr')) {
-    const cells = row.querySelectorAll('td');
-    const nameCell = cells[1]?.textContent?.trim().replace(/\s+/g, ' ') ?? '';
-    const name = nameCell.replace(/さん$/, '').trim();
-
-    const editOnclick = cells[7]?.querySelector('button.edit')?.getAttribute('onclick');
-    const previewHref = cells[8]?.querySelector('a[href]')?.getAttribute('href');
-    const cIdMatch = editOnclick?.match(/c_id=(\d+)/) ?? previewHref?.match(/c_id=(\d+)/);
-
-    if (!cIdMatch) continue;
-
-    const childId = Number(cIdMatch[1]);
-    if (!Number.isFinite(childId) || childId <= 0) continue;
-
-    if (!byChildId.has(childId)) {
-      byChildId.set(childId, { child_id: childId, name });
-    }
-  }
-
-  return [...byChildId.values()];
-}
-
 async function fetchContactBookListDoc(listUrl: string) {
   const listHtml = await hugWmFetchText(listUrl);
   return new DOMParser().parseFromString(listHtml, 'text/html');
 }
 
+/** ajax_child_agreement_filter.php に POST して児童一覧を取得 */
 export async function fetchChildrenFromHugWm(params: {
   facilityId: number;
   date: string;
-  dateEnd: string;
+  dateEnd?: string;
   childId?: number;
 }): Promise<HugChild[]> {
   const today = new Date().toISOString().split('T')[0];
   const facilityId = params.facilityId;
-  const date = params.date || today;
-  const dateEnd = params.dateEnd || date;
-  const childId = params.childId;
+  const targetDate = params.date || today;
 
   if (!Number.isFinite(facilityId) || facilityId <= 0) {
     throw new Error('facilityId が不正です');
   }
 
-  const listParams = {
-    facilityId,
-    date,
-    dateEnd,
-    childId: childId != null && childId > 0 ? childId : undefined,
-  };
+  const body = buildChildAgreementFilterParams(facilityId, targetDate);
+  console.log('[HUG WM] ajax_child_agreement_filter POST:', Object.fromEntries(body));
 
-  const probeUrl = buildContactBookListUrl(listParams);
-  const probeDoc = await fetchContactBookListDoc(probeUrl);
-  const pages = getContactBookPageNumbers(probeDoc);
-  const byChildId = new Map<number, HugChild>();
+  const text = await hugWmFetch(HUG_WM_CHILD_AGREEMENT_FILTER_URL, {
+    method: 'POST',
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+      'X-Requested-With': 'XMLHttpRequest',
+    },
+    body: body.toString(),
+  });
 
-  for (let i = 0; i < pages.length; i++) {
-    const page = pages[i];
-    const listUrl = buildContactBookListUrl({ ...listParams, page });
-    const listDoc = i === 0 ? probeDoc : await fetchContactBookListDoc(listUrl);
-
-    for (const child of extractChildrenFromContactBookTable(listDoc)) {
-      byChildId.set(child.child_id, child);
-    }
-  }
-
-  return [...byChildId.values()];
+  return parseChildrenFromAgreementFilterResponse(text);
 }
 
 function findContactBookTable(doc: Document) {
