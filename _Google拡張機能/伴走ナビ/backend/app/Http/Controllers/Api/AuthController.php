@@ -16,7 +16,7 @@ class AuthController extends Controller
     public function login(Request $request): JsonResponse
     {
         $credentials = $request->validate([
-            'email' => ['required', 'email'],
+            'email' => ['required', 'string', 'email', 'max:255'],
             'password' => ['required', 'string'],
         ]);
 
@@ -47,8 +47,15 @@ class AuthController extends Controller
 
     public function me(Request $request): JsonResponse
     {
-        /** @var User $user */
+        /** @var User|null $user */
         $user = $request->user();
+
+        if ($user === null) {
+            return response()->json([
+                'message' => '認証されていません。',
+            ], 401);
+        }
+
         $user->loadMissing('facility');
 
         return response()->json([
@@ -60,11 +67,11 @@ class AuthController extends Controller
     {
         return [
             'user_id' => $user->user_id,
+            'facility_id' => $user->facility_id,
+            'facility_name' => $user->facility?->name,
             'name' => $user->name,
             'email' => $user->email,
             'role' => $user->role,
-            'facility_id' => $user->facility_id,
-            'facility_name' => $user->facility?->name,
         ];
     }
 }

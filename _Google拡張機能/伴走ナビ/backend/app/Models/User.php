@@ -7,10 +7,20 @@ use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Tymon\JWTAuth\Contracts\JWTSubject;
 
-#[Fillable(['user_id', 'facility_id', 'name', 'email', 'password', 'role'])]
-#[Hidden(['password', 'remember_token'])]
-class User extends Authenticatable
+#[Fillable([
+    'user_id',
+    'facility_id',
+    'name',
+    'email',
+    'password',
+    'login_id',
+    'hug_password',
+    'role',
+])]
+#[Hidden(['password', 'hug_password', 'remember_token'])]
+class User extends Authenticatable implements JWTSubject
 {
     protected $primaryKey = 'user_id';
 
@@ -34,6 +44,20 @@ class User extends Authenticatable
             'password' => 'hashed',
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
+        ];
+    }
+
+    public function getJWTIdentifier()
+    {
+        return $this->getKey();
+    }
+
+    public function getJWTCustomClaims(): array
+    {
+        return [
+            'user_id' => $this->user_id,
+            'facility_id' => $this->facility_id,
+            'role' => $this->role,
         ];
     }
 
