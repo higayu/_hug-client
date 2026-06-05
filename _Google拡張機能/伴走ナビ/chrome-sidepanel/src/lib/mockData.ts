@@ -7,7 +7,7 @@ export type SupportRecord = {
 };
 
 export const MOCK_FACILITIES: Facility[] = [
-  { facility_id: 1, name: '吉島事業所' },
+  { facility_id: 3, name: '吉島事業所' },
   { facility_id: 2, name: 'ひまわり教室' },
 ];
 
