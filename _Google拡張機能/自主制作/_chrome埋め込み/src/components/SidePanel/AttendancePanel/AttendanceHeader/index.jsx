@@ -99,39 +99,6 @@ export default function AttendanceHeader({
         >
           <div className="min-h-0 overflow-hidden">
             <div className="mb-1.5 flex flex-col gap-1.5">
-              <label className={labelClassName}>
-                出席表日付
-                <input
-                  type="date"
-                  className={inputClassName}
-                  value={attendanceDate}
-                  onChange={(event) => setAttendanceDate(event.target.value)}
-                />
-              </label>
-
-              <div className="flex flex-wrap gap-x-2.5 gap-y-1">
-                {ATTENDANCE_FACILITY_OPTIONS.map((option) => (
-                  <label
-                    key={option.id}
-                    className="inline-flex items-center whitespace-nowrap text-xs text-[#444]"
-                  >
-                    <input
-                      type="checkbox"
-                      className={checkboxClassName}
-                      checked={Boolean(
-                        attendanceFacilityMap[String(option.id)],
-                      )}
-                      onChange={(event) =>
-                        handleAttendanceFacilityToggle(
-                          option.id,
-                          event.target.checked,
-                        )
-                      }
-                    />
-                    {option.value}
-                  </label>
-                ))}
-              </div>
 
               <div className="flex flex-wrap items-end gap-x-2.5 gap-y-1.5">
                 <label className="block min-w-[92px] text-xs text-[#444]">
@@ -161,6 +128,45 @@ export default function AttendanceHeader({
                   </select>
                 </label>
               </div>
+
+              <div className="grid grid-cols-1 gap-2 rounded border border-[#ddd] bg-white px-2 py-1.5 sm:grid-cols-[400px_150px] sm:items-end">
+                <div className="min-w-0">
+                  <div className="mb-0.5 text-xs text-[#444]">施設</div>
+
+                  <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 rounded border border-[#eee] bg-[#fafafa] px-2 py-1.5">
+                    {ATTENDANCE_FACILITY_OPTIONS.map((option) => (
+                      <label
+                        key={option.id}
+                        className="inline-flex items-center whitespace-nowrap text-xs text-[#444]"
+                      >
+                        <input
+                          type="checkbox"
+                          className={checkboxClassName}
+                          checked={Boolean(attendanceFacilityMap[String(option.id)])}
+                          onChange={(event) =>
+                            handleAttendanceFacilityToggle(
+                              option.id,
+                              event.target.checked,
+                            )
+                          }
+                        />
+                        {option.value}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                <label className={labelClassName}>
+                  出席表日付
+                  <input
+                    type="date"
+                    className={inputClassName}
+                    value={attendanceDate}
+                    onChange={(event) => setAttendanceDate(event.target.value)}
+                  />
+                </label>
+              </div>
+
             </div>
 
             <div>{attendanceStatus}</div>
