@@ -10,7 +10,6 @@ const formRootClassName =
 export default function PersonalRecordPanel(props) {
   const {
     attendanceDate,
-    attendanceLoading,
     facilities,
     handleAttendanceFetch,
     handleFacilityChange,
@@ -52,14 +51,17 @@ export default function PersonalRecordPanel(props) {
       <div id="hug-personal-record-form" className={formRootClassName}>
         <AttendanceChildrenSection
           attendanceDate={attendanceDate}
-          attendanceLoading={attendanceLoading}
+          facilities={facilities}
           handleAttendanceFetch={handleAttendanceFetch}
+          handleFacilityChange={handleFacilityChange}
+          selectedChildId={selectedChildId}
+          selectedChildren={selectedChildren}
+          selectedFacilityId={selectedFacilityId}
           setAttendanceDate={setAttendanceDate}
+          setSelectedChildId={setSelectedChildId}
         />
 
         <PersonalRecordSection
-          facilities={facilities}
-          handleFacilityChange={handleFacilityChange}
           handleHugFetch={handleHugFetch}
           handleHugMonthFetch={handleHugMonthFetch}
           handleHugSave={handleHugSave}
@@ -71,14 +73,10 @@ export default function PersonalRecordPanel(props) {
           hprResults={hprResults}
           hprStartDate={hprStartDate}
           hugStatus={hugStatus}
-          selectedChildId={selectedChildId}
-          selectedChildren={selectedChildren}
-          selectedFacilityId={selectedFacilityId}
           setHprEndDate={setHprEndDate}
           setHprNote={setHprNote}
           setHprRecordStaff={setHprRecordStaff}
           setHprStartDate={setHprStartDate}
-          setSelectedChildId={setSelectedChildId}
         />
       </div>
     </section>

@@ -14,8 +14,6 @@ const fetchButtonClassName =
   'cursor-pointer rounded border border-[#5e35b1] bg-[#ede7f6] px-2.5 py-1.5 font-bold text-[#4527a0] disabled:cursor-default disabled:opacity-60'
 
 export default function PersonalRecordSection({
-  facilities,
-  handleFacilityChange,
   handleHugFetch,
   handleHugMonthFetch,
   handleHugSave,
@@ -27,14 +25,10 @@ export default function PersonalRecordSection({
   hprResults,
   hprStartDate,
   hugStatus,
-  selectedChildId,
-  selectedChildren,
-  selectedFacilityId,
   setHprEndDate,
   setHprNote,
   setHprRecordStaff,
   setHprStartDate,
-  setSelectedChildId,
 }) {
   const hasRecordStaffOptions = Boolean(
     hprCachedRecord?.recordStaff?.options?.length,
@@ -45,38 +39,6 @@ export default function PersonalRecordSection({
   return (
     <section className="mb-2.5 rounded-md border border-[#ce93d8] bg-[#f6edf8] px-2.5 py-2">
       <div className={sectionTitleClassName}>個人記録</div>
-
-      <div className={gridClassName}>
-        <label className={labelClassName}>
-          事業所
-          <select
-            className={inputClassName}
-            value={selectedFacilityId}
-            onChange={(event) => handleFacilityChange(event.target.value)}
-          >
-            {facilities.map((facility) => (
-              <option key={facility.facility_id} value={facility.facility_id}>
-                {facility.name}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <label className={labelClassName}>
-          児童
-          <select
-            className={inputClassName}
-            value={selectedChildId}
-            onChange={(event) => setSelectedChildId(Number(event.target.value))}
-          >
-            {selectedChildren.map((child) => (
-              <option key={child.child_id} value={child.child_id}>
-                {child.name}
-              </option>
-            ))}
-          </select>
-        </label>
-      </div>
 
       <div className={gridClassName}>
         <label className={labelClassName}>

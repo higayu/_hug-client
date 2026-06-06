@@ -75,4 +75,32 @@ export const {
   setShowLeftRecords,
   setAttendanceFacilityMap,
 } = attendanceSlice.actions
+
+// attendance slice 全体
+export const selectAttendanceState = (state) => state.attendance
+
+// 入退室一覧データ
+export const selectAttendanceRows = (state) => state.attendance.attendanceRows
+
+// 取得児童データとして使う場合
+export const selectAttendanceChildren = (state) => state.attendance.attendanceRows
+
+// 出席表日付
+export const selectAttendanceDate = (state) => state.attendance.attendanceDate
+
+// ローディング状態
+export const selectAttendanceLoading = (state) => state.attendance.attendanceLoading
+
+// ステータスメッセージ
+export const selectAttendanceStatus = (state) => state.attendance.attendanceStatus
+
+// 半日時間
+export const selectHalfTime = (state) => state.attendance.halfTime
+
+// 左記録表示
+export const selectShowLeftRecords = (state) => state.attendance.showLeftRecords
+
+// 出席施設チェック状態
+export const selectAttendanceFacilityMap = (state) => state.attendance.attendanceFacilityMap
+
 export default attendanceSlice.reducer

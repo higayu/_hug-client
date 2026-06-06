@@ -346,6 +346,7 @@ export const useAppController = () => {
     setCorrectionMode(mode)
   }
 
+  // 入退室管理の処理
   const handleAttendanceFetch = async () => {
     setAttendanceLoading(true)
     setAttendanceStatus('HUG WM から入退室一覧を取得しています...')
@@ -363,22 +364,26 @@ export const useAppController = () => {
     }
   }
 
+  // 出席施設のトグル処理
   const handleAttendanceFacilityToggle = (facilityId, checked) => {
     setAttendanceFacilityMap((prev) => ({ ...prev, [String(facilityId)]: checked }))
   }
 
+  // 半日時間の変更処理
   const handleHalfTimeChange = (value) => {
     const normalized = normalizeHalfTime(value)
     setHalfTime(normalized)
     localStorage.setItem(HALF_TIME_STORAGE_KEY, normalized)
   }
 
+  // 左記録表示のトグル処理
   const handleShowLeftRecordsChange = (value) => {
     const next = Number(value) >= 1 ? 1 : 0
     setShowLeftRecords(next)
     localStorage.setItem(SHOW_LEFT_RECORDS_STORAGE_KEY, String(next))
   }
 
+  // アラート設定の変更処理
   const handleAlertPrefChange = (row, field, value) => {
     const numberValue = Number(value)
     if (Number.isNaN(numberValue)) return
@@ -388,6 +393,7 @@ export const useAppController = () => {
     setAttendanceRows((rows) => addAttendanceFlags(rows))
   }
 
+  // 入室・退室登録の処理
   const handlePostEnter = async (row) => {
     if (!row.enterOnclick) {
       alert('この行には入室ボタンがありません。')
@@ -404,6 +410,7 @@ export const useAppController = () => {
     }
   }
 
+  // 退室登録の処理
   const handlePostLeave = async (row) => {
     if (!row.leaveOnclick) {
       alert('この行には退室ボタンがありません。')
@@ -420,6 +427,7 @@ export const useAppController = () => {
     }
   }
 
+  // 支援記録の検索処理
   const handlePrSearch = async () => {
     if (!selectedChildId) {
       alert('児童を選択してください。')
