@@ -198,7 +198,6 @@ const callAi = async (messages) => {
 
 const HUG_WM_BASE_URL = 'https://www.hug-ayumu.link/hug/wm/'
 const HUG_WM_CONTACT_BOOK_LIST_URL = `${HUG_WM_BASE_URL}contact_book.php`
-const PAGINATION_UL_SELECTOR = 'body > div.contents > div.ibox > div:nth-child(7) > div > ul'
 const CONTACT_BOOK_TABLE_SELECTOR =
   'table.table.lh1_5[data-api-url="contact_book.php"][data-concurrent-edit-target="ContactBook"]'
 const HUG_ATTENDANCE_URL = `${HUG_WM_BASE_URL}attendance.php`
@@ -238,75 +237,6 @@ const buildContactBookListUrl = ({ facilityId, date, dateEnd, childId, page }) =
   url.searchParams.set('id', String(childId))
   if (page != null) url.searchParams.set('page', String(page))
   return url.href
-}
-
-const getContactBookPageNumbers = (doc) => {
-  const targetUl = doc.querySelector(PAGINATION_UL_SELECTOR)
-  if (!targetUl) return [1]
-  const pages = new Set()
-  targetUl.querySelectorAll('a[href]').forEach((anchor) => {
-    const match = anchor.getAttribute('href')?.match(/[?&]page=(\d+)/)
-    if (match) pages.add(Number(match[1]))
-  })
-  const sorted = [...pages].sort((a, b) => a - b)
-  return sorted.length ? sorted : [1]
-}
-
-const fetchContactBookNote = async (pathAndQuery) => {
-  const html = await fetchHugText(new URL(pathAndQuery, HUG_WM_BASE_URL).href)
-  const editDoc = new DOMParser().parseFromString(html, 'text/html')
-  const textarea = editDoc.querySelector('textarea[name="note"][data-field-key="note"]')
-  return textarea?.value.trim() ?? ''
-}
-
-const getAttendanceEditRows = (table) =>
-  [...table.querySelectorAll('tbody tr')]
-    .map((row) => {
-      const cells = row.querySelectorAll('td')
-      const date = cells[0]?.textContent.trim()
-      const childName = cells[1]?.textContent.trim().replace(/\s+/g, ' ')
-      const attendance = cells[4]?.textContent.trim()
-      const onclick = cells[7]?.querySelector('button.edit')?.getAttribute('onclick')
-      if (attendance !== '出席' || !onclick) return null
-      return { date, childName, attendance, onclick }
-    })
-    .filter(Boolean)
-
-const getHugPersonalRecords = async ({ facilityId, date, dateEnd, childId, onProgress }) => {
-  const firstUrl = buildContactBookListUrl({ facilityId, date, dateEnd, childId })
-  onProgress?.('一覧ページを取得しています...')
-  const firstHtml = await fetchHugText(firstUrl)
-  const firstDoc = new DOMParser().parseFromString(firstHtml, 'text/html')
-  const pages = getContactBookPageNumbers(firstDoc)
-  const records = []
-
-  for (let i = 0; i < pages.length; i += 1) {
-    const page = pages[i]
-    onProgress?.(`ページ ${page}/${pages.length} を処理しています...`)
-    const doc =
-      i === 0
-        ? firstDoc
-        : new DOMParser().parseFromString(
-            await fetchHugText(buildContactBookListUrl({ facilityId, date, dateEnd, childId, page })),
-            'text/html',
-          )
-    const table = doc.querySelector(CONTACT_BOOK_TABLE_SELECTOR)
-    if (!table) {
-      throw new Error('HUGの連絡帳一覧テーブルが見つかりません。HUG WMにログイン済みか確認してください。')
-    }
-    const editRows = getAttendanceEditRows(table)
-    for (const row of editRows) {
-      const editPath = row.onclick.match(/location\.href='([^']+)'/)?.[1]
-      records.push({
-        date: row.date,
-        childName: row.childName,
-        attendance: row.attendance,
-        note: editPath ? await fetchContactBookNote(editPath) : '',
-      })
-    }
-  }
-
-  return records
 }
 
 const extractTime = (cell) => {
@@ -477,6 +407,280 @@ const postEnterAttendance = async (row, mailFlg = 0) => {
   return { dataList, json }
 }
 
+const HUG_TIME_RE = /^\d{1,2}:\d{2}$/
+const ALERT_PREFS_STORAGE_KEY = 'hugAttendanceAlertPrefs'
+const HALF_TIME_STORAGE_KEY = 'hugAttendanceHalfTime'
+const SHOW_LEFT_RECORDS_STORAGE_KEY = 'hugAttendanceShowLeftRecords'
+const WEEKDAY_JA = ['日', '月', '火', '水', '木', '金', '土']
+
+const parseHmToMinutes = (hm) => {
+  const match = String(hm ?? '').trim().match(/^(\d{1,2}):(\d{2})$/)
+  if (!match) return null
+  return Number(match[1]) * 60 + Number(match[2])
+}
+
+const normalizeHalfTime = (value) => {
+  const minutes = parseHmToMinutes(value)
+  if (minutes == null) return '12:00'
+  const h = Math.min(23, Math.max(0, Math.floor(minutes / 60)))
+  const m = Math.min(59, Math.max(0, minutes % 60))
+  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`
+}
+
+const getStoredHalfTime = () => {
+  try {
+    return normalizeHalfTime(localStorage.getItem(HALF_TIME_STORAGE_KEY) || '12:00')
+  } catch {
+    return '12:00'
+  }
+}
+
+const getStoredShowLeftRecords = () => {
+  try {
+    return localStorage.getItem(SHOW_LEFT_RECORDS_STORAGE_KEY) === '0' ? 0 : 1
+  } catch {
+    return 1
+  }
+}
+
+const getWeekdayIndexFromDetailDate = (dateText) => {
+  const date = new Date(String(dateText || '').replace(/\//g, '-'))
+  return Number.isNaN(date.getTime()) ? new Date().getDay() : date.getDay()
+}
+
+const alertPrefKey = (weekdayIndex, childId) => `${Number(weekdayIndex)}-${String(childId || '').trim()}`
+
+const readAlertPrefs = () => {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(ALERT_PREFS_STORAGE_KEY) || '{}')
+    return parsed && typeof parsed === 'object' ? parsed : {}
+  } catch {
+    return {}
+  }
+}
+
+const getAlertPref = (weekdayIndex, childId) => {
+  const row = readAlertPrefs()[alertPrefKey(weekdayIndex, childId)]
+  return {
+    alertType: Number.isFinite(row?.alertType) ? row.alertType : 1,
+    alertAfterMinutes: Number.isFinite(row?.alertAfterMinutes) ? row.alertAfterMinutes : 120,
+    amPmFlag: Number(row?.amPmFlag) >= 1 ? 1 : 0,
+  }
+}
+
+const setAlertPref = (weekdayIndex, childId, patch) => {
+  const prefs = readAlertPrefs()
+  const key = alertPrefKey(weekdayIndex, childId)
+  prefs[key] = { ...getAlertPref(weekdayIndex, childId), ...patch }
+  localStorage.setItem(ALERT_PREFS_STORAGE_KEY, JSON.stringify(prefs))
+}
+
+const addAttendanceFlags = (rows) =>
+  rows.map((row) => {
+    const weekdayIndex = getWeekdayIndexFromDetailDate(row.detailPageDate)
+    const pref = getAlertPref(weekdayIndex, row.c_id)
+    const enterMinutes = parseHmToMinutes(row.enterTime)
+    const now = new Date()
+    const nowMinutes = now.getHours() * 60 + now.getMinutes()
+    const elapsed = enterMinutes == null ? 0 : nowMinutes - enterMinutes
+    return {
+      ...row,
+      hugWeekdayIndex: weekdayIndex,
+      hugAlertPref: pref,
+      isOverTwoHours:
+        !row.isAbsenceStatus &&
+        HUG_TIME_RE.test(String(row.enterTime || '').trim()) &&
+        !HUG_TIME_RE.test(String(row.leaveTime || '').trim()) &&
+        pref.alertType > 0 &&
+        elapsed >= pref.alertAfterMinutes,
+    }
+  })
+
+const parseLeaveOnclick = (source) => {
+  const match = String(source || '').match(
+    /sendLeaveMail\s*\(\s*['"]?([^'",)]+)['"]?\s*,\s*([^,]+)\s*,\s*([^,]+)\s*,\s*([^,]+)\s*,\s*([^,]+)\s*,\s*([^)]+)\s*\)/,
+  )
+  if (!match) throw new Error('退室ボタンのonclickを解析できませんでした。')
+  const [, rId, isMail, cId, fId, attendFlg, linkage] = match
+  return {
+    r_id: String(rId).trim(),
+    is_mail: Number(String(isMail).trim()),
+    c_id: Number(String(cId).trim()),
+    f_id: Number(String(fId).trim()),
+    attend_flg: Number(String(attendFlg).trim()),
+    linkage: Number(String(linkage).trim()),
+  }
+}
+
+const buildLeavePatchFromRow = (row, mailFlg = 0) => {
+  const date = String(row.detailPageDate || '').trim()
+  const enter = String(row.enterTime || '').trim()
+  let leave = String(row.leaveTime || '').trim()
+  if (!date) throw new Error('日付が取得できませんでした。')
+  if (!HUG_TIME_RE.test(enter)) throw new Error('退室登録には入室時刻が必要です。')
+  if (!leave) {
+    const now = new Date()
+    leave = `${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}`
+  }
+  if (!HUG_TIME_RE.test(leave)) throw new Error('退室時刻が不正です。')
+  let diff = parseHmToMinutes(leave) - parseHmToMinutes(enter)
+  if (diff < 0) diff += 24 * 60
+  return {
+    date,
+    enter_time_hi: enter,
+    leave_time_hi: leave,
+    diff_check_time: diff,
+    interval_time: `${Math.floor(diff / 60)}時間${diff % 60}分`,
+    hidden_mail_only: '',
+    mail_flg: Number(mailFlg),
+  }
+}
+
+const postLeaveAttendance = async (row, mailFlg = 0) => {
+  const args = parseLeaveOnclick(row.leaveOnclick)
+  const dataList = {
+    ...buildLeavePatchFromRow(row, mailFlg),
+    attendance_type: 2,
+    r_id: args.r_id,
+    c_id: args.c_id,
+    f_id: args.f_id,
+    attend_flg: args.attend_flg,
+    linkage: args.linkage,
+  }
+  const json = await postAttendanceDataList(dataList)
+  return { dataList, json }
+}
+
+const normalizeListDate = (text) => {
+  const match = String(text || '').trim().replace(/\s+/g, '').match(/(\d{4})[/-](\d{1,2})[/-](\d{1,2})/)
+  if (!match) return ''
+  return `${match[1]}-${String(match[2]).padStart(2, '0')}-${String(match[3]).padStart(2, '0')}`
+}
+
+const extractEditPathFromOnclick = (onclick) => String(onclick || '').match(/location\.href\s*=\s*['"]([^'"]+)['"]/)?.[1] || ''
+
+const parsePersonalRecordRows = (html) => {
+  const doc = new DOMParser().parseFromString(html, 'text/html')
+  const table = doc.querySelector(CONTACT_BOOK_TABLE_SELECTOR)
+  if (!table) throw new Error('個人記録一覧テーブルが見つかりません。HUG WMにログイン済みか確認してください。')
+  return [...table.querySelectorAll('tbody tr')]
+    .map((row) => {
+      const cells = row.querySelectorAll('td')
+      const onclick = row.querySelector('button.edit')?.getAttribute('onclick') || ''
+      const editPath = extractEditPathFromOnclick(onclick)
+      if (!editPath) return null
+      return {
+        date: cells[0]?.textContent.trim() || '',
+        dateNorm: normalizeListDate(cells[0]?.textContent),
+        childName: (cells[1]?.textContent || '').trim().replace(/\s+/g, ' '),
+        attendance: (cells[4]?.textContent || '').trim().replace(/\s+/g, ' '),
+        onclick,
+        editPath,
+      }
+    })
+    .filter(Boolean)
+}
+
+const fetchPersonalRecordList = async ({ facilityId, date, dateEnd, childId }) => {
+  const html = await fetchHugText(buildContactBookListUrl({ facilityId, date, dateEnd: dateEnd || date, childId }))
+  return parsePersonalRecordRows(html)
+}
+
+const fetchContactBookEditData = async (pathOrUrl) => {
+  const editPath = pathOrUrl
+  const editHtml = await fetchHugText(new URL(pathOrUrl, HUG_WM_BASE_URL).href)
+  const doc = new DOMParser().parseFromString(editHtml, 'text/html')
+  const note = doc.querySelector('textarea[name="note"][data-field-key="note"]')?.value.trim()
+  if (note == null) throw new Error('note の textarea が見つかりません。')
+  const select = doc.querySelector('select[name="record_staff"]')
+  const recordStaff = select
+    ? {
+        value: select.value,
+        text: select.selectedOptions[0]?.textContent.trim() || '',
+        options: [...select.options].map((option) => ({
+          value: option.value,
+          text: option.textContent.trim(),
+          selected: option.selected,
+        })),
+      }
+    : null
+  return { note, recordStaff, editHtml, editPath }
+}
+
+const fetchPersonalRecordWithNote = async ({ facilityId, date, dateEnd, childId }) => {
+  const rows = await fetchPersonalRecordList({ facilityId, date, dateEnd, childId })
+  const target = normalizeListDate(dateEnd || date)
+  const row = rows.find((item) => item.dateNorm === target && item.attendance === '出席') || rows.find((item) => item.dateNorm === target) || rows[0]
+  if (!row) throw new Error('対象日の個人記録が見つかりません。')
+  return { ...row, ...(await fetchContactBookEditData(row.editPath)) }
+}
+
+const buildMonthWindows = (maxMonths = 6) => {
+  const windows = []
+  const today = getFormattedDate(new Date())
+  for (let offset = 0; offset < maxMonths; offset += 1) {
+    const now = new Date()
+    const start = new Date(now.getFullYear(), now.getMonth() - offset, 1)
+    const end = new Date(now.getFullYear(), now.getMonth() - offset + 1, 0)
+    const dateStart = getFormattedDate(start)
+    const dateEnd = offset === 0 && getFormattedDate(end) >= today ? getFormattedDate(new Date(Date.now() - 86400000)) : getFormattedDate(end)
+    if (dateEnd >= dateStart) windows.push({ monthOffset: offset, dateStart, dateEnd })
+  }
+  return windows
+}
+
+const fetchPersonalRecordUntilFound = async ({ facilityId, childId, onProgress }) => {
+  for (const window of buildMonthWindows()) {
+    onProgress?.(`${window.dateStart}～${window.dateEnd} を検索中...`)
+    const rows = await fetchPersonalRecordList({ facilityId, date: window.dateStart, dateEnd: window.dateEnd, childId })
+    const row = rows
+      .filter((item) => item.dateNorm >= window.dateStart && item.dateNorm <= window.dateEnd)
+      .sort((a, b) => b.dateNorm.localeCompare(a.dateNorm))
+      .find((item) => item.attendance === '出席') || rows[0]
+    if (row) return { ...row, ...(await fetchContactBookEditData(row.editPath)), monthWindow: window }
+  }
+  throw new Error('過去6か月分を検索しましたが、個人記録が見つかりませんでした。')
+}
+
+const applyContactBookWafTransforms = (text) =>
+  String(text ?? '')
+    .replace(/"/g, 'カンマ')
+    .replace(/\u201d/g, 'ゼカンマ')
+    .replace(/\(/g, 'カッコマエ')
+    .replace(/\)/g, 'カッコアト')
+    .replace(/\bor\b/gi, '__OR__')
+    .replace(/\blike\b/gi, '__LIKE__')
+
+const postContactBookUpdateFromEditHtml = async (editHtml, { note, recordStaff, state = '1' }) => {
+  const doc = new DOMParser().parseFromString(editHtml, 'text/html')
+  const form = doc.querySelector('#form_id')
+  if (!form) throw new Error('#form_id が見つかりません。')
+  const stateEl = form.querySelector('input[name="state"]')
+  if (stateEl) stateEl.value = String(state)
+  const recordStaffSelect = form.querySelector('select[name="record_staff"]')
+  if (recordStaffSelect && recordStaff) recordStaffSelect.value = String(recordStaff)
+  const noteInput = form.querySelector('textarea[name="note"]')
+  const noteHide = form.querySelector('textarea[name="note_hide"]')
+  if (noteInput && noteHide) {
+    noteInput.value = note
+    noteHide.value = applyContactBookWafTransforms(noteInput.value)
+    noteInput.disabled = true
+  }
+  const staffInput = form.querySelector('textarea[name="staff_note"]')
+  const staffHide = form.querySelector('textarea[name="staff_note_hide"]')
+  if (staffInput && staffHide) {
+    staffHide.value = applyContactBookWafTransforms(staffInput.value)
+    staffInput.disabled = true
+  }
+  const formData = new FormData(form)
+  formData.append('is_ajax_request', '1')
+  const postUrl = new URL(form.getAttribute('action') || 'contact_book.php', HUG_WM_BASE_URL).href
+  const res = await fetch(postUrl, { method: 'POST', body: formData, credentials: 'include' })
+  const text = await res.text()
+  if (!res.ok) throw new Error(`個人記録保存に失敗しました (${res.status}): ${text.slice(0, 200)}`)
+  return { ok: res.ok, status: res.status, text, postUrl }
+}
+
 const hashToPage = (hash) => {
   const page = hash.replace(/^#\/?/, '')
   return NAV_LINKS.some((link) => link.key === page) ? page : 'chat'
@@ -507,11 +711,16 @@ function App() {
   const [hprEndDate, setHprEndDate] = useState(defaultDateRange.end)
   const [hprResults, setHprResults] = useState([])
   const [hprLoading, setHprLoading] = useState(false)
+  const [hprNote, setHprNote] = useState('')
+  const [hprCachedRecord, setHprCachedRecord] = useState(null)
+  const [hprRecordStaff, setHprRecordStaff] = useState('')
   const [attendanceDate, setAttendanceDate] = useState(getFormattedDate(new Date()))
   const [attendanceRows, setAttendanceRows] = useState([])
   const [attendanceLoading, setAttendanceLoading] = useState(false)
   const [attendanceStatus, setAttendanceStatus] = useState('HUG WM にログインしたうえで「一覧を取得」を押してください。')
   const [sidePanelTab, setSidePanelTab] = useState('attendance')
+  const [halfTime, setHalfTime] = useState(getStoredHalfTime)
+  const [showLeftRecords, setShowLeftRecords] = useState(getStoredShowLeftRecords)
   const [attendanceFacilityMap, setAttendanceFacilityMap] = useState(() =>
     Object.fromEntries(ATTENDANCE_FACILITY_OPTIONS.map((option) => [String(option.id), option.defaultChecked])),
   )
@@ -601,6 +810,18 @@ function App() {
   const selectedChildName = useMemo(
     () => selectedChildren.find((child) => child.child_id === Number(selectedChildId))?.name || '',
     [selectedChildren, selectedChildId],
+  )
+
+  const displayAttendanceRows = useMemo(
+    () =>
+      attendanceRows
+        .filter((row) => showLeftRecords === 1 || (!HUG_TIME_RE.test(String(row.leaveTime || '').trim()) && !row.isAbsenceStatus))
+        .sort((a, b) => {
+          const alertDiff = Number(b.hugAlertPref?.alertType || 0) - Number(a.hugAlertPref?.alertType || 0)
+          if (alertDiff !== 0) return alertDiff
+          return (parseHmToMinutes(a.enterTime) ?? 24 * 60) - (parseHmToMinutes(b.enterTime) ?? 24 * 60)
+        }),
+    [attendanceRows, showLeftRecords],
   )
 
   const handleFacilityChange = async (value) => {
@@ -726,10 +947,10 @@ function App() {
     setAttendanceLoading(true)
     setAttendanceStatus('HUG WM から入退室一覧を取得しています...')
     try {
-      const rows = await fetchAttendanceRows({
+      const rows = addAttendanceFlags(await fetchAttendanceRows({
         date: attendanceDate,
         facilityMap: attendanceFacilityMap,
-      })
+      }))
       setAttendanceRows(rows)
       setAttendanceStatus(rows.length ? `${rows.length}件の入退室データを取得しました。` : '入退室データが見つかりませんでした。')
     } catch (error) {
@@ -741,6 +962,27 @@ function App() {
 
   const handleAttendanceFacilityToggle = (facilityId, checked) => {
     setAttendanceFacilityMap((prev) => ({ ...prev, [String(facilityId)]: checked }))
+  }
+
+  const handleHalfTimeChange = (value) => {
+    const normalized = normalizeHalfTime(value)
+    setHalfTime(normalized)
+    localStorage.setItem(HALF_TIME_STORAGE_KEY, normalized)
+  }
+
+  const handleShowLeftRecordsChange = (value) => {
+    const next = Number(value) >= 1 ? 1 : 0
+    setShowLeftRecords(next)
+    localStorage.setItem(SHOW_LEFT_RECORDS_STORAGE_KEY, String(next))
+  }
+
+  const handleAlertPrefChange = (row, field, value) => {
+    const numberValue = Number(value)
+    if (Number.isNaN(numberValue)) return
+    setAlertPref(row.hugWeekdayIndex, row.c_id, {
+      [field]: field === 'amPmFlag' ? (numberValue >= 1 ? 1 : 0) : Math.max(0, Math.floor(numberValue)),
+    })
+    setAttendanceRows((rows) => addAttendanceFlags(rows))
   }
 
   const handlePostEnter = async (row) => {
@@ -756,6 +998,22 @@ function App() {
       await handleAttendanceFetch()
     } catch (error) {
       setAttendanceStatus(`入室登録に失敗しました: ${error.message}`)
+    }
+  }
+
+  const handlePostLeave = async (row) => {
+    if (!row.leaveOnclick) {
+      alert('この行には退室ボタンがありません。')
+      return
+    }
+    const mailFlg = Number(row.leaveIsMail) === 1 && window.confirm(`${row.name} さんの退室メールを送信しますか？`) ? 1 : 0
+    setAttendanceStatus(`${row.name} さんの退室を登録しています...`)
+    try {
+      await postLeaveAttendance(row, mailFlg)
+      setAttendanceStatus(`${row.name} さんの退室を登録しました。一覧を更新しています...`)
+      await handleAttendanceFetch()
+    } catch (error) {
+      setAttendanceStatus(`退室登録に失敗しました: ${error.message}`)
     }
   }
 
@@ -861,19 +1119,75 @@ function App() {
     }
     setHprLoading(true)
     setHprResults([])
+    setHprCachedRecord(null)
+    setHprNote('')
     setHugStatus('HUG WM から取得しています...')
     try {
-      const records = await getHugPersonalRecords({
+      const record = await fetchPersonalRecordWithNote({
         facilityId: Number(selectedFacilityId),
         date: hprStartDate,
         dateEnd: hprEndDate,
         childId: Number(selectedChildId),
-        onProgress: setHugStatus,
       })
-      setHprResults(records)
-      setHugStatus(records.length ? `${records.length}件取得しました。` : '出席日の活動内容は見つかりませんでした。')
+      setHprResults([record])
+      setHprCachedRecord(record)
+      setHprNote(record.note || '')
+      setHprRecordStaff(record.recordStaff?.value || '')
+      setHugStatus(`取得しました: ${record.date} / ${record.childName}`)
     } catch (error) {
       setHugStatus(`取得に失敗しました: ${error.message}`)
+    } finally {
+      setHprLoading(false)
+    }
+  }
+
+  const handleHugMonthFetch = async () => {
+    if (!selectedChildId) {
+      alert('児童を選択してください。')
+      return
+    }
+    setHprLoading(true)
+    setHprResults([])
+    setHprCachedRecord(null)
+    setHprNote('')
+    setHugStatus('過去月を検索しています...')
+    try {
+      const record = await fetchPersonalRecordUntilFound({
+        facilityId: Number(selectedFacilityId),
+        childId: Number(selectedChildId),
+        onProgress: setHugStatus,
+      })
+      setHprStartDate(record.dateNorm || hprStartDate)
+      setHprEndDate(record.dateNorm || hprEndDate)
+      setHprResults([record])
+      setHprCachedRecord(record)
+      setHprNote(record.note || '')
+      setHprRecordStaff(record.recordStaff?.value || '')
+      setHugStatus(`取得しました: ${record.date} / ${record.childName}`)
+    } catch (error) {
+      setHugStatus(`取得に失敗しました: ${error.message}`)
+    } finally {
+      setHprLoading(false)
+    }
+  }
+
+  const handleHugSave = async (state) => {
+    if (!hprCachedRecord?.editHtml) {
+      alert('先に個人記録を取得してください。')
+      return
+    }
+    if (state === '2' && !window.confirm('公開で更新します。よろしいですか？')) return
+    setHprLoading(true)
+    setHugStatus(state === '2' ? '公開保存しています...' : '下書き保存しています...')
+    try {
+      await postContactBookUpdateFromEditHtml(hprCachedRecord.editHtml, {
+        note: hprNote,
+        recordStaff: hprRecordStaff,
+        state,
+      })
+      setHugStatus(state === '2' ? '公開保存しました。' : '下書き保存しました。')
+    } catch (error) {
+      setHugStatus(`保存に失敗しました: ${error.message}`)
     } finally {
       setHprLoading(false)
     }
@@ -1472,7 +1786,9 @@ function App() {
             <div id="hug-attendance-panel" className="hug-sidepanel-tab-mount hug-sidepanel-form-root">
               <div className="hug-sidepanel-toolbar">
                 <div className="hug-sidepanel-toolbar-meta">
-                  <div className="hug-attendance-count">入退室一覧 {attendanceRows.length}件</div>
+                  <div className="hug-attendance-count">
+                    {displayAttendanceRows.length}件表示 / 全{attendanceRows.length}件 / 経過アラート {displayAttendanceRows.filter((row) => row.isOverTwoHours).length}件
+                  </div>
                   <div className="hug-enter-mail-badge">
                     {attendanceRows.some((row) => row.isEnterMailEnabled) ? 'メール確認ありの入室があります' : 'メール確認なし'}
                   </div>
@@ -1504,42 +1820,116 @@ function App() {
                       </label>
                     ))}
                   </div>
+                  <div className="hug-panel-settings-bar">
+                    <label>
+                      ハーフタイム
+                      <input type="time" value={halfTime} step="60" onChange={(event) => handleHalfTimeChange(event.target.value)} />
+                    </label>
+                    <label>
+                      退室済み
+                      <select value={showLeftRecords} onChange={(event) => handleShowLeftRecordsChange(event.target.value)}>
+                        <option value="1">表示</option>
+                        <option value="0">非表示</option>
+                      </select>
+                    </label>
+                  </div>
                 </div>
                 <div>{attendanceStatus}</div>
               </div>
 
               <div className="hug-attendance-body">
-                {attendanceRows.length === 0 ? (
+                {displayAttendanceRows.length === 0 ? (
                   <div className="hug-empty-message">HUG WM にログインしたうえで「更新」を押してください。</div>
                 ) : (
                   <table className="hug-attendance-table">
                     <thead>
                       <tr>
-                        <th>児童</th>
+                        <th>ID</th>
+                        <th>氏名</th>
+                        <th title="0=オフ、1=パネル強調、2=別ウィンドウ相当">種別</th>
+                        <th title="入室からこの分数経過でアラート">経過(分)</th>
+                        <th>曜日</th>
+                        <th>午前/午後</th>
                         <th>入室</th>
                         <th>退室</th>
                         <th>状態</th>
-                        <th>操作</th>
+                        <th>入退室POST</th>
+                        <th>加算記録</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {attendanceRows.map((row) => (
-                        <tr key={`${row.c_id}-${row.r_id}-${row.rowIndex}`}>
-                          <td>
-                            <strong>{row.name || `ID ${row.c_id}`}</strong>
-                            <span className="hug-row-sub">c_id: {row.c_id || '-'}</span>
-                          </td>
-                          <td>{row.enterTime || '-'}</td>
-                          <td>{row.leaveTime || '-'}</td>
-                          <td>{row.isAbsenceStatus ? row.absenceLabel : row.enterOnclick ? '入室可' : row.enterTime ? '入室済み' : '-'}</td>
+                      {displayAttendanceRows.map((row) => (
+                        <tr key={`${row.c_id}-${row.r_id}-${row.rowIndex}`} className={`${row.isOverTwoHours ? 'hug-over-two-hours' : ''}`}>
+                          <td>{row.c_id || '-'}</td>
                           <td>
                             <button
                               type="button"
-                              className="hug-row-action"
-                              onClick={() => handlePostEnter(row)}
-                              disabled={!row.enterOnclick || attendanceLoading}
+                              className="hug-name-button"
+                              onClick={() => window.open(`${HUG_WM_CONTACT_BOOK_LIST_URL}?id=${encodeURIComponent(row.c_id)}&hug_auto_personal=1`, '_blank', 'noopener,noreferrer')}
                             >
-                              入室
+                              {row.name || `ID ${row.c_id}`}
+                            </button>
+                          </td>
+                          <td>
+                            <input
+                              type="number"
+                              min="0"
+                              max="99"
+                              value={row.hugAlertPref?.alertType ?? 1}
+                              onChange={(event) => handleAlertPrefChange(row, 'alertType', event.target.value)}
+                            />
+                          </td>
+                          <td>
+                            <input
+                              type="number"
+                              min="0"
+                              value={row.hugAlertPref?.alertAfterMinutes ?? 120}
+                              onChange={(event) => handleAlertPrefChange(row, 'alertAfterMinutes', event.target.value)}
+                            />
+                          </td>
+                          <td>{WEEKDAY_JA[row.hugWeekdayIndex] || '-'}</td>
+                          <td>
+                            <select
+                              value={row.hugAlertPref?.amPmFlag ?? 0}
+                              onChange={(event) => handleAlertPrefChange(row, 'amPmFlag', event.target.value)}
+                            >
+                              <option value="0">午前</option>
+                              <option value="1">午後</option>
+                            </select>
+                          </td>
+                          <td>{row.enterTime || '-'}</td>
+                          <td>{row.leaveTime || '-'}</td>
+                          <td>
+                            {row.isAbsenceStatus ? '欠席' : row.isOverTwoHours ? `${row.hugAlertPref?.alertAfterMinutes ?? 120}分超過` : '通常'}
+                          </td>
+                          <td>
+                            <div className="hug-post-actions">
+                              <button
+                                type="button"
+                                className={`hug-row-action ${row.isEnterMailEnabled ? 'hug-btn-has-mail' : ''}`}
+                                onClick={() => handlePostEnter(row)}
+                                disabled={!row.enterOnclick || attendanceLoading}
+                              >
+                                入室
+                              </button>
+                              <button
+                                type="button"
+                                className={`hug-row-action ${row.isOverTwoHours ? 'hug-leave-alert' : ''}`}
+                                onClick={() => handlePostLeave(row)}
+                                disabled={!row.leaveOnclick || !HUG_TIME_RE.test(String(row.enterTime || '').trim()) || attendanceLoading}
+                              >
+                                退室
+                              </button>
+                            </div>
+                          </td>
+                          <td>
+                            <button
+                              type="button"
+                              className="hug-row-action hug-secondary-action"
+                              onClick={() => window.open(`${HUG_WM_BASE_URL}record_proceedings.php?mode=edit&select_child=${encodeURIComponent(row.c_id)}`, '_blank', 'noopener,noreferrer')}
+                              disabled={!row.c_id}
+                            >
+                              移動
                             </button>
                           </td>
                         </tr>
@@ -1602,18 +1992,50 @@ function App() {
                     <input type="date" value={hprEndDate} onChange={(event) => setHprEndDate(event.target.value)} />
                   </label>
                 </div>
-                <button type="button" className="hug-pr-fetch-btn" onClick={handleHugFetch} disabled={hprLoading}>
-                  {hprLoading ? '取得中...' : '個人記録を取得'}
-                </button>
+                <div className="hug-pr-actions">
+                  <button type="button" onClick={handleHugMonthFetch} disabled={hprLoading}>
+                    過去の自動検索
+                  </button>
+                  <button type="button" className="hug-pr-fetch-btn" onClick={handleHugFetch} disabled={hprLoading}>
+                    {hprLoading ? '取得中...' : '個人記録を取得'}
+                  </button>
+                </div>
                 <div className="hug-pr-status">{hugStatus}</div>
+                <label className="hug-record-staff-label">
+                  記録者
+                  <select value={hprRecordStaff} onChange={(event) => setHprRecordStaff(event.target.value)} disabled={!hprCachedRecord?.recordStaff?.options?.length}>
+                    {hprCachedRecord?.recordStaff?.options?.length ? (
+                      hprCachedRecord.recordStaff.options.map((option) => (
+                        <option key={option.value} value={option.value}>{option.text}</option>
+                      ))
+                    ) : (
+                      <option value="">取得後に表示されます</option>
+                    )}
+                  </select>
+                </label>
                 <textarea
                   id="hug-form-note"
                   rows="12"
                   spellCheck="false"
-                  value={hprResults.map((row) => [row.date, row.childName, row.note].filter(Boolean).join(' / ')).join('\n\n')}
-                  readOnly
+                  value={hprNote}
+                  onChange={(event) => setHprNote(event.target.value)}
                   placeholder="取得後に表示されます。"
                 />
+                <div className="hug-pr-save-actions">
+                  <button type="button" onClick={() => handleHugSave('1')} disabled={!hprCachedRecord?.editHtml || hprLoading}>
+                    下書きで更新
+                  </button>
+                  <button type="button" onClick={() => handleHugSave('2')} disabled={!hprCachedRecord?.editHtml || hprLoading}>
+                    公開で更新
+                  </button>
+                </div>
+                {hprResults.length > 0 && (
+                  <div className="hug-pr-result-meta">
+                    {hprResults.map((row) => (
+                      <div key={`${row.date}-${row.editPath}`}>{row.date} / {row.childName} / {row.attendance}</div>
+                    ))}
+                  </div>
+                )}
               </section>
             </div>
           </section>
