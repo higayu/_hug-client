@@ -1,4 +1,5 @@
-﻿import { useEffect, useMemo } from 'react'
+﻿import { useCallback, useEffect, useMemo } from 'react'
+import { useAttendanceAutoUpdate } from '@/hooks/useAttendanceAutoUpdate'
 import { useAppState } from '@/hooks/useAppState'
 import { API_BASE, CHAT_SYSTEM_PROMPT, CORRECTION_SYSTEM_PROMPT, NAV_LINKS, PAGE_TITLES } from '@/constants/appConfig'
 import { MOCK_CHILDREN, MOCK_FACILITIES, MOCK_RECORDS } from '@/constants/mockData'
@@ -63,6 +64,7 @@ export const useAppController = () => {
     attendanceRows,
     attendanceLoading,
     attendanceStatus,
+    attendanceLastFetchedAt,
     halfTime,
     showLeftRecords,
     attendanceFacilityMap,
@@ -101,6 +103,7 @@ export const useAppController = () => {
     setAttendanceRows,
     setAttendanceLoading,
     setAttendanceStatus,
+    setAttendanceLastFetchedAt,
     setHalfTime,
     setShowLeftRecords,
     setAttendanceFacilityMap,
@@ -346,23 +349,53 @@ export const useAppController = () => {
     setCorrectionMode(mode)
   }
 
-  // 入退室管理の処理
-  const handleAttendanceFetch = async () => {
-    setAttendanceLoading(true)
-    setAttendanceStatus('HUG WM から入退室一覧を取得しています...')
-    try {
-      const rows = addAttendanceFlags(await fetchAttendanceRows({
-        date: attendanceDate,
-        facilityMap: attendanceFacilityMap,
-      }))
-      setAttendanceRows(rows)
-      setAttendanceStatus(rows.length ? `${rows.length}件の入退室データを取得しました。` : '入退室データが見つかりませんでした。')
-    } catch (error) {
-      setAttendanceStatus(`取得に失敗しました: ${error.message}`)
-    } finally {
-      setAttendanceLoading(false)
-    }
-  }
+  const runAttendanceUpdate = useCallback(
+    async (options = {}) => {
+      const force = Boolean(options?.force)
+      const silent = options.silent ?? !force
+
+      if (!silent) {
+        setAttendanceLoading(true)
+        setAttendanceStatus('HUG WM から入退室一覧を取得しています...')
+      }
+
+      try {
+        const rows = addAttendanceFlags(
+          await fetchAttendanceRows({
+            date: attendanceDate,
+            facilityMap: attendanceFacilityMap,
+          }),
+        )
+        setAttendanceRows(rows)
+        setAttendanceLastFetchedAt(Date.now())
+      } catch (error) {
+        if (silent) {
+          console.error('[HUG WM] 入退室データ更新エラー:', error)
+        } else {
+          setAttendanceStatus(`取得に失敗しました: ${error.message}`)
+        }
+        if (!silent) {
+          throw error
+        }
+      } finally {
+        if (!silent) {
+          setAttendanceLoading(false)
+        }
+      }
+    },
+    [
+      attendanceDate,
+      attendanceFacilityMap,
+      setAttendanceLastFetchedAt,
+      setAttendanceLoading,
+      setAttendanceRows,
+      setAttendanceStatus,
+    ],
+  )
+
+  useAttendanceAutoUpdate(runAttendanceUpdate)
+
+  const handleAttendanceFetch = () => runAttendanceUpdate({ force: true, silent: false })
 
   // 出席施設のトグル処理
   const handleAttendanceFacilityToggle = (facilityId, checked) => {
@@ -404,7 +437,7 @@ export const useAppController = () => {
     try {
       await postEnterAttendance(row, mailFlg)
       setAttendanceStatus(`${row.name} さんの入室を登録しました。一覧を更新しています...`)
-      await handleAttendanceFetch()
+      await runAttendanceUpdate({ force: true, silent: false })
     } catch (error) {
       setAttendanceStatus(`入室登録に失敗しました: ${error.message}`)
     }
@@ -421,7 +454,7 @@ export const useAppController = () => {
     try {
       await postLeaveAttendance(row, mailFlg)
       setAttendanceStatus(`${row.name} さんの退室を登録しました。一覧を更新しています...`)
-      await handleAttendanceFetch()
+      await runAttendanceUpdate({ force: true, silent: false })
     } catch (error) {
       setAttendanceStatus(`退室登録に失敗しました: ${error.message}`)
     }
@@ -634,6 +667,8 @@ export const useAppController = () => {
     attendanceLoading,
     attendanceRows,
     attendanceStatus,
+    attendanceLastFetchedAt,
+    showLeftRecords,
     chatEndDate,
     chatInput,
     chatMessages,
@@ -708,7 +743,6 @@ export const useAppController = () => {
     setSelectedChildId,
     setSidebarOpen,
     setSidePanelTab,
-    showLeftRecords,
     sidePanelTab,
     sidebarOpen,
   }

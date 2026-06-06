@@ -5,6 +5,7 @@ import {
   setAttendanceLoading as setAttendanceLoadingAction,
   setAttendanceRows as setAttendanceRowsAction,
   setAttendanceStatus as setAttendanceStatusAction,
+  setAttendanceLastFetchedAt as setAttendanceLastFetchedAtAction,
   setHalfTime as setHalfTimeAction,
   setShowLeftRecords as setShowLeftRecordsAction,
 } from '@/store/slices/attendanceSlice'
@@ -86,6 +87,7 @@ export const useAppState = () => {
     attendanceRows,
     attendanceLoading,
     attendanceStatus,
+    attendanceLastFetchedAt,
     halfTime,
     showLeftRecords,
     attendanceFacilityMap,
@@ -135,6 +137,10 @@ export const useAppState = () => {
   const setAttendanceRows = createStoreSetter(setAttendanceRowsAction, (state) => state.attendance.attendanceRows)
   const setAttendanceLoading = createStoreSetter(setAttendanceLoadingAction, (state) => state.attendance.attendanceLoading)
   const setAttendanceStatus = createStoreSetter(setAttendanceStatusAction, (state) => state.attendance.attendanceStatus)
+  const setAttendanceLastFetchedAt = createStoreSetter(
+    setAttendanceLastFetchedAtAction,
+    (state) => state.attendance.attendanceLastFetchedAt,
+  )
   const setHalfTime = createStoreSetter(setHalfTimeAction, (state) => state.attendance.halfTime)
   const setShowLeftRecords = createStoreSetter(setShowLeftRecordsAction, (state) => state.attendance.showLeftRecords)
   const setAttendanceFacilityMap = createStoreSetter(setAttendanceFacilityMapAction, (state) => state.attendance.attendanceFacilityMap)
@@ -185,6 +191,7 @@ export const useAppState = () => {
     attendanceRows,
     attendanceLoading,
     attendanceStatus,
+    attendanceLastFetchedAt,
     halfTime,
     showLeftRecords,
     attendanceFacilityMap,
@@ -223,6 +230,7 @@ export const useAppState = () => {
     setAttendanceRows,
     setAttendanceLoading,
     setAttendanceStatus,
+    setAttendanceLastFetchedAt,
     setHalfTime,
     setShowLeftRecords,
     setAttendanceFacilityMap,

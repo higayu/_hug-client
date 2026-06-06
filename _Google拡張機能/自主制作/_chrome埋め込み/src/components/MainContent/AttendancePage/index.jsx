@@ -5,9 +5,11 @@ import AttendanceTable from './AttendanceTable'
   ATTENDANCE_FACILITY_OPTIONS,
   attendanceDate,
   attendanceFacilityMap,
+  attendanceLastFetchedAt,
   attendanceLoading,
   attendanceRows,
   attendanceStatus,
+  showLeftRecords,
   handleAttendanceFacilityToggle,
   handleAttendanceFetch,
   handlePostEnter,
@@ -19,8 +21,11 @@ import AttendanceTable from './AttendanceTable'
         ATTENDANCE_FACILITY_OPTIONS={ATTENDANCE_FACILITY_OPTIONS}
         attendanceDate={attendanceDate}
         attendanceFacilityMap={attendanceFacilityMap}
+        attendanceLastFetchedAt={attendanceLastFetchedAt}
         attendanceLoading={attendanceLoading}
+        attendanceRows={attendanceRows}
         attendanceStatus={attendanceStatus}
+        showLeftRecords={showLeftRecords}
         handleAttendanceFacilityToggle={handleAttendanceFacilityToggle}
         handleAttendanceFetch={handleAttendanceFetch}
         setAttendanceDate={setAttendanceDate}

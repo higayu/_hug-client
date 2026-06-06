@@ -1,17 +1,29 @@
 import { useMemo, useState } from 'react'
 import { ChevronDown, ChevronRight, RefreshCw } from 'lucide-react'
+import { useAttendanceStatusLine } from '@/hooks/useAttendanceStatusLine'
 
 export default function AttendanceHeader({
   ATTENDANCE_FACILITY_OPTIONS,
   attendanceDate,
   attendanceFacilityMap,
+  attendanceLastFetchedAt,
   attendanceLoading,
+  attendanceRows,
   attendanceStatus,
+  showLeftRecords,
   handleAttendanceFacilityToggle,
   handleAttendanceFetch,
   setAttendanceDate,
 }) {
   const [isOpen, setIsOpen] = useState(false)
+
+  const { statusText } = useAttendanceStatusLine({
+    attendanceRows,
+    showLeftRecords,
+    attendanceLastFetchedAt,
+    attendanceLoading,
+    attendanceStatus,
+  })
 
   const selectedFacilityCount = useMemo(() => {
     return ATTENDANCE_FACILITY_OPTIONS.filter((option) =>
@@ -131,13 +143,14 @@ export default function AttendanceHeader({
           </div>
 
           <p
+            className="hug-attendance-status"
             style={{
               color: 'var(--text-light)',
               fontSize: '0.875rem',
               marginBottom: '1rem',
             }}
           >
-            {attendanceStatus}
+            {statusText}
           </p>
         </div>
       </div>

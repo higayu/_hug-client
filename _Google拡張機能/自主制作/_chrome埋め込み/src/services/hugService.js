@@ -264,6 +264,34 @@ export const setAlertPref = (weekdayIndex, childId, patch) => {
   localStorage.setItem(ALERT_PREFS_STORAGE_KEY, JSON.stringify(prefs))
 }
 
+const isHiddenClosedAttendanceRow = (row) =>
+  HUG_TIME_RE.test(String(row?.leaveTime || '').trim()) || Boolean(row?.isAbsenceStatus)
+
+/**
+ * moc form-render.js の .hug-attendance-status / ツールバー件数と同形式
+ */
+export const formatAttendanceFetchStatus = (attendanceList, showLeftRecords, fetchedAt) => {
+  const at = fetchedAt instanceof Date ? fetchedAt : new Date(fetchedAt)
+  const showLeftFlag = Number(showLeftRecords) >= 1 ? 1 : 0
+  const hiddenClosedCount = attendanceList.filter(isHiddenClosedAttendanceRow).length
+  const displayEntries = attendanceList.filter(
+    (item) => showLeftFlag === 1 || !isHiddenClosedAttendanceRow(item),
+  )
+  const alertCount = displayEntries.filter((item) => item.isOverTwoHours).length
+  const absenceCount = displayEntries.filter((item) => item.isAbsenceStatus).length
+  const hiddenClosedNote =
+    showLeftFlag === 0 && hiddenClosedCount > 0
+      ? ` / 退室済み・欠席 非表示 ${hiddenClosedCount}件`
+      : ''
+  const nowText = at.toLocaleString()
+  const timeText = at.toLocaleTimeString()
+
+  return {
+    statusText: `最終取得: ${nowText} / 表示: ${displayEntries.length}件（全${attendanceList.length}件）${hiddenClosedNote} / 経過アラート: ${alertCount} / 欠席: ${absenceCount}`,
+    toolbarSummary: `${displayEntries.length}件表示${hiddenClosedNote} / 経過アラート ${alertCount}件 / 欠席 ${absenceCount}件 / ${timeText}`,
+  }
+}
+
 export const addAttendanceFlags = (rows) =>
   rows.map((row) => {
     const weekdayIndex = getWeekdayIndexFromDetailDate(row.detailPageDate)

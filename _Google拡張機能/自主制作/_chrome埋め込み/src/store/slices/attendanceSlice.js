@@ -31,6 +31,7 @@ const initialState = {
   attendanceRows: [],
   attendanceLoading: false,
   attendanceStatus: 'HUG WM にログインしたうえで「一覧を取得」を押してください。',
+  attendanceLastFetchedAt: null,
   halfTime: getStoredHalfTime(),
   showLeftRecords: getStoredShowLeftRecords(),
   attendanceFacilityMap: Object.fromEntries(
@@ -54,6 +55,9 @@ const attendanceSlice = createSlice({
     setAttendanceStatus: (state, action) => {
       state.attendanceStatus = action.payload
     },
+    setAttendanceLastFetchedAt: (state, action) => {
+      state.attendanceLastFetchedAt = action.payload
+    },
     setHalfTime: (state, action) => {
       state.halfTime = action.payload
     },
@@ -71,6 +75,7 @@ export const {
   setAttendanceRows,
   setAttendanceLoading,
   setAttendanceStatus,
+  setAttendanceLastFetchedAt,
   setHalfTime,
   setShowLeftRecords,
   setAttendanceFacilityMap,
@@ -93,6 +98,9 @@ export const selectAttendanceLoading = (state) => state.attendance.attendanceLoa
 
 // ステータスメッセージ
 export const selectAttendanceStatus = (state) => state.attendance.attendanceStatus
+
+// 一覧の最終取得成功時刻（ms）
+export const selectAttendanceLastFetchedAt = (state) => state.attendance.attendanceLastFetchedAt
 
 // 半日時間
 export const selectHalfTime = (state) => state.attendance.halfTime

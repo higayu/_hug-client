@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { ChevronDown, ChevronRight } from 'lucide-react'
+import { useAttendanceStatusLine } from '@/hooks/useAttendanceStatusLine'
 
 const labelClassName = 'block text-xs text-[#444]'
 
@@ -12,10 +13,12 @@ export default function AttendanceHeader({
   ATTENDANCE_FACILITY_OPTIONS,
   attendanceDate,
   attendanceFacilityMap,
+  attendanceLastFetchedAt,
   attendanceLoading,
   attendanceRows,
   attendanceStatus,
   displayAttendanceRows,
+  showLeftRecords,
   halfTime,
   handleAttendanceFacilityToggle,
   handleAttendanceFetch,
@@ -24,9 +27,20 @@ export default function AttendanceHeader({
   hasEnterMail,
   overTwoHoursCount,
   setAttendanceDate,
-  showLeftRecords,
 }) {
   const [isOpen, setIsOpen] = useState(false)
+
+  const { statusText, toolbarSummary } = useAttendanceStatusLine({
+    attendanceRows,
+    showLeftRecords,
+    attendanceLastFetchedAt,
+    attendanceLoading,
+    attendanceStatus,
+  })
+
+  const toolbarCountText =
+    toolbarSummary ??
+    `${displayAttendanceRows.length}件表示 / 全${attendanceRows.length}件 / 経過アラート ${overTwoHoursCount}件`
 
   const selectedFacilityNames = useMemo(() => {
     return ATTENDANCE_FACILITY_OPTIONS.filter((option) =>
@@ -52,9 +66,8 @@ export default function AttendanceHeader({
           {isOpen ? <ChevronDown size={15} /> : <ChevronRight size={15} />}
 
           <div className="min-w-0 flex-1">
-            <div className="text-xs font-bold opacity-95">
-              {displayAttendanceRows.length}件表示 / 全{attendanceRows.length}
-              件 / 経過アラート {overTwoHoursCount}件
+            <div className="hug-attendance-count text-xs font-bold opacity-95">
+              {toolbarCountText}
             </div>
 
             <div className="mt-0.5 text-[11px] text-[#ffe082]">
@@ -169,7 +182,7 @@ export default function AttendanceHeader({
 
             </div>
 
-            <div>{attendanceStatus}</div>
+            <div className="hug-attendance-status">{statusText}</div>
           </div>
         </div>
       </div>

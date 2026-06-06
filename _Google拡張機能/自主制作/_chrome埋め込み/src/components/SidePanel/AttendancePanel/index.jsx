@@ -16,6 +16,7 @@ export default function AttendancePanel(props) {
     WEEKDAY_JA,
     attendanceDate,
     attendanceFacilityMap,
+    attendanceLastFetchedAt,
     attendanceLoading,
     attendanceRows,
     attendanceStatus,
@@ -56,6 +57,7 @@ export default function AttendancePanel(props) {
           ATTENDANCE_FACILITY_OPTIONS={ATTENDANCE_FACILITY_OPTIONS}
           attendanceDate={attendanceDate}
           attendanceFacilityMap={attendanceFacilityMap}
+          attendanceLastFetchedAt={attendanceLastFetchedAt}
           attendanceLoading={attendanceLoading}
           attendanceRows={attendanceRows}
           attendanceStatus={attendanceStatus}
