@@ -43,6 +43,7 @@ export default function AttendanceChildrenSection({
     <section className="mb-2.5 rounded-md border border-[#90caf9] bg-[#e8f4fc] px-2.5 py-2">
       <div className={sectionTitleClassName}>出席表・児童一覧</div>
 
+    <div className="flex items-end gap-2">
       <label className={`${labelClassName} mb-2 block`}>
         出席表日付
         <input
@@ -109,6 +110,8 @@ export default function AttendanceChildrenSection({
           />
         </button>
       </div>
+    </div>
+
     </section>
   )
 }
