@@ -1,10 +1,14 @@
 {
   "manifest_version": 3,
-  "name": "伴走ナビ (プロトタイプ)",
+  "name": "入退室管理システム (React版)",
   "version": "1.0.0",
-  "description": "HUG支援記録 AI入力サポートツール",
+  "description": "HUG WM の入退室管理と個人記録取得を行うChrome拡張機能",
+  "icons": {
+    "48": "icon.svg",
+    "128": "icon.svg"
+  },
   "action": {
-    "default_title": "伴走ナビを開く",
+    "default_title": "入退室管理システムを開く",
     "default_icon": {
       "48": "icon.svg"
     }

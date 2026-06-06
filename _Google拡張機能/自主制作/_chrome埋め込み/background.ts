@@ -25,7 +25,12 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 
   if (message?.type !== 'api-fetch') return;
 
-  fetch(message.url, message.options || {})
+  const options = { ...(message.options || {}) };
+  if (!options.credentials) {
+    options.credentials = 'include';
+  }
+
+  fetch(message.url, options)
     .then(async (res) => {
       const contentType = res.headers.get('content-type') || '';
       const body = contentType.includes('application/json')
