@@ -5,7 +5,7 @@ import SidePanel from '../SidePanel'
 
 function AppLayout(props) {
   return (
-    <div className="app-container">
+    <div className="app-container min-h-screen">
       <NavigationShell {...props} />
       <MainContent {...props} />
       <SidePanel {...props} />

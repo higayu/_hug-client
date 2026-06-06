@@ -8,9 +8,8 @@ function MainContent(props) {
   const { pageDescription, pageHeader } = props
 
   return (
-    <main id="main-content" className="main-content">
+    <main id="main-content" className="main-content overflow-x-hidden">
       <header className="mb-4">
-        <h1>{pageHeader}</h1>
         <p style={{ color: 'var(--text-light)' }}>{pageDescription}</p>
       </header>
 
