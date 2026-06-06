@@ -28,13 +28,16 @@ export default function AttendanceHeader({
 }) {
   const [isOpen, setIsOpen] = useState(false)
 
-  const selectedFacilityCount = useMemo(() => {
+  const selectedFacilityNames = useMemo(() => {
     return ATTENDANCE_FACILITY_OPTIONS.filter((option) =>
       Boolean(attendanceFacilityMap[String(option.id)]),
-    ).length
+    ).map((option) => option.value)
   }, [ATTENDANCE_FACILITY_OPTIONS, attendanceFacilityMap])
 
-  const totalFacilityCount = ATTENDANCE_FACILITY_OPTIONS.length
+  const selectedFacilityLabel =
+    selectedFacilityNames.length > 0
+      ? selectedFacilityNames.join('、')
+      : '未選択'
 
   return (
     <>
@@ -62,6 +65,17 @@ export default function AttendanceHeader({
           </div>
         </button>
 
+        {!isOpen && (
+          <div className="px-2 py-1 rounded-xl bg-gray-50 mb-1.5 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs text-[#555]">
+            <span className="text-sm font-bold text-[#333]">
+              日付: {attendanceDate || '未指定'}
+            </span>
+            <span className="text-sm font-bold text-[#333]">
+              施設: {selectedFacilityLabel}
+            </span>
+          </div>
+        )}
+
         <button
           type="button"
           className="shrink-0 cursor-pointer whitespace-nowrap rounded border border-white bg-transparent px-2.5 py-1 text-xs text-white hover:not-disabled:bg-white/15 disabled:cursor-default disabled:opacity-60"
@@ -73,14 +87,6 @@ export default function AttendanceHeader({
       </div>
 
       <div className="shrink-0 px-2.5 pt-2 text-xs text-[#555]">
-        {!isOpen && (
-          <div className="mb-1.5 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs text-[#555]">
-            <span>日付: {attendanceDate || '未指定'}</span>
-            <span>
-              施設: {selectedFacilityCount}/{totalFacilityCount}件選択
-            </span>
-          </div>
-        )}
 
         <div
           id="attendance-header-detail"
