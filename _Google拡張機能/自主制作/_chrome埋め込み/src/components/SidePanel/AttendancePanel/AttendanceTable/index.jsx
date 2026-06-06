@@ -1,10 +1,11 @@
-const tableClassName = 'w-full border-collapse bg-white text-xs'
+const tableClassName =
+  'w-full border-separate border-spacing-0 bg-white text-xs'
 
 const thClassName =
-  'sticky top-0 z-[1] border-b border-[#ddd] bg-[#f0f0f0] px-1.5 py-1.5 text-left align-middle text-[#333]'
+  'sticky top-0 z-10 border-b border-[#ddd] bg-[#f0f0f0] px-1.5 py-1 text-left align-middle text-[#333] shadow-[0_1px_0_#ddd]'
 
 const tdClassName =
-  'border-b border-[#ddd] px-1.5 py-1.5 text-left align-middle'
+  'border-b border-[#ddd] bg-white px-1.5 py-1.5 text-left align-middle'
 
 const rowActionClassName =
   'cursor-pointer rounded border border-[#1565c0] bg-[#e3f2fd] px-2 py-1 font-bold text-[#0d47a1] disabled:cursor-default disabled:border-[#ccc] disabled:bg-[#eee] disabled:text-[#999]'
@@ -27,14 +28,14 @@ export default function AttendanceTable({
   handlePostLeave,
 }) {
   return (
-    <div className="min-h-0 flex-1 overflow-auto px-2.5 pb-2.5 pt-2">
+    <div className="min-h-0 flex-1 overflow-auto px-2.5 pb-2.5 pt-0">
       {displayAttendanceRows.length === 0 ? (
         <div className="px-2 py-4 text-xs text-[#666]">
           HUG WM にログインしたうえで「更新」を押してください。
         </div>
       ) : (
         <table className={tableClassName}>
-          <thead>
+          <thead className="relative z-10">
             <tr>
               <th className={thClassName}>ID</th>
               <th className={thClassName}>氏名</th>
@@ -220,4 +221,3 @@ export default function AttendanceTable({
     </div>
   )
 }
-
