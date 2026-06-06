@@ -1,45 +1,62 @@
 import AttendancePanel from './AttendancePanel'
 import PersonalRecordPanel from './PersonalRecordPanel'
 
+const tabButtonBase =
+  'm-0 flex-1 cursor-pointer border-0 border-b-[3px] bg-transparent px-3 py-2.5 text-[13px] font-semibold transition-colors hover:bg-white/5 hover:text-[#eceff1]'
+
 function SidePanel(props) {
   const { setSidePanelTab, sidePanelTab } = props
 
+  const attendanceTabActive = sidePanelTab === 'attendance'
+  const personalRecordTabActive = sidePanelTab === 'personal-record'
+
   return (
-    <div id="hug-sidepanel-host" className="hug-sidepanel-host box-border flex h-screen w-full flex-col bg-[#f5f5f5]" aria-label="HUG?????">
-      <nav className="hug-sidepanel-tabs flex shrink-0 gap-0 border-b-2 border-black bg-[#263238]" role="tablist" aria-label="??????">
+    <div
+      id="hug-sidepanel-host"
+      className="box-border flex h-screen w-full flex-col bg-[#f5f5f5]"
+      aria-label="HUGサイドパネル"
+    >
+      <nav
+        className="flex shrink-0 gap-0 border-b-2 border-black bg-[#263238]"
+        role="tablist"
+        aria-label="サイドパネル切り替え"
+      >
         <button
           type="button"
-          className={`hug-sidepanel-tab-btn m-0 flex-1 cursor-pointer border-0 border-b-[3px] bg-transparent px-3 py-2.5 text-[13px] font-semibold transition-colors hover:bg-white/5 hover:text-[#eceff1] ${
-            sidePanelTab === 'attendance'
-              ? 'active border-b-[#4fc3f7] bg-white/10 text-white'
+          className={`${tabButtonBase} ${
+            attendanceTabActive
+              ? 'border-b-[#4fc3f7] bg-white/10 text-white'
               : 'border-transparent text-[#b0bec5]'
           }`}
           role="tab"
           data-tab="attendance"
-          aria-selected={sidePanelTab === 'attendance' ? 'true' : 'false'}
+          aria-selected={attendanceTabActive}
           aria-controls="hug-tab-attendance"
+          id="hug-tab-button-attendance"
           onClick={() => setSidePanelTab('attendance')}
         >
           今日の利用者
         </button>
+
         <button
           type="button"
-          className={`hug-sidepanel-tab-btn m-0 flex-1 cursor-pointer border-0 border-b-[3px] bg-transparent px-3 py-2.5 text-[13px] font-semibold transition-colors hover:bg-white/5 hover:text-[#eceff1] ${
-            sidePanelTab === 'personal-record'
-              ? 'active border-b-[#ce93d8] bg-white/10 text-white'
+          className={`${tabButtonBase} ${
+            personalRecordTabActive
+              ? 'border-b-[#ce93d8] bg-white/10 text-white'
               : 'border-transparent text-[#b0bec5]'
           }`}
           role="tab"
           data-tab="personal-record"
-          aria-selected={sidePanelTab === 'personal-record' ? 'true' : 'false'}
+          aria-selected={personalRecordTabActive}
           aria-controls="hug-tab-personal-record"
+          id="hug-tab-button-personal-record"
           onClick={() => setSidePanelTab('personal-record')}
         >
           個人記録
         </button>
       </nav>
 
-      <div className="hug-sidepanel-panels min-h-0 flex-1 overflow-hidden">
+      <div className="min-h-0 flex-1 overflow-hidden">
         <AttendancePanel {...props} />
         <PersonalRecordPanel {...props} />
       </div>

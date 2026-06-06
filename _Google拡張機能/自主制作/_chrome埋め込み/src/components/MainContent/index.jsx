@@ -1,20 +1,25 @@
 import ChatPage from './ChatPage'
-import CorrectionPage from './CorrectionPage'
+import AttendancePage  from './AttendancePage'
 import DashboardPage from './DashboardPage'
 import HugPersonalRecordPage from './HugPersonalRecordPage'
 import PersonalRecordPage from './PersonalRecordPage'
 
 function MainContent(props) {
-  const { pageDescription, pageHeader } = props
+  const { pageDescription } = props
 
   return (
-    <main id="main-content" className="main-content overflow-x-hidden">
+    <main
+      id="main-content"
+      className="min-h-screen overflow-x-hidden px-4 py-4 md:px-6"
+    >
       <header className="mb-4">
-        <p style={{ color: 'var(--text-light)' }}>{pageDescription}</p>
+        <p className="text-sm text-slate-500">
+          {pageDescription}
+        </p>
       </header>
 
       <ChatPage {...props} />
-      <CorrectionPage {...props} />
+      <AttendancePage {...props} />
       <DashboardPage {...props} />
       <PersonalRecordPage {...props} />
       <HugPersonalRecordPage {...props} />
