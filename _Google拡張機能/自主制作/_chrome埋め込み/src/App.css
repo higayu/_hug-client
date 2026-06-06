@@ -1,314 +1,285 @@
-html, body, #root {
-  min-height: 100%;
-}
+  .app-container {
+    @apply min-h-screen;
+  }
 
-body {
-  margin: 0;
-}
+  #main-content {
+    @apply overflow-x-hidden;
+  }
 
-button {
-  font: inherit;
-}
+  body.hug-attendance-primary-page {
+    @apply overflow-hidden bg-[#f5f5f5];
+  }
 
-.app-container {
-  min-height: 100vh;
-}
+  body.hug-attendance-primary-page #mobile-header,
+  body.hug-attendance-primary-page #mobile-overlay,
+  body.hug-attendance-primary-page #sidebar-wrap,
+  body.hug-attendance-primary-page #main-content,
+  body.hug-attendance-primary-page #correction-modal {
+    display: none !important;
+  }
 
-#main-content {
-  overflow-x: hidden;
-}
+  body.hug-attendance-primary-page .app-container {
+    @apply block h-screen overflow-hidden;
+  }
 
-.hidden {
-  display: none !important;
-}
+  #hug-sidepanel-host {
+    @apply box-border flex h-screen w-full flex-col bg-[#f5f5f5];
+  }
 
-.attendance-filter-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem 1rem;
-  min-height: 2.375rem;
-  align-items: center;
-}
+  .hug-sidepanel-tabs {
+    @apply flex shrink-0 gap-0 border-b-2 border-black bg-[#263238];
+  }
 
-.attendance-filter-item {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  font-size: 0.875rem;
-  white-space: nowrap;
-}
+  .hug-sidepanel-tab-btn {
+    @apply m-0 flex-1 cursor-pointer border-0 border-b-[3px] border-transparent bg-transparent px-3 py-2.5 text-[13px] font-semibold text-[#b0bec5] transition-colors;
+  }
 
-.attendance-filter-item input {
-  margin: 0;
-}
+  .hug-sidepanel-tab-btn:hover {
+    @apply bg-white/5 text-[#eceff1];
+  }
 
-.attendance-table td {
-  vertical-align: middle;
-}
+  .hug-sidepanel-tab-btn.active {
+    @apply border-b-[#4fc3f7] bg-white/10 text-white;
+  }
 
-#hug-sidepanel-host .hug-sidepanel-controls {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin-bottom: 6px;
-}
+  .hug-sidepanel-tab-btn[data-tab="personal-record"].active {
+    @apply border-b-[#ce93d8];
+  }
 
-#hug-sidepanel-host .hug-sidepanel-controls label,
-#hug-sidepanel-host #hug-personal-record-form label {
-  display: block;
-  font-size: 12px;
-  color: #444;
-}
+  .hug-sidepanel-panels {
+    @apply min-h-0 flex-1 overflow-hidden;
+  }
 
-#hug-sidepanel-host input,
-#hug-sidepanel-host select,
-#hug-sidepanel-host textarea {
-  box-sizing: border-box;
-  font: inherit;
-}
+  .hug-sidepanel-tab-panel {
+    @apply hidden h-full overflow-hidden p-0;
+  }
 
-#hug-sidepanel-host input[type="date"],
-#hug-sidepanel-host select {
-  display: block;
-  width: 100%;
-  margin-top: 2px;
-  padding: 4px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  background: #fff;
-}
+  .hug-sidepanel-tab-panel.active {
+    @apply flex flex-col;
+  }
 
-#hug-sidepanel-host input[type="checkbox"] {
-  margin: 0 4px 0 0;
-  vertical-align: middle;
-}
+  #hug-sidepanel-host .hug-sidepanel-form-root {
+    @apply static m-0 flex min-h-0 w-full flex-1 transform-none flex-col overflow-auto rounded-none border-0 bg-white text-[13px] text-[#222] shadow-none;
+  }
 
-#hug-sidepanel-host .hug-facility-checks {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 10px;
-}
+  #hug-sidepanel-host #hug-attendance-panel .hug-sidepanel-toolbar {
+    @apply flex shrink-0 items-center justify-between gap-2 bg-[#333] px-2.5 py-2 text-white;
+  }
 
-#hug-sidepanel-host .hug-facility-checks label {
-  display: inline-flex;
-  align-items: center;
-  white-space: nowrap;
-}
+  #hug-sidepanel-host #hug-attendance-panel .hug-sidepanel-toolbar-meta {
+    @apply min-w-0 flex-1;
+  }
 
-#hug-sidepanel-host .hug-empty-message {
-  padding: 16px 8px;
-  color: #666;
-  font-size: 12px;
-}
+  #hug-sidepanel-host #hug-attendance-panel .hug-attendance-count {
+    @apply text-xs font-bold opacity-95;
+  }
 
-#hug-sidepanel-host .hug-attendance-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 12px;
-  background: #fff;
-}
+  #hug-sidepanel-host #hug-attendance-panel .hug-enter-mail-badge {
+    @apply mt-0.5 text-[11px] text-[#ffe082];
+  }
 
-#hug-sidepanel-host .hug-attendance-table th,
-#hug-sidepanel-host .hug-attendance-table td {
-  border-bottom: 1px solid #ddd;
-  padding: 6px 5px;
-  text-align: left;
-  vertical-align: middle;
-}
+  #hug-sidepanel-host #hug-attendance-panel .hug-refresh-button {
+    @apply shrink-0 cursor-pointer whitespace-nowrap rounded border border-white bg-transparent px-2.5 py-1 text-xs text-white;
+  }
 
-#hug-sidepanel-host .hug-attendance-table th {
-  position: sticky;
-  top: 0;
-  z-index: 1;
-  background: #f0f0f0;
-  color: #333;
-}
+  #hug-sidepanel-host #hug-attendance-panel .hug-refresh-button:hover:not(:disabled) {
+    @apply bg-white/15;
+  }
 
-#hug-sidepanel-host .hug-attendance-table tr:nth-child(even) td {
-  background: #fafafa;
-}
+  #hug-sidepanel-host #hug-attendance-panel .hug-attendance-status {
+    @apply shrink-0 px-2.5 pt-2 text-xs text-[#555];
+  }
 
-#hug-sidepanel-host .hug-row-sub {
-  display: block;
-  margin-top: 2px;
-  color: #777;
-  font-size: 10px;
-}
+  #hug-sidepanel-host #hug-attendance-panel .hug-attendance-body {
+    @apply min-h-0 flex-1 overflow-auto px-2.5 pb-2.5 pt-2;
+  }
 
-#hug-sidepanel-host .hug-row-action {
-  padding: 4px 8px;
-  border: 1px solid #1565c0;
-  border-radius: 4px;
-  background: #e3f2fd;
-  color: #0d47a1;
-  cursor: pointer;
-  font-weight: 700;
-}
+  #hug-sidepanel-host #hug-personal-record-form {
+    @apply px-3 pb-3.5 pt-2.5 text-sm leading-[1.4];
+  }
 
-#hug-sidepanel-host .hug-secondary-action {
-  border-color: #999;
-  background: #f5f5f5;
-  color: #333;
-}
+  .attendance-filter-list {
+    @apply flex min-h-[2.375rem] flex-wrap items-center gap-x-4 gap-y-2;
+  }
 
-#hug-sidepanel-host .hug-post-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-}
+  .attendance-filter-item {
+    @apply inline-flex items-center gap-1.5 whitespace-nowrap text-sm;
+  }
 
-#hug-sidepanel-host .hug-btn-has-mail::before {
-  content: "✉ ";
-}
+  .attendance-filter-item input {
+    @apply m-0;
+  }
 
-#hug-sidepanel-host .hug-leave-alert {
-  border-color: #c62828;
-  background: #ffebee;
-  color: #b71c1c;
-}
+  .attendance-table td {
+    @apply align-middle;
+  }
 
-#hug-sidepanel-host .hug-over-two-hours td {
-  background: #fff0f0 !important;
-}
+  #hug-sidepanel-host .hug-sidepanel-controls {
+    @apply mb-1.5 flex flex-col gap-1.5;
+  }
 
-#hug-sidepanel-host .hug-name-button {
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: #0d47a1;
-  cursor: pointer;
-  font: inherit;
-  text-decoration: underline;
-}
+  #hug-sidepanel-host .hug-sidepanel-controls label,
+  #hug-sidepanel-host #hug-personal-record-form label {
+    @apply block text-xs text-[#444];
+  }
 
-#hug-sidepanel-host .hug-panel-settings-bar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px 10px;
-  align-items: end;
-}
+  #hug-sidepanel-host input,
+  #hug-sidepanel-host select,
+  #hug-sidepanel-host textarea {
+    @apply box-border;
+  }
 
-#hug-sidepanel-host .hug-panel-settings-bar label {
-  min-width: 92px;
-}
+  #hug-sidepanel-host input[type="date"],
+  #hug-sidepanel-host input[type="time"],
+  #hug-sidepanel-host select {
+    @apply mt-0.5 block w-full rounded border border-[#ccc] bg-white p-1;
+  }
 
-#hug-sidepanel-host .hug-attendance-table input[type="number"],
-#hug-sidepanel-host .hug-attendance-table select {
-  width: 64px;
-  margin: 0;
-  padding: 2px 3px;
-  font-size: 12px;
-}
+  #hug-sidepanel-host input[type="checkbox"] {
+    @apply mb-0 ml-0 mr-1 mt-0 align-middle;
+  }
 
-#hug-sidepanel-host .hug-row-action:disabled {
-  border-color: #ccc;
-  background: #eee;
-  color: #999;
-  cursor: default;
-}
+  #hug-sidepanel-host .hug-facility-checks {
+    @apply flex flex-wrap gap-x-2.5 gap-y-1;
+  }
 
-#hug-sidepanel-host #hug-personal-record-form .hug-form-section {
-  border-radius: 6px;
-  padding: 8px 10px;
-  margin-bottom: 10px;
-}
+  #hug-sidepanel-host .hug-facility-checks label {
+    @apply inline-flex items-center whitespace-nowrap;
+  }
 
-#hug-sidepanel-host #hug-personal-record-form .hug-form-section-attendance {
-  border: 1px solid #90caf9;
-  background: #e8f4fc;
-}
+  #hug-sidepanel-host .hug-empty-message {
+    @apply px-2 py-4 text-xs text-[#666];
+  }
 
-#hug-sidepanel-host #hug-personal-record-form .hug-form-section-personal {
-  border: 1px solid #ce93d8;
-  background: #f6edf8;
-}
+  #hug-sidepanel-host .hug-attendance-table {
+    @apply w-full border-collapse bg-white text-xs;
+  }
 
-#hug-sidepanel-host .hug-form-section-title {
-  font-size: 11px;
-  font-weight: 700;
-  color: #555;
-  margin-bottom: 6px;
-}
+  #hug-sidepanel-host .hug-attendance-table th,
+  #hug-sidepanel-host .hug-attendance-table td {
+    @apply border-b border-[#ddd] px-1.5 py-1.5 text-left align-middle;
+  }
 
-#hug-sidepanel-host .hug-pr-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  align-items: end;
-  margin-bottom: 8px;
-}
+  #hug-sidepanel-host .hug-attendance-table th {
+    @apply sticky top-0 z-[1] bg-[#f0f0f0] text-[#333];
+  }
 
-#hug-sidepanel-host #hug-personal-record-form button,
-#hug-sidepanel-host .hug-pr-fetch-btn {
-  padding: 6px 10px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  background: #fff;
-  cursor: pointer;
-}
+  #hug-sidepanel-host .hug-attendance-table tr:nth-child(even) td {
+    @apply bg-[#fafafa];
+  }
 
-#hug-sidepanel-host .hug-pr-fetch-btn {
-  border-color: #5e35b1;
-  background: #ede7f6;
-  color: #4527a0;
-  font-weight: 700;
-}
+  #hug-sidepanel-host .hug-row-sub {
+    @apply mt-0.5 block text-[10px] text-[#777];
+  }
 
-#hug-sidepanel-host .hug-pr-actions,
-#hug-sidepanel-host .hug-pr-save-actions {
-  display: flex;
-  gap: 8px;
-}
+  #hug-sidepanel-host .hug-row-action {
+    @apply cursor-pointer rounded border border-[#1565c0] bg-[#e3f2fd] px-2 py-1 font-bold text-[#0d47a1];
+  }
 
-#hug-sidepanel-host .hug-pr-actions button,
-#hug-sidepanel-host .hug-pr-save-actions button {
-  flex: 1;
-}
+  #hug-sidepanel-host .hug-secondary-action {
+    @apply border-[#999] bg-[#f5f5f5] text-[#333];
+  }
 
-#hug-sidepanel-host .hug-pr-save-actions {
-  margin-top: 10px;
-}
+  #hug-sidepanel-host .hug-post-actions {
+    @apply flex flex-wrap gap-1;
+  }
 
-#hug-sidepanel-host .hug-pr-save-actions button:first-child {
-  border-color: #2e7d32;
-  background: #e8f5e9;
-  color: #1b5e20;
-  font-weight: 700;
-}
+  #hug-sidepanel-host .hug-btn-has-mail::before {
+    content: "mail ";
+  }
 
-#hug-sidepanel-host .hug-pr-save-actions button:last-child {
-  border-color: #1565c0;
-  background: #e3f2fd;
-  color: #0d47a1;
-  font-weight: 700;
-}
+  #hug-sidepanel-host .hug-leave-alert {
+    @apply border-[#c62828] bg-[#ffebee] text-[#b71c1c];
+  }
 
-#hug-sidepanel-host .hug-record-staff-label {
-  margin-top: 8px;
-}
+  #hug-sidepanel-host .hug-over-two-hours td {
+    background: #fff0f0 !important;
+  }
 
-#hug-sidepanel-host .hug-pr-result-meta {
-  margin-top: 8px;
-  color: #777;
-  font-size: 11px;
-}
+  #hug-sidepanel-host .hug-name-button {
+    @apply cursor-pointer border-0 bg-transparent p-0 text-[#0d47a1] underline;
+  }
 
-#hug-sidepanel-host .hug-pr-status {
-  margin-top: 8px;
-  color: #666;
-  font-size: 12px;
-}
+  #hug-sidepanel-host .hug-panel-settings-bar {
+    @apply flex flex-wrap items-end gap-x-2.5 gap-y-1.5;
+  }
 
-#hug-sidepanel-host #hug-form-note {
-  display: block;
-  width: 100%;
-  margin-top: 8px;
-  padding: 8px;
-  line-height: 1.45;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  resize: vertical;
-  min-height: 160px;
-  background: #fff;
-  font-size: 12px;
-}
+  #hug-sidepanel-host .hug-panel-settings-bar label {
+    @apply min-w-[92px];
+  }
+
+  #hug-sidepanel-host .hug-attendance-table input[type="number"],
+  #hug-sidepanel-host .hug-attendance-table select {
+    @apply m-0 w-16 px-1 py-0.5 text-xs;
+  }
+
+  #hug-sidepanel-host .hug-row-action:disabled {
+    @apply cursor-default border-[#ccc] bg-[#eee] text-[#999];
+  }
+
+  #hug-sidepanel-host #hug-personal-record-form .hug-form-section {
+    @apply mb-2.5 rounded-md px-2.5 py-2;
+  }
+
+  #hug-sidepanel-host #hug-personal-record-form .hug-form-section-attendance {
+    @apply border border-[#90caf9] bg-[#e8f4fc];
+  }
+
+  #hug-sidepanel-host #hug-personal-record-form .hug-form-section-personal {
+    @apply border border-[#ce93d8] bg-[#f6edf8];
+  }
+
+  #hug-sidepanel-host .hug-form-section-title {
+    @apply mb-1.5 text-[11px] font-bold text-[#555];
+  }
+
+  #hug-sidepanel-host .hug-pr-grid {
+    @apply mb-2 grid grid-cols-2 items-end gap-2;
+  }
+
+  #hug-sidepanel-host #hug-personal-record-form button,
+  #hug-sidepanel-host .hug-pr-fetch-btn {
+    @apply cursor-pointer rounded border border-[#ccc] bg-white px-2.5 py-1.5;
+  }
+
+  #hug-sidepanel-host .hug-pr-fetch-btn {
+    @apply border-[#5e35b1] bg-[#ede7f6] font-bold text-[#4527a0];
+  }
+
+  #hug-sidepanel-host .hug-pr-actions,
+  #hug-sidepanel-host .hug-pr-save-actions {
+    @apply flex gap-2;
+  }
+
+  #hug-sidepanel-host .hug-pr-actions button,
+  #hug-sidepanel-host .hug-pr-save-actions button {
+    @apply flex-1;
+  }
+
+  #hug-sidepanel-host .hug-pr-save-actions {
+    @apply mt-2.5;
+  }
+
+  #hug-sidepanel-host .hug-pr-save-actions button:first-child {
+    @apply border-[#2e7d32] bg-[#e8f5e9] font-bold text-[#1b5e20];
+  }
+
+  #hug-sidepanel-host .hug-pr-save-actions button:last-child {
+    @apply border-[#1565c0] bg-[#e3f2fd] font-bold text-[#0d47a1];
+  }
+
+  #hug-sidepanel-host .hug-record-staff-label {
+    @apply mt-2;
+  }
+
+  #hug-sidepanel-host .hug-pr-result-meta {
+    @apply mt-2 text-[11px] text-[#777];
+  }
+
+  #hug-sidepanel-host .hug-pr-status {
+    @apply mt-2 text-xs text-[#666];
+  }
+
+  #hug-sidepanel-host #hug-form-note {
+    @apply mt-2 block min-h-40 w-full resize-y rounded border border-[#ccc] bg-white p-2 text-xs leading-[1.45];
+  }
