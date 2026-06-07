@@ -9,7 +9,7 @@ const HUG_ATTENDANCE_URL = `${HUG_WM_BASE_URL}attendance.php`
 const HUG_ATTENDANCE_AJAX_URL = `${HUG_WM_BASE_URL}ajax/ajax_attendance.php`
 export const ATTENDANCE_FACILITY_OPTIONS = [
   { id: 3, value: 'PD吉島', defaultChecked: true },
-  { id: 6, value: 'PD舟入', defaultChecked: false },
+  { id: 6, value: 'PD光', defaultChecked: false },
   { id: 7, value: 'PD横川', defaultChecked: false },
   { id: 8, value: 'PD廿日市駅前', defaultChecked: false },
 ]
