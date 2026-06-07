@@ -15,7 +15,9 @@ export function useAttendanceStatusLine({
     if (attendanceLoading) {
       return {
         statusText: attendanceStatus,
+        statusLastFetchedText: null,
         toolbarSummary: null,
+        toolbarLastFetchedText: null,
       }
     }
 
@@ -29,7 +31,9 @@ export function useAttendanceStatusLine({
 
     return {
       statusText: attendanceStatus,
+      statusLastFetchedText: null,
       toolbarSummary: null,
+      toolbarLastFetchedText: null,
     }
   }, [
     attendanceRows,

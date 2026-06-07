@@ -30,7 +30,12 @@ export default function AttendanceHeader({
 }) {
   const [isOpen, setIsOpen] = useState(false)
 
-  const { statusText, toolbarSummary } = useAttendanceStatusLine({
+  const {
+    statusText,
+    statusLastFetchedText,
+    toolbarSummary,
+    toolbarLastFetchedText,
+  } = useAttendanceStatusLine({
     attendanceRows,
     showLeftRecords,
     attendanceLastFetchedAt,
@@ -55,7 +60,7 @@ export default function AttendanceHeader({
 
   return (
     <>
-      <div className="flex shrink-0 items-center justify-between gap-2 bg-[#333] px-2.5 py-2 text-white">
+      <div className="flex shrink-0 items-center justify-between gap-2 bg-[#333] px-2 py-1 text-white">
         <button
           type="button"
           className="flex min-w-0 flex-1 cursor-pointer items-center gap-1.5 border-0 bg-transparent p-0 text-left text-white"
@@ -78,29 +83,32 @@ export default function AttendanceHeader({
           </div>
         </button>
 
-        {!isOpen && (
-          <div className="px-2 py-1 rounded-xl bg-gray-50 mb-1.5 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs text-[#555]">
-            <span className="text-sm font-bold text-[#333]">
-              日付: {attendanceDate || '未指定'}
-            </span>
-            <span className="text-sm font-bold text-[#333]">
-              施設: {selectedFacilityLabel}
-            </span>
-          </div>
-        )}
-
         <button
           type="button"
-          className="shrink-0 cursor-pointer whitespace-nowrap rounded border border-white bg-transparent px-2.5 py-1 text-xs text-white hover:not-disabled:bg-white/15 disabled:cursor-default disabled:opacity-60"
+          className="hover:bg-gray-200 shrink-0 cursor-pointer whitespace-nowrap rounded border border-white bg-transparent px-4 py-2 text-xs text-white disabled:cursor-default disabled:opacity-60"
           onClick={handleAttendanceFetch}
           disabled={attendanceLoading}
         >
           {attendanceLoading ? '取得中...' : '更新'}
         </button>
+        {!isOpen && (
+          <div className="px-2 py-1 rounded-xl bg-gray-50 mb-1.5 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs text-[#555]">
+            <span className="rounded-full border border-gray-300 px-2 py-1 text-xs font-bold text-[#333]">
+              最終更新: {toolbarLastFetchedText || '未取得'}
+            </span>           
+           
+            <span className="text-xs font-bold text-[#333]">
+              日付: {attendanceDate || '未指定'}
+            </span>
+
+            <span className="text-xs font-bold text-[#333]">
+              施設: {selectedFacilityLabel}
+            </span>
+          </div>
+        )}
       </div>
 
       <div className="shrink-0 px-2.5 pt-2 text-xs text-[#555]">
-
         <div
           id="attendance-header-detail"
           className="overflow-hidden"
@@ -112,7 +120,6 @@ export default function AttendanceHeader({
         >
           <div className="min-h-0 overflow-hidden">
             <div className="mb-1.5 flex flex-col gap-1.5">
-
               <div className="flex flex-wrap items-end gap-x-2.5 gap-y-1.5">
                 <label className="block min-w-[92px] text-xs text-[#444]">
                   ハーフタイム
@@ -155,7 +162,9 @@ export default function AttendanceHeader({
                         <input
                           type="checkbox"
                           className={checkboxClassName}
-                          checked={Boolean(attendanceFacilityMap[String(option.id)])}
+                          checked={Boolean(
+                            attendanceFacilityMap[String(option.id)],
+                          )}
                           onChange={(event) =>
                             handleAttendanceFacilityToggle(
                               option.id,
@@ -179,14 +188,21 @@ export default function AttendanceHeader({
                   />
                 </label>
               </div>
-
             </div>
 
-            <div className="hug-attendance-status">{statusText}</div>
+            <div className="flex flex-row items-center gap-1">
+              <div className="inline-flex items-center gap-1.5 rounded-full border border-gray-200 bg-white px-3 py-1 text-xs font-medium text-gray-600 shadow-sm">
+                <span className="h-1.5 w-1.5 rounded-full bg-gray-400" />
+                <span>最終取得: {toolbarLastFetchedText || '未取得'}</span>
+              </div>
+              <div>
+                {statusText}
+              </div>
+
+            </div>
           </div>
         </div>
       </div>
     </>
   )
 }
-

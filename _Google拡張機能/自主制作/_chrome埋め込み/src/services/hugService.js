@@ -287,8 +287,10 @@ export const formatAttendanceFetchStatus = (attendanceList, showLeftRecords, fet
   const timeText = at.toLocaleTimeString()
 
   return {
-    statusText: `最終取得: ${nowText} / 表示: ${displayEntries.length}件（全${attendanceList.length}件）${hiddenClosedNote} / 経過アラート: ${alertCount} / 欠席: ${absenceCount}`,
-    toolbarSummary: `${displayEntries.length}件表示${hiddenClosedNote} / 経過アラート ${alertCount}件 / 欠席 ${absenceCount}件 / ${timeText}`,
+    statusText: `表示: ${displayEntries.length}件（全${attendanceList.length}件）${hiddenClosedNote} / 経過アラート: ${alertCount} / 欠席: ${absenceCount}`,
+    statusLastFetchedText: nowText,
+    toolbarSummary: `${displayEntries.length}件表示${hiddenClosedNote} / 経過アラート ${alertCount}件 / 欠席 ${absenceCount}件`,
+    toolbarLastFetchedText: timeText,
   }
 }
 
