@@ -1,51 +1,291 @@
 /// <reference types="chrome"/>
 
-chrome.sidePanel
-  .setPanelBehavior({ openPanelOnActionClick: true })
-  .catch((error) => console.error(error));
+const PANEL_PATH = 'index.html';
+const openTabIds = new Set<number>();
+const DEBUG = true;
 
-chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
-  if (message?.type === 'open-side-panel') {
-    const windowId = _sender.tab?.windowId;
+const log = (...args: unknown[]) => {
+  if (DEBUG) console.log('[Banso Navi BG]', ...args);
+};
+const warn = (...args: unknown[]) => console.warn('[Banso Navi BG]', ...args);
+const errorLog = (...args: unknown[]) => console.error('[Banso Navi BG]', ...args);
 
-    if (typeof windowId !== 'number') {
-      sendResponse({ ok: false, error: 'Tab window was not found.' });
-      return;
+const DEVELOPMENT_PAGE_ORIGINS = new Set([
+  'http://192.168.3.35:3001',
+  'http://192.168.1.229:3001',
+  'http://localhost:3001',
+]);
+
+const isAllowedUrl = (url?: string) => {
+  if (!url) return false;
+
+  try {
+    const parsed = new URL(url);
+
+    if (DEVELOPMENT_PAGE_ORIGINS.has(parsed.origin)) {
+      return true;
     }
 
-    chrome.sidePanel
-      .open({ windowId })
-      .then(() => sendResponse({ ok: true }))
-      .catch((error: Error) => {
-        sendResponse({ ok: false, error: error.message });
+    return (
+      parsed.origin === 'https://www.hug-ayumu.link' &&
+      parsed.pathname.startsWith('/hug/wm/')
+    );
+  } catch (error) {
+    warn('URL parse failed:', url, error);
+    return false;
+  }
+};
+
+const notifyTabPanelState = async (tabId: number | undefined, open: boolean) => {
+  if (typeof tabId !== 'number') return;
+
+  try {
+    log('notify content script:', { tabId, open });
+    await chrome.tabs.sendMessage(tabId, { type: 'side-panel-state', open });
+  } catch (error) {
+    warn('notify failed. content script may not exist:', { tabId, open, error });
+  }
+};
+
+const setPanelEnabled = async (tabId: number, enabled: boolean) => {
+  log('sidePanel.setOptions:', { tabId, path: PANEL_PATH, enabled });
+  await chrome.sidePanel.setOptions({
+    tabId,
+    path: PANEL_PATH,
+    enabled,
+  });
+};
+
+const preparePanelForTab = async (tabId: number, url?: string) => {
+  const allowed = isAllowedUrl(url);
+  await setPanelEnabled(tabId, allowed);
+  return allowed;
+};
+
+const openPanelFromUserGesture = async (tabId: number) => {
+  log('openPanelFromUserGesture start:', { tabId });
+
+  // 重要:
+  // sidePanel.open() はユーザー操作の直後でないと失敗します。
+  // ここより前で await setOptions() などを挟むと、
+  // Chrome がユーザー操作として認識しなくなることがあります。
+  log('sidePanel.open immediate:', { tabId });
+  await chrome.sidePanel.open({ tabId });
+
+  openTabIds.add(tabId);
+  log('openPanelFromUserGesture success:', { tabId, openTabIds: [...openTabIds] });
+  await notifyTabPanelState(tabId, true);
+};
+
+const closePanel = async (tabId: number, windowId?: number) => {
+  log('closePanel start:', {
+    tabId,
+    windowId,
+    hasClose: typeof chrome.sidePanel.close === 'function',
+  });
+
+  // 重要:
+  // openPanelFromUserGesture() では chrome.sidePanel.open({ tabId }) で
+  // タブ固有のパネルとして開いている。
+  // そのため閉じる時も windowId ではなく tabId を優先する。
+  // windowId で閉じようとすると、グローバルパネル扱いになり、
+  // タブ固有パネルが閉じないことがある。
+  if (typeof chrome.sidePanel.close === 'function') {
+    try {
+      log('sidePanel.close by tabId:', { tabId });
+      await chrome.sidePanel.close({ tabId });
+    } catch (tabCloseError) {
+      warn('sidePanel.close by tabId failed. try windowId fallback:', {
+        tabId,
+        windowId,
+        tabCloseError,
       });
 
-    return true;
+      if (typeof windowId === 'number') {
+        log('sidePanel.close by windowId fallback:', { windowId });
+        await chrome.sidePanel.close({ windowId });
+      } else {
+        throw tabCloseError;
+      }
+    }
+  } else {
+    // Chrome 141 未満では公式 close API がないため、無効化で閉じる。
+    // その後、許可URLなら次回開けるように enabled:true に戻す。
+    warn('chrome.sidePanel.close is not available. fallback setOptions enabled:false:', { tabId });
+    await chrome.sidePanel.setOptions({ tabId, enabled: false });
+
+    try {
+      const tab = await chrome.tabs.get(tabId);
+      if (isAllowedUrl(tab.url)) {
+        await setPanelEnabled(tabId, true);
+      }
+    } catch (error) {
+      warn('tab get failed after fallback close:', { tabId, error });
+    }
   }
 
-  if (message?.type !== 'api-fetch') return;
+  openTabIds.delete(tabId);
+  log('closePanel success:', { tabId, openTabIds: [...openTabIds] });
+  await notifyTabPanelState(tabId, false);
+};
 
-  fetch(message.url, message.options || {})
-    .then(async (res) => {
-      const contentType = res.headers.get('content-type') || '';
-      const body = contentType.includes('application/json')
-        ? await res.json()
-        : await res.text();
-      const errorText =
-        typeof body === 'object' && body !== null && 'error' in body
-          ? String((body as { error: string }).error)
-          : typeof body === 'string' && body
-            ? body
-            : `HTTP ${res.status}`;
-      sendResponse({
-        ok: res.ok,
-        status: res.status,
-        body,
-        error: res.ok ? undefined : errorText,
-      });
+chrome.sidePanel
+  .setPanelBehavior({ openPanelOnActionClick: true })
+  .then(() => log('setPanelBehavior success'))
+  .catch((error) => errorLog('setPanelBehavior failed:', error));
+
+// Chrome 141+ / 142+ の環境では、実際の開閉イベントでも状態を同期する。
+if ('onOpened' in chrome.sidePanel && chrome.sidePanel.onOpened) {
+  chrome.sidePanel.onOpened.addListener((info) => {
+    log('sidePanel.onOpened:', info);
+    if (typeof info.tabId === 'number') {
+      openTabIds.add(info.tabId);
+      void notifyTabPanelState(info.tabId, true);
+    }
+  });
+}
+
+if ('onClosed' in chrome.sidePanel && chrome.sidePanel.onClosed) {
+  chrome.sidePanel.onClosed.addListener((info) => {
+    log('sidePanel.onClosed:', info);
+    if (typeof info.tabId === 'number') {
+      openTabIds.delete(info.tabId);
+      void notifyTabPanelState(info.tabId, false);
+    }
+  });
+}
+
+chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+  if (!changeInfo.url && changeInfo.status !== 'complete') return;
+
+  const url = changeInfo.url ?? tab.url;
+  const allowed = isAllowedUrl(url);
+  log('tabs.onUpdated:', { tabId, url, status: changeInfo.status, allowed, windowId: tab.windowId });
+
+  setPanelEnabled(tabId, allowed).catch((error) => errorLog('setOptions failed onUpdated:', error));
+
+  if (!allowed) {
+    closePanel(tabId, tab.windowId).catch((error) => errorLog('closePanel failed onUpdated:', error));
+  }
+});
+
+chrome.tabs.onActivated.addListener(async ({ tabId, windowId }) => {
+  try {
+    const tab = await chrome.tabs.get(tabId);
+    const allowed = isAllowedUrl(tab.url);
+    log('tabs.onActivated:', { tabId, windowId, url: tab.url, allowed });
+
+    await setPanelEnabled(tabId, allowed);
+
+    if (!allowed) {
+      await closePanel(tabId, windowId);
+    }
+  } catch (error) {
+    errorLog('tabs.onActivated failed:', error);
+  }
+});
+
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  const tabId = sender.tab?.id;
+  const windowId = sender.tab?.windowId;
+  const tabUrl = sender.tab?.url;
+
+  log('runtime.onMessage received:', { message, tabId, windowId, tabUrl });
+
+  const run = async () => {
+    if (message?.type === 'toggle-side-panel') {
+      if (typeof tabId !== 'number') {
+        warn('toggle failed. tabId missing:', { message, sender });
+        return { ok: false, error: 'Tab was not found.' };
+      }
+
+      const allowed = isAllowedUrl(tabUrl);
+      const isOpen = openTabIds.has(tabId);
+      log('toggle request:', { tabId, windowId, tabUrl, allowed, isOpen });
+
+      if (!allowed) {
+        return { ok: false, error: 'This URL is not allowed.' };
+      }
+
+      if (isOpen) {
+        await closePanel(tabId, windowId);
+        return { ok: true, open: false };
+      }
+
+      // ここでは setOptions を await しない。
+      // open() を最初のAPI呼び出しにしないと user gesture エラーになる。
+      await openPanelFromUserGesture(tabId);
+      return { ok: true, open: true };
+    }
+
+    if (message?.type === 'open-side-panel') {
+      if (typeof tabId !== 'number') {
+        warn('open failed. tabId missing:', { message, sender });
+        return { ok: false, error: 'Tab was not found.' };
+      }
+
+      const allowed = isAllowedUrl(tabUrl);
+      log('open request:', { tabId, windowId, tabUrl, allowed });
+
+      if (!allowed) {
+        return { ok: false, error: 'This URL is not allowed.' };
+      }
+
+      await openPanelFromUserGesture(tabId);
+      return { ok: true, open: true };
+    }
+
+    if (message?.type === 'close-side-panel') {
+      if (typeof tabId !== 'number') {
+        warn('close failed. tabId missing:', { message, sender });
+        return { ok: false, error: 'Tab was not found.' };
+      }
+
+      log('close request:', { tabId, windowId, tabUrl });
+      await closePanel(tabId, windowId);
+      return { ok: true, open: false };
+    }
+
+    if (message?.type !== 'api-fetch') {
+      log('unknown message ignored:', message);
+      return undefined;
+    }
+
+    log('api-fetch start:', { url: message.url, options: message.options });
+    const options = { ...(message.options || {}) };
+    if (!options.credentials) {
+      options.credentials = 'include';
+    }
+
+    const res = await fetch(message.url, options);
+    const contentType = res.headers.get('content-type') || '';
+    const body = contentType.includes('application/json')
+      ? await res.json()
+      : await res.text();
+    const errorText =
+      typeof body === 'object' && body !== null && 'error' in body
+        ? String((body as { error: string }).error)
+        : typeof body === 'string' && body
+          ? body
+          : `HTTP ${res.status}`;
+
+    log('api-fetch end:', { url: message.url, ok: res.ok, status: res.status });
+    return {
+      ok: res.ok,
+      status: res.status,
+      body,
+      error: res.ok ? undefined : errorText,
+    };
+  };
+
+  run()
+    .then((response) => {
+      log('runtime.onMessage response:', response);
+      if (response !== undefined) sendResponse(response);
     })
-    .catch((err: Error) => {
-      sendResponse({ ok: false, error: err.message });
+    .catch((error: Error) => {
+      errorLog('runtime.onMessage failed:', error);
+      sendResponse({ ok: false, error: error.message });
     });
 
   return true;
