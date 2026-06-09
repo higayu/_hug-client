@@ -6,14 +6,12 @@ use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 
 #[Fillable([
     'user_id',
-    'facility_id',
     'name',
     'login_id',
     'hug_password',
@@ -55,7 +53,6 @@ class User extends Authenticatable implements FilamentUser, JWTSubject
     {
         return [
             'user_id' => 'integer',
-            'facility_id' => 'integer',
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'created_at' => 'datetime',
@@ -72,7 +69,6 @@ class User extends Authenticatable implements FilamentUser, JWTSubject
     {
         return [
             'user_id' => $this->user_id,
-            'facility_id' => $this->facility_id,
             'role' => $this->role,
         ];
     }
@@ -80,11 +76,6 @@ class User extends Authenticatable implements FilamentUser, JWTSubject
     public function canAccessPanel(Panel $panel): bool
     {
         return $this->role === 'admin';
-    }
-
-    public function facility(): BelongsTo
-    {
-        return $this->belongsTo(Facility::class, 'facility_id', 'facility_id');
     }
 
     public function supportRecords(): HasMany

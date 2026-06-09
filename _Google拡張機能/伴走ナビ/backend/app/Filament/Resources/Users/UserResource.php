@@ -22,7 +22,6 @@ class UserResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
 
-
     protected static ?string $navigationLabel = '職員';
 
     protected static ?string $modelLabel = '職員';
@@ -46,9 +45,7 @@ class UserResource extends Resource
 
     public static function getRelations(): array
     {
-        return [
-            //
-        ];
+        return [];
     }
 
     public static function getPages(): array

@@ -106,16 +106,6 @@ CREATE TABLE IF NOT EXISTS `cache_locks` (
 
 -- エクスポートするデータが選択されていません
 
---  テーブル hug_ai_support.facilities の構造をダンプしています
-CREATE TABLE IF NOT EXISTS `facilities` (
-  `facility_id` int(11) NOT NULL,
-  `name` varchar(255) NOT NULL,
-  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
-  PRIMARY KEY (`facility_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='事業所マスタ';
-
--- エクスポートするデータが選択されていません
-
 --  テーブル hug_ai_support.failed_jobs の構造をダンプしています
 CREATE TABLE IF NOT EXISTS `failed_jobs` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
@@ -217,7 +207,6 @@ CREATE TABLE IF NOT EXISTS `support_records` (
 --  テーブル hug_ai_support.users の構造をダンプしています
 CREATE TABLE IF NOT EXISTS `users` (
   `user_id` int(11) NOT NULL,
-  `facility_id` int(11) DEFAULT NULL,
   `name` varchar(255) NOT NULL,
   `login_id` varchar(255) DEFAULT NULL,
   `hug_password` varchar(255) DEFAULT NULL,
@@ -231,9 +220,7 @@ CREATE TABLE IF NOT EXISTS `users` (
   PRIMARY KEY (`user_id`),
   UNIQUE KEY `users_email_unique` (`email`),
   UNIQUE KEY `login_id` (`login_id`),
-  KEY `idx_users_facility_id` (`facility_id`),
-  KEY `idx_users_role` (`role`),
-  CONSTRAINT `fk_users_facility` FOREIGN KEY (`facility_id`) REFERENCES `facilities` (`facility_id`) ON UPDATE CASCADE
+  KEY `idx_users_role` (`role`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ユーザー／スタッフマスタ';
 
 -- エクスポートするデータが選択されていません

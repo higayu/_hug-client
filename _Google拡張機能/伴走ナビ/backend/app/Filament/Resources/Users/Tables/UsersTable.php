@@ -16,25 +16,44 @@ class UsersTable
         return $table
             ->columns([
                 TextColumn::make('user_id')
+                    ->label('ユーザーID')
                     ->numeric()
                     ->sortable(),
-                TextColumn::make('facility.name')
-                    ->searchable(),
+
                 TextColumn::make('name')
-                    ->searchable(),
-                TextColumn::make('email')
-                    ->label('Email address')
-                    ->searchable(),
-                TextColumn::make('email_verified_at')
-                    ->dateTime()
+                    ->label('氏名')
+                    ->searchable()
                     ->sortable(),
+
+                TextColumn::make('login_id')
+                    ->label('ログインID')
+                    ->searchable()
+                    ->sortable(),
+
+                TextColumn::make('email')
+                    ->label('メールアドレス')
+                    ->searchable()
+                    ->sortable(),
+
                 TextColumn::make('role')
-                    ->searchable(),
-                TextColumn::make('created_at')
+                    ->label('権限')
+                    ->searchable()
+                    ->sortable(),
+
+                TextColumn::make('email_verified_at')
+                    ->label('メール確認日時')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
+
+                TextColumn::make('created_at')
+                    ->label('作成日時')
+                    ->dateTime()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+
                 TextColumn::make('updated_at')
+                    ->label('更新日時')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),

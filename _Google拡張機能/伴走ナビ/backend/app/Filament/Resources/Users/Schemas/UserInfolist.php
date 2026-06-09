@@ -12,22 +12,34 @@ class UserInfolist
         return $schema
             ->components([
                 TextEntry::make('user_id')
+                    ->label('ユーザーID')
                     ->numeric(),
-                TextEntry::make('facility.name')
-                    ->label('Facility'),
-                TextEntry::make('name'),
+
+                TextEntry::make('name')
+                    ->label('氏名'),
+
+                TextEntry::make('login_id')
+                    ->label('ログインID')
+                    ->placeholder('-'),
+
                 TextEntry::make('email')
-                    ->label('Email address'),
+                    ->label('メールアドレス')
+                    ->placeholder('-'),
+
                 TextEntry::make('email_verified_at')
+                    ->label('メール確認日時')
                     ->dateTime()
                     ->placeholder('-'),
-                TextEntry::make('login_id')
-                    ->placeholder('-')
-                    ->columnSpanFull(),
-                TextEntry::make('role'),
+
+                TextEntry::make('role')
+                    ->label('権限'),
+
                 TextEntry::make('created_at')
+                    ->label('作成日時')
                     ->dateTime(),
+
                 TextEntry::make('updated_at')
+                    ->label('更新日時')
                     ->dateTime()
                     ->placeholder('-'),
             ]);
