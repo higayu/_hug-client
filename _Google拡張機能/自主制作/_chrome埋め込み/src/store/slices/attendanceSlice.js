@@ -34,7 +34,7 @@ const initialState = {
   attendanceDate: getFormattedDate(new Date()),
   attendanceRows: [],
   attendanceLoading: false,
-  attendanceStatus: 'HUG WM にログインしたうえで「一覧を取得」を押してください。',
+  attendanceStatus: '',
   attendanceLastFetchedAt: null,
   halfTime: getStoredHalfTime(),
   showLeftRecords: getStoredShowLeftRecords(),
