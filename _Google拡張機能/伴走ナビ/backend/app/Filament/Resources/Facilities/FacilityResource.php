@@ -22,6 +22,12 @@ class FacilityResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
 
+    protected static ?string $navigationLabel = '事業所';
+
+    protected static ?string $modelLabel = '事業所';
+
+    protected static ?string $pluralModelLabel = '事業所';
+
     public static function form(Schema $schema): Schema
     {
         return FacilityForm::configure($schema);

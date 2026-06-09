@@ -24,11 +24,11 @@ class SupportRecordResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
 
-    protected static ?string $navigationLabel = '支援記録';
+    protected static ?string $navigationLabel = '個人記録';
 
-    protected static ?string $modelLabel = '支援記録';
+    protected static ?string $modelLabel = '個人記録';
 
-    protected static ?string $pluralModelLabel = '支援記録';
+    protected static ?string $pluralModelLabel = '個人記録';
 
     public static function form(Schema $schema): Schema
     {
