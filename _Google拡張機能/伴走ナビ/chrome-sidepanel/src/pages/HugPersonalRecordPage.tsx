@@ -166,6 +166,16 @@ const HugPersonalRecordPage = () => {
       records.length > 0 ? '取得が完了しました。' : '該当する出席日の記録は見つかりませんでした。';
   }
 
+  const truncateText = (text: string | undefined | null, maxLength = 30) => {
+    if (!text) return '（取得できませんでした）';
+  
+    const normalized = text.replace(/\s+/g, ' ').trim();
+  
+    return normalized.length > maxLength
+      ? `${normalized.slice(0, maxLength)}...`
+      : normalized;
+  };
+
   return (
     <div className="w-full">
       <header className="mb-4">
@@ -313,8 +323,8 @@ const HugPersonalRecordPage = () => {
                       {row.staffName || '—'}
                       {row.user_id != null ? `（${row.user_id}）` : ''}
                     </td>
-                    <td style={{ whiteSpace: 'pre-wrap' }}>
-                      {row.note || '（取得できませんでした）'}
+                    <td title={row.note || ''}>
+                      {truncateText(row.note)}
                     </td>
                   </tr>
                 ))}

@@ -1,0 +1,20 @@
+{
+  "manifest_version": 3,
+  "name": "HUG test_施設取得",
+  "version": "1.0.0",
+  "description": "test_施設取得",
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.hug-ayumu.link/hug/wm/"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "host_permissions": [
+    "https://www.hug-ayumu.link/hug/wm/*"
+  ]
+}
