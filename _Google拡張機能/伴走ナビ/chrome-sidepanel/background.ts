@@ -56,12 +56,6 @@ const setPanelEnabled = async (tabId: number, enabled: boolean) => {
   });
 };
 
-const preparePanelForTab = async (tabId: number, url?: string) => {
-  const allowed = isAllowedUrl(url);
-  await setPanelEnabled(tabId, allowed);
-  return allowed;
-};
-
 const openPanelFromUserGesture = async (tabId: number) => {
   log('openPanelFromUserGesture start:', { tabId });
 
@@ -154,6 +148,50 @@ if ('onClosed' in chrome.sidePanel && chrome.sidePanel.onClosed) {
     }
   });
 }
+
+// サイドパネルページ側から runtime.connect されたら、
+// パネルが実際に開いている状態として管理します。
+// パネルが閉じられると port.onDisconnect が走るため、
+// Chrome 側の × で閉じた場合も openTabIds を正しく更新できます。
+chrome.runtime.onConnect.addListener((port) => {
+  if (port.name !== 'banso-navi-side-panel') return;
+
+  let connectedTabId: number | undefined;
+
+  port.onMessage.addListener((message) => {
+    log('runtime.onConnect message:', message);
+
+    if (message?.type !== 'side-panel-mounted') return;
+
+    if (typeof message.tabId !== 'number') {
+      warn('side-panel-mounted received without tabId:', message);
+      return;
+    }
+
+    connectedTabId = message.tabId;
+    openTabIds.add(connectedTabId);
+
+    log('side panel connected:', {
+      tabId: connectedTabId,
+      openTabIds: [...openTabIds],
+    });
+
+    void notifyTabPanelState(connectedTabId, true);
+  });
+
+  port.onDisconnect.addListener(() => {
+    if (typeof connectedTabId !== 'number') return;
+
+    openTabIds.delete(connectedTabId);
+
+    log('side panel disconnected:', {
+      tabId: connectedTabId,
+      openTabIds: [...openTabIds],
+    });
+
+    void notifyTabPanelState(connectedTabId, false);
+  });
+});
 
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   if (!changeInfo.url && changeInfo.status !== 'complete') return;

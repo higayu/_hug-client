@@ -14,6 +14,15 @@ declare global {
       sendMessage: (
         message: unknown,
       ) => Promise<{ ok?: boolean; status?: number; body?: unknown; error?: string }>;
+      connect?: (connectInfo: { name: string }) => {
+        postMessage: (message: unknown) => void;
+      };
+    };
+    tabs?: {
+      query: (queryInfo: {
+        active?: boolean;
+        currentWindow?: boolean;
+      }) => Promise<Array<{ id?: number }>>;
     };
   };
 }
