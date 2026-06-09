@@ -5,6 +5,7 @@ export const persistedStateKeys = [
   'chat',
   'correction',
   'facility',
+  'hugAuth',
   'hugPersonalRecord',
   'personalRecord',
   'ui',

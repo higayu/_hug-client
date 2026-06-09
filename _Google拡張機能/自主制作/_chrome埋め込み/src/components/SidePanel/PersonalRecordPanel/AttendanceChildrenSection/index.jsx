@@ -21,6 +21,7 @@ const buttonClassName =
 const getChildId = (child) => child.c_id ?? child.child_id ?? child.id ?? ''
 
 export default function AttendanceChildrenSection({
+  handleHprAttendanceDateChange,
   handleHprAttendanceFetch,
   handleHprFacilityChange,
   hprAttendanceDate,
@@ -28,7 +29,6 @@ export default function AttendanceChildrenSection({
   hprFacilitiesLoading,
   hprSelectedChildId,
   hprSelectedFacilityId,
-  setHprAttendanceDate,
   setHprSelectedChildId,
 }) {
   const hprAttendanceChildren = useSelector(selectHprAttendanceChildren)
@@ -41,6 +41,8 @@ export default function AttendanceChildrenSection({
 
   const canFetchChildren =
     !hprFacilitiesLoading && Boolean(hprFacilities?.length) && Boolean(hprSelectedFacilityId)
+
+  const isRefreshing = hprFacilitiesLoading || hprAttendanceLoading
 
   const childPlaceholder = hprFacilitiesLoading
     ? '施設を取得中...'
@@ -59,7 +61,7 @@ export default function AttendanceChildrenSection({
           type="date"
           className={inputClassName}
           value={hprAttendanceDate}
-          onChange={(event) => setHprAttendanceDate(event.target.value)}
+          onChange={(event) => handleHprAttendanceDateChange(event.target.value)}
         />
       </label>
 
@@ -116,24 +118,24 @@ export default function AttendanceChildrenSection({
           type="button"
           className={`${buttonClassName} flex h-[30px] w-[34px] items-center justify-center`}
           onClick={handleHprAttendanceFetch}
-          disabled={!canFetchChildren || hprAttendanceLoading}
+          disabled={!canFetchChildren || isRefreshing}
           title={
             !canFetchChildren
               ? '施設の取得完了後に児童を取得できます'
-              : hprAttendanceLoading
+              : isRefreshing
                 ? '取得中...'
-                : '児童を再取得'
+                : '事業所と児童を再取得'
           }
           aria-label={
             !canFetchChildren
               ? '施設の取得完了後に児童を取得できます'
-              : hprAttendanceLoading
+              : isRefreshing
                 ? '取得中...'
-                : '児童を再取得'
+                : '事業所と児童を再取得'
           }
         >
           <FiRefreshCw
-            className={`h-4 w-4 ${hprAttendanceLoading ? 'animate-spin' : ''}`}
+            className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`}
             aria-hidden="true"
           />
         </button>

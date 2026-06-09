@@ -20,6 +20,7 @@ const initialState = {
   hprAttendanceLoading: false,
   hprFacilities: [],
   hprFacilitiesLoading: false,
+  hprPublishSaveVisible: false,
 }
 
 const hugPersonalRecordSlice = createSlice({
@@ -74,6 +75,9 @@ const hugPersonalRecordSlice = createSlice({
     setHprFacilitiesLoading: (state, action) => {
       state.hprFacilitiesLoading = action.payload
     },
+    setHprPublishSaveVisible: (state, action) => {
+      state.hprPublishSaveVisible = action.payload
+    },
   },
 })
 
@@ -94,11 +98,13 @@ export const {
   setHprAttendanceLoading,
   setHprFacilities,
   setHprFacilitiesLoading,
+  setHprPublishSaveVisible,
 } = hugPersonalRecordSlice.actions
 
 export const selectHprAttendanceChildren = (state) => state.hugPersonalRecord.hprAttendanceChildren
 export const selectHprAttendanceLoading = (state) => state.hugPersonalRecord.hprAttendanceLoading
 export const selectHprFacilities = (state) => state.hugPersonalRecord.hprFacilities
 export const selectHprFacilitiesLoading = (state) => state.hugPersonalRecord.hprFacilitiesLoading
+export const selectHprPublishSaveVisible = (state) => state.hugPersonalRecord.hprPublishSaveVisible
 
 export default hugPersonalRecordSlice.reducer

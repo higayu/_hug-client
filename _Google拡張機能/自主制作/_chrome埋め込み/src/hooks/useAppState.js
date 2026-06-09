@@ -34,6 +34,12 @@ import {
   setSelectedFacilityId as setSelectedFacilityIdAction,
 } from '@/store/slices/facilitySlice'
 import {
+  setHugAutoLoginEnabled as setHugAutoLoginEnabledAction,
+  setHugKeepSession as setHugKeepSessionAction,
+  setHugLoginId as setHugLoginIdAction,
+  setHugPassword as setHugPasswordAction,
+} from '@/store/slices/hugAuthSlice'
+import {
   setHprAttendanceChildren as setHprAttendanceChildrenAction,
   setHprAttendanceDate as setHprAttendanceDateAction,
   setHprAttendanceLoading as setHprAttendanceLoadingAction,
@@ -41,6 +47,7 @@ import {
   setHprChildrenByFacility as setHprChildrenByFacilityAction,
   setHprFacilities as setHprFacilitiesAction,
   setHprFacilitiesLoading as setHprFacilitiesLoadingAction,
+  setHprPublishSaveVisible as setHprPublishSaveVisibleAction,
   setHprEndDate as setHprEndDateAction,
   setHprLoading as setHprLoadingAction,
   setHprNote as setHprNoteAction,
@@ -126,7 +133,16 @@ export const useAppState = () => {
     hprAttendanceLoading,
     hprFacilities,
     hprFacilitiesLoading,
+    hprPublishSaveVisible,
   } = useSelector((state) => state.hugPersonalRecord)
+  const {
+    loginStatus: hugLoginStatus,
+    autoLoginEnabled: hugAutoLoginEnabled,
+    keepSession: hugKeepSession,
+    loginId: hugLoginId,
+    password: hugPassword,
+    loginCheckLoading: hugLoginCheckLoading,
+  } = useSelector((state) => state.hugAuth)
 
   const createStoreSetter = (actionCreator, selector) => (value) => {
     const current = selector(reduxStore.getState())
@@ -187,6 +203,18 @@ export const useAppState = () => {
   const setHprAttendanceLoading = createStoreSetter(setHprAttendanceLoadingAction, (state) => state.hugPersonalRecord.hprAttendanceLoading)
   const setHprFacilities = createStoreSetter(setHprFacilitiesAction, (state) => state.hugPersonalRecord.hprFacilities)
   const setHprFacilitiesLoading = createStoreSetter(setHprFacilitiesLoadingAction, (state) => state.hugPersonalRecord.hprFacilitiesLoading)
+  const setHprPublishSaveVisible = createStoreSetter(
+    setHprPublishSaveVisibleAction,
+    (state) => state.hugPersonalRecord.hprPublishSaveVisible,
+  )
+
+  const setHugLoginId = createStoreSetter(setHugLoginIdAction, (state) => state.hugAuth.loginId)
+  const setHugPassword = createStoreSetter(setHugPasswordAction, (state) => state.hugAuth.password)
+  const setHugAutoLoginEnabled = createStoreSetter(
+    setHugAutoLoginEnabledAction,
+    (state) => state.hugAuth.autoLoginEnabled,
+  )
+  const setHugKeepSession = createStoreSetter(setHugKeepSessionAction, (state) => state.hugAuth.keepSession)
 
   return {
     dispatch,
@@ -247,6 +275,13 @@ export const useAppState = () => {
     hprAttendanceLoading,
     hprFacilities,
     hprFacilitiesLoading,
+    hprPublishSaveVisible,
+    hugLoginStatus,
+    hugAutoLoginEnabled,
+    hugKeepSession,
+    hugLoginId,
+    hugLoginCheckLoading,
+    hugPassword,
     setSidebarOpen,
     setSidePanelTab,
     setChatStarted,
@@ -295,5 +330,10 @@ export const useAppState = () => {
     setHprAttendanceLoading,
     setHprFacilities,
     setHprFacilitiesLoading,
+    setHprPublishSaveVisible,
+    setHugLoginId,
+    setHugPassword,
+    setHugAutoLoginEnabled,
+    setHugKeepSession,
   }
 }

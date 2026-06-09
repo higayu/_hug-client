@@ -19,6 +19,16 @@ export default function AttendancePanel(props) {
     canFetchAttendance,
     attendanceDate,
     hprFacilitiesLoading,
+    hugAutoLoginEnabled,
+    hugKeepSession,
+    hugLoginCheckLoading,
+    hugLoginId,
+    hugLoginStatus,
+    hugPassword,
+    setHugAutoLoginEnabled,
+    setHugKeepSession,
+    setHugLoginId,
+    setHugPassword,
     attendanceFacilityMap,
     attendanceLastFetchedAt,
     attendanceLoading,
@@ -31,6 +41,9 @@ export default function AttendancePanel(props) {
     handleAttendanceFacilityToggle,
     handleAttendanceFetch,
     handleHalfTimeChange,
+    handleHugAuthCredentialsClear,
+    handleHugAuthCredentialsSave,
+    handleHugAutoLoginExecute,
     handlePostEnter,
     handlePostLeave,
     handleShowLeftRecordsChange,
@@ -76,9 +89,22 @@ export default function AttendancePanel(props) {
           handleAttendanceFacilityToggle={handleAttendanceFacilityToggle}
           handleAttendanceFetch={handleAttendanceFetch}
           handleHalfTimeChange={handleHalfTimeChange}
+          handleHugAuthCredentialsClear={handleHugAuthCredentialsClear}
+          handleHugAuthCredentialsSave={handleHugAuthCredentialsSave}
+          handleHugAutoLoginExecute={handleHugAutoLoginExecute}
           handleShowLeftRecordsChange={handleShowLeftRecordsChange}
+          hugAutoLoginEnabled={hugAutoLoginEnabled}
+          hugLoginCheckLoading={hugLoginCheckLoading}
+          hugKeepSession={hugKeepSession}
+          hugLoginId={hugLoginId}
+          hugLoginStatus={hugLoginStatus}
+          hugPassword={hugPassword}
           hasEnterMail={hasEnterMail}
           overTwoHoursCount={overTwoHoursCount}
+          setHugAutoLoginEnabled={setHugAutoLoginEnabled}
+          setHugKeepSession={setHugKeepSession}
+          setHugLoginId={setHugLoginId}
+          setHugPassword={setHugPassword}
           setAttendanceDate={setAttendanceDate}
           showLeftRecords={showLeftRecords}
         />

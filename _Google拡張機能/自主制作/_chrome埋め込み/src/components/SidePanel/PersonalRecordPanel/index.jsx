@@ -9,6 +9,7 @@ const formRootClassName =
 
 export default function PersonalRecordPanel(props) {
   const {
+    handleHprAttendanceDateChange,
     handleHprAttendanceFetch,
     handleHprFacilityChange,
     handleHprPanelHugFetch,
@@ -21,13 +22,13 @@ export default function PersonalRecordPanel(props) {
     hprEndDate,
     hprLoading,
     hprNote,
+    hprPublishSaveVisible,
     hprRecordStaff,
     hprResults,
     hprSelectedChildId,
     hprSelectedFacilityId,
     hprStartDate,
     hugStatus,
-    setHprAttendanceDate,
     setHprEndDate,
     setHprNote,
     setHprRecordStaff,
@@ -50,6 +51,7 @@ export default function PersonalRecordPanel(props) {
     >
       <div id="hug-personal-record-form" className={formRootClassName}>
         <AttendanceChildrenSection
+          handleHprAttendanceDateChange={handleHprAttendanceDateChange}
           handleHprAttendanceFetch={handleHprAttendanceFetch}
           handleHprFacilityChange={handleHprFacilityChange}
           hprAttendanceDate={hprAttendanceDate}
@@ -57,7 +59,6 @@ export default function PersonalRecordPanel(props) {
           hprFacilitiesLoading={hprFacilitiesLoading}
           hprSelectedChildId={hprSelectedChildId}
           hprSelectedFacilityId={hprSelectedFacilityId}
-          setHprAttendanceDate={setHprAttendanceDate}
           setHprSelectedChildId={setHprSelectedChildId}
         />
 
@@ -69,6 +70,7 @@ export default function PersonalRecordPanel(props) {
           hprEndDate={hprEndDate}
           hprLoading={hprLoading}
           hprNote={hprNote}
+          hprPublishSaveVisible={hprPublishSaveVisible}
           hprRecordStaff={hprRecordStaff}
           hprResults={hprResults}
           hprStartDate={hprStartDate}

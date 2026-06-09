@@ -10,7 +10,10 @@ export {
 
 export { hugWmFetch, hugWmFetchText } from './shared/fetch'
 
+export { checkHugWmLoginStatus, parseHugWmLoginStatusFromHtml } from './checkHugWmLoginStatus'
+export { parseLoginFormFieldsFromHtml, postLoginFromHugWm } from './postLoginFromHugWm'
 export { fetchFacilitiesFromHugWm } from './fetchFacilitiesFromHugWm'
+export { fetchChildrenFromHugWm } from './fetchChildrenFromHugWm'
 export { fetchAttendanceRows, fetchAttendanceRowsForFacility } from './fetchAttendanceRowsFromHugWm'
 export { postEnterAttendance, postLeaveAttendance } from './postAttendanceFromHugWm'
 export {

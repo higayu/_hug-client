@@ -3,12 +3,31 @@ import { useAttendanceAutoUpdate } from '@/hooks/useAttendanceAutoUpdate'
 import { useAppState } from '@/hooks/useAppState'
 import { ATTENDANCE_AUTO_UPDATE_STORAGE_KEY } from '@/store/slices/attendanceSlice'
 import {
+  clearHugAuthCredentials,
+  loadHugAuthCredentials,
+  saveHugAuthCredentials,
+} from '@/lib/hugAuthCredentials'
+import {
+  setHugAuthCredentials as setHugAuthCredentialsAction,
+  clearHugAuthCredentialsState as clearHugAuthCredentialsStateAction,
+  setHugLoginCheckLoading as setHugLoginCheckLoadingAction,
+  setHugLoginStatus as setHugLoginStatusAction,
+} from '@/store/slices/hugAuthSlice'
+import {
+  hasCompleteHprAttendanceCache,
+  loadHprAttendanceCache,
+  saveHprAttendanceCache,
+} from '@/lib/personalRecordAttendanceCache'
+import {
+  setHprAttendanceChildren as setHprAttendanceChildrenAction,
+  setHprAttendanceDate as setHprAttendanceDateAction,
   setHprFacilities as setHprFacilitiesAction,
   setHprFacilitiesLoading as setHprFacilitiesLoadingAction,
+  setHprSelectedChildId as setHprSelectedChildIdAction,
   setHprSelectedFacilityId as setHprSelectedFacilityIdAction,
 } from '@/store/slices/hugPersonalRecordSlice'
 import { API_BASE, CHAT_SYSTEM_PROMPT, CORRECTION_SYSTEM_PROMPT, NAV_LINKS, PAGE_TITLES } from '@/constants/appConfig'
-import { MOCK_CHILDREN, MOCK_FACILITIES, MOCK_RECORDS } from '@/constants/mockData'
+import { MOCK_FACILITIES, MOCK_RECORDS } from '@/constants/mockData'
 import { callAi } from '@/lib/aiClient'
 import { fetchJson } from '@/lib/apiClient'
 import {
@@ -16,7 +35,10 @@ import {
   ATTENDANCE_FACILITY_OPTIONS,
   fetchAttendanceRows,
   fetchAttendanceRowsForFacility,
+  checkHugWmLoginStatus,
+  fetchChildrenFromHugWm,
   fetchFacilitiesFromHugWm,
+  postLoginFromHugWm,
   fetchPersonalRecordUntilFound,
   fetchPersonalRecordWithNote,
   HALF_TIME_STORAGE_KEY,
@@ -119,6 +141,13 @@ export const useAppController = () => {
     hprAttendanceLoading,
     hprFacilities,
     hprFacilitiesLoading,
+    hprPublishSaveVisible,
+    hugLoginStatus,
+    hugAutoLoginEnabled,
+    hugKeepSession,
+    hugLoginId,
+    hugLoginCheckLoading,
+    hugPassword,
     setSidebarOpen,
     setSidePanelTab,
     setChatStarted,
@@ -164,12 +193,108 @@ export const useAppController = () => {
     setHprSelectedChildId,
     setHprAttendanceChildren,
     setHprAttendanceLoading,
+    setHprFacilities,
+    setHprFacilitiesLoading,
+    setHugLoginId,
+    setHugPassword,
+    setHugAutoLoginEnabled,
+    setHugKeepSession,
   } = useAppState()
 
   useEffect(() => {
     document.body.classList.add('hug-attendance-primary-page')
     return () => document.body.classList.remove('hug-attendance-primary-page')
   }, [])
+
+  const runHugAutoLogin = useCallback(
+    async ({ silent = false, force = false } = {}) => {
+      const auth = reduxStore.getState().hugAuth
+      dispatch(setHugLoginCheckLoadingAction(true))
+
+      try {
+        let status = await checkHugWmLoginStatus()
+
+        if (status !== 'authenticated' && (force || auth.autoLoginEnabled)) {
+          if (!auth.loginId?.trim() || !auth.password) {
+            if (!silent) {
+              alert('ログインIDとパスワードを入力して保存してください。')
+            }
+            dispatch(setHugLoginStatusAction('unauthenticated'))
+            return false
+          }
+
+          await postLoginFromHugWm({
+            loginId: auth.loginId,
+            password: auth.password,
+            keepSession: auth.keepSession,
+          })
+          status = await checkHugWmLoginStatus()
+        }
+
+        dispatch(setHugLoginStatusAction(status))
+
+        if (status !== 'authenticated') {
+          if (!silent) {
+            alert('HUG WM にログインできていません。')
+          }
+          return false
+        }
+
+        if (!silent && force) {
+          alert('ログインしました。')
+        }
+        return true
+      } catch (error) {
+        console.warn('[runHugAutoLogin]', error)
+        dispatch(setHugLoginStatusAction('unauthenticated'))
+        if (!silent) {
+          alert(`ログインに失敗しました: ${error.message}`)
+        }
+        return false
+      } finally {
+        dispatch(setHugLoginCheckLoadingAction(false))
+      }
+    },
+    [dispatch, reduxStore],
+  )
+
+  useEffect(() => {
+    let mounted = true
+
+    const initHugAuth = async () => {
+      const credentials = await loadHugAuthCredentials()
+      if (!mounted) return
+      dispatch(setHugAuthCredentialsAction(credentials))
+
+      if (credentials.autoLoginEnabled) {
+        await runHugAutoLogin({ silent: true })
+        return
+      }
+
+      dispatch(setHugLoginCheckLoadingAction(true))
+      try {
+        const status = await checkHugWmLoginStatus()
+        if (mounted) {
+          dispatch(setHugLoginStatusAction(status))
+        }
+      } catch (error) {
+        console.warn('[initHugAuth] login status check failed:', error)
+        if (mounted) {
+          dispatch(setHugLoginStatusAction('unauthenticated'))
+        }
+      } finally {
+        if (mounted) {
+          dispatch(setHugLoginCheckLoadingAction(false))
+        }
+      }
+    }
+
+    void initHugAuth()
+
+    return () => {
+      mounted = false
+    }
+  }, [dispatch, runHugAutoLogin])
 
   useEffect(() => {
     const initial = hashToPage(window.location.hash)
@@ -191,27 +316,19 @@ export const useAppController = () => {
     let mounted = true
 
     const loadChildren = async (facilityId) => {
+      let children = []
       try {
-        const data = await fetchJson(`${API_BASE}/children/_search?pk=facility_id&values=${facilityId}`)
-        if (!mounted) return
-        dispatch(setChildrenByFacilityAction({
-          ...reduxStore.getState().facility.childrenByFacility,
-          [facilityId]: data,
-        }))
-        if (data[0]?.child_id && !reduxStore.getState().facility.selectedChildId) {
-          dispatch(setSelectedChildIdAction(data[0].child_id))
-        }
+        children = await fetchChildrenFromHugWm({ facilityIds: [facilityId] })
       } catch (error) {
-        console.warn('[loadChildren] fallback to mock data', error)
-        const fallback = MOCK_CHILDREN[facilityId] || []
-        if (!mounted) return
-        dispatch(setChildrenByFacilityAction({
-          ...reduxStore.getState().facility.childrenByFacility,
-          [facilityId]: fallback,
-        }))
-        if (fallback[0]?.child_id && !reduxStore.getState().facility.selectedChildId) {
-          dispatch(setSelectedChildIdAction(fallback[0].child_id))
-        }
+        console.warn('[loadChildren] HUG WM から児童を取得できませんでした:', error)
+      }
+      if (!mounted) return
+      dispatch(setChildrenByFacilityAction({
+        ...reduxStore.getState().facility.childrenByFacility,
+        [facilityId]: children,
+      }))
+      if (children[0]?.child_id && !reduxStore.getState().facility.selectedChildId) {
+        dispatch(setSelectedChildIdAction(children[0].child_id))
       }
     }
 
@@ -251,7 +368,27 @@ export const useAppController = () => {
   useEffect(() => {
     let mounted = true
 
+    const restoreFromCache = (cached) => {
+      dispatch(setHprAttendanceDateAction(cached.attendanceDate))
+      dispatch(setHprFacilitiesAction(cached.facilities))
+      if (cached.selectedFacilityId) {
+        dispatch(setHprSelectedFacilityIdAction(cached.selectedFacilityId))
+      }
+      dispatch(setHprAttendanceChildrenAction(cached.attendanceChildren))
+      if (cached.selectedChildId) {
+        dispatch(setHprSelectedChildIdAction(cached.selectedChildId))
+      }
+      dispatch(setHprFacilitiesLoadingAction(false))
+    }
+
     const loadHprFacilities = async () => {
+      const cached = loadHprAttendanceCache()
+      if (hasCompleteHprAttendanceCache(cached)) {
+        if (!mounted) return
+        restoreFromCache(cached)
+        return
+      }
+
       dispatch(setHprFacilitiesLoadingAction(true))
       try {
         const data = await fetchFacilitiesFromHugWm()
@@ -326,71 +463,210 @@ export const useAppController = () => {
   const handleFacilityChange = async (value) => {
     const facilityId = Number(value)
     setSelectedFacilityId(facilityId)
-    const children = childrenByFacility[facilityId]
-    if (children?.[0]?.child_id) {
-      setSelectedChildId(children[0].child_id)
+    const cached = childrenByFacility[facilityId]
+    if (cached?.[0]?.child_id) {
+      setSelectedChildId(cached[0].child_id)
       return
     }
 
     try {
-      const data = await fetchJson(`${API_BASE}/children/_search?pk=facility_id&values=${facilityId}`)
-      setChildrenByFacility((prev) => ({ ...prev, [facilityId]: data }))
-      setSelectedChildId(data[0]?.child_id || '')
+      const children = await fetchChildrenFromHugWm({ facilityIds: [facilityId] })
+      setChildrenByFacility((prev) => ({ ...prev, [facilityId]: children }))
+      setSelectedChildId(children[0]?.child_id || '')
     } catch (error) {
-      console.warn('[handleFacilityChange] fallback to mock data', error)
-      const fallback = MOCK_CHILDREN[facilityId] || []
-      setChildrenByFacility((prev) => ({ ...prev, [facilityId]: fallback }))
-      setSelectedChildId(fallback[0]?.child_id || '')
+      console.warn('[handleFacilityChange] HUG WM から児童を取得できませんでした:', error)
+      setChildrenByFacility((prev) => ({ ...prev, [facilityId]: [] }))
+      setSelectedChildId('')
     }
   }
+
+  const runHprAttendanceChildrenFetch = useCallback(
+    async ({ silent = false, date, facilityId, facilities: facilitiesOverride } = {}) => {
+      const state = reduxStore.getState().hugPersonalRecord
+      const resolvedDate = date ?? state.hprAttendanceDate
+      const resolvedFacilityId = facilityId ?? state.hprSelectedFacilityId
+      const facilities = facilitiesOverride ?? state.hprFacilities
+
+      if (state.hprFacilitiesLoading) {
+        if (!silent) alert('施設データを取得中です。完了するまで児童を取得できません。')
+        return
+      }
+
+      if (!facilities?.length) {
+        if (!silent) {
+          alert('施設データが取得できていません。HUG WM にログインしたうえで再読み込みしてください。')
+        }
+        return
+      }
+
+      if (!resolvedFacilityId) {
+        if (!silent) alert('事業所を選択してください。')
+        return
+      }
+
+      if (!resolvedDate) {
+        if (!silent) alert('出席表日付を指定してください。')
+        return
+      }
+
+      const facility = facilities.find(
+        (item) => String(item.facility_id) === String(resolvedFacilityId),
+      )
+      if (!facility) {
+        if (!silent) {
+          alert('事業所情報が見つかりません。HUG WM にログインしたうえで再読み込みしてください。')
+        }
+        return
+      }
+
+      setHprAttendanceLoading(true)
+      try {
+        const rows = await fetchAttendanceRowsForFacility({
+          date: resolvedDate,
+          facilityId: facility.facility_id,
+          facilityName: facility.name,
+        })
+        setHprAttendanceChildren(rows)
+        const firstChildId = rows[0]?.c_id ?? rows[0]?.child_id ?? rows[0]?.id
+        const nextChildId = firstChildId || ''
+        if (nextChildId) {
+          setHprSelectedChildId(nextChildId)
+        } else {
+          setHprSelectedChildId('')
+        }
+        saveHprAttendanceCache({
+          attendanceDate: resolvedDate,
+          facilities,
+          selectedFacilityId: resolvedFacilityId,
+          attendanceChildren: rows,
+          selectedChildId: nextChildId,
+        })
+      } catch (error) {
+        if (silent) {
+          console.warn('[runHprAttendanceChildrenFetch]', error)
+        } else {
+          alert(`児童の取得に失敗しました: ${error.message}`)
+        }
+      } finally {
+        setHprAttendanceLoading(false)
+      }
+    },
+    [
+      reduxStore,
+      setHprAttendanceChildren,
+      setHprAttendanceLoading,
+      setHprSelectedChildId,
+    ],
+  )
 
   const handleHprFacilityChange = (value) => {
-    setHprSelectedFacilityId(Number(value))
+    const facilityId = Number(value)
+    setHprSelectedFacilityId(facilityId)
     setHprSelectedChildId('')
     setHprAttendanceChildren([])
+    void runHprAttendanceChildrenFetch({ silent: true, facilityId })
   }
 
-  const handleHprAttendanceFetch = async () => {
-    if (hprFacilitiesLoading) {
-      alert('施設データを取得中です。完了するまで児童を取得できません。')
+  const handleHprAttendanceDateChange = (value) => {
+    setHprAttendanceDate(value)
+    void runHprAttendanceChildrenFetch({ silent: true, date: value })
+  }
+
+  const handleHprAttendanceFetch = useCallback(async () => {
+    const state = reduxStore.getState().hugPersonalRecord
+    const resolvedDate = state.hprAttendanceDate
+
+    if (!resolvedDate) {
+      alert('出席表日付を指定してください。')
       return
     }
 
-    if (!hprFacilities?.length) {
+    setHprFacilitiesLoading(true)
+    let facilities
+    try {
+      facilities = await fetchFacilitiesFromHugWm()
+      setHprFacilities(facilities)
+    } catch (error) {
+      alert(`事業所の取得に失敗しました: ${error.message}`)
+      setHprFacilities([])
+      setHprAttendanceChildren([])
+      setHprSelectedChildId('')
+      return
+    } finally {
+      setHprFacilitiesLoading(false)
+    }
+
+    if (!facilities?.length) {
       alert('施設データが取得できていません。HUG WM にログインしたうえで再読み込みしてください。')
+      setHprAttendanceChildren([])
+      setHprSelectedChildId('')
       return
     }
 
-    if (!hprSelectedFacilityId) {
+    let facilityId = state.hprSelectedFacilityId
+    const stillValid = facilities.some(
+      (item) => String(item.facility_id) === String(facilityId),
+    )
+    if (!stillValid) {
+      const selected = facilities.find((facility) => facility.selected) || facilities[0]
+      facilityId = selected?.facility_id || ''
+      if (facilityId) {
+        setHprSelectedFacilityId(facilityId)
+      }
+    }
+
+    if (!facilityId) {
       alert('事業所を選択してください。')
       return
     }
 
-    const facility = hprFacilities.find(
-      (item) => String(item.facility_id) === String(hprSelectedFacilityId),
-    )
-    if (!facility) {
-      alert('事業所情報が見つかりません。HUG WM にログインしたうえで再読み込みしてください。')
+    await runHprAttendanceChildrenFetch({
+      silent: false,
+      date: resolvedDate,
+      facilityId,
+      facilities,
+    })
+  }, [
+    reduxStore,
+    runHprAttendanceChildrenFetch,
+    setHprAttendanceChildren,
+    setHprFacilities,
+    setHprFacilitiesLoading,
+    setHprSelectedChildId,
+    setHprSelectedFacilityId,
+  ])
+
+  const handleHugAuthCredentialsSave = async () => {
+    const state = reduxStore.getState().hugAuth
+    if (!state.loginId.trim()) {
+      alert('ログインIDを入力してください。')
+      return
+    }
+    if (!state.password) {
+      alert('パスワードを入力してください。')
       return
     }
 
-    setHprAttendanceLoading(true)
-    try {
-      const rows = await fetchAttendanceRowsForFacility({
-        date: hprAttendanceDate,
-        facilityId: facility.facility_id,
-        facilityName: facility.name,
-      })
-      setHprAttendanceChildren(rows)
-      const firstChildId = rows[0]?.c_id ?? rows[0]?.child_id ?? rows[0]?.id
-      if (firstChildId) {
-        setHprSelectedChildId(firstChildId)
-      }
-    } catch (error) {
-      alert(`児童の取得に失敗しました: ${error.message}`)
-    } finally {
-      setHprAttendanceLoading(false)
+    await saveHugAuthCredentials({
+      loginId: state.loginId,
+      password: state.password,
+      autoLoginEnabled: state.autoLoginEnabled,
+      keepSession: state.keepSession,
+    })
+    alert('自動ログイン情報を保存しました。')
+
+    if (reduxStore.getState().hugAuth.autoLoginEnabled) {
+      await runHugAutoLogin({ silent: true })
     }
+  }
+
+  const handleHugAutoLoginExecute = () => runHugAutoLogin({ silent: false, force: true })
+
+  const handleHugAuthCredentialsClear = async () => {
+    if (!window.confirm('保存したログイン情報を削除します。よろしいですか？')) return
+    await clearHugAuthCredentials()
+    dispatch(clearHugAuthCredentialsStateAction())
+    alert('自動ログイン情報を削除しました。')
   }
 
   const pageHeader = useMemo(() => PAGE_TITLES[activePage], [activePage])
@@ -926,8 +1202,12 @@ export const useAppController = () => {
     handleCorrectionMode,
     handleFacilityChange,
     handleHalfTimeChange,
+    handleHugAuthCredentialsClear,
+    handleHugAuthCredentialsSave,
+    handleHugAutoLoginExecute,
     handleHugFetch,
     handleHugMonthFetch,
+    handleHprAttendanceDateChange,
     handleHprAttendanceFetch,
     handleHprFacilityChange,
     handleHprPanelHugFetch,
@@ -949,6 +1229,13 @@ export const useAppController = () => {
     hprAttendanceDate,
     hprFacilities,
     hprFacilitiesLoading,
+    hprPublishSaveVisible,
+    hugAutoLoginEnabled,
+    hugKeepSession,
+    hugLoginId,
+    hugLoginCheckLoading,
+    hugLoginStatus,
+    hugPassword,
     hprSelectedChildId,
     hprSelectedFacilityId,
     hprStartDate,
@@ -977,6 +1264,10 @@ export const useAppController = () => {
     setHprEndDate,
     setHprNote,
     setHprRecordStaff,
+    setHugAutoLoginEnabled,
+    setHugKeepSession,
+    setHugLoginId,
+    setHugPassword,
     setHprAttendanceDate,
     setHprSelectedChildId,
     setHprStartDate,

@@ -21,6 +21,7 @@ export default function PersonalRecordSection({
   hprEndDate,
   hprLoading,
   hprNote,
+  hprPublishSaveVisible,
   hprRecordStaff,
   hprResults,
   hprStartDate,
@@ -124,14 +125,16 @@ export default function PersonalRecordSection({
           下書きで更新
         </button>
 
-        <button
-          type="button"
-          className="flex-1 cursor-pointer rounded border border-[#1565c0] bg-[#e3f2fd] px-2.5 py-1.5 font-bold text-[#0d47a1] disabled:cursor-default disabled:opacity-60"
-          onClick={() => handleHugSave('2')}
-          disabled={!canSave}
-        >
-          公開で更新
-        </button>
+        {hprPublishSaveVisible && (
+          <button
+            type="button"
+            className="flex-1 cursor-pointer rounded border border-[#1565c0] bg-[#e3f2fd] px-2.5 py-1.5 font-bold text-[#0d47a1] disabled:cursor-default disabled:opacity-60"
+            onClick={() => handleHugSave('2')}
+            disabled={!canSave}
+          >
+            公開で更新
+          </button>
+        )}
       </div>
 
       {hprResults.length > 0 && (
