@@ -35,8 +35,17 @@ class SupportRecordController extends Controller
             'target_date' => ['required', 'date'],
         ]);
 
-        $record = SupportRecord::create($validated);
+        $record = SupportRecord::updateOrCreate(
+            [
+                'child_id' => $validated['child_id'],
+                'target_date' => $validated['target_date'],
+            ],
+            [
+                'user_id' => $validated['user_id'],
+                'content' => $validated['content'],
+            ]
+        );
 
-        return response()->json($record, 201);
+        return response()->json($record, $record->wasRecentlyCreated ? 201 : 200);
     }
 }

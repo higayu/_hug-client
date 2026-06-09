@@ -14,24 +14,42 @@ class SupportRecordsTable
     public static function configure(Table $table): Table
     {
         return $table
+            ->defaultSort('child_id', 'asc')
+            ->modifyQueryUsing(fn ($query) => $query
+                ->orderBy('child_id')
+                ->orderByDesc('target_date')
+            )
             ->columns([
                 TextColumn::make('child_id')
+                    ->label('児童ID')
                     ->numeric()
-                    ->sortable(),
-                TextColumn::make('user.name')
+                    ->sortable()
                     ->searchable(),
+
+                TextColumn::make('target_date')
+                    ->label('対象日')
+                    ->date('Y-m-d')
+                    ->sortable(),
+
+                TextColumn::make('user.name')
+                    ->label('記録者')
+                    ->searchable()
+                    ->sortable(),
+
                 TextColumn::make('content')
+                    ->label('内容')
                     ->limit(60)
                     ->searchable(),
-                TextColumn::make('target_date')
-                    ->date()
-                    ->sortable(),
+
                 TextColumn::make('created_at')
-                    ->dateTime()
+                    ->label('作成日時')
+                    ->dateTime('Y-m-d H:i')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
+
                 TextColumn::make('updated_at')
-                    ->dateTime()
+                    ->label('更新日時')
+                    ->dateTime('Y-m-d H:i')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])

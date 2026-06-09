@@ -12,17 +12,27 @@ class SupportRecordInfolist
         return $schema
             ->components([
                 TextEntry::make('child_id')
+                    ->label('児童ID')
                     ->numeric(),
-                TextEntry::make('user.name')
-                    ->label('User'),
-                TextEntry::make('content')
-                    ->columnSpanFull(),
+
                 TextEntry::make('target_date')
-                    ->date(),
+                    ->label('対象日')
+                    ->date('Y-m-d'),
+
+                TextEntry::make('user.name')
+                    ->label('記録者'),
+
+                TextEntry::make('content')
+                    ->label('内容')
+                    ->columnSpanFull(),
+
                 TextEntry::make('created_at')
-                    ->dateTime(),
+                    ->label('作成日時')
+                    ->dateTime('Y-m-d H:i'),
+
                 TextEntry::make('updated_at')
-                    ->dateTime(),
+                    ->label('更新日時')
+                    ->dateTime('Y-m-d H:i'),
             ]);
     }
 }
