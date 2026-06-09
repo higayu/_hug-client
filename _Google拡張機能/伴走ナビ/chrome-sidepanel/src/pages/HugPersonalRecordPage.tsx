@@ -110,31 +110,43 @@ const HugPersonalRecordPage = () => {
       alert('児童を選択してください');
       return;
     }
-
+  
     const registerable = records
-      .map((row) => ({
-        child_id: Number(childId),
-        target_date: row.date,
-        content: row.note?.trim() ?? '',
-      }))
-      .filter((row) => row.content.length > 0);
-
+    .map((row) => ({
+      child_id: Number(childId),
+      target_date: row.date,
+      user_id: row.user_id,
+      user_name: row.staffName,
+      facility_id: Number(facilityId),
+      content: row.note?.trim() ?? '',
+    }))
+    .filter((row) => row.content.length > 0 && row.user_id != null);
+  
     if (registerable.length === 0) {
-      alert('登録できる記録（活動内容あり）がありません。');
+      alert('登録できる記録（活動内容あり・記録者IDあり）がありません。');
       return;
     }
-
-    if (
-      !window.confirm(
-        `${registerable.length}件の記録を support_records に一括登録します。よろしいですか？\n（同一児童・同一支援日は上書き更新されます）`,
-      )
-    ) {
+  
+    const skippedCount = records.filter(
+      (row) => (row.note?.trim() ?? '').length > 0 && row.user_id == null,
+    ).length;
+  
+    const confirmMessage =
+      `${registerable.length}件の記録を support_records に一括登録します。よろしいですか？\n` +
+      `（同一児童・同一支援日は上書き更新されます）` +
+      (skippedCount > 0
+        ? `\n\n※ 記録者IDを取得できなかった ${skippedCount}件はスキップします。`
+        : '');
+  
+    if (!window.confirm(confirmMessage)) {
       return;
     }
-
+  
     setIsRegistering(true);
+  
     try {
       const result = await saveSupportRecordsBulk(registerable);
+  
       alert(
         `登録が完了しました。\n新規: ${result.created}件 / 更新: ${result.updated}件 / 合計: ${result.total}件`,
       );
@@ -288,6 +300,7 @@ const HugPersonalRecordPage = () => {
                 <tr>
                   <th style={{ width: '7rem' }}>日付</th>
                   <th style={{ width: '8rem' }}>児童</th>
+                  <th style={{ width: '10rem' }}>記録者</th>
                   <th>活動内容（note）</th>
                 </tr>
               </thead>
@@ -296,6 +309,10 @@ const HugPersonalRecordPage = () => {
                   <tr key={`${row.date}-${i}`}>
                     <td>{row.date}</td>
                     <td>{row.childName}</td>
+                    <td>
+                      {row.staffName || '—'}
+                      {row.user_id != null ? `（${row.user_id}）` : ''}
+                    </td>
                     <td style={{ whiteSpace: 'pre-wrap' }}>
                       {row.note || '（取得できませんでした）'}
                     </td>

@@ -14,6 +14,8 @@ export type HugPersonalRecord = {
   childName: string;
   attendance: string;
   note: string;
+  user_id: number | null;
+  staffName: string;
 };
 
 async function hugWmFetch(url: string, options: RequestInit = {}): Promise<string> {
@@ -106,37 +108,50 @@ function parseChildrenFromAgreementFilterResponse(text: string): HugChild[] {
   return parseOptions(wrappedDoc);
 }
 
-async function fetchContactBookNote(pathAndQuery: string): Promise<string | null> {
-  const listUrl = new URL(pathAndQuery, HUG_WM_BASE_URL).href;
+  async function fetchContactBookNote(pathAndQuery: string): Promise<{
+    note: string;
+    user_id: number | null;
+    staffName: string;
+  } | null> {
+    const listUrl = new URL(pathAndQuery, HUG_WM_BASE_URL).href;
 
-  try {
-    const html = await hugWmFetchText(listUrl);
-    const editDoc = new DOMParser().parseFromString(html, 'text/html');
+    try {
+      const html = await hugWmFetchText(listUrl);
+      const editDoc = new DOMParser().parseFromString(html, 'text/html');
 
-    const staffSelect = editDoc.querySelector<HTMLSelectElement>(
-      'select[name="record_staff"]'
-    );
-    if (!staffSelect) {
-      throw new Error('記録者 select が見つかりませんでした');
+      const staffSelect = editDoc.querySelector<HTMLSelectElement>(
+        'select[name="record_staff"]',
+      );
+
+      if (!staffSelect) {
+        throw new Error('記録者 select が見つかりませんでした');
+      }
+
+      const staffSelectValue = staffSelect.value;
+      const staffName = staffSelect.selectedOptions[0]?.textContent?.trim() ?? '';
+
+      console.log('記録者:', staffSelectValue, staffName);
+
+      const textarea = editDoc.querySelector<HTMLTextAreaElement>(
+        'textarea[name="note"][data-field-key="note"]',
+      );
+
+      if (!textarea) {
+        throw new Error('note の textarea が見つかりませんでした');
+      }
+
+      return {
+        note: textarea.value.trim(),
+        user_id: Number.isFinite(Number(staffSelectValue))
+          ? Number(staffSelectValue)
+          : null,
+        staffName,
+      };
+    } catch (error) {
+      console.error('[HUG WM] note取得エラー:', error);
+      return null;
     }
-    const staffSelectValue = staffSelect.value;
-    console.log('記録者 select の value:', staffSelectValue);
-    const staffName =
-    staffSelect.selectedOptions[0]?.textContent?.trim() ?? '';
-    console.log('記録者:', staffSelectValue, staffName);
-
-    const textarea = editDoc.querySelector('textarea[name="note"][data-field-key="note"]');
-
-    if (!textarea) {
-      throw new Error('note の textarea が見つかりませんでした');
-    }
-
-    return (textarea as HTMLTextAreaElement).value.trim();
-  } catch (error) {
-    console.error('[HUG WM] note取得エラー:', error);
-    return null;
   }
-}
 
 function buildContactBookListUrl(params: {
   facilityId: number;
@@ -250,12 +265,15 @@ async function fetchNotesForAttendanceEdits(
     const editPath = item.onclick.match(/location\.href='([^']+)'/)?.[1];
 
     if (editPath) {
-      const note = await fetchContactBookNote(editPath);
+      const result = await fetchContactBookNote(editPath);
+
       records.push({
         date: item.date,
         childName: item.childName,
         attendance: item.attendance,
-        note: note ?? '',
+        note: result?.note ?? '',
+        user_id: result?.user_id ?? null,
+        staffName: result?.staffName ?? '',
       });
     }
   }

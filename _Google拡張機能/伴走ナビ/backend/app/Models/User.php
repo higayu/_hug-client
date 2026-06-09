@@ -15,15 +15,23 @@ use Tymon\JWTAuth\Contracts\JWTSubject;
     'user_id',
     'facility_id',
     'name',
-    'email',
-    'password',
     'login_id',
     'hug_password',
+    'email',
+    'email_verified_at',
+    'password',
+    'remember_token',
     'role',
 ])]
-#[Hidden(['password', 'hug_password', 'remember_token'])]
+#[Hidden([
+    'password',
+    'hug_password',
+    'remember_token',
+])]
 class User extends Authenticatable implements FilamentUser, JWTSubject
 {
+    protected $table = 'users';
+
     protected $primaryKey = 'user_id';
 
     public $incrementing = false;
@@ -36,12 +44,18 @@ class User extends Authenticatable implements FilamentUser, JWTSubject
             if (empty($user->user_id)) {
                 $user->user_id = (int) (static::max('user_id') ?? 0) + 1;
             }
+
+            if (empty($user->role)) {
+                $user->role = 'staff';
+            }
         });
     }
 
     protected function casts(): array
     {
         return [
+            'user_id' => 'integer',
+            'facility_id' => 'integer',
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'created_at' => 'datetime',
@@ -49,7 +63,7 @@ class User extends Authenticatable implements FilamentUser, JWTSubject
         ];
     }
 
-    public function getJWTIdentifier()
+    public function getJWTIdentifier(): mixed
     {
         return $this->getKey();
     }

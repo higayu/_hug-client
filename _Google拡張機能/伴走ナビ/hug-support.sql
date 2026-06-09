@@ -169,7 +169,7 @@ CREATE TABLE IF NOT EXISTS `migrations` (
   `migration` varchar(255) NOT NULL,
   `batch` int(11) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- エクスポートするデータが選択されていません
 
@@ -207,7 +207,9 @@ CREATE TABLE IF NOT EXISTS `support_records` (
   `created_at` datetime NOT NULL DEFAULT current_timestamp(),
   `updated_at` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   PRIMARY KEY (`child_id`,`target_date`),
-  KEY `idx_support_records_target_date` (`target_date`)
+  KEY `idx_support_records_target_date` (`target_date`),
+  KEY `FK_support_records_users` (`user_id`),
+  CONSTRAINT `FK_support_records_users` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE NO ACTION ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='支援記録データ';
 
 -- エクスポートするデータが選択されていません
@@ -215,7 +217,7 @@ CREATE TABLE IF NOT EXISTS `support_records` (
 --  テーブル hug_ai_support.users の構造をダンプしています
 CREATE TABLE IF NOT EXISTS `users` (
   `user_id` int(11) NOT NULL,
-  `facility_id` int(11) NOT NULL,
+  `facility_id` int(11) DEFAULT NULL,
   `name` varchar(255) NOT NULL,
   `login_id` varchar(255) DEFAULT NULL,
   `hug_password` varchar(255) DEFAULT NULL,
