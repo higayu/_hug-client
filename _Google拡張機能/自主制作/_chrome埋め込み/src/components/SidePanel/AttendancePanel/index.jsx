@@ -9,16 +9,13 @@ const formRootClassName =
 
 export default function AttendancePanel(props) {
   const {
-    ATTENDANCE_FACILITY_OPTIONS,
     HUG_WM_BASE_URL,
     HUG_WM_CONTACT_BOOK_LIST_URL,
     HUG_TIME_RE,
     WEEKDAY_JA,
     attendanceAutoUpdateEnabled,
-    attendanceFacilitiesReady,
     canFetchAttendance,
     attendanceDate,
-    hprFacilitiesLoading,
     hugAutoLoginEnabled,
     hugKeepSession,
     hugLoginCheckLoading,
@@ -29,7 +26,6 @@ export default function AttendancePanel(props) {
     setHugKeepSession,
     setHugLoginId,
     setHugPassword,
-    attendanceFacilityMap,
     attendanceLastFetchedAt,
     attendanceLoading,
     attendanceRows,
@@ -72,13 +68,9 @@ export default function AttendancePanel(props) {
     >
       <div id="hug-attendance-panel" className={formRootClassName}>
         <AttendanceHeader
-          ATTENDANCE_FACILITY_OPTIONS={ATTENDANCE_FACILITY_OPTIONS}
           attendanceAutoUpdateEnabled={attendanceAutoUpdateEnabled}
-          attendanceFacilitiesReady={attendanceFacilitiesReady}
           canFetchAttendance={canFetchAttendance}
           attendanceDate={attendanceDate}
-          hprFacilitiesLoading={hprFacilitiesLoading}
-          attendanceFacilityMap={attendanceFacilityMap}
           attendanceLastFetchedAt={attendanceLastFetchedAt}
           attendanceLoading={attendanceLoading}
           attendanceRows={attendanceRows}

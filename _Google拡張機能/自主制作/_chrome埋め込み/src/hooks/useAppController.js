@@ -27,7 +27,7 @@ import {
   setHprSelectedFacilityId as setHprSelectedFacilityIdAction,
 } from '@/store/slices/hugPersonalRecordSlice'
 import { API_BASE, CHAT_SYSTEM_PROMPT, CORRECTION_SYSTEM_PROMPT, NAV_LINKS, PAGE_TITLES } from '@/constants/appConfig'
-import { MOCK_FACILITIES, MOCK_RECORDS } from '@/constants/mockData'
+import { MOCK_RECORDS } from '@/constants/mockData'
 import { callAi } from '@/lib/aiClient'
 import { fetchJson } from '@/lib/apiClient'
 import {
@@ -61,15 +61,15 @@ const hashToPage = (hash) => {
 }
 
 const getAttendanceFetchBlockReason = (state) => {
-  const { attendance, hugPersonalRecord } = state
-  if (hugPersonalRecord.hprFacilitiesLoading) {
+  const { attendance } = state
+  if (attendance.attendanceFacilitiesLoading) {
     return '施設データを取得中です。完了するまで一覧を取得できません。'
   }
-  if (!hugPersonalRecord.hprFacilities?.length) {
+  if (!attendance.attendanceFacilities?.length) {
     return '施設データが取得できていません。HUG WM にログインしたうえで再読み込みしてください。'
   }
-  const hasFacility = ATTENDANCE_FACILITY_OPTIONS.some((option) =>
-    Boolean(attendance.attendanceFacilityMap[String(option.id)]),
+  const hasFacility = attendance.attendanceFacilities.some((facility) =>
+    Boolean(attendance.attendanceFacilityMap[String(facility.facility_id)]),
   )
   if (!hasFacility) {
     return '施設を1件以上選択してください。'
@@ -120,6 +120,8 @@ export const useAppController = () => {
     halfTime,
     showLeftRecords,
     attendanceFacilityMap,
+    attendanceFacilities,
+    attendanceFacilitiesLoading,
     attendanceAutoUpdateEnabled,
     prStartDate,
     prEndDate,
@@ -334,21 +336,19 @@ export const useAppController = () => {
 
     const loadFacilities = async () => {
       try {
-        const data = await fetchJson(`${API_BASE}/facilities`)
+        const data = await fetchFacilitiesFromHugWm()
         if (!mounted) return
         dispatch(setFacilitiesAction(data))
-        const firstId = data[0]?.facility_id
-        if (firstId) {
-          dispatch(setSelectedFacilityIdAction(firstId))
-          await loadChildren(firstId)
+        const selected = data.find((facility) => facility.selected) || data[0]
+        const facilityId = selected?.facility_id
+        if (facilityId) {
+          dispatch(setSelectedFacilityIdAction(facilityId))
+          await loadChildren(facilityId)
         }
       } catch (error) {
-        console.warn('[loadFacilities] fallback to mock data', error)
+        console.warn('[loadFacilities] HUG WM から施設を取得できませんでした:', error)
         if (!mounted) return
-        dispatch(setFacilitiesAction(MOCK_FACILITIES))
-        const firstId = MOCK_FACILITIES[0].facility_id
-        dispatch(setSelectedFacilityIdAction(firstId))
-        await loadChildren(firstId)
+        dispatch(setFacilitiesAction([]))
       }
     }
 
@@ -446,18 +446,18 @@ export const useAppController = () => {
   )
 
   const attendanceFacilitiesReady = useMemo(
-    () => !hprFacilitiesLoading && Boolean(hprFacilities?.length),
-    [hprFacilitiesLoading, hprFacilities],
+    () => !attendanceFacilitiesLoading && Boolean(attendanceFacilities?.length),
+    [attendanceFacilitiesLoading, attendanceFacilities],
   )
 
   const canFetchAttendance = useMemo(
     () =>
       attendanceFacilitiesReady &&
-      ATTENDANCE_FACILITY_OPTIONS.some((option) =>
-        Boolean(attendanceFacilityMap[String(option.id)]),
+      attendanceFacilities.some((facility) =>
+        Boolean(attendanceFacilityMap[String(facility.facility_id)]),
       ) &&
       Boolean(attendanceDate),
-    [attendanceFacilitiesReady, attendanceFacilityMap, attendanceDate],
+    [attendanceFacilitiesReady, attendanceFacilities, attendanceFacilityMap, attendanceDate],
   )
 
   const handleFacilityChange = async (value) => {
@@ -790,6 +790,7 @@ export const useAppController = () => {
           await fetchAttendanceRows({
             date: attendanceDate,
             facilityMap: attendanceFacilityMap,
+            facilities: attendanceFacilities,
           }),
         )
         setAttendanceRows(rows)
@@ -811,6 +812,7 @@ export const useAppController = () => {
     },
     [
       attendanceDate,
+      attendanceFacilities,
       attendanceFacilityMap,
       reduxStore,
       setAttendanceLastFetchedAt,
@@ -1171,9 +1173,10 @@ export const useAppController = () => {
     attendanceStatus,
     attendanceLastFetchedAt,
     attendanceAutoUpdateEnabled,
+    attendanceFacilities,
+    attendanceFacilitiesLoading,
     attendanceFacilitiesReady,
     canFetchAttendance,
-    hprFacilitiesLoading,
     showLeftRecords,
     chatEndDate,
     chatInput,

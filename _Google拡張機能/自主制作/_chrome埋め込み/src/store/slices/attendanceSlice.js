@@ -1,13 +1,6 @@
 import { createSlice } from '@reduxjs/toolkit'
 import { getFormattedDate } from './dateUtils'
 
-const ATTENDANCE_FACILITY_OPTIONS = [
-  { id: 3, value: 'PD吉島', defaultChecked: true },
-  { id: 6, value: 'PD光', defaultChecked: false },
-  { id: 7, value: 'PD横川', defaultChecked: false },
-  { id: 8, value: 'PD五日市駅前', defaultChecked: false },
-]
-
 const getStoredHalfTime = () => {
   if (typeof localStorage === 'undefined') return '12:30'
   try {
@@ -45,9 +38,9 @@ const initialState = {
   attendanceLastFetchedAt: null,
   halfTime: getStoredHalfTime(),
   showLeftRecords: getStoredShowLeftRecords(),
-  attendanceFacilityMap: Object.fromEntries(
-    ATTENDANCE_FACILITY_OPTIONS.map((option) => [String(option.id), option.defaultChecked]),
-  ),
+  attendanceFacilityMap: {},
+  attendanceFacilities: [],
+  attendanceFacilitiesLoading: false,
   attendanceAutoUpdateEnabled: getStoredAttendanceAutoUpdateEnabled(),
 }
 
@@ -79,6 +72,12 @@ const attendanceSlice = createSlice({
     setAttendanceFacilityMap: (state, action) => {
       state.attendanceFacilityMap = action.payload
     },
+    setAttendanceFacilities: (state, action) => {
+      state.attendanceFacilities = action.payload
+    },
+    setAttendanceFacilitiesLoading: (state, action) => {
+      state.attendanceFacilitiesLoading = action.payload
+    },
     setAttendanceAutoUpdateEnabled: (state, action) => {
       state.attendanceAutoUpdateEnabled = action.payload
     },
@@ -94,6 +93,8 @@ export const {
   setHalfTime,
   setShowLeftRecords,
   setAttendanceFacilityMap,
+  setAttendanceFacilities,
+  setAttendanceFacilitiesLoading,
   setAttendanceAutoUpdateEnabled,
 } = attendanceSlice.actions
 
@@ -126,6 +127,9 @@ export const selectShowLeftRecords = (state) => state.attendance.showLeftRecords
 
 // 出席施設チェック状態
 export const selectAttendanceFacilityMap = (state) => state.attendance.attendanceFacilityMap
+
+export const selectAttendanceFacilities = (state) => state.attendance.attendanceFacilities
+export const selectAttendanceFacilitiesLoading = (state) => state.attendance.attendanceFacilitiesLoading
 
 // 入退室一覧の定期自動更新（1=オン, 0=オフ）
 export const selectAttendanceAutoUpdateEnabled = (state) => state.attendance.attendanceAutoUpdateEnabled

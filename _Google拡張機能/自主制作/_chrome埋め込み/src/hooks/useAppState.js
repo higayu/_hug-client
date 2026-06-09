@@ -3,6 +3,8 @@ import {
   setAttendanceAutoUpdateEnabled as setAttendanceAutoUpdateEnabledAction,
   setAttendanceDate as setAttendanceDateAction,
   setAttendanceFacilityMap as setAttendanceFacilityMapAction,
+  setAttendanceFacilities as setAttendanceFacilitiesAction,
+  setAttendanceFacilitiesLoading as setAttendanceFacilitiesLoadingAction,
   setAttendanceLoading as setAttendanceLoadingAction,
   setAttendanceRows as setAttendanceRowsAction,
   setAttendanceStatus as setAttendanceStatusAction,
@@ -107,6 +109,8 @@ export const useAppState = () => {
     halfTime,
     showLeftRecords,
     attendanceFacilityMap,
+    attendanceFacilities,
+    attendanceFacilitiesLoading,
     attendanceAutoUpdateEnabled,
   } = useSelector((state) => state.attendance)
   const {
@@ -178,6 +182,14 @@ export const useAppState = () => {
   const setHalfTime = createStoreSetter(setHalfTimeAction, (state) => state.attendance.halfTime)
   const setShowLeftRecords = createStoreSetter(setShowLeftRecordsAction, (state) => state.attendance.showLeftRecords)
   const setAttendanceFacilityMap = createStoreSetter(setAttendanceFacilityMapAction, (state) => state.attendance.attendanceFacilityMap)
+  const setAttendanceFacilities = createStoreSetter(
+    setAttendanceFacilitiesAction,
+    (state) => state.attendance.attendanceFacilities,
+  )
+  const setAttendanceFacilitiesLoading = createStoreSetter(
+    setAttendanceFacilitiesLoadingAction,
+    (state) => state.attendance.attendanceFacilitiesLoading,
+  )
   const setAttendanceAutoUpdateEnabled = createStoreSetter(
     setAttendanceAutoUpdateEnabledAction,
     (state) => state.attendance.attendanceAutoUpdateEnabled,
@@ -253,6 +265,8 @@ export const useAppState = () => {
     halfTime,
     showLeftRecords,
     attendanceFacilityMap,
+    attendanceFacilities,
+    attendanceFacilitiesLoading,
     attendanceAutoUpdateEnabled,
     prStartDate,
     prEndDate,
@@ -308,6 +322,8 @@ export const useAppState = () => {
     setHalfTime,
     setShowLeftRecords,
     setAttendanceFacilityMap,
+    setAttendanceFacilities,
+    setAttendanceFacilitiesLoading,
     setAttendanceAutoUpdateEnabled,
     setPrStartDate,
     setPrEndDate,

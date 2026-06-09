@@ -88,14 +88,24 @@ const extractAttendanceRowsFromHtml = (html) => {
   })
 }
 
-const buildAttendanceSearchParams = (date, facilityMap) => {
+const buildAttendanceSearchParams = (date, facilityMap, facilities = []) => {
   const params = new URLSearchParams()
   params.set('mode', 'search_detail')
-  ATTENDANCE_FACILITY_OPTIONS.forEach((option) => {
-    if (facilityMap[String(option.id)] ?? option.defaultChecked) {
-      params.set(`f_ary[${option.id}]`, option.value)
+
+  const resolvedFacilities = facilities?.length
+    ? facilities
+    : ATTENDANCE_FACILITY_OPTIONS.map((option) => ({
+        facility_id: option.id,
+        name: option.value,
+        selected: option.defaultChecked,
+      }))
+
+  resolvedFacilities.forEach((facility) => {
+    if (facilityMap[String(facility.facility_id)]) {
+      params.set(`f_ary[${facility.facility_id}]`, facility.name)
     }
   })
+
   ATTENDANCE_SERVICE_FILTERS.forEach((option) => params.set(`s_ary[${option.id}]`, option.value))
   params.set('s_date', date.replaceAll('-', '/'))
   return params
@@ -120,8 +130,8 @@ const postAttendanceSearch = async (body) => {
   return extractAttendanceRowsFromHtml(html)
 }
 
-export async function fetchAttendanceRows({ date, facilityMap }) {
-  return postAttendanceSearch(buildAttendanceSearchParams(date, facilityMap))
+export async function fetchAttendanceRows({ date, facilityMap, facilities }) {
+  return postAttendanceSearch(buildAttendanceSearchParams(date, facilityMap, facilities))
 }
 
 export async function fetchAttendanceRowsForFacility({ date, facilityId, facilityName }) {

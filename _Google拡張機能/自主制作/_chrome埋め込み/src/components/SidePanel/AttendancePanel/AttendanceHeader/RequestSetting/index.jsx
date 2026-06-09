@@ -1,5 +1,15 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { useDispatch, useSelector, useStore } from 'react-redux'
 import { ChevronDown, ChevronRight } from 'lucide-react'
+import { fetchFacilitiesFromHugWm } from '@/lib/hugwm'
+import {
+  selectAttendanceFacilities,
+  selectAttendanceFacilitiesLoading,
+  selectAttendanceFacilityMap,
+  setAttendanceFacilities,
+  setAttendanceFacilitiesLoading,
+  setAttendanceFacilityMap,
+} from '@/store/slices/attendanceSlice'
 
 const labelClassName = 'block text-xs text-[#444]'
 
@@ -11,13 +21,25 @@ const checkboxClassName = 'mb-0 ml-0 mr-1 mt-0 align-middle'
 const panelButtonClassName =
   'flex w-full cursor-pointer items-center gap-1.5 border-0 bg-transparent p-0 text-left text-xs font-bold text-[#333]'
 
+function mergeAttendanceFacilityMap(facilities, currentMap) {
+  const next = { ...currentMap }
+  let hasChecked = Object.values(next).some(Boolean)
+
+  facilities.forEach((facility, index) => {
+    const key = String(facility.facility_id)
+    if (!(key in next)) {
+      const shouldCheck = Boolean(facility.selected) || (!hasChecked && index === 0)
+      next[key] = shouldCheck
+      if (shouldCheck) hasChecked = true
+    }
+  })
+
+  return next
+}
+
 export default function RequestSetting({
-  ATTENDANCE_FACILITY_OPTIONS,
   attendanceAutoUpdateEnabled,
   attendanceDate,
-  attendanceFacilitiesReady,
-  hprFacilitiesLoading,
-  attendanceFacilityMap,
   handleAttendanceAutoUpdateChange,
   handleAttendanceFacilityToggle,
   handleHalfTimeChange,
@@ -29,6 +51,43 @@ export default function RequestSetting({
   statusText,
 }) {
   const [isOpen, setIsOpen] = useState(true)
+  const dispatch = useDispatch()
+  const reduxStore = useStore()
+  const attendanceFacilities = useSelector(selectAttendanceFacilities)
+  const attendanceFacilitiesLoading = useSelector(selectAttendanceFacilitiesLoading)
+  const attendanceFacilityMap = useSelector(selectAttendanceFacilityMap)
+
+  const attendanceFacilitiesReady =
+    !attendanceFacilitiesLoading && Boolean(attendanceFacilities?.length)
+
+  useEffect(() => {
+    let mounted = true
+
+    const loadFacilities = async () => {
+      dispatch(setAttendanceFacilitiesLoading(true))
+      try {
+        const data = await fetchFacilitiesFromHugWm()
+        if (!mounted) return
+        dispatch(setAttendanceFacilities(data))
+        const currentMap = reduxStore.getState().attendance.attendanceFacilityMap
+        dispatch(setAttendanceFacilityMap(mergeAttendanceFacilityMap(data, currentMap)))
+      } catch (error) {
+        console.warn('[RequestSetting] HUG WM から施設を取得できませんでした:', error)
+        if (!mounted) return
+        dispatch(setAttendanceFacilities([]))
+      } finally {
+        if (mounted) {
+          dispatch(setAttendanceFacilitiesLoading(false))
+        }
+      }
+    }
+
+    loadFacilities()
+
+    return () => {
+      mounted = false
+    }
+  }, [dispatch, reduxStore])
 
   return (
     <div className="rounded border border-[#ddd] bg-white px-2 py-1.5">
@@ -98,26 +157,35 @@ export default function RequestSetting({
                 <div className="mb-0.5 text-xs text-[#444]">施設</div>
 
                 <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
-                  {hprFacilitiesLoading ? (
+                  {attendanceFacilitiesLoading ? (
                     <span className="text-xs text-[#666]">施設を取得中...</span>
-                  ) : (
-                    ATTENDANCE_FACILITY_OPTIONS.map((option) => (
+                  ) : attendanceFacilities?.length ? (
+                    attendanceFacilities.map((facility) => (
                       <label
-                        key={option.id}
+                        key={facility.facility_id}
                         className="inline-flex items-center whitespace-nowrap text-xs text-[#444]"
                       >
                         <input
                           type="checkbox"
                           className={checkboxClassName}
-                          checked={Boolean(attendanceFacilityMap[String(option.id)])}
+                          checked={Boolean(
+                            attendanceFacilityMap[String(facility.facility_id)],
+                          )}
                           disabled={!attendanceFacilitiesReady}
                           onChange={(event) =>
-                            handleAttendanceFacilityToggle(option.id, event.target.checked)
+                            handleAttendanceFacilityToggle(
+                              facility.facility_id,
+                              event.target.checked,
+                            )
                           }
                         />
-                        {option.value}
+                        {facility.name}
                       </label>
                     ))
+                  ) : (
+                    <span className="text-xs text-[#666]">
+                      HUG WM から施設を取得できません
+                    </span>
                   )}
                 </div>
               </div>
