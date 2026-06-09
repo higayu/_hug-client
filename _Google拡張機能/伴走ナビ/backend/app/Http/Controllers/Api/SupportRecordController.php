@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\SupportRecord;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class SupportRecordController extends Controller
 {
@@ -47,5 +49,46 @@ class SupportRecordController extends Controller
         );
 
         return response()->json($record, $record->wasRecentlyCreated ? 201 : 200);
+    }
+
+    public function bulkStore(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'records' => ['required', 'array', 'min:1'],
+            'records.*.child_id' => ['required', 'integer'],
+            'records.*.target_date' => ['required', 'date'],
+            'records.*.content' => ['required', 'string'],
+        ]);
+
+        $userId = Auth::id();
+        $created = 0;
+        $updated = 0;
+
+        DB::transaction(function () use ($validated, $userId, &$created, &$updated) {
+            foreach ($validated['records'] as $item) {
+                $record = SupportRecord::updateOrCreate(
+                    [
+                        'child_id' => $item['child_id'],
+                        'target_date' => $item['target_date'],
+                    ],
+                    [
+                        'user_id' => $userId,
+                        'content' => $item['content'],
+                    ]
+                );
+
+                if ($record->wasRecentlyCreated) {
+                    $created++;
+                } else {
+                    $updated++;
+                }
+            }
+        });
+
+        return response()->json([
+            'created' => $created,
+            'updated' => $updated,
+            'total' => $created + $updated,
+        ], 201);
     }
 }

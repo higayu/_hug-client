@@ -14,7 +14,6 @@ class SupportRecordsTable
     public static function configure(Table $table): Table
     {
         return $table
-            ->defaultSort('child_id', 'asc')
             ->modifyQueryUsing(fn ($query) => $query
                 ->orderBy('child_id')
                 ->orderByDesc('target_date')

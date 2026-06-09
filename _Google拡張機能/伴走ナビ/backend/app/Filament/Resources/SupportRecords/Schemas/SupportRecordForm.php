@@ -18,14 +18,16 @@ class SupportRecordForm
                     ->label('児童ID')
                     ->required()
                     ->numeric()
-                    ->disabledOn('edit'),
+                    ->disabledOn('edit')
+                    ->dehydrated(),
 
                 DatePicker::make('target_date')
                     ->label('対象日')
                     ->required()
                     ->native(false)
                     ->displayFormat('Y-m-d')
-                    ->disabledOn('edit'),
+                    ->disabledOn('edit')
+                    ->dehydrated(),
 
                 Select::make('user_id')
                     ->label('記録者')

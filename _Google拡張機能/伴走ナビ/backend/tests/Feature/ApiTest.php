@@ -86,4 +86,53 @@ class ApiTest extends TestCase
             'content' => '新規記録',
         ]);
     }
+
+    public function test_support_records_bulk_store_creates_and_updates_records(): void
+    {
+        $facility = Facility::create(['name' => '一括登録テスト事業所']);
+        $user = $this->createUser($facility);
+
+        SupportRecord::create([
+            'child_id' => 10,
+            'user_id' => $user->user_id,
+            'content' => '既存記録',
+            'target_date' => '2026-05-01',
+        ]);
+
+        $response = $this->withHeaders($this->authHeaders($user))
+            ->postJson('/api/support_records/bulk', [
+                'records' => [
+                    [
+                        'child_id' => 10,
+                        'target_date' => '2026-05-01',
+                        'content' => '更新後の記録',
+                    ],
+                    [
+                        'child_id' => 10,
+                        'target_date' => '2026-05-02',
+                        'content' => '新規一括記録',
+                    ],
+                ],
+            ]);
+
+        $response
+            ->assertCreated()
+            ->assertJson([
+                'created' => 1,
+                'updated' => 1,
+                'total' => 2,
+            ]);
+
+        $this->assertDatabaseHas('support_records', [
+            'child_id' => 10,
+            'target_date' => '2026-05-01',
+            'content' => '更新後の記録',
+        ]);
+
+        $this->assertDatabaseHas('support_records', [
+            'child_id' => 10,
+            'target_date' => '2026-05-02',
+            'content' => '新規一括記録',
+        ]);
+    }
 }

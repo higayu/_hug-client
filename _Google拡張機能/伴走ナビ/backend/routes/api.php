@@ -12,5 +12,6 @@ Route::middleware(JwtAuthenticate::class)->group(function () {
     Route::get('/auth/me', [AuthController::class, 'me']);
     Route::get('/facilities', [FacilityController::class, 'index']);
     Route::get('/support_records/_search', [SupportRecordController::class, 'search']);
+    Route::post('/support_records/bulk', [SupportRecordController::class, 'bulkStore']);
     Route::post('/support_records', [SupportRecordController::class, 'store']);
 });

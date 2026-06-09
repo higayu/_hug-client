@@ -11,11 +11,11 @@ use App\Filament\Resources\SupportRecords\Schemas\SupportRecordInfolist;
 use App\Filament\Resources\SupportRecords\Tables\SupportRecordsTable;
 use App\Models\SupportRecord;
 use BackedEnum;
+use Closure;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
-use Closure;
 use Illuminate\Database\Eloquent\Model;
 
 class SupportRecordResource extends Resource
@@ -43,17 +43,6 @@ class SupportRecordResource extends Resource
     public static function table(Table $table): Table
     {
         return SupportRecordsTable::configure($table);
-    }
-
-    /**
-     * Filamentの {record} には単一文字列しか渡せないため、
-     * child_id と target_date を結合した値をURLキーとして使う。
-     *
-     * 例: 123_2026-06-09
-     */
-    public static function getRecordRouteKeyName(): string
-    {
-        return 'record_key';
     }
 
     public static function resolveRecordRouteBinding(int | string $key, ?Closure $modifyQuery = null): ?Model

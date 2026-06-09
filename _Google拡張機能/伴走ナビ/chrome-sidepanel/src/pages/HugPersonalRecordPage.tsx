@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
-import { Download } from 'lucide-react';
+import { Download, Save } from 'lucide-react';
 import {
   useFacilities,
   useHugChildren,
   pickValidChildId,
 } from '../hooks/useFacilityChildren';
 import { fetchHugPersonalRecordsFromWm, type HugPersonalRecord } from '../lib/hugWm';
+import { saveSupportRecordsBulk } from '../api';
 import {
   loadPrefs,
   savePrefs,
@@ -32,6 +33,7 @@ const HugPersonalRecordPage = () => {
 
   const [records, setRecords] = useState<HugPersonalRecord[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isRegistering, setIsRegistering] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const [statusMessage, setStatusMessage] = useState('');
 
@@ -99,6 +101,47 @@ const HugPersonalRecordPage = () => {
       setIsLoading(false);
       setStatusMessage('');
       persistPrefs();
+    }
+  };
+
+  const handleBulkRegister = async () => {
+    if (!childId) {
+      alert('児童を選択してください');
+      return;
+    }
+
+    const registerable = records
+      .map((row) => ({
+        child_id: Number(childId),
+        target_date: row.date,
+        content: row.note?.trim() ?? '',
+      }))
+      .filter((row) => row.content.length > 0);
+
+    if (registerable.length === 0) {
+      alert('登録できる記録（活動内容あり）がありません。');
+      return;
+    }
+
+    if (
+      !window.confirm(
+        `${registerable.length}件の記録を support_records に一括登録します。よろしいですか？\n（同一児童・同一支援日は上書き更新されます）`,
+      )
+    ) {
+      return;
+    }
+
+    setIsRegistering(true);
+    try {
+      const result = await saveSupportRecordsBulk(registerable);
+      alert(
+        `登録が完了しました。\n新規: ${result.created}件 / 更新: ${result.updated}件 / 合計: ${result.total}件`,
+      );
+    } catch (err) {
+      console.error('[handleBulkRegister]', err);
+      alert(`一括登録に失敗しました: ${(err as Error).message}`);
+    } finally {
+      setIsRegistering(false);
     }
   };
 
@@ -219,7 +262,20 @@ const HugPersonalRecordPage = () => {
       <div className="card">
         <div className="flex justify-between items-center mb-4" style={{ marginBottom: '1rem' }}>
           <h2 style={{ margin: 0, fontSize: '1.125rem' }}>取得結果</h2>
-          <span className="badge badge-primary">{records.length}件</span>
+          <div className="flex items-center gap-2">
+            {hasSearched && records.length > 0 && (
+              <button
+                type="button"
+                className="btn btn-secondary"
+                style={{ padding: '0.35rem 0.75rem' }}
+                onClick={handleBulkRegister}
+                disabled={isRegistering || isLoading}
+              >
+                <Save size={16} /> {isRegistering ? '登録中…' : 'DBに一括登録'}
+              </button>
+            )}
+            <span className="badge badge-primary">{records.length}件</span>
+          </div>
         </div>
         <p style={{ color: 'var(--text-light)', fontSize: '0.875rem', marginBottom: '1rem' }}>
           {statusHint}

@@ -37,3 +37,15 @@ export function sortRecordsByDateDesc(records: SupportRecord[]) {
     return db.localeCompare(da);
   });
 }
+
+export function getSupportRecordKey(record: SupportRecord, fallbackChildId?: number | '') {
+  const childId = record.child_id ?? fallbackChildId;
+  const date = formatRecordDate(record.target_date);
+  if (childId) {
+    return `${childId}_${date}`;
+  }
+  if (record.record_id != null) {
+    return String(record.record_id);
+  }
+  return date;
+}

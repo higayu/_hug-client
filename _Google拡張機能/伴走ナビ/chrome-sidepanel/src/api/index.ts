@@ -6,7 +6,7 @@ import axios, {
 } from 'axios';
 import { formatFetchError } from '../lib/api';
 import { getApiBase } from '../lib/aiConfig';
-import { getToken, saveAuth, type AuthUser } from '../lib/authStorage';
+import { getToken, saveAuth, getAuthUser, type AuthUser } from '../lib/authStorage';
 
 type ApiFetchResponse = {
   ok: boolean;
@@ -136,6 +136,34 @@ export async function fetchMe(): Promise<AuthUser> {
     saveAuth(token, data.user);
   }
   return data.user;
+}
+
+export type SupportRecordInput = {
+  child_id: number;
+  target_date: string;
+  content: string;
+};
+
+export type SupportRecordBulkResult = {
+  created: number;
+  updated: number;
+  total: number;
+};
+
+export async function saveSupportRecordsBulk(
+  records: SupportRecordInput[],
+): Promise<SupportRecordBulkResult> {
+  const { data } = await apiClient.post<SupportRecordBulkResult>('/support_records/bulk', {
+    records,
+  });
+  return data;
+}
+
+export async function saveSupportRecord(record: SupportRecordInput): Promise<void> {
+  await apiClient.post('/support_records', {
+    ...record,
+    user_id: getAuthUser()?.user_id,
+  });
 }
 
 export type { AuthUser } from '../lib/authStorage';

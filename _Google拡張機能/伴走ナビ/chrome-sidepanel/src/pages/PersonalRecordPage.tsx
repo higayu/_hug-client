@@ -20,6 +20,7 @@ import {
   getDefaultPeriod,
   formatRecordDate,
   sortRecordsByDateDesc,
+  getSupportRecordKey,
 } from '../lib/records';
 import { MOCK_RECORDS, type SupportRecord } from '../lib/mockData';
 
@@ -40,7 +41,7 @@ const PersonalRecordPage = () => {
   });
 
   const [records, setRecords] = useState<SupportRecord[]>([]);
-  const [selectedRecordId, setSelectedRecordId] = useState<number | null>(null);
+  const [selectedRecordKey, setSelectedRecordKey] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
 
@@ -80,7 +81,7 @@ const PersonalRecordPage = () => {
     }
 
     setIsLoading(true);
-    setSelectedRecordId(null);
+    setSelectedRecordKey(null);
 
     let result: SupportRecord[] = [];
     try {
@@ -99,7 +100,9 @@ const PersonalRecordPage = () => {
     persistPrefs();
   };
 
-  const selected = records.find((r) => r.record_id === selectedRecordId);
+  const selected = records.find(
+    (r) => getSupportRecordKey(r, childId) === selectedRecordKey,
+  );
   const facilityName = getFacilityName(facilities, facilityId);
   const childName = getChildName(childrenList, childId);
 
@@ -133,7 +136,7 @@ const PersonalRecordPage = () => {
               onChange={async (e) => {
                 const id = Number(e.target.value);
                 setFacilityId(id);
-                setSelectedRecordId(null);
+                setSelectedRecordKey(null);
                 persistPrefs({ facilityId: id });
               }}
             >
@@ -158,7 +161,7 @@ const PersonalRecordPage = () => {
               onChange={(e) => {
                 const id = Number(e.target.value);
                 setChildId(id);
-                setSelectedRecordId(null);
+                setSelectedRecordKey(null);
                 persistPrefs({ childId: id });
               }}
             >
@@ -218,23 +221,24 @@ const PersonalRecordPage = () => {
                 <tr>
                   <th style={{ width: '7rem' }}>支援日</th>
                   <th>記録内容</th>
-                  <th style={{ width: '5rem' }}>ID</th>
                 </tr>
               </thead>
               <tbody>
-                {records.map((rec) => (
+                {records.map((rec) => {
+                  const key = getSupportRecordKey(rec, childId);
+                  return (
                   <tr
-                    key={rec.record_id}
-                    className={selectedRecordId === rec.record_id ? 'selected' : ''}
-                    onClick={() => setSelectedRecordId(rec.record_id)}
+                    key={key}
+                    className={selectedRecordKey === key ? 'selected' : ''}
+                    onClick={() => setSelectedRecordKey(key)}
                   >
                     <td>{formatRecordDate(rec.target_date)}</td>
                     <td>
                       <div className="record-preview">{rec.content || ''}</div>
                     </td>
-                    <td>{rec.record_id != null ? String(rec.record_id) : '—'}</td>
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -249,16 +253,16 @@ const PersonalRecordPage = () => {
               type="button"
               className="btn btn-secondary"
               style={{ padding: '0.35rem 0.75rem' }}
-              onClick={() => setSelectedRecordId(null)}
+              onClick={() => setSelectedRecordKey(null)}
             >
               閉じる
             </button>
           </div>
           <dl className="record-detail-dl">
-            <dt>記録ID</dt>
-            <dd>{selected.record_id ?? '—'}</dd>
             <dt>支援日</dt>
             <dd>{formatRecordDate(selected.target_date)}</dd>
+            <dt>児童ID</dt>
+            <dd>{selected.child_id ?? childId ?? '—'}</dd>
             <dt>児童</dt>
             <dd>{childName}さん</dd>
             <dt>記録内容</dt>

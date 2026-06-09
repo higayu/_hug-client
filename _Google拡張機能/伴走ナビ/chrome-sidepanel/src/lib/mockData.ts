@@ -1,9 +1,12 @@
 export type Facility = { facility_id: number; name: string };
 export type Child = { child_id: number; name: string };
 export type SupportRecord = {
-  record_id: number;
+  child_id?: number;
   target_date: string;
   content: string;
+  user_id?: number;
+  /** @deprecated モックデータ用。本番APIは複合主キー (child_id, target_date) */
+  record_id?: number;
 };
 
 export const MOCK_FACILITIES: Facility[] = [

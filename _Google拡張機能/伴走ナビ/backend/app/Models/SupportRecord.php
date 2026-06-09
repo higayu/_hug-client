@@ -3,8 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Attributes\Fillable;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 #[Fillable([
     'child_id',
@@ -17,10 +17,15 @@ class SupportRecord extends Model
     protected $table = 'support_records';
 
     /**
-     * このテーブルは PRIMARY KEY (child_id, target_date) の複合主キー。
-     * Eloquentは複合主キーを標準サポートしていないため、
-     * Controller側では child_id + target_date で検索して更新する。
+     * support_records には id カラムがないため、
+     * Filament / Eloquent が support_records.id を参照しないようにする。
+     *
+     * 実DB上の主キーは PRIMARY KEY (child_id, target_date)。
+     * ただし Eloquent は複合主キーを標準サポートしていないため、
+     * 代表キーとして child_id を指定する。
      */
+    protected $primaryKey = 'child_id';
+
     public $incrementing = false;
 
     protected $keyType = 'int';
@@ -34,6 +39,16 @@ class SupportRecord extends Model
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
         ];
+    }
+
+    public function getRecordKeyAttribute(): string
+    {
+        return $this->child_id . '_' . $this->target_date->format('Y-m-d');
+    }
+
+    public function getRouteKey(): mixed
+    {
+        return $this->record_key;
     }
 
     public function user(): BelongsTo
