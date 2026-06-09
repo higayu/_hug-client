@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { loadFacilities } from '../lib/api';
-import { fetchChildrenFromHugWm, type HugChild } from '../lib/hugWm';
-import { MOCK_CHILDREN, type Facility } from '../lib/mockData';
+import { fetchChildrenFromHugWm, fetchFacilitiesFromHugWm, type HugChild } from '../lib/hugWm';
+import { MOCK_CHILDREN, MOCK_FACILITIES, type Facility } from '../lib/mockData';
 
 export type Child = HugChild;
 
@@ -12,6 +12,25 @@ export function useFacilities() {
   useEffect(() => {
     loadFacilities()
       .then(setFacilities)
+      .finally(() => setLoading(false));
+  }, []);
+
+  return { facilities, loading };
+}
+
+export function useHugFacilities() {
+  const [facilities, setFacilities] = useState<Facility[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchFacilitiesFromHugWm()
+      .then((data) =>
+        setFacilities(data.map((f) => ({ facility_id: f.facility_id, name: f.name }))),
+      )
+      .catch((error) => {
+        console.warn('[loadHugFacilities] HUG取得に失敗したため、MOCK_FACILITIESを使用します:', error);
+        setFacilities(MOCK_FACILITIES);
+      })
       .finally(() => setLoading(false));
   }, []);
 

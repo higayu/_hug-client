@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Download, Save } from 'lucide-react';
 import {
-  useFacilities,
+  useHugFacilities,
   useHugChildren,
   pickValidChildId,
 } from '../hooks/useFacilityChildren';
@@ -20,7 +20,7 @@ const HugPersonalRecordPage = () => {
   const prefs = loadPrefs();
   const period = applyPeriodPrefs(prefs.hugPersonalRecord, defaults);
 
-  const { facilities } = useFacilities();
+  const { facilities, loading: facilitiesLoading } = useHugFacilities();
   const [facilityId, setFacilityId] = useState<number | ''>(period.facilityId);
   const [childId, setChildId] = useState<number | ''>(period.childId);
   const [startDate, setStartDate] = useState(period.startDate);
@@ -38,7 +38,10 @@ const HugPersonalRecordPage = () => {
   const [statusMessage, setStatusMessage] = useState('');
 
   useEffect(() => {
-    if (facilities.length > 0 && !facilityId) {
+    if (facilities.length === 0) return;
+    const isValid =
+      facilityId !== '' && facilities.some((f) => f.facility_id === facilityId);
+    if (!isValid) {
       setFacilityId(facilities[0].facility_id);
     }
   }, [facilities, facilityId]);
@@ -197,9 +200,15 @@ const HugPersonalRecordPage = () => {
         <div className="responsive-flex" style={{ marginBottom: '1rem' }}>
           <div style={{ flex: 1 }}>
             <label className="label">事業所（f_id）</label>
+            {facilitiesLoading && (
+              <p className="child-fetch-status" role="status" aria-live="polite">
+                取得中…
+              </p>
+            )}
             <select
               className="input-field"
               value={facilityId}
+              disabled={facilitiesLoading}
               onChange={(e) => {
                 const id = Number(e.target.value);
                 setFacilityId(id);
