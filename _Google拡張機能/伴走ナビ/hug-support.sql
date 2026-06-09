@@ -207,9 +207,7 @@ CREATE TABLE IF NOT EXISTS `support_records` (
   `created_at` datetime NOT NULL DEFAULT current_timestamp(),
   `updated_at` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   PRIMARY KEY (`child_id`,`target_date`),
-  KEY `idx_support_records_user_id` (`user_id`),
-  KEY `idx_support_records_target_date` (`target_date`),
-  CONSTRAINT `fk_support_records_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON UPDATE CASCADE
+  KEY `idx_support_records_target_date` (`target_date`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='支援記録データ';
 
 -- エクスポートするデータが選択されていません
