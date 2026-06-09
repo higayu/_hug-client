@@ -9,6 +9,9 @@ import { addProfessionalSupportListAction } from './actions/professionalList.js'
 import { addProfessionalSupportNewAction2, addProfessionalSupportCheckAction } from './actions/professionalNew.js'
 import { addWebManagerAction, addWebManagerAction_OutWindow } from './actions/WebManager.js'
 
+// useTabs() は複数コンポーネントから呼ばれるため、初期化はアプリ全体で1回だけ行う
+let tabsSystemInitialized = false
+
 export function useTabs() {
   const { appState, iniState } = useAppState()
   const tabsInitializedRef = useRef(false)
@@ -78,6 +81,9 @@ export function useTabs() {
     }
 
     tabsInitializedRef.current = true
+
+    if (tabsSystemInitialized) return
+    tabsSystemInitialized = true
 
     const defaultWebview = document.getElementById('hugview')
     if (defaultWebview) {

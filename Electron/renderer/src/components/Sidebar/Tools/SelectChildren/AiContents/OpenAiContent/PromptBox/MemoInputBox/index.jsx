@@ -1,9 +1,9 @@
 // renderer/src/components/Sidebar/Tools/SelectChildren/MemoTool/Parts/MemoInput/index.jsx
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState, useEffect, useCallback } from "react";
 import { useToast } from "@/components/common/ToastContext.jsx";
 import { useAppState } from "@/contexts/appState";
 import { useNote } from "@/hooks/useNote.js";
-import { useTabs } from "@/hooks/useTabs/index.js";
+import { addPersonalRecordTabAction3 } from "@/hooks/useTabs/actions/personalRecord.js";
 
 export default function MemoInputBox({
   memoType, // ← 1 or 2
@@ -13,9 +13,11 @@ export default function MemoInputBox({
   const ref = useRef(null);
   const loadSeqRef = useRef(0);
   const { showSuccessToast, showErrorToast } = useToast();
-  const { SELECT_CHILD } = useAppState();
+  const { appState, SELECT_CHILD } = useAppState();
   const { saveTemp1, saveTemp2, loadTemp } = useNote();
-  const { addPersonalRecordTab } = useTabs();
+  const addPersonalRecordTab = useCallback(() => {
+    addPersonalRecordTabAction3(appState);
+  }, [appState]);
 
   const [value, setValue] = useState("");
 
