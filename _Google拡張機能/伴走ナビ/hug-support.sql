@@ -209,7 +209,7 @@ CREATE TABLE IF NOT EXISTS `support_records` (
   PRIMARY KEY (`child_id`,`target_date`),
   KEY `idx_support_records_target_date` (`target_date`),
   KEY `FK_support_records_users` (`user_id`),
-  CONSTRAINT `FK_support_records_users` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE NO ACTION ON UPDATE NO ACTION
+  CONSTRAINT `FK_support_records_users` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='支援記録データ';
 
 -- エクスポートするデータが選択されていません
