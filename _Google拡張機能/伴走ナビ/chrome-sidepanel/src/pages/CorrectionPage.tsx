@@ -25,7 +25,7 @@ const CorrectionPage = () => {
   const [activeTab, setActiveTab] = useState<"simple" | "advanced">("simple");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [targetDate, setTargetDate] = useState(correctionPrefs.targetDate);
-  const { facilities } = useFacilities();
+  const { facilities, loading: facilitiesLoading } = useFacilities();
   const [facilityId, setFacilityId] = useState<number | "">(correctionPrefs.facilityId);
   const [childId, setChildId] = useState<number | "">(correctionPrefs.childId);
   const [isCorrecting, setIsCorrecting] = useState(false);
@@ -36,7 +36,10 @@ const CorrectionPage = () => {
   });
 
   useEffect(() => {
-    if (facilities.length > 0 && !facilityId) {
+    if (facilities.length === 0) return;
+    const isValid =
+      facilityId !== '' && facilities.some((f) => f.facility_id === facilityId);
+    if (!isValid) {
       setFacilityId(facilities[0].facility_id);
     }
   }, [facilities, facilityId]);
@@ -181,9 +184,15 @@ const CorrectionPage = () => {
         <div className="responsive-flex" style={{ marginBottom: "1.5rem" }}>
           <div style={{ flex: 1 }}>
             <label className="label">事業所</label>
+            {facilitiesLoading && (
+              <p className="child-fetch-status" role="status" aria-live="polite">
+                取得中…
+              </p>
+            )}
             <select
               className="input-field"
               value={facilityId}
+              disabled={facilitiesLoading}
               onChange={(e) => {
                 setFacilityId(Number(e.target.value));
                 persistPrefs({ facilityId: Number(e.target.value) });

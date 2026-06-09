@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Download, Save } from 'lucide-react';
 import {
-  useHugFacilities,
+  useFacilities,
   useHugChildren,
   pickValidChildId,
 } from '../hooks/useFacilityChildren';
@@ -20,7 +20,7 @@ const HugPersonalRecordPage = () => {
   const prefs = loadPrefs();
   const period = applyPeriodPrefs(prefs.hugPersonalRecord, defaults);
 
-  const { facilities, loading: facilitiesLoading } = useHugFacilities();
+  const { facilities, loading: facilitiesLoading } = useFacilities();
   const [facilityId, setFacilityId] = useState<number | ''>(period.facilityId);
   const [childId, setChildId] = useState<number | ''>(period.childId);
   const [startDate, setStartDate] = useState(period.startDate);

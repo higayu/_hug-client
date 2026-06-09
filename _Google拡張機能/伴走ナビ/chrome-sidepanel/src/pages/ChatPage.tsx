@@ -28,7 +28,7 @@ const ChatPage = () => {
   const defaults = getDefaultPeriod();
   const period = applyPeriodPrefs(loadPrefs().chat, defaults);
 
-  const { facilities } = useFacilities();
+  const { facilities, loading: facilitiesLoading } = useFacilities();
   const [step, setStep] = useState<'selection' | 'chat'>('selection');
   const [facilityId, setFacilityId] = useState<number | ''>(period.facilityId);
   const [childId, setChildId] = useState<number | ''>(period.childId);
@@ -47,7 +47,10 @@ const ChatPage = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (facilities.length > 0 && !facilityId) {
+    if (facilities.length === 0) return;
+    const isValid =
+      facilityId !== '' && facilities.some((f) => f.facility_id === facilityId);
+    if (!isValid) {
       setFacilityId(facilities[0].facility_id);
     }
   }, [facilities, facilityId]);
@@ -168,9 +171,15 @@ const ChatPage = () => {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', marginBottom: '2rem' }}>
             <div>
               <label className="label">事業所</label>
+              {facilitiesLoading && (
+                <p className="child-fetch-status" role="status" aria-live="polite">
+                  取得中…
+                </p>
+              )}
               <select
                 className="input-field"
                 value={facilityId}
+                disabled={facilitiesLoading}
                 onChange={(e) => {
                   setFacilityId(Number(e.target.value));
                   persistPrefs({ facilityId: Number(e.target.value) });
