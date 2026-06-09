@@ -163,6 +163,16 @@ CREATE TABLE IF NOT EXISTS `job_batches` (
 
 -- エクスポートするデータが選択されていません
 
+--  テーブル hug_ai_support.migrations の構造をダンプしています
+CREATE TABLE IF NOT EXISTS `migrations` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `migration` varchar(255) NOT NULL,
+  `batch` int(11) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- エクスポートするデータが選択されていません
+
 --  テーブル hug_ai_support.password_reset_tokens の構造をダンプしています
 CREATE TABLE IF NOT EXISTS `password_reset_tokens` (
   `email` varchar(255) NOT NULL,
@@ -190,18 +200,17 @@ CREATE TABLE IF NOT EXISTS `sessions` (
 
 --  テーブル hug_ai_support.support_records の構造をダンプしています
 CREATE TABLE IF NOT EXISTS `support_records` (
-  `record_id` int(11) NOT NULL AUTO_INCREMENT,
+  `target_date` date NOT NULL,
   `child_id` int(11) NOT NULL,
   `user_id` int(11) NOT NULL,
   `content` text NOT NULL,
-  `target_date` date NOT NULL,
   `created_at` datetime NOT NULL DEFAULT current_timestamp(),
   `updated_at` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  PRIMARY KEY (`record_id`),
+  PRIMARY KEY (`child_id`,`target_date`),
   KEY `idx_support_records_user_id` (`user_id`),
   KEY `idx_support_records_target_date` (`target_date`),
   CONSTRAINT `fk_support_records_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='支援記録データ';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='支援記録データ';
 
 -- エクスポートするデータが選択されていません
 
