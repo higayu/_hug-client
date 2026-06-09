@@ -9,30 +9,30 @@ const formRootClassName =
 
 export default function PersonalRecordPanel(props) {
   const {
-    attendanceDate,
-    facilities,
-    handleAttendanceFetch,
-    handleFacilityChange,
-    handleHugFetch,
-    handleHugMonthFetch,
+    handleHprAttendanceFetch,
+    handleHprFacilityChange,
+    handleHprPanelHugFetch,
+    handleHprPanelHugMonthFetch,
     handleHugSave,
+    hprAttendanceDate,
+    hprFacilities,
+    hprFacilitiesLoading,
     hprCachedRecord,
     hprEndDate,
     hprLoading,
     hprNote,
     hprRecordStaff,
     hprResults,
+    hprSelectedChildId,
+    hprSelectedFacilityId,
     hprStartDate,
     hugStatus,
-    selectedChildId,
-    selectedChildren,
-    selectedFacilityId,
-    setAttendanceDate,
+    setHprAttendanceDate,
     setHprEndDate,
     setHprNote,
     setHprRecordStaff,
+    setHprSelectedChildId,
     setHprStartDate,
-    setSelectedChildId,
     sidePanelTab,
   } = props
 
@@ -50,20 +50,20 @@ export default function PersonalRecordPanel(props) {
     >
       <div id="hug-personal-record-form" className={formRootClassName}>
         <AttendanceChildrenSection
-          attendanceDate={attendanceDate}
-          facilities={facilities}
-          handleAttendanceFetch={handleAttendanceFetch}
-          handleFacilityChange={handleFacilityChange}
-          selectedChildId={selectedChildId}
-          selectedChildren={selectedChildren}
-          selectedFacilityId={selectedFacilityId}
-          setAttendanceDate={setAttendanceDate}
-          setSelectedChildId={setSelectedChildId}
+          handleHprAttendanceFetch={handleHprAttendanceFetch}
+          handleHprFacilityChange={handleHprFacilityChange}
+          hprAttendanceDate={hprAttendanceDate}
+          hprFacilities={hprFacilities}
+          hprFacilitiesLoading={hprFacilitiesLoading}
+          hprSelectedChildId={hprSelectedChildId}
+          hprSelectedFacilityId={hprSelectedFacilityId}
+          setHprAttendanceDate={setHprAttendanceDate}
+          setHprSelectedChildId={setHprSelectedChildId}
         />
 
         <PersonalRecordSection
-          handleHugFetch={handleHugFetch}
-          handleHugMonthFetch={handleHugMonthFetch}
+          handleHugFetch={handleHprPanelHugFetch}
+          handleHugMonthFetch={handleHprPanelHugMonthFetch}
           handleHugSave={handleHugSave}
           hprCachedRecord={hprCachedRecord}
           hprEndDate={hprEndDate}

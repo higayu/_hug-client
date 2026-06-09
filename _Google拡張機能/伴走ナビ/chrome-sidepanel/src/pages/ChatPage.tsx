@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Send, Search, Bot, User, ArrowLeft } from 'lucide-react';
-import { fetchJson } from '../lib/api';
-import { getApiBase } from '../lib/aiConfig';
+import { searchSupportRecords } from '../api';
 import { buildChatMessages, callAi } from '../lib/ai';
 import {
   useFacilities,
@@ -75,9 +74,7 @@ const ChatPage = () => {
   const startChat = async () => {
     let records: SupportRecord[] = [];
     try {
-      const all = await fetchJson<SupportRecord[]>(
-        `${getApiBase()}/support_records/_search?pk=child_id&values=${childId}`,
-      );
+      const all = await searchSupportRecords(Number(childId));
       records = all.filter((r) => {
         const d = r.target_date ? r.target_date.split('T')[0] : '';
         return d >= startDate && d <= endDate;

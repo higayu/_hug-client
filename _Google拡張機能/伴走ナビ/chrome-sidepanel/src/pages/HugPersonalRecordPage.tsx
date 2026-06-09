@@ -118,8 +118,8 @@ const HugPersonalRecordPage = () => {
     .map((row) => ({
       child_id: Number(childId),
       target_date: row.date,
-      user_id: row.user_id,
-      user_name: row.staffName,
+      user_id: row.user_id ?? undefined,
+      user_name: row.staffName || undefined,
       facility_id: Number(facilityId),
       content: row.note?.trim() ?? '',
     }))

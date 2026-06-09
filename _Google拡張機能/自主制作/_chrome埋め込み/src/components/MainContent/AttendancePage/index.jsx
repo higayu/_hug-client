@@ -3,7 +3,10 @@ import AttendanceTable from './AttendanceTable'
 
  export default function AttendancePage({
   ATTENDANCE_FACILITY_OPTIONS,
+  attendanceFacilitiesReady,
+  canFetchAttendance,
   attendanceDate,
+  hprFacilitiesLoading,
   attendanceFacilityMap,
   attendanceLastFetchedAt,
   attendanceLoading,
@@ -19,7 +22,10 @@ import AttendanceTable from './AttendanceTable'
     <div className="card" style={{ marginBottom: '1.5rem' }}>
       <AttendanceHeader
         ATTENDANCE_FACILITY_OPTIONS={ATTENDANCE_FACILITY_OPTIONS}
+        attendanceFacilitiesReady={attendanceFacilitiesReady}
+        canFetchAttendance={canFetchAttendance}
         attendanceDate={attendanceDate}
+        hprFacilitiesLoading={hprFacilitiesLoading}
         attendanceFacilityMap={attendanceFacilityMap}
         attendanceLastFetchedAt={attendanceLastFetchedAt}
         attendanceLoading={attendanceLoading}

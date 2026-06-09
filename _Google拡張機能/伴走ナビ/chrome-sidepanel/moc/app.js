@@ -110,8 +110,10 @@ function buildChatMessages(chat) {
 }
 
 const MOCK_FACILITIES = [
-  { facility_id: 1, name: '吉島事業所' },
-  { facility_id: 2, name: 'ひまわり教室' },
+  { facility_id: 3, name: 'PD吉島' },
+  { facility_id: 6, name: 'PD光' },
+  { facility_id: 7, name: 'PD横川' },
+  { facility_id: 8, name: 'PD五日市駅前' },
 ];
 
 const MOCK_CHILDREN = {

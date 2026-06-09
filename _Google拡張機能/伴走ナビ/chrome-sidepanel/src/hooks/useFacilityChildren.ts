@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { loadFacilities } from '../lib/api';
+import { loadFacilities } from '../api';
 import { fetchChildrenFromHugWm, fetchFacilitiesFromHugWm, type HugChild } from '../lib/hugWm';
 import { MOCK_CHILDREN, MOCK_FACILITIES, type Facility } from '../lib/mockData';
 

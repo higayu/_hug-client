@@ -1,5 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit'
-import { getDefaultDateRange } from './dateUtils'
+import { getDefaultDateRange, getFormattedDate } from './dateUtils'
 
 const defaultDateRange = getDefaultDateRange()
 
@@ -12,6 +12,14 @@ const initialState = {
   hprCachedRecord: null,
   hprRecordStaff: '',
   hugStatus: 'HUG WM にログインしたうえで実行してください。',
+  hprAttendanceDate: getFormattedDate(new Date()),
+  hprSelectedFacilityId: '',
+  hprSelectedChildId: '',
+  hprChildrenByFacility: {},
+  hprAttendanceChildren: [],
+  hprAttendanceLoading: false,
+  hprFacilities: [],
+  hprFacilitiesLoading: false,
 }
 
 const hugPersonalRecordSlice = createSlice({
@@ -42,6 +50,30 @@ const hugPersonalRecordSlice = createSlice({
     setHugStatus: (state, action) => {
       state.hugStatus = action.payload
     },
+    setHprAttendanceDate: (state, action) => {
+      state.hprAttendanceDate = action.payload
+    },
+    setHprSelectedFacilityId: (state, action) => {
+      state.hprSelectedFacilityId = action.payload
+    },
+    setHprSelectedChildId: (state, action) => {
+      state.hprSelectedChildId = action.payload
+    },
+    setHprChildrenByFacility: (state, action) => {
+      state.hprChildrenByFacility = action.payload
+    },
+    setHprAttendanceChildren: (state, action) => {
+      state.hprAttendanceChildren = action.payload
+    },
+    setHprAttendanceLoading: (state, action) => {
+      state.hprAttendanceLoading = action.payload
+    },
+    setHprFacilities: (state, action) => {
+      state.hprFacilities = action.payload
+    },
+    setHprFacilitiesLoading: (state, action) => {
+      state.hprFacilitiesLoading = action.payload
+    },
   },
 })
 
@@ -54,5 +86,19 @@ export const {
   setHprCachedRecord,
   setHprRecordStaff,
   setHugStatus,
+  setHprAttendanceDate,
+  setHprSelectedFacilityId,
+  setHprSelectedChildId,
+  setHprChildrenByFacility,
+  setHprAttendanceChildren,
+  setHprAttendanceLoading,
+  setHprFacilities,
+  setHprFacilitiesLoading,
 } = hugPersonalRecordSlice.actions
+
+export const selectHprAttendanceChildren = (state) => state.hugPersonalRecord.hprAttendanceChildren
+export const selectHprAttendanceLoading = (state) => state.hugPersonalRecord.hprAttendanceLoading
+export const selectHprFacilities = (state) => state.hugPersonalRecord.hprFacilities
+export const selectHprFacilitiesLoading = (state) => state.hugPersonalRecord.hprFacilitiesLoading
+
 export default hugPersonalRecordSlice.reducer

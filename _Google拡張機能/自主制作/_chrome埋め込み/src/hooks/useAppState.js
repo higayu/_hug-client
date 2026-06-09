@@ -1,5 +1,6 @@
 import { useDispatch, useSelector, useStore } from 'react-redux'
 import {
+  setAttendanceAutoUpdateEnabled as setAttendanceAutoUpdateEnabledAction,
   setAttendanceDate as setAttendanceDateAction,
   setAttendanceFacilityMap as setAttendanceFacilityMapAction,
   setAttendanceLoading as setAttendanceLoadingAction,
@@ -33,12 +34,20 @@ import {
   setSelectedFacilityId as setSelectedFacilityIdAction,
 } from '@/store/slices/facilitySlice'
 import {
+  setHprAttendanceChildren as setHprAttendanceChildrenAction,
+  setHprAttendanceDate as setHprAttendanceDateAction,
+  setHprAttendanceLoading as setHprAttendanceLoadingAction,
   setHprCachedRecord as setHprCachedRecordAction,
+  setHprChildrenByFacility as setHprChildrenByFacilityAction,
+  setHprFacilities as setHprFacilitiesAction,
+  setHprFacilitiesLoading as setHprFacilitiesLoadingAction,
   setHprEndDate as setHprEndDateAction,
   setHprLoading as setHprLoadingAction,
   setHprNote as setHprNoteAction,
   setHprRecordStaff as setHprRecordStaffAction,
   setHprResults as setHprResultsAction,
+  setHprSelectedChildId as setHprSelectedChildIdAction,
+  setHprSelectedFacilityId as setHprSelectedFacilityIdAction,
   setHprStartDate as setHprStartDateAction,
   setHugStatus as setHugStatusAction,
 } from '@/store/slices/hugPersonalRecordSlice'
@@ -91,6 +100,7 @@ export const useAppState = () => {
     halfTime,
     showLeftRecords,
     attendanceFacilityMap,
+    attendanceAutoUpdateEnabled,
   } = useSelector((state) => state.attendance)
   const {
     prStartDate,
@@ -108,6 +118,14 @@ export const useAppState = () => {
     hprCachedRecord,
     hprRecordStaff,
     hugStatus,
+    hprAttendanceDate,
+    hprSelectedFacilityId,
+    hprSelectedChildId,
+    hprChildrenByFacility,
+    hprAttendanceChildren,
+    hprAttendanceLoading,
+    hprFacilities,
+    hprFacilitiesLoading,
   } = useSelector((state) => state.hugPersonalRecord)
 
   const createStoreSetter = (actionCreator, selector) => (value) => {
@@ -144,6 +162,10 @@ export const useAppState = () => {
   const setHalfTime = createStoreSetter(setHalfTimeAction, (state) => state.attendance.halfTime)
   const setShowLeftRecords = createStoreSetter(setShowLeftRecordsAction, (state) => state.attendance.showLeftRecords)
   const setAttendanceFacilityMap = createStoreSetter(setAttendanceFacilityMapAction, (state) => state.attendance.attendanceFacilityMap)
+  const setAttendanceAutoUpdateEnabled = createStoreSetter(
+    setAttendanceAutoUpdateEnabledAction,
+    (state) => state.attendance.attendanceAutoUpdateEnabled,
+  )
   const setPrStartDate = createStoreSetter(setPrStartDateAction, (state) => state.personalRecord.prStartDate)
   const setPrEndDate = createStoreSetter(setPrEndDateAction, (state) => state.personalRecord.prEndDate)
   const setPrResults = createStoreSetter(setPrResultsAction, (state) => state.personalRecord.prResults)
@@ -157,6 +179,14 @@ export const useAppState = () => {
   const setHprCachedRecord = createStoreSetter(setHprCachedRecordAction, (state) => state.hugPersonalRecord.hprCachedRecord)
   const setHprRecordStaff = createStoreSetter(setHprRecordStaffAction, (state) => state.hugPersonalRecord.hprRecordStaff)
   const setHugStatus = createStoreSetter(setHugStatusAction, (state) => state.hugPersonalRecord.hugStatus)
+  const setHprAttendanceDate = createStoreSetter(setHprAttendanceDateAction, (state) => state.hugPersonalRecord.hprAttendanceDate)
+  const setHprSelectedFacilityId = createStoreSetter(setHprSelectedFacilityIdAction, (state) => state.hugPersonalRecord.hprSelectedFacilityId)
+  const setHprSelectedChildId = createStoreSetter(setHprSelectedChildIdAction, (state) => state.hugPersonalRecord.hprSelectedChildId)
+  const setHprChildrenByFacility = createStoreSetter(setHprChildrenByFacilityAction, (state) => state.hugPersonalRecord.hprChildrenByFacility)
+  const setHprAttendanceChildren = createStoreSetter(setHprAttendanceChildrenAction, (state) => state.hugPersonalRecord.hprAttendanceChildren)
+  const setHprAttendanceLoading = createStoreSetter(setHprAttendanceLoadingAction, (state) => state.hugPersonalRecord.hprAttendanceLoading)
+  const setHprFacilities = createStoreSetter(setHprFacilitiesAction, (state) => state.hugPersonalRecord.hprFacilities)
+  const setHprFacilitiesLoading = createStoreSetter(setHprFacilitiesLoadingAction, (state) => state.hugPersonalRecord.hprFacilitiesLoading)
 
   return {
     dispatch,
@@ -195,6 +225,7 @@ export const useAppState = () => {
     halfTime,
     showLeftRecords,
     attendanceFacilityMap,
+    attendanceAutoUpdateEnabled,
     prStartDate,
     prEndDate,
     prResults,
@@ -208,6 +239,14 @@ export const useAppState = () => {
     hprCachedRecord,
     hprRecordStaff,
     hugStatus,
+    hprAttendanceDate,
+    hprSelectedFacilityId,
+    hprSelectedChildId,
+    hprChildrenByFacility,
+    hprAttendanceChildren,
+    hprAttendanceLoading,
+    hprFacilities,
+    hprFacilitiesLoading,
     setSidebarOpen,
     setSidePanelTab,
     setChatStarted,
@@ -234,6 +273,7 @@ export const useAppState = () => {
     setHalfTime,
     setShowLeftRecords,
     setAttendanceFacilityMap,
+    setAttendanceAutoUpdateEnabled,
     setPrStartDate,
     setPrEndDate,
     setPrResults,
@@ -247,5 +287,13 @@ export const useAppState = () => {
     setHprCachedRecord,
     setHprRecordStaff,
     setHugStatus,
+    setHprAttendanceDate,
+    setHprSelectedFacilityId,
+    setHprSelectedChildId,
+    setHprChildrenByFacility,
+    setHprAttendanceChildren,
+    setHprAttendanceLoading,
+    setHprFacilities,
+    setHprFacilitiesLoading,
   }
 }

@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { formatAttendanceFetchStatus } from '@/services/hugService'
+import { formatAttendanceFetchStatus } from '@/lib/hugwm'
 
 /**
  * moc の .hug-attendance-status / .hug-attendance-count 表示用

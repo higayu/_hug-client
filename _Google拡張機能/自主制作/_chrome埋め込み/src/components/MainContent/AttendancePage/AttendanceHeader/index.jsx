@@ -4,7 +4,10 @@ import { useAttendanceStatusLine } from '@/hooks/useAttendanceStatusLine'
 
 export default function AttendanceHeader({
   ATTENDANCE_FACILITY_OPTIONS,
+  attendanceFacilitiesReady,
+  canFetchAttendance,
   attendanceDate,
+  hprFacilitiesLoading,
   attendanceFacilityMap,
   attendanceLastFetchedAt,
   attendanceLoading,
@@ -32,6 +35,12 @@ export default function AttendanceHeader({
   }, [ATTENDANCE_FACILITY_OPTIONS, attendanceFacilityMap])
 
   const totalFacilityCount = ATTENDANCE_FACILITY_OPTIONS.length
+
+  const fetchBlockHint = hprFacilitiesLoading
+    ? '施設を取得中...'
+    : !canFetchAttendance
+      ? '施設の取得完了後に一覧を取得できます'
+      : ''
 
   return (
     <div>
@@ -70,7 +79,8 @@ export default function AttendanceHeader({
           type="button"
           className="btn btn-primary"
           onClick={handleAttendanceFetch}
-          disabled={attendanceLoading}
+          disabled={!canFetchAttendance || attendanceLoading}
+          title={fetchBlockHint || (attendanceLoading ? '取得中...' : '一覧を取得')}
         >
           <RefreshCw size={16} />
           {attendanceLoading ? '取得中...' : '一覧を取得'}
@@ -121,23 +131,30 @@ export default function AttendanceHeader({
               <label className="label">施設フィルタ</label>
 
               <div className="attendance-filter-list">
-                {ATTENDANCE_FACILITY_OPTIONS.map((option) => (
-                  <label key={option.id} className="attendance-filter-item">
-                    <input
-                      type="checkbox"
-                      checked={Boolean(
-                        attendanceFacilityMap[String(option.id)],
-                      )}
-                      onChange={(event) =>
-                        handleAttendanceFacilityToggle(
-                          option.id,
-                          event.target.checked,
-                        )
-                      }
-                    />
-                    <span>{option.value}</span>
-                  </label>
-                ))}
+                {hprFacilitiesLoading ? (
+                  <span style={{ fontSize: '0.875rem', color: 'var(--text-light)' }}>
+                    施設を取得中...
+                  </span>
+                ) : (
+                  ATTENDANCE_FACILITY_OPTIONS.map((option) => (
+                    <label key={option.id} className="attendance-filter-item">
+                      <input
+                        type="checkbox"
+                        checked={Boolean(
+                          attendanceFacilityMap[String(option.id)],
+                        )}
+                        disabled={!attendanceFacilitiesReady}
+                        onChange={(event) =>
+                          handleAttendanceFacilityToggle(
+                            option.id,
+                            event.target.checked,
+                          )
+                        }
+                      />
+                      <span>{option.value}</span>
+                    </label>
+                  ))
+                )}
               </div>
             </div>
           </div>

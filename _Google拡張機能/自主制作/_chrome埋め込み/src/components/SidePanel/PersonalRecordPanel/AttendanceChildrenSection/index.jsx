@@ -1,9 +1,9 @@
 import { useMemo } from 'react'
 import { useSelector } from 'react-redux'
 import {
-  selectAttendanceChildren,
-  selectAttendanceLoading,
-} from '@/store/slices/attendanceSlice'
+  selectHprAttendanceChildren,
+  selectHprAttendanceLoading,
+} from '@/store/slices/hugPersonalRecordSlice'
 import { FiRefreshCw } from 'react-icons/fi'
 
 const sectionTitleClassName = 'mb-1.5 text-[11px] font-bold text-[#555]'
@@ -21,23 +21,32 @@ const buttonClassName =
 const getChildId = (child) => child.c_id ?? child.child_id ?? child.id ?? ''
 
 export default function AttendanceChildrenSection({
-  attendanceDate,
-  facilities,
-  handleAttendanceFetch,
-  handleFacilityChange,
-  selectedChildId,
-  selectedChildren,
-  selectedFacilityId,
-  setAttendanceDate,
-  setSelectedChildId,
+  handleHprAttendanceFetch,
+  handleHprFacilityChange,
+  hprAttendanceDate,
+  hprFacilities,
+  hprFacilitiesLoading,
+  hprSelectedChildId,
+  hprSelectedFacilityId,
+  setHprAttendanceDate,
+  setHprSelectedChildId,
 }) {
-  const attendanceChildren = useSelector(selectAttendanceChildren)
-  const attendanceLoading = useSelector(selectAttendanceLoading)
+  const hprAttendanceChildren = useSelector(selectHprAttendanceChildren)
+  const hprAttendanceLoading = useSelector(selectHprAttendanceLoading)
 
   const childOptions = useMemo(
-    () => (attendanceChildren?.length ? attendanceChildren : selectedChildren),
-    [attendanceChildren, selectedChildren],
+    () => (hprAttendanceChildren?.length ? hprAttendanceChildren : []),
+    [hprAttendanceChildren],
   )
+
+  const canFetchChildren =
+    !hprFacilitiesLoading && Boolean(hprFacilities?.length) && Boolean(hprSelectedFacilityId)
+
+  const childPlaceholder = hprFacilitiesLoading
+    ? '施設を取得中...'
+    : !hprFacilities?.length
+      ? '施設を取得してから児童を取得してください'
+      : '児童データはまだ取得されていません'
 
   return (
     <section className="mb-2.5 rounded-md border border-[#90caf9] bg-[#e8f4fc] px-2.5 py-2">
@@ -49,8 +58,8 @@ export default function AttendanceChildrenSection({
         <input
           type="date"
           className={inputClassName}
-          value={attendanceDate}
-          onChange={(event) => setAttendanceDate(event.target.value)}
+          value={hprAttendanceDate}
+          onChange={(event) => setHprAttendanceDate(event.target.value)}
         />
       </label>
 
@@ -59,14 +68,21 @@ export default function AttendanceChildrenSection({
           事業所
           <select
             className={inputClassName}
-            value={selectedFacilityId}
-            onChange={(event) => handleFacilityChange(event.target.value)}
+            value={hprSelectedFacilityId ? String(hprSelectedFacilityId) : ''}
+            onChange={(event) => handleHprFacilityChange(event.target.value)}
+            disabled={hprFacilitiesLoading || !hprFacilities?.length}
           >
-            {facilities.map((facility) => (
-              <option key={facility.facility_id} value={facility.facility_id}>
-                {facility.name}
-              </option>
-            ))}
+            {hprFacilitiesLoading ? (
+              <option value="">施設を取得中...</option>
+            ) : hprFacilities?.length ? (
+              hprFacilities.map((facility) => (
+                <option key={facility.facility_id} value={String(facility.facility_id)}>
+                  {facility.name}
+                </option>
+              ))
+            ) : (
+              <option value="">HUG WM から施設を取得できません</option>
+            )}
           </select>
         </label>
       </div>
@@ -76,9 +92,9 @@ export default function AttendanceChildrenSection({
           児童
           <select
             className={inputClassName}
-            value={selectedChildId ? String(selectedChildId) : ''}
-            onChange={(event) => setSelectedChildId(Number(event.target.value))}
-            disabled={!childOptions?.length}
+            value={hprSelectedChildId ? String(hprSelectedChildId) : ''}
+            onChange={(event) => setHprSelectedChildId(Number(event.target.value))}
+            disabled={!canFetchChildren || !childOptions?.length}
           >
             {childOptions?.length ? (
               childOptions.map((child) => {
@@ -91,7 +107,7 @@ export default function AttendanceChildrenSection({
                 )
               })
             ) : (
-              <option value="">児童データはまだ取得されていません</option>
+              <option value="">{childPlaceholder}</option>
             )}
           </select>
         </label>
@@ -99,13 +115,25 @@ export default function AttendanceChildrenSection({
         <button
           type="button"
           className={`${buttonClassName} flex h-[30px] w-[34px] items-center justify-center`}
-          onClick={handleAttendanceFetch}
-          disabled={attendanceLoading}
-          title={attendanceLoading ? '取得中...' : '児童を再取得'}
-          aria-label={attendanceLoading ? '取得中...' : '児童を再取得'}
+          onClick={handleHprAttendanceFetch}
+          disabled={!canFetchChildren || hprAttendanceLoading}
+          title={
+            !canFetchChildren
+              ? '施設の取得完了後に児童を取得できます'
+              : hprAttendanceLoading
+                ? '取得中...'
+                : '児童を再取得'
+          }
+          aria-label={
+            !canFetchChildren
+              ? '施設の取得完了後に児童を取得できます'
+              : hprAttendanceLoading
+                ? '取得中...'
+                : '児童を再取得'
+          }
         >
           <FiRefreshCw
-            className={`h-4 w-4 ${attendanceLoading ? 'animate-spin' : ''}`}
+            className={`h-4 w-4 ${hprAttendanceLoading ? 'animate-spin' : ''}`}
             aria-hidden="true"
           />
         </button>

@@ -32,9 +32,7 @@ export function getAiConfig(): AiConfig {
   return config;
 }
 
-export function getApiBase(): string {
-  return config.API_BASE || DEFAULT_AI_CONFIG.API_BASE!;
-}
+export { getApiBase } from '../api/config';
 
 export function getAiSettings() {
   const cfg = config;

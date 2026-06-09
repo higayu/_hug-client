@@ -11,7 +11,11 @@ const checkboxClassName = 'mb-0 ml-0 mr-1 mt-0 align-middle'
 
 export default function AttendanceHeader({
   ATTENDANCE_FACILITY_OPTIONS,
+  attendanceAutoUpdateEnabled,
+  attendanceFacilitiesReady,
+  canFetchAttendance,
   attendanceDate,
+  hprFacilitiesLoading,
   attendanceFacilityMap,
   attendanceLastFetchedAt,
   attendanceLoading,
@@ -20,6 +24,7 @@ export default function AttendanceHeader({
   displayAttendanceRows,
   showLeftRecords,
   halfTime,
+  handleAttendanceAutoUpdateChange,
   handleAttendanceFacilityToggle,
   handleAttendanceFetch,
   handleHalfTimeChange,
@@ -58,6 +63,12 @@ export default function AttendanceHeader({
       ? selectedFacilityNames.join('、')
       : '未選択'
 
+  const fetchBlockHint = hprFacilitiesLoading
+    ? '施設を取得中...'
+    : !canFetchAttendance
+      ? '施設の取得完了後に一覧を取得できます'
+      : ''
+
   return (
     <>
       <div className="flex shrink-0 items-center justify-between gap-2 bg-[#333] px-2 py-1 text-white">
@@ -87,7 +98,8 @@ export default function AttendanceHeader({
           type="button"
           className="hover:bg-gray-200 shrink-0 cursor-pointer whitespace-nowrap rounded border border-white bg-transparent px-4 py-2 text-xs text-white disabled:cursor-default disabled:opacity-60"
           onClick={handleAttendanceFetch}
-          disabled={attendanceLoading}
+          disabled={!canFetchAttendance || attendanceLoading}
+          title={fetchBlockHint || (attendanceLoading ? '取得中...' : '一覧を更新')}
         >
           {attendanceLoading ? '取得中...' : '更新'}
         </button>
@@ -147,6 +159,20 @@ export default function AttendanceHeader({
                     <option value="0">非表示</option>
                   </select>
                 </label>
+
+                <label className="block min-w-[120px] text-xs text-[#444]">
+                  定期自動更新
+                  <select
+                    className={inputClassName}
+                    value={attendanceAutoUpdateEnabled}
+                    onChange={(event) =>
+                      handleAttendanceAutoUpdateChange(event.target.value)
+                    }
+                  >
+                    <option value="1">オン（1分間隔）</option>
+                    <option value="0">オフ</option>
+                  </select>
+                </label>
               </div>
 
               <div className="grid grid-cols-1 gap-2 rounded border border-[#ddd] bg-white px-2 py-1.5 sm:grid-cols-[400px_150px] sm:items-end">
@@ -154,27 +180,32 @@ export default function AttendanceHeader({
                   <div className="mb-0.5 text-xs text-[#444]">施設</div>
 
                   <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 rounded border border-[#eee] bg-[#fafafa] px-2 py-1.5">
-                    {ATTENDANCE_FACILITY_OPTIONS.map((option) => (
-                      <label
-                        key={option.id}
-                        className="inline-flex items-center whitespace-nowrap text-xs text-[#444]"
-                      >
-                        <input
-                          type="checkbox"
-                          className={checkboxClassName}
-                          checked={Boolean(
-                            attendanceFacilityMap[String(option.id)],
-                          )}
-                          onChange={(event) =>
-                            handleAttendanceFacilityToggle(
-                              option.id,
-                              event.target.checked,
-                            )
-                          }
-                        />
-                        {option.value}
-                      </label>
-                    ))}
+                    {hprFacilitiesLoading ? (
+                      <span className="text-xs text-[#666]">施設を取得中...</span>
+                    ) : (
+                      ATTENDANCE_FACILITY_OPTIONS.map((option) => (
+                        <label
+                          key={option.id}
+                          className="inline-flex items-center whitespace-nowrap text-xs text-[#444]"
+                        >
+                          <input
+                            type="checkbox"
+                            className={checkboxClassName}
+                            checked={Boolean(
+                              attendanceFacilityMap[String(option.id)],
+                            )}
+                            disabled={!attendanceFacilitiesReady}
+                            onChange={(event) =>
+                              handleAttendanceFacilityToggle(
+                                option.id,
+                                event.target.checked,
+                              )
+                            }
+                          />
+                          {option.value}
+                        </label>
+                      ))
+                    )}
                   </div>
                 </div>
 

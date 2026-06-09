@@ -99,7 +99,7 @@ function NavigationShell(props) {
                   平野 義幸
                 </div>
                 <div className="truncate text-xs text-slate-500">
-                  吉島事業所
+                  PD吉島
                 </div>
               </div>
             </div>

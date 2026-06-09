@@ -14,7 +14,11 @@ export default function AttendancePanel(props) {
     HUG_WM_CONTACT_BOOK_LIST_URL,
     HUG_TIME_RE,
     WEEKDAY_JA,
+    attendanceAutoUpdateEnabled,
+    attendanceFacilitiesReady,
+    canFetchAttendance,
     attendanceDate,
+    hprFacilitiesLoading,
     attendanceFacilityMap,
     attendanceLastFetchedAt,
     attendanceLoading,
@@ -23,6 +27,7 @@ export default function AttendancePanel(props) {
     displayAttendanceRows,
     halfTime,
     handleAlertPrefChange,
+    handleAttendanceAutoUpdateChange,
     handleAttendanceFacilityToggle,
     handleAttendanceFetch,
     handleHalfTimeChange,
@@ -55,7 +60,11 @@ export default function AttendancePanel(props) {
       <div id="hug-attendance-panel" className={formRootClassName}>
         <AttendanceHeader
           ATTENDANCE_FACILITY_OPTIONS={ATTENDANCE_FACILITY_OPTIONS}
+          attendanceAutoUpdateEnabled={attendanceAutoUpdateEnabled}
+          attendanceFacilitiesReady={attendanceFacilitiesReady}
+          canFetchAttendance={canFetchAttendance}
           attendanceDate={attendanceDate}
+          hprFacilitiesLoading={hprFacilitiesLoading}
           attendanceFacilityMap={attendanceFacilityMap}
           attendanceLastFetchedAt={attendanceLastFetchedAt}
           attendanceLoading={attendanceLoading}
@@ -63,6 +72,7 @@ export default function AttendancePanel(props) {
           attendanceStatus={attendanceStatus}
           displayAttendanceRows={displayAttendanceRows}
           halfTime={halfTime}
+          handleAttendanceAutoUpdateChange={handleAttendanceAutoUpdateChange}
           handleAttendanceFacilityToggle={handleAttendanceFacilityToggle}
           handleAttendanceFetch={handleAttendanceFetch}
           handleHalfTimeChange={handleHalfTimeChange}

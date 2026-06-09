@@ -1,4 +1,4 @@
-import { fetchJson } from './api';
+import { fetchJson } from './fetchJson';
 import { getAiSettings } from './aiConfig';
 
 export const CORRECTION_SYSTEM_PROMPT =

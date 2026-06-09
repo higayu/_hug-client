@@ -14,12 +14,14 @@ export function useAttendanceAutoUpdate(runAttendanceUpdate, options = {}) {
   const isRunningRef = useRef(false)
   const lastScheduledRunAtRef = useRef(0)
   const runRef = useRef(runAttendanceUpdate)
+  const isPausedRef = useRef(options.isPaused)
 
   runRef.current = runAttendanceUpdate
+  isPausedRef.current = options.isPaused
 
   useEffect(() => {
     const shouldRunScheduledUpdate = () => {
-      if (typeof options.isPaused === 'function' && options.isPaused()) {
+      if (typeof isPausedRef.current === 'function' && isPausedRef.current()) {
         return false
       }
       if (document.hidden && !isSidePanelHost()) {
@@ -83,5 +85,5 @@ export function useAttendanceAutoUpdate(runAttendanceUpdate, options = {}) {
       window.clearInterval(intervalId)
       document.removeEventListener('visibilitychange', onVisibilityChange)
     }
-  }, [options.isPaused])
+  }, [])
 }

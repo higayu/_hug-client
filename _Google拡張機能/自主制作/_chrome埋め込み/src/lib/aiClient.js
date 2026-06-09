@@ -1,4 +1,4 @@
-import { fetchJson } from './apiClient'
+import { fetchJson } from '@/lib/apiClient'
 
 const getAiSettings = () => {
   const cfg = window.AI_CONFIG || {}

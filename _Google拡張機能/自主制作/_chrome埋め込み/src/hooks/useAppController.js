@@ -1,14 +1,22 @@
 ﻿import { useCallback, useEffect, useMemo } from 'react'
 import { useAttendanceAutoUpdate } from '@/hooks/useAttendanceAutoUpdate'
 import { useAppState } from '@/hooks/useAppState'
+import { ATTENDANCE_AUTO_UPDATE_STORAGE_KEY } from '@/store/slices/attendanceSlice'
+import {
+  setHprFacilities as setHprFacilitiesAction,
+  setHprFacilitiesLoading as setHprFacilitiesLoadingAction,
+  setHprSelectedFacilityId as setHprSelectedFacilityIdAction,
+} from '@/store/slices/hugPersonalRecordSlice'
 import { API_BASE, CHAT_SYSTEM_PROMPT, CORRECTION_SYSTEM_PROMPT, NAV_LINKS, PAGE_TITLES } from '@/constants/appConfig'
 import { MOCK_CHILDREN, MOCK_FACILITIES, MOCK_RECORDS } from '@/constants/mockData'
-import { callAi } from '@/services/aiClient'
-import { fetchJson } from '@/services/apiClient'
+import { callAi } from '@/lib/aiClient'
+import { fetchJson } from '@/lib/apiClient'
 import {
   addAttendanceFlags,
   ATTENDANCE_FACILITY_OPTIONS,
   fetchAttendanceRows,
+  fetchAttendanceRowsForFacility,
+  fetchFacilitiesFromHugWm,
   fetchPersonalRecordUntilFound,
   fetchPersonalRecordWithNote,
   HALF_TIME_STORAGE_KEY,
@@ -23,12 +31,34 @@ import {
   setAlertPref,
   SHOW_LEFT_RECORDS_STORAGE_KEY,
   WEEKDAY_JA,
-} from '@/services/hugService'
+} from '@/lib/hugwm'
 import { filterRecordsByDateRange, formatRecordDate, sortRecordsByDateDesc } from '@/utils/recordUtils'
 const hashToPage = (hash) => {
   const page = hash.replace(/^#\/?/, '')
   return NAV_LINKS.some((link) => link.key === page) ? page : 'chat'
 }
+
+const getAttendanceFetchBlockReason = (state) => {
+  const { attendance, hugPersonalRecord } = state
+  if (hugPersonalRecord.hprFacilitiesLoading) {
+    return '施設データを取得中です。完了するまで一覧を取得できません。'
+  }
+  if (!hugPersonalRecord.hprFacilities?.length) {
+    return '施設データが取得できていません。HUG WM にログインしたうえで再読み込みしてください。'
+  }
+  const hasFacility = ATTENDANCE_FACILITY_OPTIONS.some((option) =>
+    Boolean(attendance.attendanceFacilityMap[String(option.id)]),
+  )
+  if (!hasFacility) {
+    return '施設を1件以上選択してください。'
+  }
+  if (!attendance.attendanceDate) {
+    return '出席表日付を指定してください。'
+  }
+  return ''
+}
+
+const canFetchAttendanceFromState = (state) => !getAttendanceFetchBlockReason(state)
 
 export const useAppController = () => {
   const {
@@ -68,6 +98,7 @@ export const useAppController = () => {
     halfTime,
     showLeftRecords,
     attendanceFacilityMap,
+    attendanceAutoUpdateEnabled,
     prStartDate,
     prEndDate,
     prResults,
@@ -81,6 +112,13 @@ export const useAppController = () => {
     hprCachedRecord,
     hprRecordStaff,
     hugStatus,
+    hprAttendanceDate,
+    hprSelectedFacilityId,
+    hprSelectedChildId,
+    hprAttendanceChildren,
+    hprAttendanceLoading,
+    hprFacilities,
+    hprFacilitiesLoading,
     setSidebarOpen,
     setSidePanelTab,
     setChatStarted,
@@ -107,6 +145,7 @@ export const useAppController = () => {
     setHalfTime,
     setShowLeftRecords,
     setAttendanceFacilityMap,
+    setAttendanceAutoUpdateEnabled,
     setPrStartDate,
     setPrEndDate,
     setPrResults,
@@ -120,6 +159,11 @@ export const useAppController = () => {
     setHprCachedRecord,
     setHprRecordStaff,
     setHugStatus,
+    setHprAttendanceDate,
+    setHprSelectedFacilityId,
+    setHprSelectedChildId,
+    setHprAttendanceChildren,
+    setHprAttendanceLoading,
   } = useAppState()
 
   useEffect(() => {
@@ -185,8 +229,9 @@ export const useAppController = () => {
         console.warn('[loadFacilities] fallback to mock data', error)
         if (!mounted) return
         dispatch(setFacilitiesAction(MOCK_FACILITIES))
-        dispatch(setSelectedFacilityIdAction(MOCK_FACILITIES[0].facility_id))
-        await loadChildren(MOCK_FACILITIES[0].facility_id)
+        const firstId = MOCK_FACILITIES[0].facility_id
+        dispatch(setSelectedFacilityIdAction(firstId))
+        await loadChildren(firstId)
       }
     }
 
@@ -202,6 +247,39 @@ export const useAppController = () => {
     setSelectedChildIdAction,
     setSelectedFacilityIdAction,
   ])
+
+  useEffect(() => {
+    let mounted = true
+
+    const loadHprFacilities = async () => {
+      dispatch(setHprFacilitiesLoadingAction(true))
+      try {
+        const data = await fetchFacilitiesFromHugWm()
+        if (!mounted) return
+        dispatch(setHprFacilitiesAction(data))
+        const currentId = reduxStore.getState().hugPersonalRecord.hprSelectedFacilityId
+        if (!currentId) {
+          const selected = data.find((facility) => facility.selected) || data[0]
+          if (selected?.facility_id) {
+            dispatch(setHprSelectedFacilityIdAction(selected.facility_id))
+          }
+        }
+      } catch (error) {
+        console.warn('[loadHprFacilities] HUG WM から施設を取得できませんでした:', error)
+        if (!mounted) return
+        dispatch(setHprFacilitiesAction([]))
+      } finally {
+        if (mounted) {
+          dispatch(setHprFacilitiesLoadingAction(false))
+        }
+      }
+    }
+
+    loadHprFacilities()
+    return () => {
+      mounted = false
+    }
+  }, [dispatch, reduxStore])
 
   const selectedChildren = useMemo(
     () => childrenByFacility[selectedFacilityId] || [],
@@ -230,6 +308,21 @@ export const useAppController = () => {
     [attendanceRows, showLeftRecords],
   )
 
+  const attendanceFacilitiesReady = useMemo(
+    () => !hprFacilitiesLoading && Boolean(hprFacilities?.length),
+    [hprFacilitiesLoading, hprFacilities],
+  )
+
+  const canFetchAttendance = useMemo(
+    () =>
+      attendanceFacilitiesReady &&
+      ATTENDANCE_FACILITY_OPTIONS.some((option) =>
+        Boolean(attendanceFacilityMap[String(option.id)]),
+      ) &&
+      Boolean(attendanceDate),
+    [attendanceFacilitiesReady, attendanceFacilityMap, attendanceDate],
+  )
+
   const handleFacilityChange = async (value) => {
     const facilityId = Number(value)
     setSelectedFacilityId(facilityId)
@@ -248,6 +341,55 @@ export const useAppController = () => {
       const fallback = MOCK_CHILDREN[facilityId] || []
       setChildrenByFacility((prev) => ({ ...prev, [facilityId]: fallback }))
       setSelectedChildId(fallback[0]?.child_id || '')
+    }
+  }
+
+  const handleHprFacilityChange = (value) => {
+    setHprSelectedFacilityId(Number(value))
+    setHprSelectedChildId('')
+    setHprAttendanceChildren([])
+  }
+
+  const handleHprAttendanceFetch = async () => {
+    if (hprFacilitiesLoading) {
+      alert('施設データを取得中です。完了するまで児童を取得できません。')
+      return
+    }
+
+    if (!hprFacilities?.length) {
+      alert('施設データが取得できていません。HUG WM にログインしたうえで再読み込みしてください。')
+      return
+    }
+
+    if (!hprSelectedFacilityId) {
+      alert('事業所を選択してください。')
+      return
+    }
+
+    const facility = hprFacilities.find(
+      (item) => String(item.facility_id) === String(hprSelectedFacilityId),
+    )
+    if (!facility) {
+      alert('事業所情報が見つかりません。HUG WM にログインしたうえで再読み込みしてください。')
+      return
+    }
+
+    setHprAttendanceLoading(true)
+    try {
+      const rows = await fetchAttendanceRowsForFacility({
+        date: hprAttendanceDate,
+        facilityId: facility.facility_id,
+        facilityName: facility.name,
+      })
+      setHprAttendanceChildren(rows)
+      const firstChildId = rows[0]?.c_id ?? rows[0]?.child_id ?? rows[0]?.id
+      if (firstChildId) {
+        setHprSelectedChildId(firstChildId)
+      }
+    } catch (error) {
+      alert(`児童の取得に失敗しました: ${error.message}`)
+    } finally {
+      setHprAttendanceLoading(false)
     }
   }
 
@@ -353,6 +495,14 @@ export const useAppController = () => {
     async (options = {}) => {
       const force = Boolean(options?.force)
       const silent = options.silent ?? !force
+      const blockReason = getAttendanceFetchBlockReason(reduxStore.getState())
+
+      if (blockReason) {
+        if (!silent) {
+          alert(blockReason)
+        }
+        return
+      }
 
       if (!silent) {
         setAttendanceLoading(true)
@@ -386,6 +536,7 @@ export const useAppController = () => {
     [
       attendanceDate,
       attendanceFacilityMap,
+      reduxStore,
       setAttendanceLastFetchedAt,
       setAttendanceLoading,
       setAttendanceRows,
@@ -393,7 +544,13 @@ export const useAppController = () => {
     ],
   )
 
-  useAttendanceAutoUpdate(runAttendanceUpdate)
+  useAttendanceAutoUpdate(runAttendanceUpdate, {
+    isPaused: () => {
+      const state = reduxStore.getState()
+      if (state.attendance.attendanceAutoUpdateEnabled !== 1) return true
+      return !canFetchAttendanceFromState(state)
+    },
+  })
 
   const handleAttendanceFetch = () => runAttendanceUpdate({ force: true, silent: false })
 
@@ -414,6 +571,12 @@ export const useAppController = () => {
     const next = Number(value) >= 1 ? 1 : 0
     setShowLeftRecords(next)
     localStorage.setItem(SHOW_LEFT_RECORDS_STORAGE_KEY, String(next))
+  }
+
+  const handleAttendanceAutoUpdateChange = (value) => {
+    const next = Number(value) >= 1 ? 1 : 0
+    setAttendanceAutoUpdateEnabled(next)
+    localStorage.setItem(ATTENDANCE_AUTO_UPDATE_STORAGE_KEY, String(next))
   }
 
   // アラート設定の変更処理
@@ -615,6 +778,69 @@ export const useAppController = () => {
     }
   }
 
+  const handleHprPanelHugFetch = async () => {
+    if (!hprSelectedChildId) {
+      alert('児童を選択してください。')
+      return
+    }
+    if (hprStartDate > hprEndDate) {
+      alert('開始日は終了日以前にしてください。')
+      return
+    }
+    setHprLoading(true)
+    setHprResults([])
+    setHprCachedRecord(null)
+    setHprNote('')
+    setHugStatus('HUG WM から取得しています...')
+    try {
+      const record = await fetchPersonalRecordWithNote({
+        facilityId: Number(hprSelectedFacilityId),
+        date: hprStartDate,
+        dateEnd: hprEndDate,
+        childId: Number(hprSelectedChildId),
+      })
+      setHprResults([record])
+      setHprCachedRecord(record)
+      setHprNote(record.note || '')
+      setHprRecordStaff(record.recordStaff?.value || '')
+      setHugStatus(`取得しました: ${record.date} / ${record.childName}`)
+    } catch (error) {
+      setHugStatus(`取得に失敗しました: ${error.message}`)
+    } finally {
+      setHprLoading(false)
+    }
+  }
+
+  const handleHprPanelHugMonthFetch = async () => {
+    if (!hprSelectedChildId) {
+      alert('児童を選択してください。')
+      return
+    }
+    setHprLoading(true)
+    setHprResults([])
+    setHprCachedRecord(null)
+    setHprNote('')
+    setHugStatus('過去月を検索しています...')
+    try {
+      const record = await fetchPersonalRecordUntilFound({
+        facilityId: Number(hprSelectedFacilityId),
+        childId: Number(hprSelectedChildId),
+        onProgress: setHugStatus,
+      })
+      setHprStartDate(record.dateNorm || hprStartDate)
+      setHprEndDate(record.dateNorm || hprEndDate)
+      setHprResults([record])
+      setHprCachedRecord(record)
+      setHprNote(record.note || '')
+      setHprRecordStaff(record.recordStaff?.value || '')
+      setHugStatus(`取得しました: ${record.date} / ${record.childName}`)
+    } catch (error) {
+      setHugStatus(`取得に失敗しました: ${error.message}`)
+    } finally {
+      setHprLoading(false)
+    }
+  }
+
   const handleHugSave = async (state) => {
     if (!hprCachedRecord?.editHtml) {
       alert('先に個人記録を取得してください。')
@@ -668,6 +894,10 @@ export const useAppController = () => {
     attendanceRows,
     attendanceStatus,
     attendanceLastFetchedAt,
+    attendanceAutoUpdateEnabled,
+    attendanceFacilitiesReady,
+    canFetchAttendance,
+    hprFacilitiesLoading,
     showLeftRecords,
     chatEndDate,
     chatInput,
@@ -686,6 +916,7 @@ export const useAppController = () => {
     facilities,
     halfTime,
     handleAlertPrefChange,
+    handleAttendanceAutoUpdateChange,
     handleAttendanceFacilityToggle,
     handleAttendanceFetch,
     handleChatBack,
@@ -697,6 +928,10 @@ export const useAppController = () => {
     handleHalfTimeChange,
     handleHugFetch,
     handleHugMonthFetch,
+    handleHprAttendanceFetch,
+    handleHprFacilityChange,
+    handleHprPanelHugFetch,
+    handleHprPanelHugMonthFetch,
     handleHugSave,
     handlePostEnter,
     handlePostLeave,
@@ -711,6 +946,11 @@ export const useAppController = () => {
     hprNote,
     hprRecordStaff,
     hprResults,
+    hprAttendanceDate,
+    hprFacilities,
+    hprFacilitiesLoading,
+    hprSelectedChildId,
+    hprSelectedFacilityId,
     hprStartDate,
     hugStatus,
     pageDescription,
@@ -737,6 +977,8 @@ export const useAppController = () => {
     setHprEndDate,
     setHprNote,
     setHprRecordStaff,
+    setHprAttendanceDate,
+    setHprSelectedChildId,
     setHprStartDate,
     setPrEndDate,
     setPrStartDate,

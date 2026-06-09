@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Search } from 'lucide-react';
-import { fetchJson } from '../lib/api';
-import { getApiBase } from '../lib/aiConfig';
+import { searchSupportRecords } from '../api';
 import {
   useFacilities,
   useHugChildren,
@@ -85,9 +84,7 @@ const PersonalRecordPage = () => {
 
     let result: SupportRecord[] = [];
     try {
-      const all = await fetchJson<SupportRecord[]>(
-        `${getApiBase()}/support_records/_search?pk=child_id&values=${childId}`,
-      );
+      const all = await searchSupportRecords(Number(childId));
       result = filterRecordsByDateRange(all, startDate, endDate);
     } catch (err) {
       console.warn('[loadPersonalRecords] API取得に失敗、MOCKを使用:', err);

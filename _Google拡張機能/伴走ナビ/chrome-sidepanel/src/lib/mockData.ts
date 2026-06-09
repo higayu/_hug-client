@@ -10,8 +10,10 @@ export type SupportRecord = {
 };
 
 export const MOCK_FACILITIES: Facility[] = [
-  { facility_id: 3, name: '吉島事業所' },
-  { facility_id: 2, name: 'ひまわり教室' },
+  { facility_id: 3, name: 'PD吉島' },
+  { facility_id: 6, name: 'PD光' },
+  { facility_id: 7, name: 'PD横川' },
+  { facility_id: 8, name: 'PD五日市駅前' },
 ];
 
 export const MOCK_CHILDREN: Record<number, Child[]> = {

@@ -15,7 +15,7 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $facility = Facility::query()->firstOrCreate(
-            ['name' => '吉島事業所'],
+            ['name' => 'PD吉島'],
         );
 
         $userId = (int) (User::max('user_id') ?? 0) + 1;
