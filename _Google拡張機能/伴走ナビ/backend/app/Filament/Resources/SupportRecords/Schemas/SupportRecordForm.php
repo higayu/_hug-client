@@ -14,18 +14,18 @@ class SupportRecordForm
     {
         return $schema
             ->components([
-                TextInput::make('child_id')
-                    ->label('児童ID')
-                    ->required()
-                    ->numeric()
-                    ->disabledOn('edit')
-                    ->dehydrated(),
-
                 DatePicker::make('target_date')
                     ->label('対象日')
                     ->required()
                     ->native(false)
                     ->displayFormat('Y-m-d')
+                    ->disabledOn('edit')
+                    ->dehydrated(),
+
+                TextInput::make('child_id')
+                    ->label('児童ID')
+                    ->required()
+                    ->numeric()
                     ->disabledOn('edit')
                     ->dehydrated(),
 

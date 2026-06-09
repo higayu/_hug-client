@@ -16,6 +16,7 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
 class SupportRecordResource extends Resource
@@ -55,12 +56,20 @@ class SupportRecordResource extends Resource
 
         [$childId, $targetDate] = $parts;
 
+        if (! is_numeric($childId)) {
+            return null;
+        }
+
         $query = SupportRecord::query()
-            ->where('child_id', $childId)
+            ->where('child_id', (int) $childId)
             ->whereDate('target_date', $targetDate);
 
-        if ($modifyQuery) {
-            $query = $modifyQuery($query) ?? $query;
+        if ($modifyQuery instanceof Closure) {
+            $modifiedQuery = $modifyQuery($query);
+
+            if ($modifiedQuery instanceof Builder) {
+                $query = $modifiedQuery;
+            }
         }
 
         return $query->first();

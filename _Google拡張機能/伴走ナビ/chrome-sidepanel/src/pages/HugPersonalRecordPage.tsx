@@ -85,6 +85,7 @@ const HugPersonalRecordPage = () => {
         childId: Number(childId),
         onProgress: setStatusMessage,
       });
+      console.log('個人記録取得結果',result);
       setRecords(result);
       setHasSearched(true);
     } catch (err) {

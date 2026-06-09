@@ -2,8 +2,6 @@
 
 namespace App\Filament\Resources\SupportRecords\Tables;
 
-use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
@@ -15,29 +13,31 @@ class SupportRecordsTable
     {
         return $table
             ->modifyQueryUsing(fn ($query) => $query
-                ->orderBy('child_id')
                 ->orderByDesc('target_date')
+                ->orderBy('child_id')
             )
             ->columns([
+                TextColumn::make('target_date')
+                    ->label('対象日')
+                    ->date('Y-m-d')
+                    ->sortable(),
+
                 TextColumn::make('child_id')
                     ->label('児童ID')
                     ->numeric()
                     ->sortable()
                     ->searchable(),
 
-                TextColumn::make('target_date')
-                    ->label('対象日')
-                    ->date('Y-m-d')
-                    ->sortable(),
-
                 TextColumn::make('user.name')
                     ->label('記録者')
+                    ->placeholder('-')
                     ->searchable()
                     ->sortable(),
 
                 TextColumn::make('content')
                     ->label('内容')
                     ->limit(60)
+                    ->wrap()
                     ->searchable(),
 
                 TextColumn::make('created_at')
@@ -60,9 +60,7 @@ class SupportRecordsTable
                 EditAction::make(),
             ])
             ->toolbarActions([
-                BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                ]),
+                //
             ]);
     }
 }

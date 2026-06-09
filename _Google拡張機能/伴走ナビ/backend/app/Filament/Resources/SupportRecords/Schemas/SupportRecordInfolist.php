@@ -11,19 +11,21 @@ class SupportRecordInfolist
     {
         return $schema
             ->components([
-                TextEntry::make('child_id')
-                    ->label('児童ID')
-                    ->numeric(),
-
                 TextEntry::make('target_date')
                     ->label('対象日')
                     ->date('Y-m-d'),
 
+                TextEntry::make('child_id')
+                    ->label('児童ID')
+                    ->numeric(),
+
                 TextEntry::make('user.name')
-                    ->label('記録者'),
+                    ->label('記録者')
+                    ->placeholder('-'),
 
                 TextEntry::make('content')
                     ->label('内容')
+                    ->prose()
                     ->columnSpanFull(),
 
                 TextEntry::make('created_at')

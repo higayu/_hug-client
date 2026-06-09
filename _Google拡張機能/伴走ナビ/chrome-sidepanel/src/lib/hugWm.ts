@@ -112,6 +112,19 @@ async function fetchContactBookNote(pathAndQuery: string): Promise<string | null
   try {
     const html = await hugWmFetchText(listUrl);
     const editDoc = new DOMParser().parseFromString(html, 'text/html');
+
+    const staffSelect = editDoc.querySelector<HTMLSelectElement>(
+      'select[name="record_staff"]'
+    );
+    if (!staffSelect) {
+      throw new Error('記録者 select が見つかりませんでした');
+    }
+    const staffSelectValue = staffSelect.value;
+    console.log('記録者 select の value:', staffSelectValue);
+    const staffName =
+    staffSelect.selectedOptions[0]?.textContent?.trim() ?? '';
+    console.log('記録者:', staffSelectValue, staffName);
+
     const textarea = editDoc.querySelector('textarea[name="note"][data-field-key="note"]');
 
     if (!textarea) {
