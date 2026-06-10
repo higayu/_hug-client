@@ -84,6 +84,7 @@ const AppContent = () => {
             }
           />
           <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
+          <Route path="/correction" element={<Navigate to="/ai-record-editer" replace />} />
           <Route path="/ai-record-editer" element={<ProtectedRoute><AiRecordEditer /></ProtectedRoute>} />
           <Route path="/chat" element={<ProtectedRoute><ChatPage /></ProtectedRoute>} />
           <Route path="/personal-record" element={<ProtectedRoute><PersonalRecordPage /></ProtectedRoute>} />

@@ -17,7 +17,7 @@ const LoginPage = () => {
 
     try {
       await login(email, password);
-      navigate('/correction');
+      navigate('/ai-record-editer');
     } catch (err) {
       setError((err as Error).message || 'ログインに失敗しました。');
     } finally {

@@ -40,7 +40,7 @@ const Sidebar = ({ isOpenMobile, onCloseMobile }: SidebarProps) => {
       </div>
 
       <nav style={{ flex: 1, padding: '1rem 0' }}>
-        <NavItem to="/correction" icon={<FileEdit />} label="AI校正機能" onClick={onCloseMobile} />
+        <NavItem to="/ai-record-editer" icon={<FileEdit />} label="AI校正機能" onClick={onCloseMobile} />
         <NavItem to="/chat" icon={<MessageSquare />} label="AI問い合わせ" onClick={onCloseMobile} />
         <NavItem to="/dashboard" icon={<LayoutDashboard />} label="ダッシュボード" onClick={onCloseMobile} />
         <NavItem to="/personal-record" icon={<UserSquare />} label="個人記録" onClick={onCloseMobile} />
