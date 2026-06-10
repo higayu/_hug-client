@@ -9,7 +9,7 @@ import {
 import { Menu } from "lucide-react";
 import Sidebar from "./components/Sidebar";
 import DashboardPage from "./pages/DashboardPage";
-import CorrectionPage from "./pages/CorrectionPage";
+import AiRecordEditer from "./pages/AiRecordEditer";
 import ChatPage from "./pages/ChatPage";
 import PersonalRecordPage from "./pages/PersonalRecordPage";
 import HugPersonalRecordPage from "./pages/HugPersonalRecordPage";
@@ -80,11 +80,11 @@ const AppContent = () => {
           <Route
             path="/login"
             element={
-              isAuthenticated() ? <Navigate to="/correction" replace /> : <LoginPage />
+              isAuthenticated() ? <Navigate to="/personal-record" replace /> : <LoginPage />
             }
           />
           <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
-          <Route path="/correction" element={<ProtectedRoute><CorrectionPage /></ProtectedRoute>} />
+          <Route path="/ai-record-editer" element={<ProtectedRoute><AiRecordEditer /></ProtectedRoute>} />
           <Route path="/chat" element={<ProtectedRoute><ChatPage /></ProtectedRoute>} />
           <Route path="/personal-record" element={<ProtectedRoute><PersonalRecordPage /></ProtectedRoute>} />
           <Route path="/hug-personal-record" element={<ProtectedRoute><HugPersonalRecordPage /></ProtectedRoute>} />

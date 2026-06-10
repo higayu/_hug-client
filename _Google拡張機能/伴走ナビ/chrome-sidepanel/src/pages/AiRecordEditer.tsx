@@ -16,7 +16,7 @@ import {
   mergePrefs,
 } from "../lib/prefs";
 
-const CorrectionPage = () => {
+const AiRecordEditer = () => {
   const defaultDate = new Date().toISOString().split("T")[0];
   const correctionPrefs = applyCorrectionPrefs(loadPrefs().correction, {
     targetDate: defaultDate,
@@ -541,4 +541,4 @@ const CorrectionPage = () => {
   );
 };
 
-export default CorrectionPage;
+export default AiRecordEditer;

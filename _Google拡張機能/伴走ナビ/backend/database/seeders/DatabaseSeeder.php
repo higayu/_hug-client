@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Models\Facility;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -14,17 +13,12 @@ class DatabaseSeeder extends Seeder
 
     public function run(): void
     {
-        $facility = Facility::query()->firstOrCreate(
-            ['name' => 'PD吉島'],
-        );
-
         $userId = (int) (User::max('user_id') ?? 0) + 1;
 
         User::query()->updateOrCreate(
             ['email' => 'test@example.com'],
             [
                 'user_id' => $userId,
-                'facility_id' => $facility->facility_id,
                 'name' => 'テスト職員',
                 'password' => Hash::make('password'),
                 'role' => 'staff',

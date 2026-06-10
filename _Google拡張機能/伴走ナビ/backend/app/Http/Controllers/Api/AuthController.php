@@ -21,7 +21,6 @@ class AuthController extends Controller
         ]);
 
         $user = User::query()
-            ->with('facility')
             ->where('email', $credentials['email'])
             ->first();
 
@@ -56,8 +55,6 @@ class AuthController extends Controller
             ], 401);
         }
 
-        $user->loadMissing('facility');
-
         return response()->json([
             'user' => $this->formatUser($user),
         ]);
@@ -67,8 +64,6 @@ class AuthController extends Controller
     {
         return [
             'user_id' => $user->user_id,
-            'facility_id' => $user->facility_id,
-            'facility_name' => $user->facility?->name,
             'name' => $user->name,
             'email' => $user->email,
             'role' => $user->role,

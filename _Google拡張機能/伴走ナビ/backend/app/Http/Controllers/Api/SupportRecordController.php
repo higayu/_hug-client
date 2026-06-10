@@ -35,7 +35,6 @@ class SupportRecordController extends Controller
             'child_id' => ['required', 'integer'],
             'user_id' => ['required', 'integer'],
             'user_name' => ['nullable', 'string', 'max:255'],
-            'facility_id' => ['nullable', 'integer'],
             'content' => ['required', 'string'],
         ]);
 
@@ -43,7 +42,6 @@ class SupportRecordController extends Controller
             $this->ensureUserExists(
                 userId: (int) $validated['user_id'],
                 userName: $validated['user_name'] ?? null,
-                facilityId: $validated['facility_id'] ?? null,
             );
 
             return SupportRecord::updateOrCreate(
@@ -69,7 +67,6 @@ class SupportRecordController extends Controller
             'records.*.child_id' => ['required', 'integer'],
             'records.*.user_id' => ['required', 'integer'],
             'records.*.user_name' => ['nullable', 'string', 'max:255'],
-            'records.*.facility_id' => ['nullable', 'integer'],
             'records.*.content' => ['required', 'string'],
         ]);
 
@@ -82,7 +79,6 @@ class SupportRecordController extends Controller
                 $user = $this->ensureUserExists(
                     userId: (int) $item['user_id'],
                     userName: $item['user_name'] ?? null,
-                    facilityId: $item['facility_id'] ?? null,
                 );
 
                 if ($user->wasRecentlyCreated) {
@@ -116,14 +112,13 @@ class SupportRecordController extends Controller
         ], 201);
     }
 
-    private function ensureUserExists(int $userId, ?string $userName = null, ?int $facilityId = null): User
+    private function ensureUserExists(int $userId, ?string $userName = null): User
     {
         return User::firstOrCreate(
             [
                 'user_id' => $userId,
             ],
             [
-                'facility_id' => $facilityId,
                 'name' => $userName ?: ('HUG職員_' . $userId),
                 'login_id' => null,
                 'hug_password' => null,
