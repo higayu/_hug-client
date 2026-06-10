@@ -57,7 +57,7 @@ const Sidebar = ({ isOpenMobile, onCloseMobile }: SidebarProps) => {
               {authUser?.name || '未ログイン'}
             </span>
             <span style={{ fontSize: '0.7rem', color: 'var(--text-light)', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
-              {authUser?.facility_name || '—'}
+              {authUser?.email || '—'}
             </span>
           </div>
           <button

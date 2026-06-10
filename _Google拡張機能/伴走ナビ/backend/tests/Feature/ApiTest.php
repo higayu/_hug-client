@@ -2,7 +2,6 @@
 
 namespace Tests\Feature;
 
-use App\Models\Facility;
 use App\Models\SupportRecord;
 use App\Models\User;
 use App\Services\JwtService;
@@ -20,10 +19,9 @@ class ApiTest extends TestCase
         return ['Authorization' => 'Bearer '.$token];
     }
 
-    private function createUser(Facility $facility): User
+    private function createUser(): User
     {
         return User::create([
-            'facility_id' => $facility->facility_id,
             'name' => 'テスト職員',
             'email' => 'api-test@example.com',
             'password' => 'password',
@@ -31,23 +29,9 @@ class ApiTest extends TestCase
         ]);
     }
 
-    public function test_facilities_index_returns_facility_list(): void
-    {
-        $facility = Facility::create(['name' => 'テスト事業所']);
-        $user = $this->createUser($facility);
-
-        $response = $this->withHeaders($this->authHeaders($user))
-            ->getJson('/api/facilities');
-
-        $response
-            ->assertOk()
-            ->assertJsonFragment(['name' => 'テスト事業所']);
-    }
-
     public function test_support_records_search_by_child_id(): void
     {
-        $facility = Facility::create(['name' => '検索テスト事業所']);
-        $user = $this->createUser($facility);
+        $user = $this->createUser();
 
         SupportRecord::create([
             'child_id' => 10,
@@ -66,8 +50,7 @@ class ApiTest extends TestCase
 
     public function test_support_records_store_creates_record(): void
     {
-        $facility = Facility::create(['name' => '登録テスト事業所']);
-        $user = $this->createUser($facility);
+        $user = $this->createUser();
 
         $response = $this->withHeaders($this->authHeaders($user))
             ->postJson('/api/support_records', [
@@ -89,8 +72,7 @@ class ApiTest extends TestCase
 
     public function test_support_records_bulk_store_creates_and_updates_records(): void
     {
-        $facility = Facility::create(['name' => '一括登録テスト事業所']);
-        $user = $this->createUser($facility);
+        $user = $this->createUser();
 
         SupportRecord::create([
             'child_id' => 10,
@@ -104,11 +86,13 @@ class ApiTest extends TestCase
                 'records' => [
                     [
                         'child_id' => 10,
+                        'user_id' => $user->user_id,
                         'target_date' => '2026-05-01',
                         'content' => '更新後の記録',
                     ],
                     [
                         'child_id' => 10,
+                        'user_id' => $user->user_id,
                         'target_date' => '2026-05-02',
                         'content' => '新規一括記録',
                     ],

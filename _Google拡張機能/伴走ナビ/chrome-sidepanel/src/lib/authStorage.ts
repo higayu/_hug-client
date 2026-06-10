@@ -5,8 +5,6 @@ export type AuthUser = {
   name: string;
   email: string;
   role: string;
-  facility_id: number;
-  facility_name?: string;
 };
 
 type StoredAuth = {
