@@ -8,6 +8,8 @@ import UpdateManager from '@/components/Sidebar/Tools/UpdateManager'
 import GetKojinkiroku from '@/components/Sidebar/common/GetKojinkiroku';
 import { useAppState } from '@/contexts/appState'
 //import { FaTable } from "react-icons/fa";
+import SpeechToText from '@/components/Sidebar/common/SpeechToText'
+
 
 function TabsContainer() {
   // デフォルトでツールタブを開く
@@ -68,9 +70,9 @@ function TabsContainer() {
           </div>
         )}
 
-        {activeTab === 'sqlManager' && (
+        {activeTab === 'speechToText' && (
           <div className="h-full flex flex-col">
-            <SQLManager />
+            <SpeechToText />
           </div>
         )}
 
