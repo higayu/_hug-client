@@ -11,6 +11,7 @@ files:
   - renderer/**
   - package.json
   - preload.js
+  - preload/**/*
 
 win:
   target: nsis
