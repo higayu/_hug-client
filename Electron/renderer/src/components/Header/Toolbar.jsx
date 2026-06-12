@@ -277,7 +277,26 @@ function Toolbar() {
           </ul>
         </div>
       </nav>
-
+      <nav className="relative inline-block ml-0 min-w-auto flex-shrink-0 z-[1001]">
+        <button
+          id="loginBtn"
+          onClick={handleLogin}
+          className="
+            rounded-full
+            flex items-center gap-2
+            text-left text-while
+            border-none
+            px-4 py-2 text-sm
+            cursor-pointer transition-colors
+            bg-sky-600
+            hover:bg-gray-800
+          "
+          aria-label="自動ログイン"
+        >
+          <ArrowRightOnRectangleIcon className="h-5 w-5 transition-transform group-hover:translate-x-0.5" />
+          <span>Login</span>
+        </button>
+      </nav>
 
       {/* ======== ナビゲーションメニュー ======== */}
       <nav className="relative inline-block ml-0 min-w-auto flex-shrink-0 z-[1001]">
@@ -298,25 +317,6 @@ function Toolbar() {
           className="navInner fixed right-auto top-auto bg-white border border-gray-300 rounded-md shadow-lg z-[99999] min-w-[200px] max-h-[300px] overflow-y-auto"
         >
           <ul className="list-none m-0 p-0 py-1.25">
-            <li className="m-0 p-0">
-              <button
-                id="loginBtn"
-                onClick={handleLogin}
-                className="
-                  flex w-full items-center gap-2
-                  text-left text-while
-                  border-none
-                  px-4 py-2 text-sm
-                  cursor-pointer transition-colors
-                  bg-sky-600
-                  hover:bg-gray-800
-                "
-                aria-label="自動ログイン"
-              >
-                <ArrowRightOnRectangleIcon className="h-5 w-5 transition-transform group-hover:translate-x-0.5" />
-                <span>自動ログイン</span>
-              </button>
-            </li>
             <li className="m-0 p-0">
               <button
                 id="cash-Clear"
