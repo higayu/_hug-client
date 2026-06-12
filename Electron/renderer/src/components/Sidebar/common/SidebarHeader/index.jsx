@@ -116,7 +116,7 @@ function SidebarHeader() {
           <WeekdaySelect />
         </div>
 
-        {/* Web Manager（外部ウィンドウ） */}
+        {/* Web Manager（外部ブラウザ） */}
         <div className="flex flex-col items-center justify-center">
           <label className="font-bold text-sm text-black mb-1.5 invisible select-none">
             &nbsp;

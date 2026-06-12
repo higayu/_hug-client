@@ -1,5 +1,5 @@
 // main/parts/window/planWindows.js
-const { BrowserWindow } = require("electron");
+const { BrowserWindow, shell } = require("electron");
 const path = require("path");
 
 let isRegistered = false;
@@ -85,15 +85,15 @@ function openSimpleWindow(facilityId, dateStr, label = "当日の利用画面") 
   attachConsoleLogging(win);
 }
 
-function openExternalPageWindow(url, title = "Webページ") {
+function openExternalPageWindow(url) {
   if (!url) {
     console.error("[openExternalPageWindow] url is required");
     return;
   }
 
-  const win = new BrowserWindow(createWindowOptions(title));
-  win.loadURL(url);
-  attachConsoleLogging(win);
+  shell.openExternal(url).catch((err) => {
+    console.error("[openExternalPageWindow] failed to open URL:", err);
+  });
 }
 
 module.exports = { registerPlanWindows };
