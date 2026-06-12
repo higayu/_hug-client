@@ -122,7 +122,7 @@ export default function SpeechToText() {
   };
 
   return (
-    <div className="mx-auto max-w-3xl rounded-2xl bg-white p-6 shadow-lg">
+    <div className="bg-white">
       <div className="mb-6">
         <h2 className="text-2xl font-bold text-gray-800">
           音声文字起こし
