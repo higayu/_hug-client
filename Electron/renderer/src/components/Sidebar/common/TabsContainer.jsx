@@ -8,7 +8,7 @@ import UpdateManager from '@/components/Sidebar/Tools/UpdateManager'
 import GetKojinkiroku from '@/components/Sidebar/common/GetKojinkiroku';
 import { useAppState } from '@/contexts/appState'
 //import { FaTable } from "react-icons/fa";
-import SpeechToText from '@/components/Sidebar/common/SpeechToText'
+import SpeechToText from '@/components/common/SpeechToText'
 
 
 function TabsContainer() {
