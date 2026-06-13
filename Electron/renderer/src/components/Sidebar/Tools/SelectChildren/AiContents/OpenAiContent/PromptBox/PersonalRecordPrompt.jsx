@@ -18,6 +18,7 @@ import RecordProceedingsDraftSaveButton from './PersonalInput/RecordProceedingsD
 import MemoInputBox from './MemoInputBox';
 import TabPanel from '@/components/Sidebar/common/TabPanel';
 import PersonalRecordManagerPanel from '@/components/common/PersonalRecordManagerPanel';
+
 const DBG = 'PersonalRecordPrompt';
 
 export default function PersonalRecordPrompt() {

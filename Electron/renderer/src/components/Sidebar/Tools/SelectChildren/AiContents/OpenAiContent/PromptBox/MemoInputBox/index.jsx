@@ -4,6 +4,8 @@ import { useToast } from "@/components/common/ToastContext.jsx";
 import { useAppState } from "@/contexts/appState";
 import { useNote } from "@/hooks/useNote.js";
 import { addPersonalRecordTabAction3 } from "@/hooks/useTabs/actions/personalRecord.js";
+import { useTabs } from "@/hooks/useTabs/index.js"
+import { GlobeAltIcon } from "@heroicons/react/24/outline"
 
 export default function MemoInputBox({
   memoType, // ← 1 or 2
@@ -20,6 +22,7 @@ export default function MemoInputBox({
   }, [appState]);
 
   const [value, setValue] = useState("");
+  const { addWebManagerAction_OutWindow } = useTabs()
 
   const log = (...args) => {
     console.log("[MemoInputBox]", { label, memoType, SELECT_CHILD }, ...args);
@@ -158,6 +161,30 @@ export default function MemoInputBox({
       />
 
       <div className="mt-2 flex gap-2 items-stretch">
+      {memoType === 1 && (
+        <>
+        <button
+            id="professional-support-new"
+            type="button"
+            onClick={addWebManagerAction_OutWindow}
+            disabled={!SELECT_CHILD}
+            title="Open web page"
+            aria-label="Open web page"
+            className="
+              flex items-center justify-center
+              bg-blue-300 rounded
+              text-black
+              px-3 py-2
+              cursor-pointer
+              transition-all
+              hover:bg-[#e3f2fd]
+              disabled:opacity-50 disabled:cursor-not-allowed
+            "
+          >
+            <GlobeAltIcon className="h-5 w-5" />
+          </button>
+          </>
+        )}
         <button
           type="button"
           onClick={handleSave}

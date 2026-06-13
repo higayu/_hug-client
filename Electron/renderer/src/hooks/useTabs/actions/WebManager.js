@@ -2,8 +2,8 @@
 
 import { createWebview, createTabButton, activateTab, closeTab } from '../common/index.js'
 
-function getWebManagerUrl(iniState) {
-  return `${iniState?.apiSettings?.baseURL}/houday/build-file/yoshijima/childkadai-table`
+function getWebManagerUrl(iniState, appState) {
+  return `${iniState?.apiSettings?.baseURL}/houday/build-file/yoshijima/childkadai-table?children_id=${appState?.SELECT_CHILD}&record_type_id=1`
 }
 
 export function addWebManagerAction(appState, iniState) {
@@ -15,8 +15,18 @@ export function addWebManagerAction(appState, iniState) {
     return
   }
 
+  const url = getWebManagerUrl(iniState, appState)
+  if (!url || url.includes('undefined')) {
+    console.error('WebManager URL の生成に失敗しました', {
+      baseURL: iniState?.apiSettings?.baseURL,
+      selectChild: appState?.SELECT_CHILD,
+      currentYmd: appState?.CURRENT_YMD,
+    })
+    return
+  }
+
   const newId = `hugview-${appState.CURRENT_YMD}-${document.querySelectorAll('webview').length}`
-  const newWebview = createWebview(newId, getWebManagerUrl(iniState))
+  const newWebview = createWebview(newId, url)
 
   webviewContainer.appendChild(newWebview)
 
@@ -54,11 +64,17 @@ export function addWebManagerAction(appState, iniState) {
 }
 
 export function addWebManagerAction_OutWindow(appState, iniState) {
-  const url = getWebManagerUrl(iniState)
+  if (!appState?.SELECT_CHILD) {
+    console.error('WebManager URL の生成に失敗しました: 児童が選択されていません')
+    return
+  }
+
+  const url = getWebManagerUrl(iniState, appState)
 
   if (!url || url.includes('undefined')) {
     console.error('WebManager URL の生成に失敗しました', {
       baseURL: iniState?.apiSettings?.baseURL,
+      selectChild: appState?.SELECT_CHILD,
       currentYmd: appState?.CURRENT_YMD,
     })
     return

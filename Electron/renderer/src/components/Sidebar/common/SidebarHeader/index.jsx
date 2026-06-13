@@ -1,5 +1,4 @@
 import { useEffect } from "react"
-import { GlobeAltIcon } from "@heroicons/react/24/outline"
 
 import { useChildrenList } from "@/hooks/useChildrenList.js"
 import { useTabs } from "@/hooks/useTabs/index.js"
@@ -24,7 +23,6 @@ function SidebarHeader() {
   } = useAppState()
 
   const { loadChildren } = useChildrenList()
-  const { addWebManagerAction_OutWindow } = useTabs()
 
   const { runFetch, autoFetchEnabled, toggleAutoFetch } =
     useAttendanceFetch("SidebarHeader")
@@ -122,24 +120,6 @@ function SidebarHeader() {
             &nbsp;
           </label>
 
-          <button
-            id="professional-support-new"
-            type="button"
-            onClick={addWebManagerAction_OutWindow}
-            title="Open web page"
-            aria-label="Open web page"
-            className="
-              flex items-center justify-center
-              bg-blue-300 rounded
-              text-black
-              px-3 py-2
-              cursor-pointer
-              transition-all
-              hover:bg-[#e3f2fd]
-            "
-          >
-            <GlobeAltIcon className="h-5 w-5" />
-          </button>
 
           {/* サブボタン群 */}
           <div className="flex flex-col gap-2 bg-sky-100 items-center">
