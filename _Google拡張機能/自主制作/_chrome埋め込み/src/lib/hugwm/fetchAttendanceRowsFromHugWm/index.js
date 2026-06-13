@@ -20,6 +20,59 @@ const extractFuriganaName = (realnameRoot) =>
       realnameRoot?.textContent,
   )
 
+const normalizeCellText = (cell) => {
+  if (!cell) return ''
+  const raw = cell.textContent ?? cell.innerText ?? ''
+  return String(raw)
+    .replace(/\u00a0/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+const isHiddenTableCell = (cell) => {
+  const style = String(cell?.getAttribute?.('style') ?? '')
+  if (/display\s*:\s*none/i.test(style)) return true
+  return cell?.hasAttribute?.('hidden') ?? false
+}
+
+/** 予定情報列（【時間】【担当】【PC】）。enter/leave/cost 等にも同名 class がある */
+const PLAN_INFO_CELL_SELECTOR = 'td.maxW24rem.js-stableChangeCont01, td.maxW24rem'
+const PLAN_INFO_TEXT_RE = /【(時間|担当|PC)】/
+
+const findJsStableChangeCont01Td = (tr) => {
+  if (!tr) return null
+
+  const byPlanColumn = tr.querySelector(PLAN_INFO_CELL_SELECTOR)
+  if (byPlanColumn) return byPlanColumn
+
+  const cells = [...tr.querySelectorAll('td.js-stableChangeCont01')]
+  const byPlanText = cells.find((cell) => PLAN_INFO_TEXT_RE.test(normalizeCellText(cell)))
+  if (byPlanText) return byPlanText
+
+  const excluded = cells.filter(
+    (cell) =>
+      !cell.classList.contains('enter') &&
+      !cell.classList.contains('leave') &&
+      !cell.classList.contains('cost') &&
+      !cell.classList.contains('alunch') &&
+      !cell.classList.contains('reserve_note'),
+  )
+  const withText = excluded.find((cell) => normalizeCellText(cell))
+  if (withText) return withText
+
+  return excluded.find((cell) => !isHiddenTableCell(cell)) ?? excluded[0] ?? null
+}
+
+const extractJsStableChangeCont01Text = (tr) =>
+  normalizeCellText(findJsStableChangeCont01Td(tr))
+
+const extractStatus = (statusTd, enterText, enterButton) => {
+  const statusText = normalizeCellText(statusTd)
+  if (statusText) return statusText
+  if (enterText.includes('欠席') && !enterButton) return '欠席'
+  return ''
+}
+
 const parseEnterIsMailFromOnclick = (enterOnclick) => {
   const match = String(enterOnclick || '').match(/sendEnterMail\s*\(\s*['"]?([^'",)]+)['"]?\s*,\s*([^,]+)/)
   if (!match) return null
@@ -63,12 +116,15 @@ const extractAttendanceRowsFromHtml = (html) => {
     const realnameTd = tr.querySelector('td.realname')
     const enterTd = tr.querySelector('td.enter')
     const leaveTd = tr.querySelector('td.leave')
+    const jsStableChangeCont01Td = findJsStableChangeCont01Td(tr)
     const enterButton = enterTd?.querySelector("button[onclick*='sendEnterMail']")
     const leaveButton = leaveTd?.querySelector("button[onclick*='sendLeaveMail']")
     const enterOnclick = enterButton?.getAttribute('onclick') || ''
     const leaveOnclick = leaveButton?.getAttribute('onclick') || ''
     const enterIsMailResolved = parseEnterIsMailFromOnclick(enterOnclick) ?? parseEnterIsMailFromCidSetting(enterTd)
-    const enterText = enterTd?.innerText?.replace(/\s+/g, ' ').trim() || ''
+    const enterText = normalizeCellText(enterTd)
+    const jsStableChangeCont01Text = extractJsStableChangeCont01Text(tr)
+    const isAbsenceStatus = enterText.includes('欠席') && !enterButton
 
     return {
       rowIndex,
@@ -77,13 +133,15 @@ const extractAttendanceRowsFromHtml = (html) => {
       name: extractFuriganaName(realnameTd),
       enterTime: extractTime(enterTd),
       leaveTime: extractTime(leaveTd),
+      jsStableChangeCont01Text,
+      status: extractStatus(jsStableChangeCont01Td, enterText, enterButton),
       enterOnclick,
       leaveOnclick,
       isEnterMailEnabled: enterIsMailResolved === 1,
       leaveIsMail: parseLeaveIsMailFromOnclick(leaveOnclick),
       detailPageDate,
-      isAbsenceStatus: enterText.includes('欠席') && !enterButton,
-      absenceLabel: enterText.includes('欠席') && !enterButton ? enterText : '',
+      isAbsenceStatus,
+      absenceLabel: isAbsenceStatus ? enterText : '',
     }
   })
 }

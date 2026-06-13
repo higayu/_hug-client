@@ -27,6 +27,16 @@ export default function AttendanceTable({
   handlePostEnter,
   handlePostLeave,
 }) {
+  const formatRowStatus = (row) => {
+    if (row.isAbsenceStatus) return '欠席'
+    if (row.isOverTwoHours) {
+      return `${row.hugAlertPref?.alertAfterMinutes ?? 120}分超過`
+    }
+    return '通常'
+  }
+
+  const planInfoTitle = (row) => row.jsStableChangeCont01Text || undefined
+
   return (
     <div className="min-h-0 flex-1 overflow-auto px-2.5 pb-2.5 pt-0">
       {displayAttendanceRows.length === 0 ? (
@@ -77,7 +87,8 @@ export default function AttendanceTable({
                 <td className={tdClassName}>
                   <button
                     type="button"
-                    className="cursor-pointer border-0 bg-transparent p-0 text-[#0d47a1] underline"
+                    className="cursor-pointer border-0 bg-transparent p-0 text-left text-[#0d47a1] underline"
+                    title={planInfoTitle(row)}
                     onClick={() =>
                       window.open(
                         `${HUG_WM_CONTACT_BOOK_LIST_URL}?id=${encodeURIComponent(
@@ -150,16 +161,10 @@ export default function AttendanceTable({
 
                 <td className={tdClassName}>{row.leaveTime || '-'}</td>
 
-                <td className={tdClassName}>
-                  {row.isAbsenceStatus
-                    ? '欠席'
-                    : row.isOverTwoHours
-                      ? `${row.hugAlertPref?.alertAfterMinutes ?? 120}分超過`
-                      : '通常'}
-                </td>
+                <td className={tdClassName}>{formatRowStatus(row)}</td>
 
                 <td className={tdClassName}>
-                  <div className="flex flex-wrap gap-1">
+                  <div className="flex flex-wrap items-center gap-1">
                     <button
                       type="button"
                       className={[
@@ -168,6 +173,7 @@ export default function AttendanceTable({
                       ]
                         .filter(Boolean)
                         .join(' ')}
+                      title={planInfoTitle(row)}
                       onClick={() => handlePostEnter(row)}
                       disabled={!row.enterOnclick || attendanceLoading}
                     >
@@ -183,6 +189,7 @@ export default function AttendanceTable({
                       ]
                         .filter(Boolean)
                         .join(' ')}
+                      title={planInfoTitle(row)}
                       onClick={() => handlePostLeave(row)}
                       disabled={
                         !row.leaveOnclick ||
