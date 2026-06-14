@@ -1,10 +1,11 @@
 // preload/whisperApi.js
 function createWhisperApi(ipcRenderer) {
     return {
-      transcribe: async (audioArrayBuffer) => {
+      transcribe: async (audioArrayBuffer, options = {}) => {
         return await ipcRenderer.invoke(
           "whisper:transcribe",
-          audioArrayBuffer
+          audioArrayBuffer,
+          options
         );
       },
     };

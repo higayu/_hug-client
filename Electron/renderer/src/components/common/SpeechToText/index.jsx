@@ -11,6 +11,8 @@ export default function SpeechToText() {
   const [processing, setProcessing] = useState(false);
   const [text, setText] = useState("");
   const [error, setError] = useState("");
+  /** @type {"transient" | "save"} transient: 一時ファイルで文字起こし後削除 / save: 保存ダイアログ後に文字起こし */
+  const [audioMode, setAudioMode] = useState("transient");
 
   const startRecording = async () => {
     setError("");
@@ -100,7 +102,9 @@ export default function SpeechToText() {
       const wavBlob = createWavBlob(audioChunksRef.current, 16000);
       const arrayBuffer = await wavBlob.arrayBuffer();
 
-      const result = await window.whisperAPI.transcribe(arrayBuffer);
+      const result = await window.whisperAPI.transcribe(arrayBuffer, {
+        saveAudioBeforeTranscribe: audioMode === "save",
+      });
 
       if (result && result.trim()) {
         setText((prev) => prev + result.trim() + "\n");
@@ -131,6 +135,47 @@ export default function SpeechToText() {
           マイクで録音した音声を whisper.cpp で日本語文字起こしします。
         </p>
       </div>
+
+      <fieldset
+        className="mb-6 rounded-xl border border-gray-200 bg-gray-50 p-4"
+        disabled={listening || processing}
+      >
+        <legend className="px-1 text-sm font-semibold text-gray-700">
+          音声ファイルの扱い
+        </legend>
+        <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:gap-6">
+          <label className="flex cursor-pointer items-start gap-2 text-sm text-gray-700">
+            <input
+              type="radio"
+              name="speech-audio-mode"
+              className="mt-0.5"
+              checked={audioMode === "transient"}
+              onChange={() => setAudioMode("transient")}
+            />
+            <span>
+              <span className="font-medium">一時ファイル（従来どおり）</span>
+              <span className="mt-0.5 block text-xs text-gray-500">
+                文字起こし後に音声ファイルは削除されます。
+              </span>
+            </span>
+          </label>
+          <label className="flex cursor-pointer items-start gap-2 text-sm text-gray-700">
+            <input
+              type="radio"
+              name="speech-audio-mode"
+              className="mt-0.5"
+              checked={audioMode === "save"}
+              onChange={() => setAudioMode("save")}
+            />
+            <span>
+              <span className="font-medium">保存してから文字起こし</span>
+              <span className="mt-0.5 block text-xs text-gray-500">
+                停止時に保存先を選び、WAV を残したまま文字起こしします。
+              </span>
+            </span>
+          </label>
+        </div>
+      </fieldset>
 
       <div className="mb-6 flex flex-wrap gap-3">
         <button
