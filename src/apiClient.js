@@ -105,7 +105,7 @@ const apiClient = {
     );
 
     const res = await axiosInstance.post(
-      `/${DB_NAME}/procedure/${procname}`,
+      `/${DB_NAME}/__procedure/${procname}`,
       { params: values }
     );
 
