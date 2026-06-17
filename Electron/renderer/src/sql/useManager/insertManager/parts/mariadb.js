@@ -26,8 +26,12 @@ export async function handleMariaDBInsert(
         id: Number(child.children_id),
         name: child.children_name || "",
         notes: child.notes ?? null,
+        notes2: child.notes2 ?? null,
+        personal_tmp: child.personal_tmp ?? null,
         pronunciation_id: child.pronunciation_id ?? null,
         children_type_id: Number(child.children_type_id ?? 1),
+        is_delete: Number(child.is_delete ?? 0),
+        leaving_at: child.leaving_at ?? null,
       };
 
       console.log("📡 mariadb_children_insert:", childPayload);

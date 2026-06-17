@@ -38,7 +38,8 @@ function TodayChildrenList() {
     temporaryChildren,
   } = useMemo(() => {
     const base = Array.isArray(childrenData) ? childrenData : []
-
+    console.log(base,"児童のデータ");
+    
     return {
       normalChildren: base.filter(c => Number(c.priority) === 0),
       sometimesChildren: base.filter(c => Number(c.priority) === 1),

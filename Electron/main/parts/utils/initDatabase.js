@@ -3,6 +3,37 @@ const fs = require("fs");
 const sqlite3 = require("sqlite3").verbose();
 const { getDbPath } = require("./pathResolver");
 
+const CHILDREN_COLUMN_MIGRATIONS = [
+  { name: "notes2", sql: 'ALTER TABLE "children" ADD COLUMN "notes2" TEXT' },
+  { name: "personal_tmp", sql: 'ALTER TABLE "children" ADD COLUMN "personal_tmp" TEXT' },
+];
+
+function ensureChildrenColumns(db, done) {
+  db.all('PRAGMA table_info("children")', [], (err, rows) => {
+    if (err) return done(err);
+
+    const existingColumns = new Set(rows.map((row) => row.name));
+    const missing = CHILDREN_COLUMN_MIGRATIONS.filter(
+      ({ name }) => !existingColumns.has(name)
+    );
+
+    if (missing.length === 0) return done();
+
+    db.serialize(() => {
+      let pending = missing.length;
+      let firstError = null;
+
+      missing.forEach(({ sql }) => {
+        db.run(sql, (alterErr) => {
+          if (alterErr && !firstError) firstError = alterErr;
+          pending -= 1;
+          if (pending === 0) done(firstError);
+        });
+      });
+    });
+  });
+}
+
 /**
  * SQLite データベースを初期化（存在しない場合は新規作成＋テーブル構築）
  */
@@ -34,6 +65,8 @@ CREATE TABLE IF NOT EXISTS "children" (
 	"id"	BIGINT,
 	"name"	TEXT,
 	"notes"	TEXT,
+	"notes2"	TEXT,
+	"personal_tmp"	TEXT,
 	"pronunciation_id"	BIGINT,
 	"children_type_id"	BIGINT,
 	"is_delete"	BIGINT,
@@ -130,14 +163,27 @@ COMMIT;
     db.exec(initSQL, (err) => {
       if (err) {
         console.error("error:", err);
-      } else {
-        console.log("database initialized:", dbPath);
+        db.close();
+        return;
       }
-      db.close();
+
+      ensureChildrenColumns(db, (migrationErr) => {
+        if (migrationErr) {
+          console.error("children table migration error:", migrationErr);
+        } else {
+          console.log("database initialized:", dbPath);
+        }
+        db.close();
+      });
     });
   } else {
     console.log("database already exists:", dbPath);
-    db.close();
+    ensureChildrenColumns(db, (err) => {
+      if (err) {
+        console.error("children table migration error:", err);
+      }
+      db.close();
+    });
   }
 }
 

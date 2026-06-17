@@ -25,12 +25,32 @@ module.exports = {
   },
 
   insert(data) {
-    const { id, name, notes, pronunciation_id, children_type_id, is_delete } = data;
+    const {
+      id,
+      name,
+      notes,
+      notes2,
+      personal_tmp,
+      pronunciation_id,
+      children_type_id,
+      is_delete,
+      leaving_at,
+    } = data;
     return new Promise((resolve, reject) => {
       const db = connect();
       db.run(
-        "INSERT INTO children (id, name, notes, pronunciation_id, children_type_id, is_delete) VALUES (?, ?, ?, ?, ?, ?);",
-        [id, name, notes, pronunciation_id, children_type_id, is_delete],
+        "INSERT INTO children (id, name, notes, notes2, personal_tmp, pronunciation_id, children_type_id, is_delete, leaving_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);",
+        [
+          id,
+          name,
+          notes,
+          notes2,
+          personal_tmp,
+          pronunciation_id,
+          children_type_id,
+          is_delete,
+          leaving_at,
+        ],
         function (err) {
           db.close();
           if (err) return reject(err);
@@ -41,12 +61,31 @@ module.exports = {
   },
 
   update(id, data) {
-    const { name, notes, pronunciation_id, children_type_id, is_delete } = data;
+    const {
+      name,
+      notes,
+      notes2,
+      personal_tmp,
+      pronunciation_id,
+      children_type_id,
+      is_delete,
+      leaving_at,
+    } = data;
     return new Promise((resolve, reject) => {
       const db = connect();
       db.run(
-        "UPDATE children SET name=?, notes=?, pronunciation_id=?, children_type_id=?, is_delete=? WHERE id=?;",
-        [name, notes, pronunciation_id, children_type_id, is_delete, id],
+        "UPDATE children SET name=?, notes=?, notes2=?, personal_tmp=?, pronunciation_id=?, children_type_id=?, is_delete=?, leaving_at=? WHERE id=?;",
+        [
+          name,
+          notes,
+          notes2,
+          personal_tmp,
+          pronunciation_id,
+          children_type_id,
+          is_delete,
+          leaving_at,
+          id,
+        ],
         function (err) {
           db.close();
           if (err) return reject(err);

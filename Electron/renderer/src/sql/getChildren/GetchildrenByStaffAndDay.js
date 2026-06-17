@@ -69,6 +69,12 @@ export async function GetchildrenByStaffAndDay({
       return {
         children_id: child.id,
         children_name: child.name,
+        notes: child.notes ?? "",
+        notes2: child.notes2 ?? "",
+        personal_tmp: child.personal_tmp ?? "",
+        pronunciation_id: child.pronunciation_id ?? null,
+        is_delete: child.is_delete ?? 0,
+        leaving_at: child.leaving_at ?? null,
 
         staff_id: staff.id,
         staff_name: staff.name,
@@ -90,8 +96,6 @@ export async function GetchildrenByStaffAndDay({
         pc_id: pcItem?.id ?? null,
         pc_name: pcItem?.name ?? "",
         pc_day_of_week: ptc?.day_of_week ?? "",
-
-        notes: child.notes ?? "",
 
         /** 専門的支援の利用日数（HUG取得前は null） */
         useSpeDate: null,
