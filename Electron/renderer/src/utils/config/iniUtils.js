@@ -57,6 +57,7 @@ export async function loadPrompt() {
   try {
 
     const res = await window.electronAPI.loadPrompts();
+    console.log("プロンプトのデータ",res);
     return res.data
   } catch (err) {
     console.error('❌ [INI] ini.json読み込みエラー:', err)

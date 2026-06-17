@@ -8,7 +8,9 @@ import MemoInputBox from './MemoInputBox';
 
 const DBG = 'ProfessionalPrompt2';
 
-export default function ProfessionalPrompt2() {
+export default function ProfessionalPrompt2({
+  sendPrompt = sendPromptToChatGPT,
+}) {
   const { appState, PROMPTS,DEBUG_FLG } = useAppState();
 
   const [text1, setText1] = useState("");
@@ -23,21 +25,17 @@ export default function ProfessionalPrompt2() {
 
   // 🔥 初期値セット
   useEffect(() => {
-    console.log(`[${DBG}] mount`, { appState, PROMPTS });
-
-    if (PROMPTS) {
-      const next = PROMPTS.professional2?.content ?? "";
-      logDbg('promptText1', 'PROMPTS から text1 初期化', { nextLength: next.length });
-      setText1(next);
-    }
-  }, []);
+    const next = PROMPTS?.professional2?.content ?? "";
+    logDbg('promptText1', 'PROMPTS から text1 反映', { nextLength: next.length });
+    setText1(next);
+  }, [PROMPTS?.professional2?.content]);
 
   // ★ 送信する文字列を組み立てるだけ
   const textValue = `${text1}\n\n\n${aiText}`;
 
   const clickEnterButton = async () => {
     if (!aiText || aiText.trim() === "") return;
-    await sendPromptToChatGPT({ textValue });
+    await sendPrompt({ textValue });
   };
 
   return (

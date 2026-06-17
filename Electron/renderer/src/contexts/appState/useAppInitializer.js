@@ -20,6 +20,7 @@ export async function initializeAppState({
   if (config?.HUG_USERNAME !== undefined) merged.HUG_USERNAME = config.HUG_USERNAME
   if (config?.HUG_PASSWORD !== undefined) merged.HUG_PASSWORD = config.HUG_PASSWORD
   if (config?.GEMINI_API_KEY !== undefined) merged.GEMINI_API_KEY = config.GEMINI_API_KEY
+  if (config?.GEMINI_MODEL !== undefined) merged.GEMINI_MODEL = config.GEMINI_MODEL
   // OpenAI 用の認証情報（メール / パスワード）も appState に反映
   if (config?.OPENAI_MAIL !== undefined) merged.OPENAI_MAIL = config.OPENAI_MAIL
   if (config?.OPENAI_PASSWORD !== undefined) merged.OPENAI_PASSWORD = config.OPENAI_PASSWORD

@@ -1,21 +1,13 @@
-// @/components/Sidebar/Tools/SelectChildren/MemoTool/Parts/AiContents/OpenAiContent/common/AccountInfoPanel.jsx
 import React, { useState } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import ToggleSecretText from "@/components/common/ToggleSecretText.jsx";
 import CopyButton from "@/components/common/CopyButton.jsx";
 
-/**
- * AccountInfoPanel (collapsible)
- * @param {object} props
- * @param {string} props.title - パネルのタイトル
- * @param {Array<{ label: string; value: string }>} props.items - 表示する項目
- */
 export default function AccountInfoPanel({ title, items }) {
   const [open, setOpen] = useState(true);
 
   return (
     <div className="w-full text-xs text-left bg-gray-50 border border-gray-200 rounded-lg">
-      {/* header */}
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
@@ -26,7 +18,6 @@ export default function AccountInfoPanel({ title, items }) {
         {open ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
       </button>
 
-      {/* body */}
       {open && (
         <div className="px-2 pb-2 space-y-1">
           {items.map((item) => (

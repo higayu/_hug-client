@@ -21,7 +21,10 @@ import PersonalRecordManagerPanel from '@/components/common/PersonalRecordManage
 
 const DBG = 'PersonalRecordPrompt';
 
-export default function PersonalRecordPrompt() {
+export default function PersonalRecordPrompt({
+  sendPrompt = sendPromptToChatGPT,
+  aiName = "ChatGPT",
+}) {
   const { appState, PROMPTS, DEBUG_FLG } = useAppState();
   // "personalRecord" と "professional" のプロンプトを2つの textarea に対応
   const [text1, setText1] = useState("");
@@ -61,15 +64,10 @@ export default function PersonalRecordPrompt() {
 
   // 🔥 初期化時ログ & 初期値セット
   useEffect(() => {
-    console.log(`[${DBG}] mount`, { appState, PROMPTS });
-
-    // プロンプトの初期値反映
-    if (PROMPTS) {
-      const next = PROMPTS.personalRecord?.content ?? "";
-      logDbg('promptText1', 'PROMPTS から text1 初期化', { nextLength: next.length });
-      setText1(next);
-    }
-  }, []);
+    const next = PROMPTS?.personalRecord?.content ?? "";
+    logDbg('promptText1', 'PROMPTS から text1 反映', { nextLength: next.length });
+    setText1(next);
+  }, [PROMPTS?.personalRecord?.content]);
 
   const clickEnterButton = async () => {
     if (!aiText || aiText.trim() === "") return;
@@ -78,17 +76,17 @@ export default function PersonalRecordPrompt() {
     const textValue = `${text1}\n\n${aiText}`;
 
     dispatch(sendStart({ key: PROMPT_KEY }));
-    showInfoToast("ChatGPT に送信中…");
+    showInfoToast(`${aiName} に送信中…`);
 
     try {
-      const success = await sendPromptToChatGPT({ textValue });
+      const success = await sendPrompt({ textValue });
 
       if (!success) {
         throw new Error("sendPromptToChatGPT returned false");
       }
 
       dispatch(sendSuccess({ key: PROMPT_KEY }));
-      showSuccessToast("ChatGPT に送信しました");
+      showSuccessToast(`${aiName} に送信しました`);
     } catch (error) {
       console.error("送信エラー:", error);
 
@@ -99,7 +97,7 @@ export default function PersonalRecordPrompt() {
         })
       );
 
-      showErrorToast("ChatGPT への送信に失敗しました");
+      showErrorToast(`${aiName} への送信に失敗しました`);
     }
   };
 

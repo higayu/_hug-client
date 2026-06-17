@@ -8,7 +8,9 @@ import ProfessionalSupportCheckPanel from "@/components/common/ProfessionalSuppo
 
 const DBG = 'ProfessionalPrompt1';
 
-export default function ProfessionalPrompt1() {
+export default function ProfessionalPrompt1({
+  sendPrompt = sendPromptToChatGPT,
+}) {
   const { appState, PROMPTS, SELECT_CHILD } = useAppState();
   const {
     childrenData,
@@ -53,12 +55,10 @@ export default function ProfessionalPrompt1() {
 
   // 🔥 初期値セット
   useEffect(() => {
-    if (PROMPTS) {
-      const next = PROMPTS.professional1?.content ?? "";
-      logDbg('promptText1', 'mount: PROMPTS から text1 初期化', { nextLength: next.length });
-      setText1(next);
-    }
-  }, []);
+    const next = PROMPTS?.professional1?.content ?? "";
+    logDbg('promptText1', 'PROMPTS から text1 反映', { nextLength: next.length });
+    setText1(next);
+  }, [PROMPTS?.professional1?.content]);
 
   // ★ 送信する文字列を組み立てるだけ
   const textValue = `${dbNote}\n\n\n${text1}\n\n\n${aiText}`;
@@ -66,7 +66,7 @@ export default function ProfessionalPrompt1() {
   const clickEnterButton = async () => {
     if (!aiText || aiText.trim() === "") return;
 
-    await sendPromptToChatGPT({ textValue });
+    await sendPrompt({ textValue });
   };
 
   return (
