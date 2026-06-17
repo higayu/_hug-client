@@ -81,12 +81,19 @@ function TodayChildrenList() {
   // ==============================
   // 通常描画
   // ==============================
+  const getChildNotesTitle = (child) => {
+    const notes2 = child?.notes2?.trim()
+    return notes2 || undefined
+  }
+
   const renderChildItem = (c) => {
     const isSelected = SELECT_CHILD === c.children_id
+    const notesTitle = getChildNotesTitle(c)
 
     return (
       <li
         key={c.children_id}
+        title={notesTitle}
         className={`p-2 my-1 border rounded cursor-pointer flex justify-between ${
           isSelected
             ? "bg-cyan-200 border-l-4 border-cyan-700 font-bold"
@@ -128,6 +135,7 @@ function TodayChildrenList() {
           ? waitingChildrenData.map(c => (
               <li
                 key={c.children_id}
+                title={getChildNotesTitle(c)}
                 className="p-2 border-b cursor-pointer hover:bg-yellow-100"
                 onClick={() =>
                   handleChildSelect(c.children_id, c.children_name, c.pc_name)
@@ -143,6 +151,7 @@ function TodayChildrenList() {
           ? experienceChildrenData.map(c => (
               <li
                 key={c.children_id}
+                title={getChildNotesTitle(c)}
                 className="p-2 border-b cursor-pointer hover:bg-blue-100"
                 onClick={() =>
                   handleChildSelect(c.children_id, c.children_name)
