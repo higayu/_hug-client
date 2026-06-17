@@ -6,7 +6,7 @@ import { loadIni as loadIniFromUtils,loadPrompt } from './iniUtils.js'
 import { sqliteApi } from '../../sql/sqliteApi.js'
 import { mariadbApi } from '../../sql/mariadbApi.js'
 import { store } from '@/store/store.js'
-import { setPrompts } from '@/store/slices/appStateSlice.js'
+import { setPrompts, updateAppState } from '@/store/slices/appStateSlice.js'
 /**
  * config.json と ini.json の両方を再読み込みしてUIに反映
  * @returns {Promise<boolean>} 成功なら true
@@ -25,6 +25,15 @@ export async function loadAllReload() {
       console.warn('⚠️ config.json の読み込みに失敗しました')
       return false
     }
+
+    store.dispatch(updateAppState({
+      HUG_USERNAME: configData.HUG_USERNAME,
+      HUG_PASSWORD: configData.HUG_PASSWORD,
+      GEMINI_API_KEY: configData.GEMINI_API_KEY,
+      GEMINI_MODEL: configData.GEMINI_MODEL,
+      OPENAI_MAIL: configData.OPENAI_MAIL,
+      OPENAI_PASSWORD: configData.OPENAI_PASSWORD,
+    }))
 
     // ini.json（Context経由）
     if (window.IniState?.loadIni) {

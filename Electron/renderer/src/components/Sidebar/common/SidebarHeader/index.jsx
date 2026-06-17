@@ -116,32 +116,27 @@ function SidebarHeader() {
 
         {/* Web Manager（外部ブラウザ） */}
         <div className="flex flex-col items-center justify-center">
-          <label className="font-bold text-sm text-black mb-1.5 invisible select-none">
-            &nbsp;
-          </label>
-
-
           {/* サブボタン群 */}
           <div className="flex flex-col gap-2 bg-sky-100 items-center">
-            {DEBUG_FLG && (
-              <div className="flex gap-2 bg-sky-400 justify-center">
-                <button
+            {DEBUG_FLG &&(
+              <button
                   type="button"
                   className="px-2 py-1 text-xs rounded bg-blue-500 text-white"
                   onClick={loadChildren}
                 >
                   再取得
                 </button>
-              </div>
             )}
+
+              <TableDataGetButton
+                onFetch={runFetch}
+                autoFetchEnabled={autoFetchEnabled}
+                onToggleAutoFetch={toggleAutoFetch}
+              />
           </div>
         </div>
 
-        <TableDataGetButton
-          onFetch={runFetch}
-          autoFetchEnabled={autoFetchEnabled}
-          onToggleAutoFetch={toggleAutoFetch}
-        />
+
       </div>
     </div>
   )

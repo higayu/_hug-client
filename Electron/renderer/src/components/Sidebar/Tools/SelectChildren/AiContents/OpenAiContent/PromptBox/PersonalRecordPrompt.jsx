@@ -24,6 +24,8 @@ const DBG = 'PersonalRecordPrompt';
 export default function PersonalRecordPrompt({
   sendPrompt = sendPromptToChatGPT,
   aiName = "ChatGPT",
+  promptKey = "personal",
+  renderGeminiResultArea,
 }) {
   const { appState, PROMPTS, DEBUG_FLG } = useAppState();
   // "personalRecord" と "professional" のプロンプトを2つの textarea に対応
@@ -79,7 +81,7 @@ export default function PersonalRecordPrompt({
     showInfoToast(`${aiName} に送信中…`);
 
     try {
-      const success = await sendPrompt({ textValue });
+      const success = await sendPrompt({ textValue, promptKey });
 
       if (!success) {
         throw new Error("sendPromptToChatGPT returned false");
@@ -196,6 +198,12 @@ export default function PersonalRecordPrompt({
           </div>
           )}
         </div>
+
+        {aiName === "Gemini" &&
+          renderGeminiResultArea?.({
+            promptKey,
+            label: "Gemini API 返却値（個人）",
+          })}
 
         <TabPanel tabs={["一時メモ", "記録"]} className="mt-2">
           <MemoInputBox

@@ -9,10 +9,10 @@ import { sendPromptToGemini } from "./send/sendPromptToGemini";
 export default function GeminiContent() {
   const { appState } = useAppState();
   const { showSuccessToast, showErrorToast, showInfoToast } = useToast();
-  const [latestResult, setLatestResult] = useState("");
+  const [geminiResults, setGeminiResults] = useState({});
 
   const sendPrompt = useCallback(
-    async ({ textValue }) => {
+    async ({ textValue, promptKey = "personal" }) => {
       const apiKey = appState.GEMINI_API_KEY;
       const model = appState.GEMINI_MODEL || "gemini-3.5-flash";
 
@@ -25,10 +25,17 @@ export default function GeminiContent() {
 
       try {
         const text = await sendPromptToGemini({ textValue, apiKey, model });
-        setLatestResult(text);
+        setGeminiResults((prev) => ({
+          ...prev,
+          [promptKey]: text,
+        }));
 
-        if (navigator.clipboard?.writeText) {
-          await navigator.clipboard.writeText(text);
+        try {
+          if (navigator.clipboard?.writeText) {
+            await navigator.clipboard.writeText(text);
+          }
+        } catch (clipboardError) {
+          console.warn("[GeminiContent] clipboard write skipped:", clipboardError);
         }
 
         showSuccessToast("Gemini API の応答を取得しました");
@@ -42,6 +49,28 @@ export default function GeminiContent() {
     [appState.GEMINI_API_KEY, appState.GEMINI_MODEL, showErrorToast, showInfoToast, showSuccessToast]
   );
 
+  const renderGeminiResultArea = useCallback(
+    ({ promptKey, label }) => (
+      <div className="flex flex-col gap-1">
+        <label className="font-bold text-gray-700 block mb-1">
+          {label || "Gemini API 返却値"}
+        </label>
+        <textarea
+          className="w-full h-40 p-2 border bg-gray-50 text-gray-900 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
+          placeholder="Gemini API の返却値がここに入ります"
+          value={geminiResults[promptKey] || ""}
+          onChange={(e) =>
+            setGeminiResults((prev) => ({
+              ...prev,
+              [promptKey]: e.target.value,
+            }))
+          }
+        />
+      </div>
+    ),
+    [geminiResults]
+  );
+
   return (
     <div className="flex flex-col items-center justify-center w-full p-2 space-y-3">
       <h2>Gemini-API</h2>
@@ -49,14 +78,8 @@ export default function GeminiContent() {
         componentMap={AI_PROMPT_COMPONENT_MAP}
         sendPrompt={sendPrompt}
         aiName="Gemini"
+        renderGeminiResultArea={renderGeminiResultArea}
       />
-
-      {latestResult && (
-        <div className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 text-xs text-gray-800">
-          <div className="font-semibold text-gray-700 mb-1">Gemini API 応答</div>
-          <pre className="whitespace-pre-wrap max-h-64 overflow-auto">{latestResult}</pre>
-        </div>
-      )}
 
       <AccountInfoPanel
         title="Gemini API 設定"

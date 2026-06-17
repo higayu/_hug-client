@@ -11,6 +11,7 @@ const initialState = {
   HUG_USERNAME: "",
   HUG_PASSWORD: "",
   GEMINI_API_KEY: "",
+  GEMINI_MODEL: "",
 
   // ★ 追加：デバッグフラグ（デフォルト false）
   DEBUG_FLG: false,
@@ -80,6 +81,9 @@ const appStateSlice = createSlice({
     },
     setGeminiApiKey: (state, action) => {
       state.GEMINI_API_KEY = action.payload || ""
+    },
+    setGeminiModel: (state, action) => {
+      state.GEMINI_MODEL = action.payload || ""
     },
     // OpenAI メール / パスワードを設定
     setOpenaiMail: (state, action) => {
@@ -206,6 +210,7 @@ const appStateSlice = createSlice({
       if (updates.HUG_USERNAME !== undefined) state.HUG_USERNAME = updates.HUG_USERNAME
       if (updates.HUG_PASSWORD !== undefined) state.HUG_PASSWORD = updates.HUG_PASSWORD
       if (updates.GEMINI_API_KEY !== undefined) state.GEMINI_API_KEY = updates.GEMINI_API_KEY
+      if (updates.GEMINI_MODEL !== undefined) state.GEMINI_MODEL = updates.GEMINI_MODEL
       if (updates.OPENAI_MAIL !== undefined) state.OPENAI_MAIL = updates.OPENAI_MAIL
       if (updates.OPENAI_PASSWORD !== undefined) state.OPENAI_PASSWORD = updates.OPENAI_PASSWORD
       if (updates.VITE_API_BASE_URL !== undefined) state.VITE_API_BASE_URL = updates.VITE_API_BASE_URL
@@ -268,6 +273,7 @@ export const {
   setHugUsername,
   setHugPassword,
   setGeminiApiKey,
+  setGeminiModel,
   setOpenaiMail,
   setOpenaiPassword,
   setFacilityId,
@@ -302,6 +308,7 @@ export const {
 export const selectHugUsername = (state) => state.appState.HUG_USERNAME
 export const selectHugPassword = (state) => state.appState.HUG_PASSWORD
 export const selectGeminiApiKey = (state) => state.appState.GEMINI_API_KEY
+export const selectGeminiModel = (state) => state.appState.GEMINI_MODEL
 export const selectOpenaiMail = (state) => state.appState.OPENAI_MAIL
 export const selectOpenaiPassword = (state) => state.appState.OPENAI_PASSWORD
 export const selectViteApiBaseUrl = (state) => state.appState.VITE_API_BASE_URL

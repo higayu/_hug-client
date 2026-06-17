@@ -117,6 +117,9 @@ export function useSettingsModalLogic(isOpen) {
     const configGemini = document.getElementById('config-gemini')
     if (configGemini) configGemini.value = appState.GEMINI_API_KEY || ''
 
+    const configGeminiModel = document.getElementById('config-gemini-model')
+    if (configGeminiModel) configGeminiModel.value = appState.GEMINI_MODEL || 'gemini-3.5-flash'
+
     // API設定 (ini.json)
     const apiBaseUrl = document.getElementById('api-base-url')
     if (apiBaseUrl) apiBaseUrl.value = iniState?.apiSettings?.baseURL || ''
@@ -387,7 +390,8 @@ export function useSettingsModalLogic(isOpen) {
       const configData = {
         HUG_USERNAME: document.getElementById('config-username')?.value || '',
         HUG_PASSWORD: document.getElementById('config-password')?.value || '',
-        GEMINI_API_KEY: document.getElementById('config-gemini')?.value || ''
+        GEMINI_API_KEY: document.getElementById('config-gemini')?.value || '',
+        GEMINI_MODEL: document.getElementById('config-gemini-model')?.value || 'gemini-3.5-flash'
       }
 
       // AppStateを更新（Context APIとwindow.AppStateの両方を更新）

@@ -14,6 +14,7 @@ function handleConfigAccess(ipcMain) {
           HUG_USERNAME: "",
           HUG_PASSWORD: "",
           GEMINI_API_KEY: "",
+          GEMINI_MODEL: "gemini-3.5-flash",
           OPENAI_MAIL : "",
           OPENAI_PASSWORD: ""
         };

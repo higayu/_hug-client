@@ -12,6 +12,7 @@ export function useReduxBindings() {
   const HUG_USERNAME = useSelector(s.selectHugUsername)
   const HUG_PASSWORD = useSelector(s.selectHugPassword)
   const GEMINI_API_KEY = useSelector(s.selectGeminiApiKey)
+  const GEMINI_MODEL = useSelector(s.selectGeminiModel)
   const OPENAI_MAIL = useSelector(s.selectOpenaiMail)
   const OPENAI_PASSWORD = useSelector(s.selectOpenaiPassword)
 
@@ -44,6 +45,7 @@ export function useReduxBindings() {
     HUG_USERNAME,
     HUG_PASSWORD,
     GEMINI_API_KEY,
+    GEMINI_MODEL,
     OPENAI_MAIL,
     OPENAI_PASSWORD,
 

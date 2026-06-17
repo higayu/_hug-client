@@ -10,6 +10,9 @@ const DBG = 'ProfessionalPrompt1';
 
 export default function ProfessionalPrompt1({
   sendPrompt = sendPromptToChatGPT,
+  aiName = "ChatGPT",
+  promptKey = "professional1",
+  renderGeminiResultArea,
 }) {
   const { appState, PROMPTS, SELECT_CHILD } = useAppState();
   const {
@@ -66,7 +69,7 @@ export default function ProfessionalPrompt1({
   const clickEnterButton = async () => {
     if (!aiText || aiText.trim() === "") return;
 
-    await sendPrompt({ textValue });
+    await sendPrompt({ textValue, promptKey });
   };
 
   return (
@@ -177,6 +180,12 @@ export default function ProfessionalPrompt1({
             />
           </div>
         </div>
+
+        {aiName === "Gemini" &&
+          renderGeminiResultArea?.({
+            promptKey,
+            label: "Gemini API 返却値（専門1）",
+          })}
       </div>
     </div>
   );

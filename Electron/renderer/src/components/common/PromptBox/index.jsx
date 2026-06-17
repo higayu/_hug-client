@@ -12,7 +12,7 @@ export default function PromptBox({ componentMap, ...componentProps }) {
 
   return (
     <div className="flex flex-col bg-gray-400 gap-4 p-1 w-full rounded-br-md">
-      <ActiveComponent {...componentProps} />
+      <ActiveComponent {...componentProps} promptKey={activeKey} />
 
       <div className="flex flex-wrap bg-gray-700">
         {Object.entries(componentMap).map(([key, { label }]) => (

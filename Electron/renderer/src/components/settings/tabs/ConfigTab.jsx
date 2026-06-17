@@ -78,6 +78,21 @@ function ConfigTab({ onSaveConfig, onReloadConfig, onTogglePassword }) {
             className="px-3 py-2 border border-gray-300 rounded-md text-sm transition-all flex-1 max-w-[200px] focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-200"
           />
         </div>
+
+        <div className="flex items-center mb-3 py-2">
+          <label
+            htmlFor="config-gemini-model"
+            className="font-medium text-gray-700 min-w-[120px]"
+          >
+            GEMINI Model:
+          </label>
+          <input
+            type="text"
+            id="config-gemini-model"
+            data-path="GEMINI_MODEL"
+            className="px-3 py-2 border border-gray-300 rounded-md text-sm transition-all flex-1 max-w-[200px] focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-200"
+          />
+        </div>
       </div>
 
       <div className="mb-6 flex gap-2.5">
