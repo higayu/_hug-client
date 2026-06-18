@@ -142,6 +142,9 @@ function createElectronApi(ipcRenderer, isDebugMode) {
     mariadb_service_record_upsert: (data) =>
       ipcRenderer.invoke("mariadb:service_record:upsert", data),
 
+    syncHugStaffs: (data) =>
+      ipcRenderer.invoke("mariadb:hug_staffs:sync", data),
+
     // ---- CRUD API 展開 ----
     ...createTableApis(ipcRenderer),
   };

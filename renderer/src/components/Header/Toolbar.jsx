@@ -12,6 +12,7 @@ import { ArrowRightOnRectangleIcon,TrashIcon,Cog6ToothIcon,AdjustmentsHorizontal
 import UrlContent from '@/components/common/UrlContent';
 import CloseToggleSwitch from '@/components/common/CloseToggleSwitch';
 import FacilitySelector from '@/components/facility'
+import StaffUpdateButton from '@/components/Header/StaffUpdateButton'
 
 function Toolbar() {
   const { showInfoToast } = useToast()
@@ -244,7 +245,7 @@ function Toolbar() {
 
       {/* ======== ナビゲーションメニュー ======== */}
       <nav className="relative inline-block ml-0 min-w-auto flex-shrink-0 z-[1001]">
-        <button 
+        <button
           id="panel-support-btn" 
           className="bg-[#1976d2] text-white border-none rounded-md px-3 py-1.5 cursor-pointer transition-all whitespace-nowrap relative z-[1002] hover:bg-[#2196f3]"
         >
@@ -298,6 +299,8 @@ function Toolbar() {
         </button>
       </nav>
 
+
+
       {/* ======== ナビゲーションメニュー ======== */}
       <nav className="relative inline-block ml-0 min-w-auto flex-shrink-0 z-[1001]">
           <button
@@ -335,6 +338,9 @@ function Toolbar() {
               >
                 URLの取得
               </button>
+            </li>
+            <li className="m-0 p-0">
+              <StaffUpdateButton />
             </li>
             <li className="m-0 p-0">
               <button

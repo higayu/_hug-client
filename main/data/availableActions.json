@@ -10,8 +10,8 @@
     },
     {
       "id": "customAction1",
-      "name": "キャンセル待ちの登録",
-      "description": "キャンセル待ちの登録を実行します",
+      "name": "カスタムアクション1",
+      "description": "カスタムアクション1を実行します",
       "category": "カスタム",
       "icon": "🔧"
     }

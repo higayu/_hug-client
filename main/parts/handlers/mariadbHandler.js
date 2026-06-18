@@ -3,6 +3,9 @@ const apiClient = require("../../../src/apiClient");
 const {
   upsertServiceRecord,
 } = require("./mariadb/UpsertServiceRecord");
+const {
+  syncHugStaffs,
+} = require("./mariadb/SyncHugStaffs");
 
 /**
  * pk / values を MariaDB API 用に正規化
@@ -104,6 +107,10 @@ function registerMariadbHandlers(ipcMain) {
 
   ipcMain.handle("mariadb:service_record:upsert", async (_, data) => {
     return upsertServiceRecord(data);
+  });
+
+  ipcMain.handle("mariadb:hug_staffs:sync", async (_, data) => {
+    return syncHugStaffs(data);
   });
 }
 

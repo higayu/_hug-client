@@ -1,14 +1,15 @@
 {
-  "personalRecord": {
-    "file": "personalRecord.txt",
-    "description": "個人記録用プロンプト"
-  },
-  "professional1": {
-    "file": "professional1.txt",
-    "description": "専門的支援加算用プロンプト1"
-  },
-  "professional2": {
-    "file": "professional2.txt",
-    "description": "専門的支援加算用プロンプト2"
+    "personalRecord": {
+      "file": "personalRecord.txt",
+      "description": "個人記録用プロンプト"
+    },
+    "professional1": {
+      "file": "professional1.txt",
+      "description": "専門的支援加算用プロンプト1"
+    },
+    "professional2": {
+      "file": "professional2.txt",
+      "description": "専門的支援加算用プロンプト2"
+    }
   }
-}
+  

@@ -8,6 +8,14 @@
       "color": "#f9d4fc",
       "action": "additionCompare",
       "order": 1
+    },
+    {
+      "id": "custom1761625476686",
+      "enabled": true,
+      "text": "キャンセル待ちの児童登録",
+      "color": "#007bff",
+      "action": "customAction1",
+      "order": 2
     }
   ]
 }
