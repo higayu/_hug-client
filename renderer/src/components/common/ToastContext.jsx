@@ -7,9 +7,16 @@ const ToastContext = createContext(null)
 export function ToastProvider({ children }) {
   const [toasts, setToasts] = useState([])
 
-  const showToast = useCallback((message, type = 'info', duration = 3000) => {
+  const showToast = useCallback((message, type = 'info', duration = 3000, options = {}) => {
     const id = Date.now() + Math.random()
-    const newToast = { id, message, type, duration }
+    const newToast = {
+      id,
+      message,
+      type,
+      duration,
+      title: options.title,
+      details: options.details
+    }
     
     setToasts(prev => [...prev, newToast])
     
@@ -38,6 +45,21 @@ export function ToastProvider({ children }) {
     return showToast(message, 'info', duration)
   }, [showToast])
 
+  const showResultToast = useCallback(({
+    title = '処理結果',
+    message,
+    details,
+    success = true,
+    duration = 5000
+  }) => {
+    return showToast(
+      message,
+      success ? 'success' : 'error',
+      duration,
+      { title, details }
+    )
+  }, [showToast])
+
   const clearAllToasts = useCallback(() => {
     setToasts([])
   }, [])
@@ -48,6 +70,7 @@ export function ToastProvider({ children }) {
     showErrorToast,
     showWarningToast,
     showInfoToast,
+    showResultToast,
     clearAllToasts
   }
 
@@ -58,6 +81,7 @@ export function ToastProvider({ children }) {
     window.showErrorToast = showErrorToast
     window.showWarningToast = showWarningToast
     window.showInfoToast = showInfoToast
+    window.showResultToast = showResultToast
     window.clearAllToasts = clearAllToasts
     
     return () => {
@@ -67,26 +91,27 @@ export function ToastProvider({ children }) {
       delete window.showErrorToast
       delete window.showWarningToast
       delete window.showInfoToast
+      delete window.showResultToast
       delete window.clearAllToasts
     }
-  }, [showToast, showSuccessToast, showErrorToast, showWarningToast, showInfoToast, clearAllToasts])
+  }, [showToast, showSuccessToast, showErrorToast, showWarningToast, showInfoToast, showResultToast, clearAllToasts])
 
   return (
     <ToastContext.Provider value={toastFunctions}>
       {children}
       {/* トーストを表示 */}
-      <div style={{ position: 'fixed', top: 0, right: 0, zIndex: 10000, pointerEvents: 'none', padding: '20px' }}>
-        {toasts.map((toast, index) => (
+      <div style={{ position: 'fixed', top: 0, right: 0, zIndex: 10000, pointerEvents: 'none', padding: '20px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        {toasts.map((toast) => (
           <div 
             key={toast.id} 
             style={{ 
-              pointerEvents: 'auto',
-              marginBottom: index < toasts.length - 1 ? '10px' : '0',
-              transform: `translateY(${index * 60}px)`
+              pointerEvents: 'auto'
             }}
           >
             <Toast
               message={toast.message}
+              title={toast.title}
+              details={toast.details}
               type={toast.type}
               duration={toast.duration}
               onClose={() => removeToast(toast.id)}

@@ -265,7 +265,7 @@ async function fetchStaffData(onProgress) {
 export default function StaffUpdateButton() {
   const [isLoading, setIsLoading] = useState(false);
   const [label, setLabel] = useState("職員更新");
-  const { showSuccessToast, showErrorToast, showInfoToast } = useToast();
+  const { showInfoToast, showResultToast } = useToast();
 
   const handleClick = async () => {
     if (isLoading) return;
@@ -289,11 +289,35 @@ export default function StaffUpdateButton() {
       }
 
       setLabel("DB更新中...");
-      await window.electronAPI.syncHugStaffs(result);
-      showSuccessToast(`職員データ ${result.fetched_count}件を同期しました`, 3500);
+      const syncResult = await window.electronAPI.syncHugStaffs(result);
+      const responseSummary =
+        syncResult == null
+          ? ""
+          : typeof syncResult === "string"
+            ? syncResult
+            : JSON.stringify(syncResult, null, 2);
+
+      showResultToast({
+        title: "HUG職員同期 完了",
+        message: `${result.fetched_count}件の職員データを同期しました`,
+        details: [
+          result.total_count != null
+            ? `HUG登録件数: ${result.total_count}件`
+            : "",
+          `取得件数: ${result.fetched_count}件`,
+          responseSummary ? `DB応答:\n${responseSummary}` : "",
+        ],
+        duration: 7000,
+      });
     } catch (error) {
       console.error("[HUG WM] 職員同期エラー:", error);
-      showErrorToast(`職員同期に失敗しました: ${error.message}`, 5000);
+      showResultToast({
+        title: "HUG職員同期 エラー",
+        message: "職員データを同期できませんでした",
+        details: error.message || String(error),
+        success: false,
+        duration: 7000,
+      });
     } finally {
       setIsLoading(false);
       setLabel("職員更新");
@@ -305,7 +329,7 @@ export default function StaffUpdateButton() {
       type="button"
       onClick={handleClick}
       disabled={isLoading}
-      className="flex items-center gap-2 rounded-md bg-emerald-600 px-3 py-1.5 text-sm text-white transition-colors hover:bg-emerald-700 disabled:cursor-wait disabled:opacity-60"
+      className="flex items-center gap-2 w-full px-4 py-2 text-center bg-emerald-600 text-sm text-white transition-colors hover:bg-emerald-700 disabled:cursor-wait disabled:opacity-60"
       title="HUGの職員データを取得してDBへ同期"
     >
       <ArrowPathIcon
