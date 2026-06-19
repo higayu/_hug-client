@@ -10,7 +10,10 @@ function getDefaultConfig() {
   return {
     HUG_USERNAME: "",
     HUG_PASSWORD: "",
-    GEMINI_API_KEY: ""
+    GEMINI_API_KEY: "",
+    GEMINI_MODEL: "",
+    OLLAMA_URL: "",
+    OLLAMA_MODEL: ""
   };
 }
 
@@ -21,13 +24,13 @@ function getDefaultConfig() {
 function loadConfig() {
   try {
     const configPath = getDataPath("config.json");
-    
+
     // ファイルが存在しない場合はデフォルト設定を返す
     if (!fs.existsSync(configPath)) {
       console.log("config.json not found. default settings used.");
       return getDefaultConfig();
     }
-    
+
     const raw = fs.readFileSync(configPath, "utf8");
     const json = JSON.parse(raw);
     console.log("config.json loaded:", json);

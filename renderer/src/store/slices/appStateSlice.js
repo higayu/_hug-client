@@ -31,7 +31,7 @@ const initialState = {
   },
 
   CURRENT_YMD: getTodayYmdString(), // "2025-12-24形式"
-  
+
   SELECT_CHILD: "",
   SELECT_CHILD_NAME: "",
   SELECT_PC_NAME: "",
@@ -40,20 +40,20 @@ const initialState = {
   SELECTED_CHILD_COLUMN5_HTML: null,
   SELECTED_CHILD_COLUMN6: null,
   SELECTED_CHILD_COLUMN6_HTML: null,
-  
+
   // 子どもデータ
   childrenData: [],
   waiting_childrenData: [],
   Experience_childrenData: [],
-  
+
   // UI状態
   closeButtonsVisible: true,
-  
+
   // マスターデータ
   STAFF_DATA: [],
   FACILITY_DATA: [],
   STAFF_AND_FACILITY_DATA: [],
-  
+
   // 出勤データ一覧（児童対応一覧データ）
   attendanceData: [],
 
@@ -68,7 +68,7 @@ const appStateSlice = createSlice({
   name: 'appState',
   initialState,
   reducers: {
-      // ★ デバッグフラグを設定
+    // ★ デバッグフラグを設定
     setDebugFlg: (state, action) => {
       state.DEBUG_FLG = action.payload === true
     },
@@ -92,18 +92,18 @@ const appStateSlice = createSlice({
     setOpenaiPassword: (state, action) => {
       state.OPENAI_PASSWORD = action.payload || ""
     },
-    
+
     // 施設IDを設定
     setFacilityId: (state, action) => {
       state.FACILITY_ID = action.payload || ""
     },
-    
+
     // スタッフIDを設定
     setStaffId: (state, action) => {
       // 文字列として統一（数値の場合は文字列に変換）
       state.STAFF_ID = action.payload != null ? String(action.payload) : ""
     },
-    
+
     // 選択された児童を設定
     setSelectedChild: (state, action) => {
       const { childId, childName } = action.payload
@@ -115,12 +115,12 @@ const appStateSlice = createSlice({
       state.SELECTED_CHILD_COLUMN6 = null
       state.SELECTED_CHILD_COLUMN6_HTML = null
     },
-    
+
     // PC名を設定
     setSelectedPcName: (state, action) => {
       state.SELECT_PC_NAME = action.payload || ""
     },
-    
+
     // 子どもデータを設定
     setChildrenData: (state, action) => {
       state.childrenData = action.payload || []
@@ -131,12 +131,12 @@ const appStateSlice = createSlice({
     setExperienceChildrenData: (state, action) => {
       state.Experience_childrenData = action.payload || []
     },
-    
+
     // UI状態を設定
     setCloseButtonsVisible: (state, action) => {
       state.closeButtonsVisible = action.payload !== undefined ? action.payload : true
     },
-    
+
     // マスターデータを設定
     setStaffData: (state, action) => {
       state.STAFF_DATA = action.payload || []
@@ -147,7 +147,7 @@ const appStateSlice = createSlice({
     setStaffAndFacilityData: (state, action) => {
       state.STAFF_AND_FACILITY_DATA = action.payload || []
     },
-    
+
     // 出勤データを設定
     setAttendanceData: (state, action) => {
       state.attendanceData = action.payload || []
@@ -155,13 +155,13 @@ const appStateSlice = createSlice({
 
     // AI種別を設定
     setUseAI: (state, action) => {
-      state.USE_AI = action.payload || "gemini"
+      state.USE_AI = action.payload || "ollama"
     },
 
-      // DB種別を設定
-      setDatabaseType: (state, action) => {
-        state.DATABASE_TYPE = action.payload || "sqlite"
-      },
+    // DB種別を設定
+    setDatabaseType: (state, action) => {
+      state.DATABASE_TYPE = action.payload || "sqlite"
+    },
 
     // 選択中の児童のcolumn5とcolumn6を設定
     setSelectedChildColumns: (state, action) => {
@@ -172,14 +172,14 @@ const appStateSlice = createSlice({
       state.SELECTED_CHILD_COLUMN6_HTML = column6Html !== undefined ? column6Html : null
     },
 
-        // ★ プロンプトデータ設定
+    // ★ プロンプトデータ設定
     setPrompts: (state, action) => {
       state.PROMPTS = action.payload || {}
     },
 
     setCurrentDate: (state, action) => {//曜日
       const { dateStr, weekdayId } = action.payload || {}
-    
+
       if (dateStr !== undefined) {
         state.CURRENT_DAY_OF_WEEK.dateStr = dateStr
       }
@@ -196,7 +196,7 @@ const appStateSlice = createSlice({
     setActiveWebviewUrl: (state, action) => {
       state.ACTIVE_WEBVIEW_URL = action.payload || ""
     },
-    
+
     // 複数の状態を一度に更新
     updateAppState: (state, action) => {
       const updates = action.payload
@@ -211,6 +211,8 @@ const appStateSlice = createSlice({
       if (updates.HUG_PASSWORD !== undefined) state.HUG_PASSWORD = updates.HUG_PASSWORD
       if (updates.GEMINI_API_KEY !== undefined) state.GEMINI_API_KEY = updates.GEMINI_API_KEY
       if (updates.GEMINI_MODEL !== undefined) state.GEMINI_MODEL = updates.GEMINI_MODEL
+      if (updates.OLLAMA_URL !== undefined) state.OLLAMA_URL = updates.OLLAMA_URL
+      if (updates.OLLAMA_MODEL !== undefined) state.OLLAMA_MODEL = updates.OLLAMA_MODEL
       if (updates.OPENAI_MAIL !== undefined) state.OPENAI_MAIL = updates.OPENAI_MAIL
       if (updates.OPENAI_PASSWORD !== undefined) state.OPENAI_PASSWORD = updates.OPENAI_PASSWORD
       if (updates.VITE_API_BASE_URL !== undefined) state.VITE_API_BASE_URL = updates.VITE_API_BASE_URL
@@ -226,7 +228,7 @@ const appStateSlice = createSlice({
           ...updates.CURRENT_DAY_OF_WEEK,
         }
       }
-      
+
       if (updates.SELECT_CHILD !== undefined) state.SELECT_CHILD = updates.SELECT_CHILD
       if (updates.SELECT_CHILD_NAME !== undefined) state.SELECT_CHILD_NAME = updates.SELECT_CHILD_NAME
       if (updates.SELECT_PC_NAME !== undefined) state.SELECT_PC_NAME = updates.SELECT_PC_NAME
@@ -251,7 +253,7 @@ const appStateSlice = createSlice({
       if (updates.USE_AI !== undefined) state.USE_AI = updates.USE_AI
       if (updates.DATABASE_TYPE !== undefined) state.DATABASE_TYPE = updates.DATABASE_TYPE
     },
-    
+
     // 選択状態をクリア
     clearSelection: (state) => {
       state.SELECT_CHILD = ""
@@ -262,7 +264,7 @@ const appStateSlice = createSlice({
       state.SELECTED_CHILD_COLUMN6 = null
       state.SELECTED_CHILD_COLUMN6_HTML = null
     },
-    
+
     // すべての状態をリセット
     resetAppState: () => initialState
   }
@@ -276,6 +278,8 @@ export const {
   setGeminiModel,
   setOpenaiMail,
   setOpenaiPassword,
+  setOllamaUrl,
+  setOllamaModel,
   setFacilityId,
   setStaffId,
   setCurrentDate,
@@ -300,7 +304,7 @@ export const {
   setDebugFlg,
   // ★ 追加
   setPrompts,
-    // ★ 追加
+  // ★ 追加
   setActiveWebviewUrl,
 } = appStateSlice.actions
 
@@ -311,12 +315,14 @@ export const selectGeminiApiKey = (state) => state.appState.GEMINI_API_KEY
 export const selectGeminiModel = (state) => state.appState.GEMINI_MODEL
 export const selectOpenaiMail = (state) => state.appState.OPENAI_MAIL
 export const selectOpenaiPassword = (state) => state.appState.OPENAI_PASSWORD
+export const selectOllamaUrl = (state) => state.appState.OLLAMA_URL
+export const selectOllamaModel = (state) => state.appState.OLLAMA_MODEL
 export const selectViteApiBaseUrl = (state) => state.appState.VITE_API_BASE_URL
 export const selectUseAI = (state) => state.appState.USE_AI
 export const selectDatabaseType = (state) => state.appState.DATABASE_TYPE
 export const selectStaffId = (state) => state.appState.STAFF_ID
 export const selectFacilityId = (state) => state.appState.FACILITY_ID
-export const selectCurrentDate = (state) => state.appState.CURRENT_DAY_OF_WEEK 
+export const selectCurrentDate = (state) => state.appState.CURRENT_DAY_OF_WEEK
 export const selectCurrentYmd = (state) => state.appState.CURRENT_YMD
 
 export const selectSelectedChild = (state) => state.appState.SELECT_CHILD

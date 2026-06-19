@@ -2,7 +2,7 @@
 // config.json と ini.json の両方を再読み込みしてUIに反映
 
 import { loadConfig } from './configUtils.js'
-import { loadIni as loadIniFromUtils,loadPrompt } from './iniUtils.js'
+import { loadIni as loadIniFromUtils, loadPrompt } from './iniUtils.js'
 import { sqliteApi } from '../../sql/sqliteApi.js'
 import { mariadbApi } from '../../sql/mariadbApi.js'
 import { store } from '@/store/store.js'
@@ -31,6 +31,8 @@ export async function loadAllReload() {
       HUG_PASSWORD: configData.HUG_PASSWORD,
       GEMINI_API_KEY: configData.GEMINI_API_KEY,
       GEMINI_MODEL: configData.GEMINI_MODEL,
+      OLLAMA_URL: configData.OLLAMA_URL,
+      OLLAMA_MODEL: configData.OLLAMA_MODEL,
       OPENAI_MAIL: configData.OPENAI_MAIL,
       OPENAI_PASSWORD: configData.OPENAI_PASSWORD,
     }))

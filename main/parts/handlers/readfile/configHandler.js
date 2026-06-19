@@ -15,8 +15,10 @@ function handleConfigAccess(ipcMain) {
           HUG_PASSWORD: "",
           GEMINI_API_KEY: "",
           GEMINI_MODEL: "gemini-3.5-flash",
-          OPENAI_MAIL : "",
-          OPENAI_PASSWORD: ""
+          OPENAI_MAIL: "",
+          OPENAI_PASSWORD: "",
+          OLLAMA_URL: "http://localhost:11434/api/generate",
+          OLLAMA_MODEL: "gemma4:latest"
         };
 
         const dir = path.dirname(filePath);
@@ -46,7 +48,7 @@ function handleConfigAccess(ipcMain) {
       if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 
       fs.writeFileSync(filePath, JSON.stringify(data, null, 2), "utf8");
-   
+
       return { success: true };
     } catch (err) {
       console.error("❌ config.json保存失敗:", err);

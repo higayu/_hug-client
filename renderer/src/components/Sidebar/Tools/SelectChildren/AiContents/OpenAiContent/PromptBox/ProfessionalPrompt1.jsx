@@ -78,13 +78,13 @@ export default function ProfessionalPrompt1({
       {/* --- DB保存済みメモ --- */}
       <div className="mt-4">
         <div className="flex flex-row justify-between items-center">
-            <h4 className="text-xs font-bold text-gray-700 mb-2">
-              保存済みメモ（専門支援内容 / DB）
-            </h4>
-            <ProfessionalPlan
-              onFetched={setDbNote}
-              reloadChildren={loadChildren}
-            />
+          <h4 className="text-xs font-bold text-gray-700 mb-2">
+            保存済みメモ（専門支援内容 / DB）
+          </h4>
+          <ProfessionalPlan
+            onFetched={setDbNote}
+            reloadChildren={loadChildren}
+          />
         </div>
 
         <div className="text-xs bg-gray-700 text-white p-2 rounded whitespace-pre-wrap">
@@ -181,7 +181,7 @@ export default function ProfessionalPrompt1({
           </div>
         </div>
 
-        {aiName === "Gemini" &&
+        {(aiName === "Gemini" || aiName === "Ollama") &&
           renderGeminiResultArea?.({
             promptKey,
             label: "Gemini API 返却値（専門1）",

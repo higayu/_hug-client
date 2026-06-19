@@ -192,14 +192,14 @@ export default function PersonalRecordPrompt({
           </button>
 
           {DEBUG_FLG && (
-          <div className="flex flex-col justify-end">
-            <RecordProceedingsDraftSaveButton />
-            <PersonalInjectButton />
-          </div>
+            <div className="flex flex-col justify-end">
+              <RecordProceedingsDraftSaveButton />
+              <PersonalInjectButton />
+            </div>
           )}
         </div>
 
-        {aiName === "Gemini" &&
+        {(aiName === "Gemini" || aiName === "Ollama") &&
           renderGeminiResultArea?.({
             promptKey,
             label: "Gemini API 返却値（個人）",

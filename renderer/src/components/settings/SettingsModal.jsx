@@ -36,7 +36,8 @@ function SettingsModal({ isOpen, onClose }) {
     saveConfigFromForm,
     initializeSelectBoxes,
     saveApiSettingsFromForm,
-    initializeApiSelectBoxes
+    initializeApiSelectBoxes,
+    reloadConfig
   } = useSettingsModalLogic(isOpen)
 
   // モーダルが開かれた時にフォームに値を設定し、セレクトボックスを初期化
@@ -156,10 +157,7 @@ function SettingsModal({ isOpen, onClose }) {
           <div className={activeTab === 'config' ? 'block' : 'hidden'}>
             <ConfigTab 
               onSaveConfig={saveConfigFromForm}
-              onReloadConfig={async () => {
-                await initializeSelectBoxes()
-                populateForm()
-              }}
+              onReloadConfig={reloadConfig}
               onTogglePassword={togglePasswordVisibility}
             />
           </div>

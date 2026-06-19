@@ -4,7 +4,7 @@ import { useAppState } from '@/contexts/appState'
 import { useCustomButtons } from '@/components/common/CustomButtonsContext.jsx'
 // AppState は window.AppState または useAppState() フック経由でアクセス可能
 import { saveConfig } from '@/utils/config/configUtils.js'
-import { useToast } from  '@/components/common/ToastContext.jsx'
+import { useToast } from '@/components/common/ToastContext.jsx'
 import { loadAllReload } from '@/utils/config/reloadSettings.js'
 import { updateButtonVisibility } from '@/utils/app/buttonVisibility.js'
 import { useCustomButtonManager } from './useCustomButtonManager.js'
@@ -114,11 +114,26 @@ export function useSettingsModalLogic(isOpen) {
     const configPassword = document.getElementById('config-password')
     if (configPassword) configPassword.value = appState.HUG_PASSWORD || ''
 
+    // Gemini 用の認証情報（APIキー / モデル）も appState に反映
     const configGemini = document.getElementById('config-gemini')
     if (configGemini) configGemini.value = appState.GEMINI_API_KEY || ''
 
     const configGeminiModel = document.getElementById('config-gemini-model')
     if (configGeminiModel) configGeminiModel.value = appState.GEMINI_MODEL || 'gemini-3.5-flash'
+
+    // OpenAI 用の認証情報（メール / パスワード）も appState に反映
+    const configOpenaiMail = document.getElementById('config-openai-mail')
+    if (configOpenaiMail) configOpenaiMail.value = appState.OPENAI_MAIL || ''
+
+    const configOpenaiPassword = document.getElementById('config-openai-password')
+    if (configOpenaiPassword) configOpenaiPassword.value = appState.OPENAI_PASSWORD || ''
+
+    // Ollama 用の認証情報（URL / モデル）も appState に反映
+    const configOllamaUrl = document.getElementById('config-ollama-url')
+    if (configOllamaUrl) configOllamaUrl.value = appState.OLLAMA_URL || ''
+
+    const configOllamaModel = document.getElementById('config-ollama-model')
+    if (configOllamaModel) configOllamaModel.value = appState.OLLAMA_MODEL || 'llama3.1'
 
     // API設定 (ini.json)
     const apiBaseUrl = document.getElementById('api-base-url')
@@ -140,7 +155,7 @@ export function useSettingsModalLogic(isOpen) {
     } else {
       console.warn('⚠️ [SettingsModal] api-ai-type 要素が見つかりません')
     }
-    
+
     console.log('✅ [SettingsModal] フォームに値を設定しました')
   }, [appState, iniState])
 
@@ -148,7 +163,7 @@ export function useSettingsModalLogic(isOpen) {
   const updateIniStateFromForm = useCallback(() => {
     // 新しい状態オブジェクトを作成
     const newIniState = JSON.parse(JSON.stringify(iniState)) // ディープコピー
-    
+
     // 機能の有効/無効
     const features = newIniState.appSettings.features
     Object.keys(features).forEach(featureName => {
@@ -207,27 +222,27 @@ export function useSettingsModalLogic(isOpen) {
 
     const windowAlwaysOnTop = document.getElementById('window-always-on-top')
     if (windowAlwaysOnTop) newIniState.appSettings.window.alwaysOnTop = windowAlwaysOnTop.checked
-    
+
     // API設定 (ini.json)
     if (!newIniState.apiSettings) {
       newIniState.apiSettings = {}
     }
-    
+
     const apiBaseUrl = document.getElementById('api-base-url')
     if (apiBaseUrl) newIniState.apiSettings.baseURL = apiBaseUrl.value || ''
-    
+
     const apiStaffId = document.getElementById('api-staff-id')
     if (apiStaffId) newIniState.apiSettings.staffId = apiStaffId.value || ''
-    
+
     const apiFacilityId = document.getElementById('api-facility-id')
     if (apiFacilityId) newIniState.apiSettings.facilityId = apiFacilityId.value || ''
-    
+
     const apiDatabaseType = document.getElementById('api-database-type')
     if (apiDatabaseType) newIniState.apiSettings.databaseType = apiDatabaseType.value || 'sqlite'
-    
+
     const apiAiType = document.getElementById('api-ai-type')
     if (apiAiType) newIniState.apiSettings.useAI = apiAiType.value || 'gemini'
-    
+
     // 状態を更新
     setIniState(newIniState)
     return newIniState
@@ -356,7 +371,7 @@ export function useSettingsModalLogic(isOpen) {
           // セレクトボックスも初期化
           initializeApiSelectBoxes()
         }, 100)
-        
+
         console.log('✅ [SettingsModal] デフォルト値にリセットしました')
         showSuccessToast('✅ デフォルト値にリセットしました（保存ボタンを押して確定してください）')
       } catch (error) {
@@ -367,9 +382,12 @@ export function useSettingsModalLogic(isOpen) {
   }, [populateForm, setIniState, showSuccessToast, showErrorToast])
 
   // パスワード表示切替え
-  const togglePasswordVisibility = useCallback(() => {
-    const passwordInput = document.getElementById('config-password')
-    const toggleBtn = document.getElementById('toggle-password')
+  const togglePasswordVisibility = useCallback((inputId = 'config-password', btnId = 'toggle-password') => {
+    const targetInputId = typeof inputId === 'string' ? inputId : 'config-password'
+    const targetBtnId = typeof btnId === 'string' ? btnId : 'toggle-password'
+
+    const passwordInput = document.getElementById(targetInputId)
+    const toggleBtn = document.getElementById(targetBtnId)
 
     if (passwordInput && toggleBtn) {
       if (passwordInput.type === 'password') {
@@ -391,7 +409,11 @@ export function useSettingsModalLogic(isOpen) {
         HUG_USERNAME: document.getElementById('config-username')?.value || '',
         HUG_PASSWORD: document.getElementById('config-password')?.value || '',
         GEMINI_API_KEY: document.getElementById('config-gemini')?.value || '',
-        GEMINI_MODEL: document.getElementById('config-gemini-model')?.value || 'gemini-3.5-flash'
+        GEMINI_MODEL: document.getElementById('config-gemini-model')?.value || 'gemini-3.5-flash',
+        OPENAI_MAIL: document.getElementById('config-openai-mail')?.value || '',
+        OPENAI_PASSWORD: document.getElementById('config-openai-password')?.value || '',
+        OLLAMA_URL: document.getElementById('config-ollama-url')?.value || '',
+        OLLAMA_MODEL: document.getElementById('config-ollama-model')?.value || 'gemma4:latest'
       }
 
       // AppStateを更新（Context APIとwindow.AppStateの両方を更新）
@@ -427,37 +449,37 @@ export function useSettingsModalLogic(isOpen) {
   const initializeApiSelectBoxes = useCallback(async () => {
     try {
       console.group("🧩 [SettingsModal] initializeApiSelectBoxes 開始");
-  
+
       const staffSelect = document.getElementById("api-staff-id");
       const facilitySelect = document.getElementById("api-facility-id");
       const aiSelect = document.getElementById("api-ai-type");
-    const baseUrlInput = document.getElementById("api-base-url");
-      
+      const baseUrlInput = document.getElementById("api-base-url");
+
       // activeApiを取得（appStateから、またはiniStateのdatabaseTypeに基づいて）
       const apiToUse = appState?.activeApi || (iniState?.apiSettings?.databaseType === 'mariadb' ? mariadbApi : sqliteApi);
       console.log("📌 activeApi:", apiToUse === mariadbApi ? 'mariadbApi' : 'sqliteApi');
-  
+
       // まずReduxストアからデータを取得
       let data = getJoinedStaffFacilityData();
       console.log("📊 Reduxストアから取得データ:", data);
-  
+
       // Reduxストアにデータがない場合は、データベースから直接取得
       if (!data || !Array.isArray(data) || data.length === 0) {
         console.log("⚠️ Reduxストアにデータがないため、データベースから直接取得します");
-        
+
         try {
           // activeApiを使ってデータベースから全テーブルを取得
           const tables = await apiToUse.getAllTables();
           console.log("📊 データベースから取得したテーブル:", tables);
-          
+
           if (tables && (tables.staffs || tables.facility_staff || tables.facilitys)) {
             // getJoinedStaffFacilityDataと同じ処理を実行
             const staffs = tables.staffs || [];
             const facilityStaff = tables.facility_staff || [];
             const facilitys = tables.facilitys || [];
-            
+
             console.log("🧾 データ確認:", { staffs, facilityStaff, facilitys });
-            
+
             // スタッフごとの施設情報をまとめる
             data = staffs
               .filter((s) => s.id !== -1 && s.is_delete !== 1)
@@ -466,10 +488,10 @@ export function useSettingsModalLogic(isOpen) {
                 const relatedFacilities = relatedFs
                   .map((fs) => facilitys.find((f) => f.id === fs.facility_id))
                   .filter(Boolean);
-                
+
                 const facility_ids = relatedFacilities.map((f) => f.id).join(",");
                 const facility_names = relatedFacilities.map((f) => f.name).join(", ");
-                
+
                 return {
                   staff_id: s.id,
                   staff_name: s.name,
@@ -479,7 +501,7 @@ export function useSettingsModalLogic(isOpen) {
                   facility_names,
                 };
               });
-            
+
             console.log("✅ データベースから結合結果:", data);
           } else {
             console.warn("⚠️ テーブルデータが取得できませんでした");
@@ -492,26 +514,26 @@ export function useSettingsModalLogic(isOpen) {
           return;
         }
       }
-      
+
       if (!data || !Array.isArray(data) || data.length === 0) {
         console.warn("⚠️ データが取得できませんでした");
         console.groupEnd();
         return;
       }
-  
+
       // スタッフリストを生成（dataそのものを使用）
       const staffList = data.map((item) => ({
         staff_id: item.staff_id,
         staff_name: item.staff_name,
       }));
-  
+
       // 施設リストを生成（facility_namesを分割して重複を削除）
       const facilityMap = new Map();
       data.forEach((item) => {
         if (item.facility_names && item.facility_ids) {
           const facilityNames = item.facility_names.split(", ").map((name) => name.trim());
           const facilityIds = item.facility_ids.split(",").map((id) => id.trim());
-          
+
           facilityNames.forEach((name, index) => {
             if (name && !facilityMap.has(name)) {
               facilityMap.set(name, facilityIds[index] || "");
@@ -519,12 +541,12 @@ export function useSettingsModalLogic(isOpen) {
           });
         }
       });
-      
+
       const facilityList = Array.from(facilityMap.entries()).map(([name, id]) => ({
         id: id || "",
         name: name,
       }));
-  
+
       // スタッフセレクト初期化
       if (staffSelect) {
         while (staffSelect.children.length > 1) {
@@ -540,7 +562,7 @@ export function useSettingsModalLogic(isOpen) {
       } else {
         console.warn("⚠️ staffSelect 要素が見つかりません");
       }
-  
+
       // 施設セレクト初期化
       if (facilitySelect) {
         while (facilitySelect.children.length > 1) {
@@ -556,13 +578,13 @@ export function useSettingsModalLogic(isOpen) {
       } else {
         console.warn("⚠️ facilitySelect 要素が見つかりません");
       }
-  
+
       // 現在値の設定
       const selectedStaffId = iniState?.apiSettings?.staffId || "";
       const selectedFacilityId = iniState?.apiSettings?.facilityId || "";
       const selectedAiType = iniState?.apiSettings?.useAI || "gemini";
-    const selectedBaseUrl = iniState?.apiSettings?.baseURL || "";
-  
+      const selectedBaseUrl = iniState?.apiSettings?.baseURL || "";
+
       console.log("🎯 iniState.apiSettings:", iniState?.apiSettings);
       console.log("🎯 適用 staffId:", selectedStaffId);
       console.log("🎯 適用 facilityId:", selectedFacilityId);
@@ -570,14 +592,14 @@ export function useSettingsModalLogic(isOpen) {
       if (staffSelect) staffSelect.value = selectedStaffId;
       if (facilitySelect) facilitySelect.value = selectedFacilityId;
       if (aiSelect) aiSelect.value = selectedAiType;
-    if (baseUrlInput) baseUrlInput.value = selectedBaseUrl;
+      if (baseUrlInput) baseUrlInput.value = selectedBaseUrl;
       console.groupEnd();
     } catch (error) {
       console.error("❌ [SettingsModal] APIセレクトボックス初期化エラー:", error);
       console.groupEnd();
     }
   }, [iniState, appState]);
-  
+
 
 
   // API設定を保存
@@ -585,7 +607,7 @@ export function useSettingsModalLogic(isOpen) {
     try {
       // 新しい状態オブジェクトを作成
       const newIniState = JSON.parse(JSON.stringify(iniState)) // ディープコピー
-      
+
       // apiSettingsが存在しない場合は作成
       if (!newIniState.apiSettings) {
         newIniState.apiSettings = {}
@@ -612,7 +634,7 @@ export function useSettingsModalLogic(isOpen) {
       if (success) {
         // Reactの状態も更新（これが重要！）
         setIniState(newIniState)
-        
+
         // databaseType に基づく activeApi は非シリアライズのため Redux には流さない
         const databaseType = newIniState.apiSettings.databaseType || 'sqlite'
         const newActiveApi = databaseType === 'mariadb' ? mariadbApi : sqliteApi
@@ -630,7 +652,7 @@ export function useSettingsModalLogic(isOpen) {
 
         console.log('🔄 [useSettingsModalLogic] activeApi更新:', { databaseType, activeApi: newActiveApi === mariadbApi ? 'mariadbApi' : 'sqliteApi' })
         console.log('🔄 [useSettingsModalLogic] useAI更新:', { useAI })
-        
+
         showSuccessToast('✅ API設定の保存が完了しました')
         return true
       } else {
@@ -644,6 +666,23 @@ export function useSettingsModalLogic(isOpen) {
     }
   }, [iniState, saveIni, setIniState, showSuccessToast, showErrorToast])
 
+  // Config.jsonを再読み込みする
+  const reloadConfig = useCallback(async () => {
+    try {
+      const success = await loadAllReload()
+      if (success) {
+        populateForm()
+        showSuccessToast('✅ Config.jsonを再読み込みしました')
+        return true
+      }
+      return false
+    } catch (error) {
+      console.error('❌ Config.json再読み込みエラー:', error)
+      showErrorToast('❌ Config.json再読み込み中にエラーが発生しました')
+      return false
+    }
+  }, [populateForm, showSuccessToast, showErrorToast])
+
   return {
     populateForm,
     saveSettings,
@@ -653,7 +692,8 @@ export function useSettingsModalLogic(isOpen) {
     saveConfigFromForm,
     initializeSelectBoxes,
     saveApiSettingsFromForm,
-    initializeApiSelectBoxes
+    initializeApiSelectBoxes,
+    reloadConfig
   }
 }
 

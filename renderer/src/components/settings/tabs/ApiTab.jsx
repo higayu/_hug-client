@@ -9,7 +9,7 @@ import {
 function ApiTab({ onSaveApiSettings, onReloadApiSettings, onInitializeSelectBoxes }) {
   const [isSaving, setIsSaving] = useState(false)
 
-    // 🔽 Redux(store) の値
+  // 🔽 Redux(store) の値
   const STAFF_ID = useSelector(selectStaffId)
   const FACILITY_ID = useSelector(selectFacilityId)
   const USE_AI = useSelector(selectUseAI)
@@ -206,6 +206,7 @@ function ApiTab({ onSaveApiSettings, onReloadApiSettings, onInitializeSelectBoxe
           >
             <option value="gemini">gemini</option>
             <option value="chatGPT">chatGPT</option>
+            <option value="ollama">ollama</option>
           </select>
         </div>
       </div>

@@ -14,7 +14,7 @@ export default function ProfessionalPrompt2({
   promptKey = "professional2",
   renderGeminiResultArea,
 }) {
-  const { appState, PROMPTS,DEBUG_FLG } = useAppState();
+  const { appState, PROMPTS, DEBUG_FLG } = useAppState();
 
   const [text1, setText1] = useState("");
   const [aiText, setAiText] = useState("");
@@ -122,25 +122,25 @@ export default function ProfessionalPrompt2({
         >
           実行
         </button>
-        
+
         {DEBUG_FLG && (
-         <div className="flex flex-col justify-end">
-            <ProfessionalDraftSaveButton/>
+          <div className="flex flex-col justify-end">
+            <ProfessionalDraftSaveButton />
             <ProfessionalInjectButton />
-         </div>
+          </div>
         )}
 
       </div>
-      {aiName === "Gemini" &&
+      {(aiName === "Gemini" || aiName === "Ollama") &&
         renderGeminiResultArea?.({
           promptKey,
           label: "Gemini API 返却値（専門2）",
         })}
       <MemoInputBox
-          memoType={2}
-          label="一時メモ２（編集可能）"
-          minHeight={200}
-        />
+        memoType={2}
+        label="一時メモ２（編集可能）"
+        minHeight={200}
+      />
     </div>
   );
 }

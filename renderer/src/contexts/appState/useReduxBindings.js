@@ -15,6 +15,8 @@ export function useReduxBindings() {
   const GEMINI_MODEL = useSelector(s.selectGeminiModel)
   const OPENAI_MAIL = useSelector(s.selectOpenaiMail)
   const OPENAI_PASSWORD = useSelector(s.selectOpenaiPassword)
+  const OLLAMA_URL = useSelector(s.selectOllamaUrl)
+  const OLLAMA_MODEL = useSelector(s.selectOllamaModel)
 
   const USE_AI = useSelector(s.selectUseAI)
   const DATABASE_TYPE = useSelector(s.selectDatabaseType)
@@ -48,6 +50,8 @@ export function useReduxBindings() {
     GEMINI_MODEL,
     OPENAI_MAIL,
     OPENAI_PASSWORD,
+    OLLAMA_URL,
+    OLLAMA_MODEL,
 
     USE_AI,
     DATABASE_TYPE,

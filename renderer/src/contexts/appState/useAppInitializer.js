@@ -25,6 +25,9 @@ export async function initializeAppState({
   if (config?.OPENAI_MAIL !== undefined) merged.OPENAI_MAIL = config.OPENAI_MAIL
   if (config?.OPENAI_PASSWORD !== undefined) merged.OPENAI_PASSWORD = config.OPENAI_PASSWORD
   if (config?.CURRENT_DAY_OF_WEEK !== undefined) merged.CURRENT_DAY_OF_WEEK = config.CURRENT_DAY_OF_WEEK
+  // Ollama 用の認証情報（URL / モデル）も appState に反映
+  if (config?.OLLAMA_URL !== undefined) merged.OLLAMA_URL = config.OLLAMA_URL
+  if (config?.OLLAMA_MODEL !== undefined) merged.OLLAMA_MODEL = config.OLLAMA_MODEL
 
   // 3) ini.json → Context & Redux
   const apiSettings = ini?.apiSettings ?? {}
