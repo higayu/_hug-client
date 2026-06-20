@@ -20,6 +20,10 @@ export function getAttendanceItemForChild(attendanceData, childId) {
   return list.find((item) => String(item.children_id) === String(childId)) || null
 }
 
+export function isAttendanceDataLoaded(attendanceData) {
+  return Array.isArray(attendanceData?.data)
+}
+
 export function isChildAbsent(attendanceItem) {
   if (!attendanceItem) return false
   return isAbsentFromColumn5(attendanceItem.column5)

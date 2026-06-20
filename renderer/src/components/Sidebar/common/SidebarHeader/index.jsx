@@ -18,6 +18,7 @@ function SidebarHeader() {
   const {
     CURRENT_DAY_OF_WEEK,
     CURRENT_YMD,
+    attendanceData,
     setCurrentDate,
     setCurrentYmd,
     DEBUG_FLG,
@@ -122,6 +123,7 @@ function SidebarHeader() {
                 onFetch={runFetch}
                 autoFetchEnabled={autoFetchEnabled}
                 onToggleAutoFetch={toggleAutoFetch}
+                lastFetchedAt={attendanceData?.extractedAt}
               />
         </div>
 

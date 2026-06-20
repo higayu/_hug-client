@@ -11,6 +11,7 @@ import {
 import { useToast } from '@/components/common/ToastContext.jsx'
 import ProfessionalSupportCheckPanel from '@/components/common/ProfessionalSupportCheckPanel'
 import AttendanceActionSection from './AttendanceActionSection.jsx'
+import { isAttendanceDataLoaded } from '@/utils/attendance/helpers/attendanceStatus.js'
 import './attendanceForm.css'
 
 export default function ChildMemoPanel() {
@@ -106,6 +107,27 @@ export default function ChildMemoPanel() {
     )
   }
 
+  const isAttendanceLoaded = isAttendanceDataLoaded(attendanceData)
+
+  if (!isAttendanceLoaded) {
+    return (
+      <div className="child-memo-panel flex-1 min-h-0 border-l border-gray-300 bg-gray-50 flex flex-col">
+        <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
+          <p className="text-sm font-semibold text-gray-800">
+            勤怠データを取得してください
+          </p>
+          <p className="text-sm text-gray-500 mt-2">
+            上部の緑ボタン（表アイコン）から
+            <br />
+            今日の利用者データを取得してください
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  const hasChildAttendance = Boolean(attendanceItem)
+
   const column5 = attendanceItem?.column5 ?? null
   const column5Html = attendanceItem?.column5Html ?? null
   const column6 = attendanceItem?.column6 ?? null
@@ -198,30 +220,37 @@ export default function ChildMemoPanel() {
   return (
     <div className="child-memo-panel flex-1 min-h-0 border-l border-gray-300 bg-gray-50 flex flex-col">
       <div className="flex-1 min-h-0 overflow-y-auto p-2">
-        <div
-          className={`child-memo-attendance-form flex flex-col rounded bg-white border border-gray-300 gap-2 p-2 ${
-            !isUIEnabled ? 'opacity-60' : ''
-          }`}
-        >
-          <AttendanceActionSection
-            childId={selectChild}
-            childName={childName}
-            dateStr={dateStr}
-            column5={column5}
-            column5Html={column5Html}
-            column6={column6}
-            column6Html={column6Html}
-            isAbsent={isAbsent}
-            hasEntered={hasEntered}
-            hasExited={hasExited}
-            isUIEnabled={isUIEnabled}
-            isStop={isStop}
-            loadingAction={loadingAction}
-            onEnter={runEnter}
-            onLeave={runLeave}
-            onAbsence={runAbsence}
-            onProfessionalSupport={addProfessionalSupportNewTab}
-          />
+        <div className="child-memo-attendance-form flex flex-col rounded bg-white border border-gray-300 gap-2 p-2">
+          {hasChildAttendance ? (
+            <AttendanceActionSection
+              childId={selectChild}
+              childName={childName}
+              dateStr={dateStr}
+              column5={column5}
+              column5Html={column5Html}
+              column6={column6}
+              column6Html={column6Html}
+              isAbsent={isAbsent}
+              hasEntered={hasEntered}
+              hasExited={hasExited}
+              isUIEnabled={isUIEnabled}
+              isStop={isStop}
+              loadingAction={loadingAction}
+              onEnter={runEnter}
+              onLeave={runLeave}
+              onAbsence={runAbsence}
+              onProfessionalSupport={addProfessionalSupportNewTab}
+            />
+          ) : (
+            <div className="rounded border border-amber-200 bg-amber-50 p-3 text-center">
+              <p className="text-sm font-medium text-amber-800">
+                この児童の勤怠データが見つかりません
+              </p>
+              <p className="text-xs text-amber-700 mt-1">
+                データを再取得するか、別の児童を選択してください
+              </p>
+            </div>
+          )}
         </div>
 
         <ProfessionalSupportCheckPanel
