@@ -2,7 +2,8 @@ import { getHugWebviewForCache } from "@/hooks/useHugCache/getHugCache.js";
 import { fetchContactBookRecordsInWebview } from "@/utils/personalRecord/fetchContactBookRecordsInWebview.js";
 
 /**
- * hugview の Cookie だけ使い、ページ遷移なしで個人記録（活動内容 note）を取得する
+ * hugview の Cookie だけ使い、ページ遷移なしで
+ * 個人記録（活動内容 note）を指定日のみ取得する
  *
  * @param {{
  *   childId: string|number,
