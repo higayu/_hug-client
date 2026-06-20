@@ -23,6 +23,18 @@ export default function TodayChildrenList() {
 
   const [activeTab, setActiveTab] = useState(TABS.NORMAL)
 
+  const [doneChildIds, setDoneChildIds] = useState([])
+
+  const handleToggleDone = (child, checked) => {
+    setDoneChildIds(prev => {
+      if (checked) {
+        return [...new Set([...prev, child.children_id])]
+      }
+
+      return prev.filter(id => id !== child.children_id)
+    })
+  }
+
   // ==============================
   // priority 別に分類
   // ==============================
@@ -101,6 +113,8 @@ export default function TodayChildrenList() {
           selectedChildId={SELECT_CHILD}
           onSelectChild={handleChildSelect}
           getChildNotesTitle={getChildNotesTitle}
+          doneChildIds={doneChildIds}
+          onToggleDone={handleToggleDone}
         />
       </ul>
     </div>

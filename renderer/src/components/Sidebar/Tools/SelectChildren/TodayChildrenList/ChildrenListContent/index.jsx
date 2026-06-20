@@ -1,4 +1,4 @@
-// src/components/Sidebar/SelectChildrenList/TodayChildrenList/ChildrenListContent.jsx
+// renderer/src/components/Sidebar/Tools/SelectChildren/TodayChildrenList/ChildrenListContent/index.jsx
 import { MESSAGES } from "@/utils/app/constants.js"
 import ChildListItem from "./ChildListItem"
 import { TABS } from "../constants"
@@ -13,7 +13,13 @@ export default function ChildrenListContent({
   selectedChildId,
   onSelectChild,
   getChildNotesTitle,
+  doneChildIds = [],
+  onToggleDone,
 }) {
+  const isChildDone = (child) => {
+    return doneChildIds.includes(child.children_id)
+  }
+
   const renderChildItem = (child) => (
     <ChildListItem
       key={child.children_id}
@@ -21,6 +27,40 @@ export default function ChildrenListContent({
       isSelected={selectedChildId === child.children_id}
       onSelect={onSelectChild}
       getTitle={getChildNotesTitle}
+      isDone={isChildDone(child)}
+      onToggleDone={onToggleDone}
+    />
+  )
+
+  const renderWaitingChildItem = (child) => (
+    <ChildListItem
+      key={child.children_id}
+      child={child}
+      isSelected={selectedChildId === child.children_id}
+      onSelect={onSelectChild}
+      getTitle={getChildNotesTitle}
+      baseClassName="p-2 border-b cursor-pointer flex justify-between items-center"
+      defaultClassName="hover:bg-yellow-100"
+      selectedClassName="bg-yellow-200 border-l-4 border-yellow-600 font-bold"
+      showPcName={false}
+      isDone={isChildDone(child)}
+      onToggleDone={onToggleDone}
+    />
+  )
+
+  const renderExperienceChildItem = (child) => (
+    <ChildListItem
+      key={child.children_id}
+      child={child}
+      isSelected={selectedChildId === child.children_id}
+      onSelect={onSelectChild}
+      getTitle={getChildNotesTitle}
+      baseClassName="p-2 border-b cursor-pointer flex justify-between items-center"
+      defaultClassName="hover:bg-blue-100"
+      selectedClassName="bg-blue-200 border-l-4 border-blue-600 font-bold"
+      showPcName={false}
+      isDone={isChildDone(child)}
+      onToggleDone={onToggleDone}
     />
   )
 
@@ -42,42 +82,12 @@ export default function ChildrenListContent({
 
     case TABS.WAITING:
       return waitingChildrenData?.length
-        ? waitingChildrenData.map(child => (
-            <li
-              key={child.children_id}
-              title={getChildNotesTitle(child)}
-              className="p-2 border-b cursor-pointer hover:bg-yellow-100"
-              onClick={() =>
-                onSelectChild(
-                  child.children_id,
-                  child.children_name,
-                  child.pc_name
-                )
-              }
-            >
-              {child.children_id}: {child.children_name}
-            </li>
-          ))
+        ? waitingChildrenData.map(renderWaitingChildItem)
         : <li>{MESSAGES.INFO.NO_WAITING}</li>
 
     case TABS.EXPERIENCE:
       return experienceChildrenData?.length
-        ? experienceChildrenData.map(child => (
-            <li
-              key={child.children_id}
-              title={getChildNotesTitle(child)}
-              className="p-2 border-b cursor-pointer hover:bg-blue-100"
-              onClick={() =>
-                onSelectChild(
-                  child.children_id,
-                  child.children_name,
-                  child.pc_name
-                )
-              }
-            >
-              {child.children_id}: {child.children_name}
-            </li>
-          ))
+        ? experienceChildrenData.map(renderExperienceChildItem)
         : <li>{MESSAGES.INFO.NO_EXPERIENCE}</li>
 
     default:
