@@ -40,6 +40,7 @@ export function useReduxBindings() {
   const childrenData = useSelector(s.selectChildrenData)
   const attendanceData = useSelector(s.selectAttendanceData)
   const DEBUG_FLG = useSelector(s.selectDebugFlg)
+  const SELECT_CHILD_FILTER_MODE = useSelector(s.selectSelectChildFilterMode)
 
   return {
     appState,
@@ -68,5 +69,6 @@ export function useReduxBindings() {
     childrenData,
     attendanceData,
     DEBUG_FLG,
+    SELECT_CHILD_FILTER_MODE,
   }
 }

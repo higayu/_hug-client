@@ -15,6 +15,7 @@ export default function ChildrenListContent({
   getChildNotesTitle,
   doneChildIds = [],
   onToggleDone,
+  getChildAbsent,
 }) {
   const isChildDone = (child) => {
     return doneChildIds.includes(child.children_id)
@@ -29,6 +30,7 @@ export default function ChildrenListContent({
       getTitle={getChildNotesTitle}
       isDone={isChildDone(child)}
       onToggleDone={onToggleDone}
+      isAbsent={getChildAbsent?.(child) ?? false}
     />
   )
 

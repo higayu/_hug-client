@@ -13,7 +13,7 @@ import ProfessionalSupportCheckPanel from '@/components/common/ProfessionalSuppo
 import AttendanceActionSection from './AttendanceActionSection.jsx'
 import './attendanceForm.css'
 
-function ChildMemoPanel() {
+export default function ChildMemoPanel() {
   const dispatch = useDispatch()
   const {
     appState,
@@ -235,4 +235,4 @@ function ChildMemoPanel() {
   )
 }
 
-export default ChildMemoPanel
+

@@ -48,6 +48,7 @@ const initialState = {
 
   // UI状態
   closeButtonsVisible: true,
+  SELECT_CHILD_FILTER_MODE: 0,
 
   // マスターデータ
   STAFF_DATA: [],
@@ -135,6 +136,12 @@ const appStateSlice = createSlice({
     // UI状態を設定
     setCloseButtonsVisible: (state, action) => {
       state.closeButtonsVisible = action.payload !== undefined ? action.payload : true
+    },
+
+    setSelectChildFilterMode: (state, action) => {
+      const mode = Number(action.payload)
+      state.SELECT_CHILD_FILTER_MODE =
+        mode === 1 || mode === 2 ? mode : 0
     },
 
     // マスターデータを設定
@@ -243,6 +250,11 @@ const appStateSlice = createSlice({
       if (updates.Experience_childrenData !== undefined) state.Experience_childrenData = updates.Experience_childrenData
       // UI状態
       if (updates.closeButtonsVisible !== undefined) state.closeButtonsVisible = updates.closeButtonsVisible
+      if (updates.SELECT_CHILD_FILTER_MODE !== undefined) {
+        const mode = Number(updates.SELECT_CHILD_FILTER_MODE)
+        state.SELECT_CHILD_FILTER_MODE =
+          mode === 1 || mode === 2 ? mode : 0
+      }
       // マスターデータ
       if (updates.STAFF_DATA !== undefined) state.STAFF_DATA = updates.STAFF_DATA
       if (updates.FACILITY_DATA !== undefined) state.FACILITY_DATA = updates.FACILITY_DATA
@@ -290,6 +302,7 @@ export const {
   setWaitingChildrenData,
   setExperienceChildrenData,
   setCloseButtonsVisible,
+  setSelectChildFilterMode,
   setStaffData,
   setFacilityData,
   setStaffAndFacilityData,
@@ -336,6 +349,7 @@ export const selectChildrenData = (state) => state.appState.childrenData
 export const selectWaitingChildrenData = (state) => state.appState.waiting_childrenData
 export const selectExperienceChildrenData = (state) => state.appState.Experience_childrenData
 export const selectCloseButtonsVisible = (state) => state.appState.closeButtonsVisible
+export const selectSelectChildFilterMode = (state) => state.appState.SELECT_CHILD_FILTER_MODE
 export const selectStaffData = (state) => state.appState.STAFF_DATA
 export const selectFacilityData = (state) => state.appState.FACILITY_DATA
 export const selectStaffAndFacilityData = (state) => state.appState.STAFF_AND_FACILITY_DATA

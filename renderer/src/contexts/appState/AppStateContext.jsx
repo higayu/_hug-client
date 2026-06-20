@@ -23,6 +23,7 @@ import {
   setSelectedChildColumns,
   updateAppState as updateAppStateRedux,
   setCurrentYmd as setCurrentYmdRedux,   // ★ 追加
+  setSelectChildFilterMode as setSelectChildFilterModeRedux,
 } from '@/store/slices/appStateSlice'
 
 import { loadIni as loadIniFromUtils } from '@/utils/config/iniUtils'
@@ -207,6 +208,11 @@ export function AppStateProvider({ children }) {
     [dispatch]
   )
 
+  const setSelectChildFilterMode = useCallback(
+    (mode) => dispatch(setSelectChildFilterModeRedux(mode)),
+    [dispatch]
+  )
+
   const setIniStateDirect = useCallback((next) => {
     setIniState(next)
   }, [])
@@ -253,6 +259,7 @@ export function AppStateProvider({ children }) {
         setSelectedPcName: setSelectedPcNameCallback,
         setAttendanceData,
         setSelectedChildColumns: setSelectedChildColumnsCallback,
+        setSelectChildFilterMode,
 
         activeSidebarTab,
         setActiveSidebarTab,

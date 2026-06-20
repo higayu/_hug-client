@@ -10,6 +10,7 @@ import { useAttendanceFetch } from "@/hooks/useAttendanceFetch.js"
 
 import TableDataGetButton from "@/components/common/TableDataGetButon"
 import WeekdaySelect from "@/components/common/WeekdaySelect.jsx"
+import SelectChildFilter from "./SelectChildFilter.jsx"
 
 function SidebarHeader() {
   const { showInfoToast } = useToast()
@@ -115,25 +116,13 @@ function SidebarHeader() {
         </div>
 
         {/* Web Manager（外部ブラウザ） */}
-        <div className="flex flex-col items-center justify-center">
-          {/* サブボタン群 */}
-          <div className="flex flex-col gap-2 bg-sky-100 items-center">
-            {DEBUG_FLG &&(
-              <button
-                  type="button"
-                  className="px-2 py-1 text-xs rounded bg-blue-500 text-white"
-                  onClick={loadChildren}
-                >
-                  再取得
-                </button>
-            )}
-
+        <div className="flex flex-col gap-2 items-center justify-center">
+              <SelectChildFilter />
               <TableDataGetButton
                 onFetch={runFetch}
                 autoFetchEnabled={autoFetchEnabled}
                 onToggleAutoFetch={toggleAutoFetch}
               />
-          </div>
         </div>
 
 

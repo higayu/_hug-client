@@ -12,12 +12,13 @@ export default function ChildListItem({
   showPcName = true,
   isDone = false,
   onToggleDone,
+  isAbsent = false,
 }) {
   const notesTitle = getTitle?.(child)
 
   const itemClassName = `${baseClassName} ${
     isSelected ? selectedClassName : defaultClassName
-  }`
+  }${isAbsent ? ' grayscale opacity-70' : ''}`
 
   return (
     <li
