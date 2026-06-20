@@ -7,6 +7,7 @@ import { ELEMENT_IDS } from "@/utils/app/constants.js"
 import {
   getAttendanceItemForChild,
   isChildAbsent,
+  isChildExited,
   shouldHideChildByFilter,
 } from "@/utils/attendance/helpers/attendanceStatus.js"
 import ChildrenListTabs from "./ChildrenListTabs"
@@ -57,6 +58,11 @@ export default function TodayChildrenList() {
 
   const getChildAbsent = useCallback(
     (child) => isChildAbsent(getAttendanceItem(child.children_id)),
+    [getAttendanceItem]
+  )
+
+  const getChildExited = useCallback(
+    (child) => isChildExited(getAttendanceItem(child.children_id)),
     [getAttendanceItem]
   )
 
@@ -235,6 +241,7 @@ export default function TodayChildrenList() {
           doneChildIds={doneChildIds}
           onToggleDone={handleToggleDone}
           getChildAbsent={getChildAbsent}
+          getChildExited={getChildExited}
         />
       </ul>
     </div>

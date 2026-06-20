@@ -97,11 +97,11 @@ export default function TableDataGetButton({
         </div>
       </div>
 
-      <div className="flex flex-col items-center text-center">
-        <span className="text-xs text-gray-500">最終取得時刻</span>
+      <div className="border border-gray-300 rounded-md bg-white py-1 px-2 flex flex-row gap-2 items-center text-center">
+        <span className="text-sm font-bold text-gray-900">取得：</span>
         <span
-          className={`text-xs font-medium ${
-            lastFetchedAt ? "text-gray-800" : "text-amber-600"
+          className={`text-sm font-extrabold ${
+            lastFetchedAt ? "text-green-800" : "text-amber-700"
           }`}
         >
           {fetchedAtLabel}

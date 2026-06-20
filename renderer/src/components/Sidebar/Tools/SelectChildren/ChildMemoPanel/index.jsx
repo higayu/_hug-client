@@ -113,13 +113,8 @@ export default function ChildMemoPanel() {
     return (
       <div className="child-memo-panel flex-1 min-h-0 border-l border-gray-300 bg-gray-50 flex flex-col">
         <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
-          <p className="text-sm font-semibold text-gray-800">
-            勤怠データを取得してください
-          </p>
-          <p className="text-sm text-gray-500 mt-2">
-            上部の緑ボタン（表アイコン）から
-            <br />
-            今日の利用者データを取得してください
+          <p className="text-sm font-bold text-gray-800">
+          今日の利用者データを取得してください
           </p>
         </div>
       </div>

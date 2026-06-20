@@ -29,6 +29,14 @@ export function isChildAbsent(attendanceItem) {
   return isAbsentFromColumn5(attendanceItem.column5)
 }
 
+/** AttendanceActionSection の専門的支援ボタン表示条件と同じ（入室済みかつ退室済み） */
+export function isChildExited(attendanceItem) {
+  if (!attendanceItem) return false
+  return (
+    isTimeFormat(attendanceItem.column5) && isTimeFormat(attendanceItem.column6)
+  )
+}
+
 export function shouldHideChildByFilter(attendanceItem, filterMode) {
   if (Number(filterMode) === SELECT_CHILD_FILTER_MODES.ALL) return false
   if (!attendanceItem) return false

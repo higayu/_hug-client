@@ -16,80 +16,51 @@ export default function ChildrenListContent({
   doneChildIds = [],
   onToggleDone,
   getChildAbsent,
+  getChildExited,
 }) {
   const isChildDone = (child) => {
     return doneChildIds.includes(child.children_id)
   }
 
-  const renderChildItem = (child) => (
+  const renderChildItem = (child, showPcName = true) => (
     <ChildListItem
       key={child.children_id}
       child={child}
       isSelected={selectedChildId === child.children_id}
       onSelect={onSelectChild}
       getTitle={getChildNotesTitle}
+      showPcName={showPcName}
       isDone={isChildDone(child)}
       onToggleDone={onToggleDone}
       isAbsent={getChildAbsent?.(child) ?? false}
-    />
-  )
-
-  const renderWaitingChildItem = (child) => (
-    <ChildListItem
-      key={child.children_id}
-      child={child}
-      isSelected={selectedChildId === child.children_id}
-      onSelect={onSelectChild}
-      getTitle={getChildNotesTitle}
-      baseClassName="p-2 border-b cursor-pointer flex justify-between items-center"
-      defaultClassName="hover:bg-yellow-100"
-      selectedClassName="bg-yellow-200 border-l-4 border-yellow-600 font-bold"
-      showPcName={false}
-      isDone={isChildDone(child)}
-      onToggleDone={onToggleDone}
-    />
-  )
-
-  const renderExperienceChildItem = (child) => (
-    <ChildListItem
-      key={child.children_id}
-      child={child}
-      isSelected={selectedChildId === child.children_id}
-      onSelect={onSelectChild}
-      getTitle={getChildNotesTitle}
-      baseClassName="p-2 border-b cursor-pointer flex justify-between items-center"
-      defaultClassName="hover:bg-blue-100"
-      selectedClassName="bg-blue-200 border-l-4 border-blue-600 font-bold"
-      showPcName={false}
-      isDone={isChildDone(child)}
-      onToggleDone={onToggleDone}
+      isExited={getChildExited?.(child) ?? false}
     />
   )
 
   switch (activeTab) {
     case TABS.NORMAL:
       return normalChildren.length
-        ? normalChildren.map(renderChildItem)
+        ? normalChildren.map((child) => renderChildItem(child))
         : <li>{MESSAGES.INFO.NO_CHILDREN}</li>
 
     case TABS.SOMETIMES:
       return sometimesChildren.length
-        ? sometimesChildren.map(renderChildItem)
+        ? sometimesChildren.map((child) => renderChildItem(child))
         : <li>時折対応の児童はいません</li>
 
     case TABS.TEMPORARY:
       return temporaryChildren.length
-        ? temporaryChildren.map(renderChildItem)
+        ? temporaryChildren.map((child) => renderChildItem(child))
         : <li>一時対応の児童はいません</li>
 
     case TABS.WAITING:
       return waitingChildrenData?.length
-        ? waitingChildrenData.map(renderWaitingChildItem)
+        ? waitingChildrenData.map((child) => renderChildItem(child, false))
         : <li>{MESSAGES.INFO.NO_WAITING}</li>
 
     case TABS.EXPERIENCE:
       return experienceChildrenData?.length
-        ? experienceChildrenData.map(renderExperienceChildItem)
+        ? experienceChildrenData.map((child) => renderChildItem(child, false))
         : <li>{MESSAGES.INFO.NO_EXPERIENCE}</li>
 
     default:
