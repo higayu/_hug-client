@@ -15,15 +15,11 @@ import { selectProfessionalSupportStatus } from "@/store/slices/recordStatusSlic
 const getUseDaysTextClass = (useDays, todayProfessionalSupportRegistered) => {
   if (useDays == null) return "";
 
-  if (todayProfessionalSupportRegistered === true) {
-    return "text-gray-900";
+  if (useDays >= 2) {
+    return "text-blue-500";
   }
 
-  if (useDays < 2) {
-    return "text-red-500";
-  }
-
-  return "text-blue-500";
+  return "text-red-500";
 };
 
 const normalizeInterviewDateToYmd = (dateText) => {
