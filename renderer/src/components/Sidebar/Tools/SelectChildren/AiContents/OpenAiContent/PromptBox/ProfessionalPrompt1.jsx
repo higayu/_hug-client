@@ -4,7 +4,7 @@ import { useAppState } from "@/contexts/appState";
 import { useChildrenList } from "@/hooks/useChildrenList.js";
 import { sendPromptToChatGPT } from "./send/sendPromptToChatGPT";
 import ProfessionalPlan from "@/components/common/PageRequestGet/ProfessionalPlan.jsx";
-import ProfessionalSupportCheckPanel from "@/components/common/ProfessionalSupportCheckPanel/index.jsx";
+import ProfessionalSupportCheckPanel2 from "@/components/common/ProfessionalSupportCheckPanel2";
 
 const DBG = 'ProfessionalPrompt1';
 
@@ -172,7 +172,7 @@ export default function ProfessionalPrompt1({
             実行
           </button>
           <div className="w-[30%]">
-            <ProfessionalSupportCheckPanel
+            <ProfessionalSupportCheckPanel2
               logTag="ProfessionalPrompt1"
               className="w-full"
               buttonClassName="w-full text-xs"

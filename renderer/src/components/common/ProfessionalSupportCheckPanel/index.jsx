@@ -1,4 +1,4 @@
-import { useProfessionalSupportCheck } from "@/hooks/useProfessionalSupportCheck.js";
+import { useProfessionalSupportCheck } from "@/hooks/useProfessionalSupportCheck";
 import { CheckCircleIcon } from "@heroicons/react/24/outline";
 
 /**

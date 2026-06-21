@@ -9,7 +9,7 @@ import {
   clickExitButton,
 } from '@/utils/attendance/index.js'
 import { useToast } from '@/components/common/ToastContext.jsx'
-import ProfessionalSupportCheckPanel from '@/components/common/ProfessionalSupportCheckPanel'
+import ProfessionalSupportCheckPanel2 from '@/components/common/ProfessionalSupportCheckPanel2'
 import AttendanceActionSection from './AttendanceActionSection.jsx'
 import { isAttendanceDataLoaded } from '@/utils/attendance/helpers/attendanceStatus.js'
 import './attendanceForm.css'
@@ -248,7 +248,7 @@ export default function ChildMemoPanel() {
           )}
         </div>
 
-        <ProfessionalSupportCheckPanel
+        <ProfessionalSupportCheckPanel2
           logTag="ChildMemoPanel"
           className="mt-2 w-full items-stretch px-0"
           buttonClassName="w-full text-xs"
