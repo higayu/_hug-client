@@ -1,21 +1,17 @@
 {
   "name": "hug-client",
-  "version": "1.2.10",
+  "version": "1.2.11",
   "description": "FCC Hug Client",
   "main": "main.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-
     "build:preload": "node scripts/build-preload.js",
     "build:renderer": "cd renderer && npm run build",
-
     "start": "npm run build:preload && electron . --prod",
     "start:dev": "npm run build:preload && electron . --dev",
     "electron": "npm run build:preload && electron .",
-
     "dev": "concurrently \"npm run dev:renderer\" \"wait-on http://localhost:5173 && npm run build:preload && electron . --dev\"",
     "dev:renderer": "cd renderer && npm run dev",
-
     "dist": "npm run build:preload && npm run build:renderer && electron-builder"
   },
   "keywords": [],
@@ -48,11 +44,9 @@
     "files": [
       "main.js",
       "main/**/*",
-
       "preload.bundle.cjs",
       "preload.js",
       "preload/**/*",
-
       "renderer/dist/**/*",
       "puppeteer/**/*",
       "src/**/*",
