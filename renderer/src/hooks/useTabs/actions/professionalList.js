@@ -13,6 +13,22 @@ export function addProfessionalSupportListAction(appState) {
   }
 
   const newId = `hugview-${appState.CURRENT_YMD}-${document.querySelectorAll('webview').length}`
+  console.log('専門的支援一覧起動');
+  console.log('🔍 日付', appState.CURRENT_YMD);
+
+  // 月初日を作成
+  const monthStartYmd = appState.CURRENT_YMD.slice(0, 8) + "01"; // "2026-06-01"
+  // 表示用フォーマット: 2026-06-01 → 2026年06月01日
+  function formatYmdToJapanese(ymd) {
+    const [year, month, day] = ymd.split("-");
+    return `${year}年${month}月${day}日`;
+  }
+
+  const currentYmd_ja = formatYmdToJapanese(appState.CURRENT_YMD); // "2026-06-21"
+  const monthStartYmd_ja = formatYmdToJapanese(monthStartYmd); // "2026-06-01"
+  console.log('🔍 月初日', monthStartYmd_ja);
+  console.log('🔍 日付', currentYmd_ja);
+
 
   const newWebview = createWebview(newId, `https://www.hug-ayumu.link/hug/wm/record_proceedings.php`)
   webviewContainer.appendChild(newWebview)
@@ -58,6 +74,16 @@ export function addProfessionalSupportListAction(appState) {
           selectSupport.value = "55";
           selectSupport.dispatchEvent(new Event("change", { bubbles: true }));
         }
+
+        // 子ども選択
+        const select = document.querySelector('#name_list');
+        select.dataset.cid = '${appState.SELECT_CHILD}';
+        select.value = '${appState.SELECT_CHILD}';
+        select.dispatchEvent(new Event('change', { bubbles: true }));
+
+        // input に設定
+        document.getElementById("dp1").value = "${monthStartYmd_ja}";
+        document.getElementById("dp2").value = "${currentYmd_ja}";
 
         // 検索ボタン
         const searchBtn = document.querySelector('button.btn.btn-sm.search[type="submit"]');
