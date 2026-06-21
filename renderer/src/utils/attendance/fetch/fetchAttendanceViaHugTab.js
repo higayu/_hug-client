@@ -2,7 +2,7 @@ import { getHugWebviewForCache } from "@/hooks/useHugCache/getHugCache.js";
 import { fetchAttendanceTableInWebview } from "@/utils/ToDayChildrenList/fetchAttendanceTableInWebview.js";
 
 /**
- * hugview の Cookie だけ使い、ページ遷移なしで勤怠テーブルを取得する
+ * hugview の Cookie だけ使い、ページ遷移なしで利用者テーブルを取得する
  * @param {{ facilityId: string|number, dateStr: string }} opts
  */
 export async function fetchAttendanceViaHugTab({ facilityId, dateStr }) {

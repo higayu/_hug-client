@@ -12,7 +12,7 @@ import {
 const AUTO_FETCH_INTERVAL_MS = 60_000;
 
 /**
- * 勤怠データ取得（Cookie 付きリクエスト）の共通ロジック
+ * 利用者データ取得（Cookie 付きリクエスト）の共通ロジック
  * @param {string} [logTag]
  */
 export function useAttendanceFetch(logTag = "AttendanceFetch") {
@@ -36,13 +36,13 @@ export function useAttendanceFetch(logTag = "AttendanceFetch") {
 
     try {
       if (!silent) {
-        showInfoToast("📥 勤怠データ取得中...");
+        showInfoToast("📥 利用者データ取得中...");
       }
 
       const result = await fetchAttendanceViaHugTab({ facilityId, dateStr });
 
       if (!result.ok) {
-        console.error(`[${logTag}] 勤怠データ取得失敗:`, result.error);
+        console.error(`[${logTag}] 利用者データ取得失敗:`, result.error);
         showInfoToast(`⚠️ 取得失敗: ${result.error || "不明なエラー"}`);
         return;
       }
@@ -78,21 +78,21 @@ export function useAttendanceFetch(logTag = "AttendanceFetch") {
 
         if (!silent) {
           showInfoToast(
-            `✅ 勤怠データを抽出・保存しました。\n行数: ${attendanceData.rowCount || "不明"}`
+            `✅ 利用者データを抽出・保存しました。\n行数: ${attendanceData.rowCount || "不明"}`
           );
         }
       } else if (!silent) {
         showInfoToast("⚠️ データ抽出に失敗しました（テーブルは取得済み）");
       }
 
-      console.log(`[${logTag}] 勤怠データ取得完了`, {
+      console.log(`[${logTag}] 利用者データ取得完了`, {
         facilityId,
         dateStr,
         rowCount: result.rowCount,
         silent,
       });
     } catch (e) {
-      console.error(`[${logTag}] 勤怠データ取得例外:`, e);
+      console.error(`[${logTag}] 利用者データ取得例外:`, e);
       showInfoToast(`❌ エラー: ${e?.message || e}`);
     } finally {
       isFetchingRef.current = false;

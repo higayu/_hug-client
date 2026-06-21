@@ -8,10 +8,10 @@ import {
 import { isEnterMailEnabled, isLeaveMailEnabled } from "../helpers/mailDialog.js";
 
 export const NATIVE_STATUS_ENTER =
-  "本番の入室処理を開始しました。ダイアログ操作後、勤怠データを更新してください。";
+  "本番の入室処理を開始しました。ダイアログ操作後、利用者データを更新してください。";
 
 export const NATIVE_STATUS_LEAVE =
-  "本番の退室処理を開始しました。ダイアログ操作後、勤怠データを更新してください。";
+  "本番の退室処理を開始しました。ダイアログ操作後、利用者データを更新してください。";
 
 async function checkNativeInWebview(webview, r_id, kind) {
   const script = `

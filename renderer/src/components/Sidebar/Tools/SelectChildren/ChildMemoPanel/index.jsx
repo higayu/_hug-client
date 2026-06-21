@@ -9,10 +9,11 @@ import {
   clickExitButton,
 } from '@/utils/attendance/index.js'
 import { useToast } from '@/components/common/ToastContext.jsx'
-import ProfessionalSupportCheckPanel2 from '@/components/common/ProfessionalSupportCheckPanel2'
 import AttendanceActionSection from './AttendanceActionSection.jsx'
 import { isAttendanceDataLoaded } from '@/utils/attendance/helpers/attendanceStatus.js'
 import './attendanceForm.css'
+import PersonalRecordCheckPanel from "@/components/common/PersonalRecordCheckPanel";
+import ProfessionalSupportCheckPanel2 from '@/components/common/ProfessionalSupportCheckPanel2'
 
 export default function ChildMemoPanel() {
   const dispatch = useDispatch()
@@ -239,7 +240,7 @@ export default function ChildMemoPanel() {
           ) : (
             <div className="rounded border border-amber-200 bg-amber-50 p-3 text-center">
               <p className="text-sm font-medium text-amber-800">
-                この児童の勤怠データが見つかりません
+                この児童のデータが見つかりません
               </p>
               <p className="text-xs text-amber-700 mt-1">
                 データを再取得するか、別の児童を選択してください
@@ -247,6 +248,8 @@ export default function ChildMemoPanel() {
             </div>
           )}
         </div>
+
+        <PersonalRecordCheckPanel />
 
         <ProfessionalSupportCheckPanel2
           logTag="ChildMemoPanel"

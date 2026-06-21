@@ -1,5 +1,5 @@
 /**
- * 勤怠テーブル取得（Cache のみ）
+ * 利用者テーブル取得（Cache のみ）
  * Google拡張「入退室リクエスト」content.js と同様に hugview 内 fetch で HTML を取得する。
  */
 
@@ -34,7 +34,7 @@ export async function fetchAttendanceTableData(
     });
 
     if (!result.ok) {
-      throw new Error(result.error || "勤怠テーブルの取得に失敗しました");
+      throw new Error(result.error || "利用者テーブルの取得に失敗しました");
     }
 
     if (showToast && window.showSuccessToast) {

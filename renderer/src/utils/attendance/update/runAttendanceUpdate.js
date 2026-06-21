@@ -1,5 +1,5 @@
 /**
- * 拡張 timer.js runAttendanceUpdate 相当（勤怠一覧の再取得）
+ * 拡張 timer.js runAttendanceUpdate 相当（利用者一覧の再取得）
  */
 
 import { fetchAttendanceViaHugTab } from "../fetch/fetchAttendanceViaHugTab.js";
@@ -28,7 +28,7 @@ export async function runAttendanceUpdate({
   const result = await fetchAttendanceViaHugTab({ facilityId, dateStr });
 
   if (!result.ok) {
-    throw new Error(result.error || "勤怠一覧の更新に失敗しました");
+    throw new Error(result.error || "利用者一覧の更新に失敗しました");
   }
 
   const extracted = await extractColumnData(result.html);

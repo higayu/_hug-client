@@ -35,6 +35,12 @@ export async function fetchProfessionalSupportUseDaysInWebview(webview, opts) {
   if (!interviewDate) {
     return { ok: false, error: "面談日（interview_date）がありません" };
   }
+  
+  const interviewDateEndForLog = String(interviewDate || "")
+  const interviewDateStartForLog = interviewDateEndForLog.slice(0, 8) + "01"
+
+  console.log('始め日', interviewDateStartForLog)
+  console.log('終わり日', interviewDateEndForLog)
 
   const script = `
     (async () => {

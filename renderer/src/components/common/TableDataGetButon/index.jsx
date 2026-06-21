@@ -18,7 +18,7 @@ function formatLastFetchedAt(extractedAt) {
 }
 
 /**
- * 勤怠データ取得 UI（自動取得トグル + 手動取得）
+ * 利用者データ取得 UI（自動取得トグル + 手動取得）
  * @param {{
  *   onFetch?: () => void | Promise<void>,
  *   autoFetchEnabled?: boolean,

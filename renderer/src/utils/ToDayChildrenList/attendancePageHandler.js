@@ -1,7 +1,7 @@
 // renderer/src/utils/ToDayChildrenList/attendancePageHandler.js
 import { fetchAndExtractAttendanceData } from "@/store/slices/attendanceSlice.js";
 /**
- * 勤怠ページからテーブルを抽出し、Redux・AppState・Electronに保存する関数
+ * 利用者ページからテーブルを抽出し、Redux・AppState・Electronに保存する関数
  */
 export async function handleAttendancePageLoad({
   newWebview,
@@ -12,7 +12,7 @@ export async function handleAttendancePageLoad({
   updateAppState,
   showInfoToast,
 }) {
-  console.log("✅ 勤怠ページロード完了:", targetUrl);
+  console.log("✅ 利用者ページロード完了:", targetUrl);
   try {
     const selector = "table";
     let result;
@@ -124,7 +124,7 @@ export async function handleAttendancePageLoad({
         //   });
         // }
 
-        showInfoToast(`✅ 勤怠データを抽出・保存しました。\n行数: ${attendanceData.rowCount || "不明"}`);
+        showInfoToast(`✅ 利用者データを抽出・保存しました。\n行数: ${attendanceData.rowCount || "不明"}`);
       } else {
         showInfoToast("⚠️ データ抽出に失敗しました（テーブルは取得済み）");
       }
@@ -132,7 +132,7 @@ export async function handleAttendancePageLoad({
       showInfoToast(`⚠️ 取得失敗: ${result?.error || "不明なエラー"}`);
     }
   } catch (error) {
-    console.error("❌ 勤怠データ取得エラー:", error);
+    console.error("❌ 利用者データ取得エラー:", error);
     showInfoToast(`❌ エラー: ${error.message}`);
   }
 }

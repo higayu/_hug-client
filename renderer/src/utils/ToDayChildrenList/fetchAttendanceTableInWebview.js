@@ -1,5 +1,5 @@
 /**
- * hugview（非表示可）の Cookie 付きセッションで勤怠テーブル HTML を取得する。
+ * hugview（非表示可）の Cookie 付きセッションで利用者テーブル HTML を取得する。
  * Google拡張「入退室リクエスト」content.js の fetchAttendanceData と同様の GET fetch。
  *
  * @param {Electron.WebviewTag} webview
@@ -86,7 +86,7 @@ export async function fetchAttendanceTableInWebview(webview, opts) {
           pageUrl: response.url || TARGET_URL
         };
       } catch (error) {
-        console.error("[HUG WM] 勤怠テーブル取得エラー:", error);
+        console.error("[HUG WM] 利用者テーブル取得エラー:", error);
         return {
           ok: false,
           error: error && error.message ? String(error.message) : String(error)
