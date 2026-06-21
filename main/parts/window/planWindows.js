@@ -1,5 +1,5 @@
 // main/parts/window/planWindows.js
-const { BrowserWindow, shell } = require("electron");
+const { BrowserWindow, shell, app } = require("electron");
 const path = require("path");
 
 let isRegistered = false;
@@ -39,7 +39,8 @@ function createWindowOptions(title) {
     height: 900,
     title,
     webPreferences: {
-      preload: path.join(__dirname, "../../preload.js"),
+     // preload: path.join(__dirname, "../../preload.js"),
+      preload: path.join(app.getAppPath(), "preload.bundle.cjs"),
     },
   };
 }

@@ -13,11 +13,12 @@ import UrlContent from '@/components/common/UrlContent';
 import CloseToggleSwitch from '@/components/common/CloseToggleSwitch';
 import FacilitySelector from '@/components/facility'
 import StaffUpdateButton from '@/components/Header/StaffUpdateButton'
+import ProfessionalSupportListButton from '@/components/Header/ProfessionalSupportListButton'
 
-function Toolbar() {
+export default function Toolbar() {
   const { showInfoToast } = useToast()
   const { appState,DEBUG_FLG } = useAppState()
-  const { addProfessionalSupportListTab,clearActiveWebviewCache } = useTabs()
+  const { clearActiveWebviewCache } = useTabs()
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false)
   const [showCloseButton, setShowCloseButton] = useState(true)
 
@@ -234,14 +235,7 @@ function Toolbar() {
       id="toolbar" 
       className="bg-[#616161] text-white flex-none flex flex-nowrap items-center gap-2.5 overflow-x-auto whitespace-nowrap relative z-[1000] pointer-events-auto"
     >
-      <button 
-        id="professional-support"
-        onClick={addProfessionalSupportListTab}
-        className="rounded-lg block text-left border-none bg-[#f8461f] text-white px-4 py-2 text-sm cursor-pointer transition-all hover:bg-[#e3f2fd]"
-      >
-        専門的支援-一覧
-      </button>
-
+      <ProfessionalSupportListButton />
 
       {/* ======== ナビゲーションメニュー ======== */}
       <nav className="relative inline-block ml-0 min-w-auto flex-shrink-0 z-[1001]">
@@ -405,6 +399,3 @@ function Toolbar() {
     </div>
   )
 }
-
-export default Toolbar
-

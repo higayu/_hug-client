@@ -1,5 +1,6 @@
 appId: com.higayu.hugclient
 productName: Hug Client
+
 directories:
   output: dist
 
@@ -10,6 +11,11 @@ files:
   - main/**
   - renderer/**
   - package.json
+
+  # Electron が実行時に読む preload
+  - preload.bundle.cjs
+
+  # 開発用ソース。実行時には不要だが、残してもOK
   - preload.js
   - preload/**/*
 

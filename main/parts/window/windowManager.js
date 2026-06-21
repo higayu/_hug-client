@@ -1,5 +1,5 @@
-// main/parts/windowManager.js
-const { BrowserWindow } = require("electron");
+// main\parts\window\windowManager.js
+const { BrowserWindow, app } = require("electron");
 const path = require("path");
 const fs = require("fs");
 
@@ -13,12 +13,21 @@ const fs = require("fs");
  * @param {string} dateStr - 日付文字列
  * @returns {BrowserWindow} 作成されたウィンドウ
  */
-function createDoubleWebviewWindow(url1, url2, label, htmlTemplate, facilityId, dateStr) {
+function createDoubleWebviewWindow(
+  url1,
+  url2,
+  label,
+  htmlTemplate,
+  facilityId,
+  dateStr
+) {
+  const preloadPath = resolvePreloadPath();
+
   const win = new BrowserWindow({
     width: 1800,
     height: 900,
     webPreferences: {
-      preload: resolvePreloadPath(),
+      preload: preloadPath,
       contextIsolation: true,
       nodeIntegration: false,
       webviewTag: true,
@@ -28,7 +37,6 @@ function createDoubleWebviewWindow(url1, url2, label, htmlTemplate, facilityId, 
   });
 
   // HTMLテンプレートにURLとpreloadパスを挿入
-  const preloadPath = resolvePreloadPath();
   const html = htmlTemplate
     .replace("{{URL1}}", url1)
     .replace("{{URL2}}", url2)
@@ -37,7 +45,7 @@ function createDoubleWebviewWindow(url1, url2, label, htmlTemplate, facilityId, 
     .replace("{{DATE_STR}}", dateStr || "");
 
   win.loadURL("data:text/html;charset=utf-8," + encodeURIComponent(html));
-  
+
   win.webContents.once("did-finish-load", () => {
     console.log(`${label} window loaded`);
   });
@@ -46,21 +54,25 @@ function createDoubleWebviewWindow(url1, url2, label, htmlTemplate, facilityId, 
 }
 
 /**
- * preload.jsのパスを解決する
- * @returns {string} preload.jsのパス
+ * preload.bundle.cjs のパスを解決する
+ * @returns {string} preload.bundle.cjs のパス
  */
 function resolvePreloadPath() {
-  const devPath = path.join(__dirname, "../../../preload.js");
-  const prodPath = path.join(process.resourcesPath, "preload.js");
+ // const devPath = path.join(__dirname, "../../../preload.js");
+ // const prodPath = path.join(process.resourcesPath, "preload.js");
+  const preloadPath = path.join(app.getAppPath(), "preload.bundle.cjs");
 
-  if (fs.existsSync(devPath)) return devPath;
-  if (fs.existsSync(prodPath)) return prodPath;
+  console.log("[windowManager] preloadPath =", preloadPath);
+  console.log("[windowManager] preload exists =", fs.existsSync(preloadPath));
 
-  throw new Error("preload.js not found: " + devPath);
+  if (fs.existsSync(preloadPath)) {
+    return preloadPath;
+  }
+
+  throw new Error("preload.bundle.cjs not found: " + preloadPath);
 }
-
 
 module.exports = {
   createDoubleWebviewWindow,
-  resolvePreloadPath
+  resolvePreloadPath,
 };

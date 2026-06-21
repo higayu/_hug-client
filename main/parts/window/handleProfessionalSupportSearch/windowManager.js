@@ -1,5 +1,5 @@
-// main/parts/handleProfessionalSupportSearch/windowManager.js
-const { BrowserWindow } = require("electron");
+// main\parts\window\handleProfessionalSupportSearch\windowManager.js
+const { BrowserWindow, app } = require("electron");
 const path = require("path");
 const fs = require("fs");
 
@@ -11,11 +11,13 @@ function createDoubleWebviewWindow(
   targetFacility,
   dateStr
 ) {
+  const preloadPath = resolvePreloadPath();
+
   const win = new BrowserWindow({
     width: 1800,
     height: 900,
     webPreferences: {
-      preload: resolvePreloadPath(),
+      preload: preloadPath,
       contextIsolation: true,
       nodeIntegration: false,
       webviewTag: true,
@@ -51,16 +53,34 @@ function createDoubleWebviewWindow(
 }
 
 /**
- * preload.js のパス解決
+ * preload.bundle.cjs のパス解決
  */
 function resolvePreloadPath() {
-  const devPath = path.join(__dirname, "../../../../preload.js");
-  const prodPath = path.join(process.resourcesPath, "preload.js");
+  // 旧パス: preload.js を直接読む方式
+  // const devPath = path.join(__dirname, "../../../../preload.js");
+  // const prodPath = path.join(process.resourcesPath, "preload.js");
 
-  if (fs.existsSync(devPath)) return devPath;
-  if (fs.existsSync(prodPath)) return prodPath;
+  // 新パス: bundle 済み preload を読む方式
+  const bundlePath = path.join(app.getAppPath(), "preload.bundle.cjs");
 
-  throw new Error("preload.js not found: " + devPath);
+  console.log(
+    "[handleProfessionalSupportSearch/windowManager] preload bundlePath =",
+    bundlePath
+  );
+  console.log(
+    "[handleProfessionalSupportSearch/windowManager] preload bundle exists =",
+    fs.existsSync(bundlePath)
+  );
+
+  if (fs.existsSync(bundlePath)) {
+    return bundlePath;
+  }
+
+  // 旧パス確認用ログだけ残す
+  // console.log("[handleProfessionalSupportSearch/windowManager] old devPath =", devPath);
+  // console.log("[handleProfessionalSupportSearch/windowManager] old prodPath =", prodPath);
+
+  throw new Error("preload.bundle.cjs not found: " + bundlePath);
 }
 
 module.exports = {
