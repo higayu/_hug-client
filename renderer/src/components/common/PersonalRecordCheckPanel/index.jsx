@@ -1,5 +1,11 @@
 import { CheckCircleIcon } from "@heroicons/react/24/outline";
+import { useSelector } from "react-redux";
 import { usePersonRecordCheck } from "./usePersonRecordCheck";
+import {
+  selectCurrentYmd,
+  selectSelectedChild,
+} from "@/store/slices/appStateSlice.js";
+import { selectPersonalRecordStatus } from "@/store/slices/recordStatusSlice.js";
 
 /**
  * 本日の個人記録登録状態ラベル
@@ -50,15 +56,16 @@ export function PersonalRecordRegisteredStatus({
   );
 
   return (
-    <>
-      <span className={`font-bold ${registeredClass}`}>
-        {registeredText}
-      </span>
-
-      {recordCount != null && recordCount > 0 ? (
-        <span className="text-gray-400">（{recordCount}件）</span>
-      ) : null}
-    </>
+    <span
+      className={`font-bold ${registeredClass}`}
+      title={
+        recordCount != null
+          ? `記録件数：${recordCount}件`
+          : "記録件数：未取得"
+      }
+    >
+      {registeredText}
+    </span>
   );
 }
 
@@ -66,12 +73,17 @@ export function PersonalRecordRegisteredStatus({
  * 個人記録 取得ボタン + 結果表示
  */
 export default function PersonalRecordCheckPanel() {
-  const {
-    todayPersonalRecordRegistered,
-    todayPersonalRecordCount,
-    checking,
-    runCheck,
-  } = usePersonRecordCheck();
+  const { checking, runCheck } = usePersonRecordCheck();
+
+  const currentYmd = useSelector(selectCurrentYmd);
+  const selectedChildId = useSelector(selectSelectedChild);
+
+  const personalRecordStatus = useSelector((state) =>
+    selectPersonalRecordStatus(state, currentYmd, selectedChildId)
+  );
+
+  const todayPersonalRecordRegistered = personalRecordStatus.registered;
+  const todayPersonalRecordCount = personalRecordStatus.recordCount;
 
   return (
     <div className="inline-flex items-center gap-2">
@@ -89,7 +101,7 @@ export default function PersonalRecordCheckPanel() {
         {checking ? "取得中…" : "取得"}
       </button>
 
-      <span className="text-sm text-gray-600">
+      <span className="text-xs text-gray-600">
         本日の個人：
       </span>
 

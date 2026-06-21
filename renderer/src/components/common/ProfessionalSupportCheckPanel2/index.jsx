@@ -1,49 +1,28 @@
 import { useEffect } from "react";
+import { useSelector } from "react-redux";
 import { useProfessionalSupportCheck2 } from "./useProfessionalSupportCheck2";
-import { useAppState } from "@/contexts/appState";
 import { CheckCircleIcon } from "@heroicons/react/24/outline";
+import {
+  selectCurrentYmd,
+  selectSelectedChild,
+} from "@/store/slices/appStateSlice.js";
+import { selectProfessionalSupportStatus } from "@/store/slices/recordStatusSlice.js";
 
 /**
  * 専門的支援の利用日数チェック + 本日の専門的支援登録確認
- * 利用日数は（今月の個人記録の登録数＋１）相当のため、本日の個人記録登録済みなら表示は -1 する
- * @example
- * <ProfessionalSupportCheckPanel logTag="Sidebar" className="w-full px-1" buttonClassName="w-full text-xs" />
  */
 
 const getUseDaysTextClass = (useDays, todayProfessionalSupportRegistered) => {
-  console.log("[HUG WM] 利用日数テキスト色判定", {
-    useDays,
-    todayProfessionalSupportRegistered,
-  });
-
-  if (useDays == null) {
-    console.log("[HUG WM] 利用日数テキスト色判定結果", {
-      result: "",
-      reason: "useDays is null",
-    });
-    return "";
-  }
+  if (useDays == null) return "";
 
   if (todayProfessionalSupportRegistered === true) {
-    console.log("[HUG WM] 利用日数テキスト色判定結果", {
-      result: "text-gray-900",
-      reason: "本日の専門的支援登録済み",
-    });
     return "text-gray-900";
   }
 
   if (useDays < 2) {
-    console.log("[HUG WM] 利用日数テキスト色判定結果", {
-      result: "text-red-500",
-      reason: "useDays < 2",
-    });
     return "text-red-500";
   }
 
-  console.log("[HUG WM] 利用日数テキスト色判定結果", {
-    result: "text-blue-500",
-    reason: "useDays >= 2",
-  });
   return "text-blue-500";
 };
 
@@ -62,71 +41,32 @@ const normalizeInterviewDateToYmd = (dateText) => {
   return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
 };
 
+const hasTodayProfessionalSupportRecord = (useDaysResult, currentYmd) => {
+  const rows = useDaysResult?.rows ?? [];
+
+  return rows.some((row) => {
+    const interviewYmd = normalizeInterviewDateToYmd(row.interviewDate);
+    return interviewYmd === currentYmd;
+  });
+};
+
 const professionalSupportRegisteredLabel = (
   registered,
   checking,
   useDaysResult,
   currentYmd
 ) => {
-  console.log("[HUG WM] 本日の専門的支援ラベル判定", {
-    registered,
-    checking,
-    useDaysResult,
-    currentYmd,
-  });
-
-  if (checking) {
-    console.log("[HUG WM] 本日の専門的支援ラベル判定結果", {
-      result: "確認中",
-      reason: "checking === true",
-      currentYmd,
-      useDaysResult,
-    });
-    return "確認中…";
-  }
+  if (checking) return "確認中…";
 
   if (useDaysResult && useDaysResult.ok === false) {
-    console.log("[HUG WM] 本日の専門的支援ラベル判定結果", {
-      result: "取得失敗",
-      reason: "useDaysResult.ok === false",
-      error: useDaysResult.error,
-      useDaysResult,
-    });
     return "取得失敗";
   }
 
-  const rows = useDaysResult?.rows ?? [];
+  if (registered === true) return "済";
 
-  const hasTodayInterviewDate = rows.some((row) => {
-    const interviewYmd = normalizeInterviewDateToYmd(row.interviewDate);
-
-    console.log("[HUG WM] interviewDate 比較", {
-      rawInterviewDate: row.interviewDate,
-      interviewYmd,
-      currentYmd,
-      matched: interviewYmd === currentYmd,
-      row,
-    });
-
-    return interviewYmd === currentYmd;
-  });
-
-  if (hasTodayInterviewDate) {
-    console.log("[HUG WM] 本日の専門的支援ラベル判定結果", {
-      result: "登録済み",
-      reason: "interviewDate matches CURRENT_YMD",
-      currentYmd,
-      rows,
-    });
-    return "登録済み";
+  if (hasTodayProfessionalSupportRecord(useDaysResult, currentYmd)) {
+    return "済";
   }
-
-  console.log("[HUG WM] 本日の専門的支援ラベル判定結果", {
-    result: "未",
-    reason: "no interviewDate matches CURRENT_YMD",
-    currentYmd,
-    rows,
-  });
 
   return "未";
 };
@@ -138,58 +78,22 @@ const getProfessionalSupportRegisteredClass = (
   useDaysResult,
   currentYmd
 ) => {
-  console.log("[HUG WM] 本日の専門的支援文字色判定", {
-    registered,
-    useDays,
-    checking,
-    useDaysResult,
-    currentYmd,
-  });
-
-  if (checking) {
-    console.log("[HUG WM] 本日の専門的支援文字色判定結果", {
-      result: "text-gray-400",
-      reason: "checking",
-    });
-    return "text-gray-400";
-  }
+  if (checking) return "text-gray-400";
 
   if (useDaysResult && useDaysResult.ok === false) {
-    console.log("[HUG WM] 本日の専門的支援文字色判定結果", {
-      result: "text-red-500",
-      reason: "useDaysResult.ok === false",
-    });
     return "text-red-500";
   }
 
-  const rows = useDaysResult?.rows ?? [];
-
-  const hasTodayInterviewDate = rows.some((row) => {
-    const interviewYmd = normalizeInterviewDateToYmd(row.interviewDate);
-    return interviewYmd === currentYmd;
-  });
-
-  if (hasTodayInterviewDate) {
-    console.log("[HUG WM] 本日の専門的支援文字色判定結果", {
-      result: "text-green-600",
-      reason: "interviewDate matches CURRENT_YMD",
-      currentYmd,
-    });
+  if (
+    registered === true ||
+    hasTodayProfessionalSupportRecord(useDaysResult, currentYmd)
+  ) {
     return "text-green-600";
   }
 
-  if (useDays != null && useDays >= 3) {
-    console.log("[HUG WM] 本日の専門的支援文字色判定結果", {
-      result: "text-blue-500",
-      reason: "no today interviewDate && useDays >= 3",
-    });
+  if (useDays != null && useDays >= 2) {
     return "text-blue-500";
   }
-
-  console.log("[HUG WM] 本日の専門的支援文字色判定結果", {
-    result: "text-orange-600",
-    reason: "no today interviewDate && useDays < 3",
-  });
 
   return "text-orange-600";
 };
@@ -200,36 +104,29 @@ export default function ProfessionalSupportCheckPanel2({
   labelClassName = "",
   logTag = "ProfessionalSupportCheck",
 }) {
-  const { CURRENT_YMD } = useAppState();
+  const currentYmd = useSelector(selectCurrentYmd);
+  const selectedChildId = useSelector(selectSelectedChild);
 
-  const {
-    useDays,
-    useDaysDisplayKind,
-    todayProfessionalSupportRegistered,
-    todayProfessionalSupportRecordCount,
-    lastUseDaysResult,
-    checking,
-    runCheck,
-  } = useProfessionalSupportCheck2(logTag);
+  const professionalSupportStatus = useSelector((state) =>
+    selectProfessionalSupportStatus(state, currentYmd, selectedChildId)
+  );
 
-  console.log(`[HUG WM] ProfessionalSupportCheckPanel2 render（${logTag}）`, {
-    CURRENT_YMD,
-    useDays,
-    useDaysDisplayKind,
-    todayProfessionalSupportRegistered,
-    todayProfessionalSupportRecordCount,
-    lastUseDaysResult,
-    checking,
-    className,
-    buttonClassName,
-    labelClassName,
-  });
+  const { checking, runCheck } = useProfessionalSupportCheck2(logTag);
+
+  const useDays = professionalSupportStatus.useDays;
+  const useDaysDisplayKind = professionalSupportStatus.useDaysDisplayKind;
+  const todayProfessionalSupportRegistered =
+    professionalSupportStatus.registered;
+  const todayProfessionalSupportRecordCount =
+    professionalSupportStatus.recordCount;
+  const lastUseDaysResult = professionalSupportStatus.lastUseDaysResult;
 
   useEffect(() => {
     console.log(
-      `[HUG WM] ProfessionalSupportCheckPanel2 state changed（${logTag}）`,
+      `[HUG WM] ProfessionalSupportCheckPanel2 store state changed（${logTag}）`,
       {
-        CURRENT_YMD,
+        currentYmd,
+        selectedChildId,
         useDays,
         useDaysDisplayKind,
         todayProfessionalSupportRegistered,
@@ -240,7 +137,8 @@ export default function ProfessionalSupportCheckPanel2({
     );
   }, [
     logTag,
-    CURRENT_YMD,
+    currentYmd,
+    selectedChildId,
     useDays,
     useDaysDisplayKind,
     todayProfessionalSupportRegistered,
@@ -258,7 +156,7 @@ export default function ProfessionalSupportCheckPanel2({
     todayProfessionalSupportRegistered,
     checking,
     lastUseDaysResult,
-    CURRENT_YMD
+    currentYmd
   );
 
   const registeredClass = getProfessionalSupportRegisteredClass(
@@ -266,31 +164,10 @@ export default function ProfessionalSupportCheckPanel2({
     useDays,
     checking,
     lastUseDaysResult,
-    CURRENT_YMD
+    currentYmd
   );
 
-  console.log(`[HUG WM] ProfessionalSupportCheckPanel2 表示値確定（${logTag}）`, {
-    CURRENT_YMD,
-    useDaysTextClass,
-    registeredText,
-    registeredClass,
-    lastUseDaysResult,
-    shouldShowRecordCount:
-      todayProfessionalSupportRecordCount != null &&
-      todayProfessionalSupportRecordCount > 0,
-  });
-
   const handleClick = () => {
-    console.log(`[HUG WM] 専門的支援チェックボタン押下（${logTag}）`, {
-      CURRENT_YMD,
-      checking,
-      useDays,
-      useDaysDisplayKind,
-      todayProfessionalSupportRegistered,
-      todayProfessionalSupportRecordCount,
-      lastUseDaysResult,
-    });
-
     runCheck();
   };
 
@@ -312,6 +189,10 @@ export default function ProfessionalSupportCheckPanel2({
           className={
             `flex-1 bg-white text-xs text-gray-500 p-1.5 rounded text-center ${labelClassName}`.trim()
           }
+          title={
+            lastUseDaysResult?.label ||
+            (useDays != null ? `保存件数：${useDays}個` : "保存件数：未取得")
+          }
         >
           保存件数:{" "}
           {useDays != null ? (
@@ -326,7 +207,7 @@ export default function ProfessionalSupportCheckPanel2({
                   aria-label="保存件数2個以上"
                   title="保存件数2個以上"
                 >
-                   <CheckCircleIcon className="h-3.5 w-3.5 text-green-600 shrink-0" />
+                  <CheckCircleIcon className="h-3.5 w-3.5 text-green-600 shrink-0" />
                 </span>
               ) : null}
             </span>
@@ -339,8 +220,13 @@ export default function ProfessionalSupportCheckPanel2({
           className={
             `flex-1 bg-white text-xs text-gray-500 p-1.5 rounded text-center ${labelClassName}`.trim()
           }
+          title={
+            todayProfessionalSupportRecordCount != null
+              ? `専門的支援保存件数：${todayProfessionalSupportRecordCount}件`
+              : "専門的支援保存件数：未取得"
+          }
         >
-          本日の専門的支援:{" "}
+          本日の専門:{" "}
           <span className={`font-bold ${registeredClass}`}>
             {registeredText}
           </span>

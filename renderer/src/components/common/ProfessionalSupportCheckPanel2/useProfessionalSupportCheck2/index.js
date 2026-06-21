@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useAppState } from "@/contexts/appState";
 import { useChildrenList } from "@/hooks/useChildrenList.js";
 import {
@@ -7,6 +7,10 @@ import {
   selectFacilityId,
   selectSelectedChild,
 } from "@/store/slices/appStateSlice.js";
+import {
+  setProfessionalSupportStatus,
+  setRecordStatusError,
+} from "@/store/slices/recordStatusSlice.js";
 import { fetchProfessionalSupportUseDaysViaHugTab } from "./fetchHook1";
 
 /**
@@ -16,10 +20,13 @@ import { fetchProfessionalSupportUseDaysViaHugTab } from "./fetchHook1";
  * - HUG の record_proceedings.php を POST 検索
  * - 月初〜指定日までの専門的支援実施加算の保存済み件数を取得
  * - 取得件数を useSpeDate に反映する
+ * - 取得結果を recordStatusSlice に保存する
  */
 export function useProfessionalSupportCheck2(
   logTag = "ProfessionalSupportCheck2"
 ) {
+  const dispatch = useDispatch();
+
   const { SELECT_CHILD, FACILITY_ID, CURRENT_YMD } = useAppState();
 
   const selectedChildIdFromStore = useSelector(selectSelectedChild);
@@ -33,7 +40,7 @@ export function useProfessionalSupportCheck2(
   const { childrenData, patchChildUseSpeDate } = useChildrenList();
 
   const selectedChild = childrenData.find(
-    (c) => c.children_id === effectiveChildId
+    (c) => String(c.children_id) === String(effectiveChildId)
   );
 
   const useDays = selectedChild?.useSpeDate ?? null;
@@ -161,9 +168,21 @@ export function useProfessionalSupportCheck2(
       });
 
       if (!useDaysResult?.ok) {
+        const errorMessage =
+          useDaysResult?.error || "利用日数の取得に失敗しました";
+
+        dispatch(
+          setRecordStatusError({
+            ymd: effectiveCurrentYmd,
+            childId: effectiveChildId,
+            kind: "professionalSupport",
+            error: errorMessage,
+          })
+        );
+
         console.error(
           `[${logTag}] 専門的支援チェック失敗:`,
-          useDaysResult?.error,
+          errorMessage,
           {
             requestPayload,
             useDaysResult,
@@ -173,17 +192,26 @@ export function useProfessionalSupportCheck2(
           }
         );
 
-        alert(useDaysResult?.error || "利用日数の取得に失敗しました");
+        alert(errorMessage);
         return;
       }
 
       const rawDays =
         typeof useDaysResult.days === "number" ? useDaysResult.days : 0;
 
+      const recordCount =
+        Array.isArray(useDaysResult.rows)
+          ? useDaysResult.rows.length
+          : rawDays;
+
+      const registered = recordCount > 0;
+
       console.log(`[HUG WM] 取得結果 days 正規化（${logTag}）`, {
         originalDays: useDaysResult.days,
         originalDaysType: typeof useDaysResult.days,
         normalizedRawDays: rawDays,
+        recordCount,
+        registered,
       });
 
       console.log(`[HUG WM] 状態更新前（${logTag}）`, {
@@ -202,11 +230,35 @@ export function useProfessionalSupportCheck2(
       });
 
       setUseDaysDisplayKind("raw");
-      setTodayProfessionalSupportRecordCount(rawDays);
+      setTodayProfessionalSupportRecordCount(recordCount);
+
+      dispatch(
+        setProfessionalSupportStatus({
+          ymd: effectiveCurrentYmd,
+          childId: effectiveChildId,
+          registered,
+          recordCount,
+          useDays: rawDays,
+          useDaysDisplayKind: "raw",
+          lastUseDaysResult: useDaysResult,
+        })
+      );
+
+      console.log(`[HUG WM] recordStatusSlice 保存完了（${logTag}）`, {
+        ymd: effectiveCurrentYmd,
+        childId: effectiveChildId,
+        professionalSupport: {
+          registered,
+          recordCount,
+          useDays: rawDays,
+          useDaysDisplayKind: "raw",
+          lastUseDaysResult: useDaysResult,
+        },
+      });
 
       console.log(`[HUG WM] 状態更新後 setState 実行（${logTag}）`, {
         useDaysDisplayKind: "raw",
-        todayProfessionalSupportRecordCount: rawDays,
+        todayProfessionalSupportRecordCount: recordCount,
         lastUseDaysResult: useDaysResult,
         displayUseDays: rawDays,
       });
@@ -215,6 +267,8 @@ export function useProfessionalSupportCheck2(
         requestPayload,
         response: useDaysResult,
         rawDays,
+        recordCount,
+        registered,
         displayKind: "raw",
       });
 
@@ -222,12 +276,23 @@ export function useProfessionalSupportCheck2(
     } catch (e) {
       console.timeEnd(timerLabel);
 
+      const errorMessage = String(e?.message || e);
+
       const errorResult = {
         ok: false,
-        error: String(e?.message || e),
+        error: errorMessage,
       };
 
       setLastUseDaysResult(errorResult);
+
+      dispatch(
+        setRecordStatusError({
+          ymd: effectiveCurrentYmd,
+          childId: effectiveChildId,
+          kind: "professionalSupport",
+          error: errorMessage,
+        })
+      );
 
       console.error(`[${logTag}] 専門的支援チェック例外:`, e, {
         requestPayload,
@@ -237,7 +302,7 @@ export function useProfessionalSupportCheck2(
         errorResult,
       });
 
-      alert(String(e?.message || e));
+      alert(errorMessage);
     } finally {
       console.log(`[HUG WM] 専門的支援チェック終了（${logTag}）`, {
         effectiveChildId,
@@ -250,6 +315,7 @@ export function useProfessionalSupportCheck2(
       console.groupEnd();
     }
   }, [
+    dispatch,
     SELECT_CHILD,
     FACILITY_ID,
     CURRENT_YMD,
@@ -272,6 +338,10 @@ export function useProfessionalSupportCheck2(
   return {
     useDays,
     useDaysDisplayKind,
+    todayProfessionalSupportRegistered:
+      todayProfessionalSupportRecordCount != null
+        ? todayProfessionalSupportRecordCount > 0
+        : null,
     todayProfessionalSupportRecordCount,
     lastUseDaysResult,
     checking,

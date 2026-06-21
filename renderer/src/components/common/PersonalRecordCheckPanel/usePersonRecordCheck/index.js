@@ -1,11 +1,15 @@
 import { useCallback, useEffect, useState } from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useAppState } from "@/contexts/appState";
 import {
   selectCurrentYmd,
   selectFacilityId,
   selectSelectedChild,
 } from "@/store/slices/appStateSlice.js";
+import {
+  setPersonalRecordStatus,
+  setRecordStatusError,
+} from "@/store/slices/recordStatusSlice.js";
 import { fetchContactBookViaHugTab } from "@/utils/personalRecord/fetchContactBookViaHugTab.js";
 import { parseTodayPersonalRecordStatus } from "@/utils/personalRecord/parseTodayPersonalRecordStatus.js";
 
@@ -14,6 +18,8 @@ import { parseTodayPersonalRecordStatus } from "@/utils/personalRecord/parseToda
  * @param {string} [logTag]
  */
 export function usePersonRecordCheck(logTag = "PersonalRecordCheck") {
+  const dispatch = useDispatch();
+
   const { SELECT_CHILD, FACILITY_ID, CURRENT_YMD } = useAppState();
 
   const selectedChildIdFromStore = useSelector(selectSelectedChild);
@@ -57,6 +63,16 @@ export function usePersonRecordCheck(logTag = "PersonalRecordCheck") {
           `[${logTag}] 本日の個人記録確認失敗:`,
           contactResult.error
         );
+
+        dispatch(
+          setRecordStatusError({
+            ymd: effectiveCurrentYmd,
+            childId: effectiveChildId,
+            kind: "personalRecord",
+            error: contactResult.error || "本日の個人記録の確認に失敗しました",
+          })
+        );
+
         alert(contactResult.error || "本日の個人記録の確認に失敗しました");
         return;
       }
@@ -67,6 +83,15 @@ export function usePersonRecordCheck(logTag = "PersonalRecordCheck") {
       setTodayPersonalRecordRegistered(registered);
       setTodayPersonalRecordCount(recordCount);
 
+      dispatch(
+        setPersonalRecordStatus({
+          ymd: effectiveCurrentYmd,
+          childId: effectiveChildId,
+          registered,
+          recordCount,
+        })
+      );
+
       console.log(`[HUG WM] 本日の個人記録（${logTag}）`, {
         registered,
         recordCount,
@@ -74,11 +99,22 @@ export function usePersonRecordCheck(logTag = "PersonalRecordCheck") {
       });
     } catch (e) {
       console.error(`[${logTag}] 個人記録チェック例外:`, e);
+
+      dispatch(
+        setRecordStatusError({
+          ymd: effectiveCurrentYmd,
+          childId: effectiveChildId,
+          kind: "personalRecord",
+          error: String(e?.message || e),
+        })
+      );
+
       alert(String(e?.message || e));
     } finally {
       setChecking(false);
     }
   }, [
+    dispatch,
     effectiveChildId,
     effectiveFacilityId,
     effectiveCurrentYmd,
