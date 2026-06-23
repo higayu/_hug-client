@@ -6,5 +6,5 @@
   "OPENAI_MAIL": "",
   "OPENAI_PASSWORD": "",
   "OLLAMA_URL": "http://192.168.1.222:11434/api/generate",
-  "OLLAMA_MODEL": "gemma4:latest"
+  "OLLAMA_MODEL": "qwen3:8b"
 }
