@@ -4,6 +4,7 @@ import PromptBox from "@/components/common/PromptBox"
 import AccountInfoPanel from "@/components/common/AccountInfoPanel"
 import OpenAiTabButton from "@/components/common/OpenAiTabButton"
 import { AI_PROMPT_COMPONENT_MAP } from "./PromptBox"
+import { sendPromptToChatGPT } from "./send/sendPromptToChatGPT";
 
 export default function OpenAiContent() {
   const { appState, PROMPTS } = useAppState()
@@ -18,7 +19,11 @@ export default function OpenAiContent() {
     <div className="flex flex-col items-center justify-center w-full p-2 space-y-3">
       <OpenAiTabButton />
 
-      <PromptBox componentMap={AI_PROMPT_COMPONENT_MAP} />
+      <PromptBox 
+        sendPrompt={sendPromptToChatGPT}
+        aiName="ChatGpt"
+        componentMap={AI_PROMPT_COMPONENT_MAP} 
+      />
       <AccountInfoPanel
         title="OpenAI アカウント情報"
         items={[

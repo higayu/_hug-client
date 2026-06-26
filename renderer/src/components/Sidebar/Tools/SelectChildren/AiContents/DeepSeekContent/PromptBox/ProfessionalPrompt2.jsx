@@ -1,14 +1,13 @@
 // renderer/src/components/Sidebar/Tools/MemoTool/Parts/AiContents/common/ProfessionalPrompt2.jsx
 import React, { useState, useEffect } from "react";
 import { useAppState } from "@/contexts/appState";
-import { sendPromptToDeepSeek } from "./send/sendPromptToDeepSeek";
 
 import MemoInputBox from './MemoInputBox';
 
 const DBG = 'ProfessionalPrompt2';
 
 export default function ProfessionalPrompt2({
-  sendPrompt = sendPromptToDeepSeek,
+  sendPrompt,
   aiName = "DeepSeek",
   promptKey = "professional2",
 }) {

@@ -4,6 +4,7 @@ import PromptBox from "@/components/common/PromptBox"
 import AccountInfoPanel from "@/components/common/AccountInfoPanel"
 import DeepseekTabButton from "@/components/common/DeepseekTabButton"
 import { AI_PROMPT_COMPONENT_MAP } from "./PromptBox"
+import { sendPromptToDeepSeek } from "./send/sendPromptToDeepSeek";
 
 export default function DeepSeekContent() {
   const { appState, PROMPTS } = useAppState()
@@ -18,7 +19,13 @@ export default function DeepSeekContent() {
     <div className="flex flex-col items-center justify-center w-full p-2 space-y-3">
       <DeepseekTabButton />
 
-      <PromptBox componentMap={AI_PROMPT_COMPONENT_MAP} />
+
+      <PromptBox 
+        sendPrompt={sendPromptToDeepSeek}
+        aiName="DeepSeek"
+        componentMap={AI_PROMPT_COMPONENT_MAP} 
+      />
+
       <AccountInfoPanel
         title="OpenAI アカウント情報"
         items={[

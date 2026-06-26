@@ -1,9 +1,6 @@
 // renderer/src/components/Sidebar/Tools/MemoTool/Parts/AiContents/common/PersonalRecordPrompt.jsx
 import React, { useState, useEffect } from "react";
-import { getActiveWebview } from '@/utils/webview/webviewState.js'
-//import { useAppState } from "@/contexts/AppStateContext.jsx";
 import { useAppState } from '@/contexts/appState';
-import { sendPromptToGemini } from "./send/sendPromptToGemini";
 
 import { useToast } from '@/components/common/ToastContext.jsx'
 import { useDispatch, useSelector } from 'react-redux'
@@ -20,7 +17,7 @@ import PersonalRecordManagerPanel from '@/components/common/PersonalRecordManage
 const DBG = 'PersonalRecordPrompt';
 
 export default function PersonalRecordPrompt({
-  sendPrompt = sendPromptToGemini,
+  sendPrompt,
   aiName = "Gemini",
   promptKey = "personal",
   renderGeminiResultArea,

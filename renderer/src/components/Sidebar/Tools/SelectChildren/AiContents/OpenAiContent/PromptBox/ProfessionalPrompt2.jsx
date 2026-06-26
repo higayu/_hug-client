@@ -1,7 +1,6 @@
 // renderer/src/components/Sidebar/Tools/MemoTool/Parts/AiContents/common/ProfessionalPrompt2.jsx
 import React, { useState, useEffect } from "react";
 import { useAppState } from "@/contexts/appState";
-import { sendPromptToChatGPT } from "./send/sendPromptToChatGPT";
 import ProfessionalInjectButton from "./ProfessionalInput/ProfessionalInjectButton";
 import ProfessionalDraftSaveButton from './ProfessionalInput/ProfessionalDraftSaveButton';
 import MemoInputBox from './MemoInputBox';
@@ -9,7 +8,7 @@ import MemoInputBox from './MemoInputBox';
 const DBG = 'ProfessionalPrompt2';
 
 export default function ProfessionalPrompt2({
-  sendPrompt = sendPromptToChatGPT,
+  sendPrompt ,
   aiName = "ChatGPT",
   promptKey = "professional2",
   renderGeminiResultArea,

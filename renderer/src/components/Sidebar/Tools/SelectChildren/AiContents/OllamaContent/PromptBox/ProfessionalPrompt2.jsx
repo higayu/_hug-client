@@ -1,15 +1,12 @@
 // renderer/src/components/Sidebar/Tools/MemoTool/Parts/AiContents/common/ProfessionalPrompt2.jsx
 import React, { useState, useEffect } from "react";
 import { useAppState } from "@/contexts/appState";
-import { sendPromptToOllama } from "./send/sendPromptToOllama";
-import ProfessionalInjectButton from "./ProfessionalInput/ProfessionalInjectButton";
-import ProfessionalDraftSaveButton from './ProfessionalInput/ProfessionalDraftSaveButton';
 import MemoInputBox from './MemoInputBox';
 
 const DBG = 'ProfessionalPrompt2';
 
 export default function ProfessionalPrompt2({
-  sendPrompt = sendPromptToOllama,
+  sendPrompt,
   aiName = "Ollama",
   promptKey = "professional2",
   renderOllamaResultArea,

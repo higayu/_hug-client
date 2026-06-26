@@ -3,7 +3,6 @@ import React, { useState, useEffect } from "react";
 import { getActiveWebview } from '@/utils/webview/webviewState.js'
 //import { useAppState } from "@/contexts/AppStateContext.jsx";
 import { useAppState } from '@/contexts/appState';
-import { sendPromptToDeepSeek } from "./send/sendPromptToDeepSeek";
 
 import { useToast } from '@/components/common/ToastContext.jsx'
 import { useDispatch, useSelector } from 'react-redux'
@@ -21,7 +20,7 @@ import PersonalRecordManagerPanel from '@/components/common/PersonalRecordManage
 const DBG = 'PersonalRecordPrompt';
 
 export default function PersonalRecordPrompt({
-  sendPrompt = sendPromptToDeepSeek,
+  sendPrompt,
   aiName = "deepseek",
   promptKey = "personal",
 }) {

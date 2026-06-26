@@ -3,7 +3,6 @@ import React, { useState, useEffect } from "react";
 import { getActiveWebview } from '@/utils/webview/webviewState.js'
 //import { useAppState } from "@/contexts/AppStateContext.jsx";
 import { useAppState } from '@/contexts/appState';
-import { sendPromptToOllama } from "./send/sendPromptToOllama";
 
 import { useToast } from '@/components/common/ToastContext.jsx'
 import { useDispatch, useSelector } from 'react-redux'
@@ -13,8 +12,7 @@ import {
   sendSuccess,
   sendError
 } from '@/store/slices/sendTextSlice'
-import PersonalInjectButton from './PersonalInput/PersonalInjectButton';
-import RecordProceedingsDraftSaveButton from './PersonalInput/RecordProceedingsDraftSaveButton';
+
 import MemoInputBox from './MemoInputBox';
 import TabPanel from '@/components/Sidebar/common/TabPanel';
 import PersonalRecordManagerPanel from '@/components/common/PersonalRecordManagerPanel';
@@ -22,7 +20,7 @@ import PersonalRecordManagerPanel from '@/components/common/PersonalRecordManage
 const DBG = 'PersonalRecordPrompt';
 
 export default function PersonalRecordPrompt({
-  sendPrompt = sendPromptToOllama,
+  sendPrompt,
   aiName = "Ollama",
   promptKey = "personal",
   renderOllamaResultArea,

@@ -1,14 +1,12 @@
 // renderer/src/components/Sidebar/Tools/MemoTool/Parts/AiContents/common/ProfessionalPrompt2.jsx
 import React, { useState, useEffect } from "react";
 import { useAppState } from "@/contexts/appState";
-import { sendPromptToOpenRouter } from "./send/sendPromptToOpenRouter";
-
 import MemoInputBox from './MemoInputBox';
 
 const DBG = 'ProfessionalPrompt2';
 
 export default function ProfessionalPrompt2({
-  sendPrompt = sendPromptToOpenRouter,
+  sendPrompt,
   aiName = "OpenRouter",
   promptKey = "professional2",
   renderOpenRouterResultArea,
@@ -119,7 +117,7 @@ export default function ProfessionalPrompt2({
           onClick={clickEnterButton}
           disabled={!aiText}
         >
-          実行
+          Router実行
         </button>
 
       </div>
