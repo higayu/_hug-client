@@ -63,110 +63,194 @@ function ConfigTab({ onSaveConfig, onReloadConfig, onTogglePassword }) {
           </div>
         </div>
 
-        {/* OpenAI メールアドレス */}
-        <div className="flex items-center mb-3 py-2">
-          <label
-            htmlFor="config-openai-mail"
-            className="font-medium text-gray-700 min-w-[120px]"
-          >
-            OpenAIメールアドレス:
-          </label>
-          <input
-            type="text"
-            id="config-openai-mail"
-            data-path="OPENAI_MAIL"
-            className="px-3 py-2 border border-gray-300 rounded-md text-sm transition-all flex-1 max-w-[200px] focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-200"
-          />
-        </div>
-
-        {/* OpenAI パスワード */}
-        <div className="flex items-center mb-3 py-2">
-          <label
-            htmlFor="config-openai-password"
-            className="font-medium text-gray-700 min-w-[120px]"
-          >
-            OpenAIパスワード:
-          </label>
-          <div className="relative flex items-center w-full flex-1 max-w-[200px]">
-            <input
-              type="password"
-              id="config-openai-password"
-              data-path="OPENAI_PASSWORD"
-              className="w-full flex-1 pr-10 px-3 py-2 border border-gray-300 rounded-md text-sm transition-all focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-200"
-            />
-            <button
-              type="button"
-              id="toggle-openai-password"
-              onClick={() => onTogglePassword ? onTogglePassword('config-openai-password', 'toggle-openai-password') : null}
-              className="absolute right-2 bg-transparent border-none cursor-pointer text-base p-1 rounded transition-colors hover:bg-gray-100"
+        {/* OpenAI  */}
+        <div>
+          {/* OpenAI メールアドレス */}
+          <div className="flex items-center mb-3 py-2">
+            <label
+              htmlFor="config-openai-mail"
+              className="font-medium text-gray-700 min-w-[120px]"
             >
-              👁️
-            </button>
+              OpenAIメールアドレス:
+            </label>
+            <input
+              type="text"
+              id="config-openai-mail"
+              data-path="OPENAI_MAIL"
+              className="px-3 py-2 border border-gray-300 rounded-md text-sm transition-all flex-1 max-w-[200px] focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-200"
+            />
+          </div>
+
+          {/* OpenAI パスワード */}
+          <div className="flex items-center mb-3 py-2">
+            <label
+              htmlFor="config-openai-password"
+              className="font-medium text-gray-700 min-w-[120px]"
+            >
+              OpenAIパスワード:
+            </label>
+            <div className="relative flex items-center w-full flex-1 max-w-[200px]">
+              <input
+                type="password"
+                id="config-openai-password"
+                data-path="OPENAI_PASSWORD"
+                className="w-full flex-1 pr-10 px-3 py-2 border border-gray-300 rounded-md text-sm transition-all focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-200"
+              />
+              <button
+                type="button"
+                id="toggle-openai-password"
+                onClick={() => onTogglePassword ? onTogglePassword('config-openai-password', 'toggle-openai-password') : null}
+                className="absolute right-2 bg-transparent border-none cursor-pointer text-base p-1 rounded transition-colors hover:bg-gray-100"
+              >
+                👁️
+              </button>
+            </div>
           </div>
         </div>
 
         {/* GEMINI API KEY の追加項目 */}
-        <div className="flex items-center mb-3 py-2">
-          <label
-            htmlFor="config-gemini"
-            className="font-medium text-gray-700 min-w-[120px]"
-          >
-            GEMINI API Key:
-          </label>
-          <input
-            type="text"
-            id="config-gemini"
-            data-path="GEMINI_API_KEY"
-            className="px-3 py-2 border border-gray-300 rounded-md text-sm transition-all flex-1 max-w-[200px] focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-200"
-          />
+        <div>
+          <div className="flex items-center mb-3 py-2">
+            <label
+              htmlFor="config-gemini"
+              className="font-medium text-gray-700 min-w-[120px]"
+            >
+              GEMINI API Key:
+            </label>
+            <input
+              type="text"
+              id="config-gemini"
+              data-path="GEMINI_API_KEY"
+              className="px-3 py-2 border border-gray-300 rounded-md text-sm transition-all flex-1 max-w-[200px] focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-200"
+            />
+          </div>
+
+          <div className="flex items-center mb-3 py-2">
+            <label
+              htmlFor="config-gemini-model"
+              className="font-medium text-gray-700 min-w-[120px]"
+            >
+              GEMINI Model:
+            </label>
+            <input
+              type="text"
+              id="config-gemini-model"
+              data-path="GEMINI_MODEL"
+              className="px-3 py-2 border border-gray-300 rounded-md text-sm transition-all flex-1 max-w-[200px] focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-200"
+            />
+          </div>
         </div>
 
-        <div className="flex items-center mb-3 py-2">
-          <label
-            htmlFor="config-gemini-model"
-            className="font-medium text-gray-700 min-w-[120px]"
-          >
-            GEMINI Model:
-          </label>
-          <input
-            type="text"
-            id="config-gemini-model"
-            data-path="GEMINI_MODEL"
-            className="px-3 py-2 border border-gray-300 rounded-md text-sm transition-all flex-1 max-w-[200px] focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-200"
-          />
+        {/* DeepSeek  */}
+        <div>
+          {/* DeepSeekメールアドレス */}
+          <div className="flex items-center mb-3 py-2">
+            <label
+              htmlFor="config-deepseek-mail"
+              className="font-medium text-gray-700 min-w-[120px]"
+            >
+              Deepseekメールアドレス:
+            </label>
+            <input
+              type="text"
+              id="config-deepseek-mail"
+              data-path="DEEPSEEK_MAIL"
+              className="px-3 py-2 border border-gray-300 rounded-md text-sm transition-all flex-1 max-w-[200px] focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-200"
+            />
+          </div>
+
+          {/* Deepseek パスワード */}
+          <div className="flex items-center mb-3 py-2">
+            <label
+              htmlFor="config-deepseek-password"
+              className="font-medium text-gray-700 min-w-[120px]"
+            >
+              Deepseekパスワード:
+            </label>
+            <div className="relative flex items-center w-full flex-1 max-w-[200px]">
+              <input
+                type="password"
+                id="config-deepseek-password"
+                data-path="DEEPSEEK_PASSWORD"
+                className="w-full flex-1 pr-10 px-3 py-2 border border-gray-300 rounded-md text-sm transition-all focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-200"
+              />
+              <button
+                type="button"
+                id="toggle-deepseek-password"
+                onClick={() => onTogglePassword ? onTogglePassword('config-deepseek-password', 'toggle-deepseek-password') : null}
+                className="absolute right-2 bg-transparent border-none cursor-pointer text-base p-1 rounded transition-colors hover:bg-gray-100"
+              >
+                👁️
+              </button>
+            </div>
+          </div>
         </div>
 
-        <div className="flex items-center mb-3 py-2">
-          <label
-            htmlFor="config-ollama-url"
-            className="font-medium text-gray-700 min-w-[120px]"
-          >
-            Ollama URL:
-          </label>
-          <input
-            type="text"
-            id="config-ollama-url"
-            data-path="OLLAMA_URL"
-            className="px-3 py-2 border border-gray-300 rounded-md text-sm transition-all flex-1 max-w-[200px] focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-200"
-          />
+        {/* OPEN_ROUTER_API_KEY の追加項目 */}
+        <div>
+          <div className="flex items-center mb-3 py-2">
+            <label
+              htmlFor="config-openrouter-key"
+              className="font-medium text-gray-700 min-w-[120px]"
+            >
+              OpenRouter API Key:
+            </label>
+            <input
+              type="text"
+              id="config-openrouter-key"
+              data-path="OPEN_ROUTER_API_KEY"
+              className="px-3 py-2 border border-gray-300 rounded-md text-sm transition-all flex-1 max-w-[200px] focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-200"
+            />
+          </div>
+
+          <div className="flex items-center mb-3 py-2">
+            <label
+              htmlFor="config-openrouter-model"
+              className="font-medium text-gray-700 min-w-[120px]"
+            >
+              OpenRouter Model:
+            </label>
+            <input
+              type="text"
+              id="config-openrouter-model"
+              data-path="OPEN_ROUTER_MODEL"
+              className="px-3 py-2 border border-gray-300 rounded-md text-sm transition-all flex-1 max-w-[200px] focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-200"
+            />
+          </div>
         </div>
 
-
-
-        <div className="flex items-center mb-3 py-2">
-          <label
-            htmlFor="config-ollama-model"
-            className="font-medium text-gray-700 min-w-[120px]"
-          >
-            Ollama Model:
-          </label>
-          <input
-            type="text"
-            id="config-ollama-model"
-            data-path="OLLAMA_MODEL"
-            className="px-3 py-2 border border-gray-300 rounded-md text-sm transition-all flex-1 max-w-[200px] focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-200"
-          />
+        {/* Ollama の追加項目 */}
+        <div>
+          <div className="flex items-center mb-3 py-2">
+            <label
+              htmlFor="config-ollama-url"
+              className="font-medium text-gray-700 min-w-[120px]"
+            >
+              Ollama URL:
+            </label>
+            <input
+              type="text"
+              id="config-ollama-url"
+              data-path="OLLAMA_URL"
+              className="px-3 py-2 border border-gray-300 rounded-md text-sm transition-all flex-1 max-w-[200px] focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-200"
+            />
+          </div>
+          <div className="flex items-center mb-3 py-2">
+            <label
+              htmlFor="config-ollama-model"
+              className="font-medium text-gray-700 min-w-[120px]"
+            >
+              Ollama Model:
+            </label>
+            <input
+              type="text"
+              id="config-ollama-model"
+              data-path="OLLAMA_MODEL"
+              className="px-3 py-2 border border-gray-300 rounded-md text-sm transition-all flex-1 max-w-[200px] focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-200"
+            />
+          </div>
         </div>
+
       </div>
 
       <div className="mb-6 flex gap-2.5">

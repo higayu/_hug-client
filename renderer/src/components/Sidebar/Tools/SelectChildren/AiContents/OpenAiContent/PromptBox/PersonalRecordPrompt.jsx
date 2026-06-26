@@ -188,7 +188,7 @@ export default function PersonalRecordPrompt({
             onClick={clickEnterButton}
             disabled={!aiText || sending}
           >
-            {sending ? "送信中…" : "実行"}
+            {sending ? "送信中…" : "ChatGPT実行"}
           </button>
 
           {DEBUG_FLG && (

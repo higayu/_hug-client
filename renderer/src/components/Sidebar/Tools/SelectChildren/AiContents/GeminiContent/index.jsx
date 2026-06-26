@@ -3,7 +3,7 @@ import { useAppState } from "@/contexts/appState";
 import { useToast } from "@/components/common/ToastContext.jsx";
 import PromptBox from "@/components/common/PromptBox";
 import AccountInfoPanel from "@/components/common/AccountInfoPanel";
-import { AI_PROMPT_COMPONENT_MAP } from "../promptComponentMap";
+import { AI_PROMPT_COMPONENT_MAP } from "./PromptBox"
 import { sendPromptToGemini } from "./send/sendPromptToGemini";
 
 export default function GeminiContent() {

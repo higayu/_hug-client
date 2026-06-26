@@ -3,7 +3,7 @@ import { useAppState } from "@/contexts/appState"
 import PromptBox from "@/components/common/PromptBox"
 import AccountInfoPanel from "@/components/common/AccountInfoPanel"
 import OpenAiTabButton from "@/components/common/OpenAiTabButton"
-import { AI_PROMPT_COMPONENT_MAP } from "../promptComponentMap"
+import { AI_PROMPT_COMPONENT_MAP } from "./PromptBox"
 
 export default function OpenAiContent() {
   const { appState, PROMPTS } = useAppState()

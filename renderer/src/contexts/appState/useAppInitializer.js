@@ -19,15 +19,25 @@ export async function initializeAppState({
   // 2) config.json → Redux（存在するものだけ反映）
   if (config?.HUG_USERNAME !== undefined) merged.HUG_USERNAME = config.HUG_USERNAME
   if (config?.HUG_PASSWORD !== undefined) merged.HUG_PASSWORD = config.HUG_PASSWORD
+  // Gemini 用の認証情報
   if (config?.GEMINI_API_KEY !== undefined) merged.GEMINI_API_KEY = config.GEMINI_API_KEY
   if (config?.GEMINI_MODEL !== undefined) merged.GEMINI_MODEL = config.GEMINI_MODEL
+  // OpenRouter 認証情報
+  if (config?.OPEN_ROUTER_API_KEY !== undefined) merged.OPEN_ROUTER_API_KEY = config.OPEN_ROUTER_API_KEY
+  if (config?.OPEN_ROUTER_MODEL !== undefined) merged.OPEN_ROUTER_MODEL = config.OPEN_ROUTER_MODEL
+  // Deepseek 用の認証情報（メール / パスワード）も appState に反映
+  if (config?.DEEPSEEK_MAIL !== undefined) merged.DEEPSEEK_MAIL = config.DEEPSEEK_MAIL
+  if (config?.DEEPSEEK_PASSWORD !== undefined) merged.DEEPSEEK_PASSWORD = config.DEEPSEEK_PASSWORD
+
   // OpenAI 用の認証情報（メール / パスワード）も appState に反映
   if (config?.OPENAI_MAIL !== undefined) merged.OPENAI_MAIL = config.OPENAI_MAIL
   if (config?.OPENAI_PASSWORD !== undefined) merged.OPENAI_PASSWORD = config.OPENAI_PASSWORD
-  if (config?.CURRENT_DAY_OF_WEEK !== undefined) merged.CURRENT_DAY_OF_WEEK = config.CURRENT_DAY_OF_WEEK
+
   // Ollama 用の認証情報（URL / モデル）も appState に反映
   if (config?.OLLAMA_URL !== undefined) merged.OLLAMA_URL = config.OLLAMA_URL
   if (config?.OLLAMA_MODEL !== undefined) merged.OLLAMA_MODEL = config.OLLAMA_MODEL
+
+  if (config?.CURRENT_DAY_OF_WEEK !== undefined) merged.CURRENT_DAY_OF_WEEK = config.CURRENT_DAY_OF_WEEK
 
   // 3) ini.json → Context & Redux
   const apiSettings = ini?.apiSettings ?? {}

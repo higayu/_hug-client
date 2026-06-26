@@ -11,10 +11,23 @@ export function useReduxBindings() {
   // =========================
   const HUG_USERNAME = useSelector(s.selectHugUsername)
   const HUG_PASSWORD = useSelector(s.selectHugPassword)
+
+  // Gemini
   const GEMINI_API_KEY = useSelector(s.selectGeminiApiKey)
   const GEMINI_MODEL = useSelector(s.selectGeminiModel)
+
+  // OpenRouter
+  const OPEN_ROUTER_API_KEY = useSelector(s.selectOpenRouterApiKey)
+  const OPEN_ROUTER_MODEL = useSelector(s.selectOpenRouterModel)
+
+  // DeepSeek
+  const DEEPSEEK_MAIL = useSelector(s.selectDeepSeekMail)
+  const DEEPSEEK_PASSWORD = useSelector(s.selectDeepSeekPassword)
+
+  // ChatGPT
   const OPENAI_MAIL = useSelector(s.selectOpenaiMail)
   const OPENAI_PASSWORD = useSelector(s.selectOpenaiPassword)
+  // Ollama
   const OLLAMA_URL = useSelector(s.selectOllamaUrl)
   const OLLAMA_MODEL = useSelector(s.selectOllamaModel)
 
@@ -47,8 +60,13 @@ export function useReduxBindings() {
 
     HUG_USERNAME,
     HUG_PASSWORD,
+
     GEMINI_API_KEY,
     GEMINI_MODEL,
+    OPEN_ROUTER_API_KEY,
+    OPEN_ROUTER_MODEL,
+    DEEPSEEK_MAIL,
+    DEEPSEEK_PASSWORD,
     OPENAI_MAIL,
     OPENAI_PASSWORD,
     OLLAMA_URL,

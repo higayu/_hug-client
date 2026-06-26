@@ -3,7 +3,7 @@ import { useAppState } from "@/contexts/appState";
 import { useToast } from "@/components/common/ToastContext.jsx";
 import PromptBox from "@/components/common/PromptBox";
 import AccountInfoPanel from "@/components/common/AccountInfoPanel";
-import { AI_PROMPT_COMPONENT_MAP } from "../promptComponentMap";
+import { AI_PROMPT_COMPONENT_MAP } from "./PromptBox"
 import { sendPromptToOllama } from "./send/sendPromptToOllama";
 
 export default function OllamaContent() {
@@ -44,7 +44,7 @@ export default function OllamaContent() {
     [appState.OLLAMA_URL, appState.OLLAMA_MODEL, showErrorToast, showInfoToast, showSuccessToast]
   );
 
-  const renderGeminiResultArea = useCallback(
+  const renderOllamaResultArea = useCallback(
     ({ promptKey, label }) => (
       <div className="flex flex-col gap-1">
         <label className="font-bold text-gray-700 block mb-1">
@@ -73,7 +73,7 @@ export default function OllamaContent() {
         componentMap={AI_PROMPT_COMPONENT_MAP}
         sendPrompt={sendPrompt}
         aiName="Ollama"
-        renderGeminiResultArea={renderGeminiResultArea}
+        renderOllamaResultArea={renderOllamaResultArea}
       />
 
       <AccountInfoPanel

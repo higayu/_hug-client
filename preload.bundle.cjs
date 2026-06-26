@@ -127,6 +127,8 @@ var require_electronApi = __commonJS({
         sendConfirmCloseResponse: (shouldClose) => ipcRenderer2.send("confirm-close-response", shouldClose),
         // ---- webview ----
         getPreloadPath: () => ipcRenderer2.invoke("get-preload-path"),
+        // ---- Clipboard ----
+        copyText: (text) => ipcRenderer2.invoke("clipboard:writeText", text),
         // ---- Attendance ----
         saveAttendanceColumnData: (data) => ipcRenderer2.invoke("saveAttendanceColumnData", data),
         mariadb_service_record_insert: (data) => ipcRenderer2.invoke("mariadb:service_record:insert", data),

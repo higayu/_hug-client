@@ -207,6 +207,8 @@ function ApiTab({ onSaveApiSettings, onReloadApiSettings, onInitializeSelectBoxe
             <option value="gemini">gemini</option>
             <option value="chatGPT">chatGPT</option>
             <option value="ollama">ollama</option>
+            <option value="deepseek">deepseek</option>
+            <option value="openrouter">OpenRouter</option>
           </select>
         </div>
       </div>

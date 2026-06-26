@@ -1,6 +1,6 @@
-import PersonalRecordPrompt from "./OpenAiContent/PromptBox/PersonalRecordPrompt";
-import ProfessionalPrompt1 from "./OpenAiContent/PromptBox/ProfessionalPrompt1";
-import ProfessionalPrompt2 from "./OpenAiContent/PromptBox/ProfessionalPrompt2";
+import PersonalRecordPrompt from "./PersonalRecordPrompt";
+import ProfessionalPrompt1 from "./ProfessionalPrompt1";
+import ProfessionalPrompt2 from "./ProfessionalPrompt2";
 
 export const AI_PROMPT_COMPONENT_MAP = {
   personal: {

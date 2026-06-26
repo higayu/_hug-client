@@ -10,15 +10,19 @@ const initialState = {
   // 認証情報
   HUG_USERNAME: "",
   HUG_PASSWORD: "",
+
+  // Gemini 用
   GEMINI_API_KEY: "",
   GEMINI_MODEL: "",
 
-  // ★ 追加：デバッグフラグ（デフォルト false）
-  DEBUG_FLG: false,
 
   // OpenAI 用の認証情報（config.json から読み込み）
   OPENAI_MAIL: "",
   OPENAI_PASSWORD: "",
+  // ★ 追加：デバッグフラグ（デフォルト false）
+  DEBUG_FLG: false,
+
+
   VITE_API_BASE_URL: "",
   USE_AI: "gemini",
   DATABASE_TYPE: "sqlite",
@@ -80,12 +84,29 @@ const appStateSlice = createSlice({
     setHugPassword: (state, action) => {
       state.HUG_PASSWORD = action.payload || ""
     },
+
     setGeminiApiKey: (state, action) => {
       state.GEMINI_API_KEY = action.payload || ""
     },
     setGeminiModel: (state, action) => {
       state.GEMINI_MODEL = action.payload || ""
     },
+
+    setOpenRouterApiKey: (state, action) => {
+      state.OPEN_ROUTER_API_KEY = action.payload || ""
+    },
+    setOpenRouterModel: (state, action) => {
+      state.OPEN_ROUTER_MODEL = action.payload || ""
+    },
+
+    // DeepSeek メール / パスワードを設定
+    setDeepSeekMail: (state, action) => {
+      state.DEEPSEEK_MAIL = action.payload || ""
+    },
+    setDeepSeekPassword: (state, action) => {
+      state.DEEPSEEK_PASSWORD = action.payload || ""
+    },
+
     // OpenAI メール / パスワードを設定
     setOpenaiMail: (state, action) => {
       state.OPENAI_MAIL = action.payload || ""
@@ -93,6 +114,14 @@ const appStateSlice = createSlice({
     setOpenaiPassword: (state, action) => {
       state.OPENAI_PASSWORD = action.payload || ""
     },
+
+    setOllamaUrl: (state, action) => {
+      state.OLLAMA_URL = action.payload || ""
+    },
+    setOllamaModel: (state, action) => {
+      state.OLLAMA_MODEL = action.payload || ""
+    },
+    
 
     // 施設IDを設定
     setFacilityId: (state, action) => {
@@ -216,12 +245,22 @@ const appStateSlice = createSlice({
       // 認証情報
       if (updates.HUG_USERNAME !== undefined) state.HUG_USERNAME = updates.HUG_USERNAME
       if (updates.HUG_PASSWORD !== undefined) state.HUG_PASSWORD = updates.HUG_PASSWORD
+
       if (updates.GEMINI_API_KEY !== undefined) state.GEMINI_API_KEY = updates.GEMINI_API_KEY
       if (updates.GEMINI_MODEL !== undefined) state.GEMINI_MODEL = updates.GEMINI_MODEL
-      if (updates.OLLAMA_URL !== undefined) state.OLLAMA_URL = updates.OLLAMA_URL
-      if (updates.OLLAMA_MODEL !== undefined) state.OLLAMA_MODEL = updates.OLLAMA_MODEL
+
+      if (updates.OPEN_ROUTER_API_KEY !== undefined) state.OPEN_ROUTER_API_KEY = updates.OPEN_ROUTER_API_KEY
+      if (updates.OPEN_ROUTER_MODEL !== undefined) state.OPEN_ROUTER_MODEL = updates.OPEN_ROUTER_MODEL
+
+      if (updates.DEEPSEEK_MAIL !== undefined) state.DEEPSEEK_MAIL = updates.DEEPSEEK_MAIL
+      if (updates.DEEPSEEK_PASSWORD !== undefined) state.DEEPSEEK_PASSWORD = updates.DEEPSEEK_PASSWORD
       if (updates.OPENAI_MAIL !== undefined) state.OPENAI_MAIL = updates.OPENAI_MAIL
       if (updates.OPENAI_PASSWORD !== undefined) state.OPENAI_PASSWORD = updates.OPENAI_PASSWORD
+
+      if (updates.OLLAMA_URL !== undefined) state.OLLAMA_URL = updates.OLLAMA_URL
+      if (updates.OLLAMA_MODEL !== undefined) state.OLLAMA_MODEL = updates.OLLAMA_MODEL
+
+
       if (updates.VITE_API_BASE_URL !== undefined) state.VITE_API_BASE_URL = updates.VITE_API_BASE_URL
       // ID・日付・選択状態
       if (updates.STAFF_ID !== undefined) {
@@ -324,12 +363,20 @@ export const {
 // セレクターのエクスポート
 export const selectHugUsername = (state) => state.appState.HUG_USERNAME
 export const selectHugPassword = (state) => state.appState.HUG_PASSWORD
+
 export const selectGeminiApiKey = (state) => state.appState.GEMINI_API_KEY
 export const selectGeminiModel = (state) => state.appState.GEMINI_MODEL
+
+export const selectOpenRouterApiKey = (state) => state.appState.OPEN_ROUTER_API_KEY
+export const selectOpenRouterModel = (state) => state.appState.OPEN_ROUTER_MODEL
+export const selectDeepSeekMail = (state) => state.appState.DEEPSEEK_MAIL
+export const selectDeepSeekPassword = (state) => state.appState.DEEPSEEK_PASSWORD
 export const selectOpenaiMail = (state) => state.appState.OPENAI_MAIL
 export const selectOpenaiPassword = (state) => state.appState.OPENAI_PASSWORD
+
 export const selectOllamaUrl = (state) => state.appState.OLLAMA_URL
 export const selectOllamaModel = (state) => state.appState.OLLAMA_MODEL
+
 export const selectViteApiBaseUrl = (state) => state.appState.VITE_API_BASE_URL
 export const selectUseAI = (state) => state.appState.USE_AI
 export const selectDatabaseType = (state) => state.appState.DATABASE_TYPE

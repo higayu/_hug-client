@@ -132,6 +132,10 @@ function createElectronApi(ipcRenderer, isDebugMode) {
     getPreloadPath: () =>
       ipcRenderer.invoke("get-preload-path"),
 
+    // ---- Clipboard ----
+    copyText: (text) =>
+      ipcRenderer.invoke("clipboard:writeText", text),
+
     // ---- Attendance ----
     saveAttendanceColumnData: (data) =>
       ipcRenderer.invoke("saveAttendanceColumnData", data),

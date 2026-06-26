@@ -31,10 +31,14 @@ export async function loadAllReload() {
       HUG_PASSWORD: configData.HUG_PASSWORD,
       GEMINI_API_KEY: configData.GEMINI_API_KEY,
       GEMINI_MODEL: configData.GEMINI_MODEL,
-      OLLAMA_URL: configData.OLLAMA_URL,
-      OLLAMA_MODEL: configData.OLLAMA_MODEL,
+      OPEN_ROUTER_API_KEY: configData.OPEN_ROUTER_API_KEY,
+      OPEN_ROUTER_MODEL:configData.OPEN_ROUTER_MODEL,
+      DEEPSEEK_MAIL: configData.DEEPSEEK_MAIL,
+      DEEPSEEK_PASSWORD: configData.DEEPSEEK_PASSWORD,
       OPENAI_MAIL: configData.OPENAI_MAIL,
       OPENAI_PASSWORD: configData.OPENAI_PASSWORD,
+      OLLAMA_URL: configData.OLLAMA_URL,
+      OLLAMA_MODEL: configData.OLLAMA_MODEL,
     }))
 
     // ini.json（Context経由）

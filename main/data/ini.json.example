@@ -71,3 +71,12 @@
     "debugFlg": "false"
   }
 }
+
+
+const AI_COMPONENT_MAP = {
+  gemini: GeminiContent,
+  chatGPT: OpenAiContent,
+  ollama: OllamaContent,
+  deepseek:DeepSeekContent,
+  openrouter:OpenRouterContent,
+};

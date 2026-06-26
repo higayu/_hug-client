@@ -12,6 +12,12 @@ function getDefaultConfig() {
     HUG_PASSWORD: "",
     GEMINI_API_KEY: "",
     GEMINI_MODEL: "",
+    OPEN_ROUTER_API_KEY: "",
+    OPEN_ROUTER_MODEL:"",
+    DEEPSEEK_MAIL: "",
+    DEEPSEEK_PASSWORD: "",
+    OPENAI_MAIL: "",
+    OPENAI_PASSWORD: "",
     OLLAMA_URL: "",
     OLLAMA_MODEL: ""
   };

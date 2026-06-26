@@ -3,8 +3,12 @@
   "HUG_PASSWORD": "",
   "GEMINI_API_KEY": "",
   "GEMINI_MODEL":"gemini-2.5-flash-lite",
+  "OPEN_ROUTER_API_KEY": "",
+  "OPEN_ROUTER_MODEL":"openai/gpt-oss-120b:free",
+  "DEEPSEEK_MAIL": "",
+  "DEEPSEEK_PASSWORD": "",
   "OPENAI_MAIL": "",
   "OPENAI_PASSWORD": "",
   "OLLAMA_URL": "http://192.168.1.222:11434/api/generate",
-  "OLLAMA_MODEL": "qwen3:8b"
+  "OLLAMA_MODEL": "gemma4:latest"
 }

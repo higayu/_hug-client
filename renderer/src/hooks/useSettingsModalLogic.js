@@ -117,21 +117,30 @@ export function useSettingsModalLogic(isOpen) {
     // Gemini 用の認証情報（APIキー / モデル）も appState に反映
     const configGemini = document.getElementById('config-gemini')
     if (configGemini) configGemini.value = appState.GEMINI_API_KEY || ''
-
     const configGeminiModel = document.getElementById('config-gemini-model')
     if (configGeminiModel) configGeminiModel.value = appState.GEMINI_MODEL || 'gemini-3.5-flash'
+
+    // OpenRouter 用の認証情報（APIキー / モデル）も appState に反映
+    const configOpenRouter = document.getElementById('config-openrouter-key')
+    if (configOpenRouter) configOpenRouter.value = appState.OPEN_ROUTER_API_KEY || ''
+    const configOpenRouterModel = document.getElementById('config-openrouter-model')
+    if (configOpenRouterModel) configOpenRouterModel.value = appState.OPEN_ROUTER_MODEL || 'openai/gpt-oss-120b:free'
+
+    // DeepSeek 用の認証情報（メール / パスワード）も appState に反映
+    const configDeepSeekMail = document.getElementById('config-deepseek-mail')
+    if (configDeepSeekMail) configDeepSeekMail.value = appState.DEEPSEEK_MAIL || ''
+    const configDeepSeekPassword = document.getElementById('config-deepseek-password')
+    if (configDeepSeekPassword) configDeepSeekPassword.value = appState.DEEPSEEK_PASSWORD || ''
 
     // OpenAI 用の認証情報（メール / パスワード）も appState に反映
     const configOpenaiMail = document.getElementById('config-openai-mail')
     if (configOpenaiMail) configOpenaiMail.value = appState.OPENAI_MAIL || ''
-
     const configOpenaiPassword = document.getElementById('config-openai-password')
     if (configOpenaiPassword) configOpenaiPassword.value = appState.OPENAI_PASSWORD || ''
 
     // Ollama 用の認証情報（URL / モデル）も appState に反映
     const configOllamaUrl = document.getElementById('config-ollama-url')
     if (configOllamaUrl) configOllamaUrl.value = appState.OLLAMA_URL || ''
-
     const configOllamaModel = document.getElementById('config-ollama-model')
     if (configOllamaModel) configOllamaModel.value = appState.OLLAMA_MODEL || 'llama3.1'
 
@@ -410,6 +419,10 @@ export function useSettingsModalLogic(isOpen) {
         HUG_PASSWORD: document.getElementById('config-password')?.value || '',
         GEMINI_API_KEY: document.getElementById('config-gemini')?.value || '',
         GEMINI_MODEL: document.getElementById('config-gemini-model')?.value || 'gemini-3.5-flash',
+        OPEN_ROUTER_API_KEY: document.getElementById('config-openrouter-key')?.value || '',
+        OPEN_ROUTER_MODEL:document.getElementById('config-openrouter-model')?.value || '',
+        DEEPSEEK_MAIL: document.getElementById('config-deepseek-mail')?.value || '',
+        DEEPSEEK_PASSWORD: document.getElementById('config-deepseek-password')?.value || '',
         OPENAI_MAIL: document.getElementById('config-openai-mail')?.value || '',
         OPENAI_PASSWORD: document.getElementById('config-openai-password')?.value || '',
         OLLAMA_URL: document.getElementById('config-ollama-url')?.value || '',

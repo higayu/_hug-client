@@ -1,6 +1,6 @@
 // main/ipcHandlers.js
 console.log("🔥 ipcHandlers.js LOADED");
-const { ipcMain, app,BrowserWindow } = require("electron");
+const { ipcMain, app, BrowserWindow, clipboard } = require("electron");
 const path = require("path");
 const { pathToFileURL } = require("url");
 const fs = require("fs");
@@ -29,6 +29,18 @@ function registerIpcHandlers(mainWindow, tempNoteHandler) {
     registerPlanWindows(ipcMain);
     open_addition_compare_btn(ipcMain);
     handleProfessionalSupportSearch(ipcMain);
+
+    // =======================================
+    // 📋 Clipboard 書き込み IPC ハンドラ
+    // =======================================
+    ipcMain.handle("clipboard:writeText", async (_event, text) => {
+      if (typeof text !== "string") {
+        throw new TypeError("clipboard:writeText text must be a string");
+      }
+
+      clipboard.writeText(text);
+      return true;
+    });
 
     
      // =======================================
