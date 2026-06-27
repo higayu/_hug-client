@@ -24,7 +24,6 @@ var require_tables = __commonJS({
       "pronunciation",
       "staffs",
       "temp_notes",
-      "ai_temp_notes",
       "service_record",
       // MariaDB 追加分を SQLite フォールバックでも使う場合
       "record_types",
@@ -190,13 +189,6 @@ var require_electronApi = __commonJS({
           staff_id,
           day_of_week_id
         }),
-        // ============================================================
-        // AI 一時メモ
-        //
-        // ai_temp_notes は SQLite 専用のまま
-        // ============================================================
-        saveAiTempNote: (childId, note) => ipcRenderer2.invoke("sqlite:saveAiTempNote", { childId, note }),
-        getAiTempNote: (childId) => ipcRenderer2.invoke("sqlite:getAiTempNote", { childId }),
         // ---- UI / Window ----
         clearWebviewCache: (wcId) => ipcRenderer2.invoke("clear-webview-cache", wcId),
         openIndividualSupportPlan: (childId) => ipcRenderer2.send("open-individual-support-plan", childId),

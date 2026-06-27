@@ -27,7 +27,6 @@ const individual_support = require("./sqlite/individual_support");
 const temp_notes = require("./sqlite/temp_notes");
 const pronunciation = require("./sqlite/pronunciation");
 const children_type = require("./sqlite/children_type");
-const ai_temp_notes = require("./sqlite/ai_temp_notes");
 const day_of_week = require("./sqlite/day_of_week");
 
 // MariaDB 追加テーブル / SQLite フォールバック用
@@ -208,7 +207,6 @@ function registerSqliteHandlers(ipcMain) {
     temp_notes,
     pronunciation,
     children_type,
-    ai_temp_notes,
     day_of_week,
 
     // MariaDB 追加テーブル / SQLite フォールバック用
@@ -396,48 +394,7 @@ function registerSqliteHandlers(ipcMain) {
     }
   });
 
-  // ============================================================
-  // 🟢 ai_temp_notes（SQLite 専用）
-  // ============================================================
-
-  safeHandle(ipcMain, "sqlite:saveAiTempNote", async (_, { childId, note }) => {
-    try {
-      if (typeof ai_temp_notes.saveAiTempNote === "function") {
-        return await ai_temp_notes.saveAiTempNote(childId, note);
-      }
-
-      if (typeof ai_temp_notes.saveAiNote === "function") {
-        return await ai_temp_notes.saveAiNote(childId, note);
-      }
-
-      throw new Error(
-        "ai_temp_notes.saveAiTempNote / saveAiNote が見つかりません"
-      );
-    } catch (err) {
-      console.error("❌ SQLite saveAiTempNote エラー:", err);
-      throw err;
-    }
-  });
-
-  safeHandle(ipcMain, "sqlite:getAiTempNote", async (_, { childId }) => {
-    try {
-      if (typeof ai_temp_notes.getAiTempNote === "function") {
-        return await ai_temp_notes.getAiTempNote(childId);
-      }
-
-      if (typeof ai_temp_notes.getAiNote === "function") {
-        return await ai_temp_notes.getAiNote(childId);
-      }
-
-      throw new Error(
-        "ai_temp_notes.getAiTempNote / getAiNote が見つかりません"
-      );
-    } catch (err) {
-      console.error("❌ SQLite getAiTempNote エラー:", err);
-      throw err;
-    }
-  });
-
+ 
   // ============================================================
   // 🟢 temp_notes（SQLite 専用）
   // ============================================================

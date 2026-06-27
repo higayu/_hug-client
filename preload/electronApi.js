@@ -128,17 +128,6 @@ function createElectronApi(ipcRenderer, isDebugMode) {
         day_of_week_id,
       }),
 
-    // ============================================================
-    // AI 一時メモ
-    //
-    // ai_temp_notes は SQLite 専用のまま
-    // ============================================================
-
-    saveAiTempNote: (childId, note) =>
-      ipcRenderer.invoke("sqlite:saveAiTempNote", { childId, note }),
-
-    getAiTempNote: (childId) =>
-      ipcRenderer.invoke("sqlite:getAiTempNote", { childId }),
 
     // ---- UI / Window ----
     clearWebviewCache: (wcId) =>

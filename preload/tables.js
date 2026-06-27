@@ -14,7 +14,6 @@ const sqliteTables = [
   "pronunciation",
   "staffs",
   "temp_notes",
-  "ai_temp_notes",
   "service_record",
 
   // MariaDB 追加分を SQLite フォールバックでも使う場合

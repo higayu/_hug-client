@@ -134,230 +134,345 @@ async function migrateLegacyDayOfWeekIfNeeded(db) {
  *
  * 方針:
  * - MariaDB の主要テーブルを SQLite キャッシュとして作る
- * - SQLite 独自の temp_notes / ai_temp_notes もここで作る
  * - 一時フォールバック用途なので、FK は厳密には張らず、PK / UNIQUE / INDEX を中心にする
  */
 const INIT_SQL = `
 BEGIN TRANSACTION;
-
-CREATE TABLE IF NOT EXISTS "ai_temp_notes" (
-  "id" INTEGER PRIMARY KEY AUTOINCREMENT,
-  "children_id" INTEGER NOT NULL UNIQUE,
-  "type" TEXT,
-  "memo" TEXT,
-  "updated_at" DATETIME DEFAULT CURRENT_TIMESTAMP
-);
-
 CREATE TABLE IF NOT EXISTS "children_type" (
-  "id" INTEGER PRIMARY KEY,
-  "name" TEXT
+	"id"	INTEGER NOT NULL,
+	"name"	TEXT NOT NULL DEFAULT '0',
+	PRIMARY KEY("id")
 );
-
 CREATE TABLE IF NOT EXISTS "pronunciation" (
-  "id" INTEGER PRIMARY KEY,
-  "pronunciation" TEXT
+	"id"	INTEGER NOT NULL,
+	"pronunciation"	TEXT NOT NULL,
+	PRIMARY KEY("id" AUTOINCREMENT)
 );
-
-CREATE TABLE IF NOT EXISTS "children" (
-  "id" INTEGER PRIMARY KEY,
-  "name" TEXT NOT NULL DEFAULT '',
-  "notes" TEXT,
-  "notes2" TEXT,
-  "personal_tmp" TEXT,
-  "pronunciation_id" INTEGER,
-  "children_type_id" INTEGER NOT NULL DEFAULT 1,
-  "is_delete" INTEGER NOT NULL DEFAULT 0,
-  "leaving_at" TEXT
-);
-
 CREATE TABLE IF NOT EXISTS "day_of_week" (
-  "id" INTEGER PRIMARY KEY,
-  "label_jp" TEXT NOT NULL,
-  "label_en" TEXT,
-  "sort_order" INTEGER NOT NULL
+	"id"	INTEGER NOT NULL,
+	"label_jp"	TEXT NOT NULL,
+	"label_en"	TEXT DEFAULT NULL,
+	"sort_order"	INTEGER NOT NULL,
+	PRIMARY KEY("id")
 );
-
 CREATE TABLE IF NOT EXISTS "facilitys" (
-  "id" INTEGER PRIMARY KEY,
-  "name" TEXT NOT NULL DEFAULT '',
-  "url" TEXT
+	"id"	INTEGER NOT NULL,
+	"name"	TEXT DEFAULT NULL,
+	"url"	TEXT DEFAULT NULL,
+	PRIMARY KEY("id")
 );
-
-CREATE TABLE IF NOT EXISTS "facility_children" (
-  "facility_id" INTEGER NOT NULL,
-  "children_id" INTEGER NOT NULL,
-  PRIMARY KEY ("facility_id", "children_id")
-);
-
-CREATE TABLE IF NOT EXISTS "facility_staff" (
-  "facility_id" INTEGER NOT NULL,
-  "staff_id" INTEGER NOT NULL,
-  PRIMARY KEY ("facility_id", "staff_id")
-);
-
 CREATE TABLE IF NOT EXISTS "staffs" (
-  "id" INTEGER PRIMARY KEY,
-  "name" TEXT NOT NULL DEFAULT '',
-  "work_style" TEXT,
-  "notes" TEXT NOT NULL DEFAULT '',
-  "is_delete" INTEGER NOT NULL DEFAULT 0,
-  "admin" INTEGER,
-  "display_order" INTEGER,
-  "entered_at" TEXT,
-  "leaving_at" TEXT,
-  "hug_updated_at" TEXT,
-  "hug_updated_by" TEXT
+	"id"	INTEGER NOT NULL,
+	"name"	TEXT NOT NULL,
+	"work_style"	TEXT DEFAULT NULL,
+	"notes"	TEXT NOT NULL DEFAULT '',
+	"is_delete"	INTEGER NOT NULL DEFAULT 0,
+	"admin"	INTEGER DEFAULT NULL,
+	"display_order"	INTEGER DEFAULT NULL,
+	"entered_at"	TEXT DEFAULT NULL,
+	"leaving_at"	TEXT DEFAULT NULL,
+	"hug_updated_at"	TEXT DEFAULT NULL,
+	"hug_updated_by"	TEXT DEFAULT NULL,
+	PRIMARY KEY("id")
 );
-
-CREATE TABLE IF NOT EXISTS "staff_facility_roles" (
-  "id" INTEGER PRIMARY KEY AUTOINCREMENT,
-  "staff_id" INTEGER NOT NULL,
-  "facility_id" INTEGER NOT NULL,
-  "job_name" TEXT NOT NULL,
-  "experience_label" TEXT,
-  "role_note" TEXT,
-  "raw_text" TEXT,
-  "created_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  "updated_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  UNIQUE ("staff_id", "facility_id", "job_name", "experience_label")
-);
-
-CREATE TABLE IF NOT EXISTS "managers2" (
-  "children_id" INTEGER NOT NULL,
-  "staff_id" INTEGER NOT NULL,
-  "day_of_week_id" INTEGER NOT NULL,
-  "priority" INTEGER NOT NULL DEFAULT 0,
-  PRIMARY KEY ("children_id", "staff_id", "day_of_week_id")
-);
-
-CREATE TABLE IF NOT EXISTS "pc" (
-  "id" INTEGER PRIMARY KEY AUTOINCREMENT,
-  "facility_id" INTEGER NOT NULL,
-  "pc_id" INTEGER NOT NULL,
-  "name" TEXT NOT NULL DEFAULT '',
-  "explanation" TEXT,
-  "memo" TEXT,
-  UNIQUE ("facility_id", "pc_id")
-);
-
-CREATE TABLE IF NOT EXISTS "pc_to_children" (
-  "id" INTEGER PRIMARY KEY AUTOINCREMENT,
-  "pc_id" INTEGER NOT NULL,
-  "children_id" INTEGER NOT NULL,
-  "day_of_week" INTEGER,
-  "start_time" TEXT,
-  "end_time" TEXT
-);
-
 CREATE TABLE IF NOT EXISTS "record_types" (
-  "id" INTEGER PRIMARY KEY AUTOINCREMENT,
-  "name" TEXT NOT NULL,
-  "memo" TEXT
+	"id"	INTEGER NOT NULL,
+	"name"	TEXT NOT NULL,
+	"memo"	TEXT DEFAULT NULL,
+	PRIMARY KEY("id" AUTOINCREMENT)
 );
-
-CREATE TABLE IF NOT EXISTS "child_records" (
-  "id" INTEGER PRIMARY KEY AUTOINCREMENT,
-  "children_id" INTEGER NOT NULL,
-  "record_type_id" INTEGER NOT NULL,
-  "date" TEXT NOT NULL,
-  "score" INTEGER,
-  "mistakes" INTEGER,
-  "facility_id" INTEGER NOT NULL,
-  "memo1" TEXT,
-  "memo2" TEXT,
-  "created_at" DATETIME DEFAULT CURRENT_TIMESTAMP,
-  "updated_at" DATETIME DEFAULT CURRENT_TIMESTAMP
-);
-
 CREATE TABLE IF NOT EXISTS "m_service_items" (
-  "id" INTEGER PRIMARY KEY AUTOINCREMENT,
-  "name" TEXT NOT NULL DEFAULT ''
+	"id"	INTEGER NOT NULL,
+	"name"	TEXT NOT NULL DEFAULT '',
+	PRIMARY KEY("id" AUTOINCREMENT)
 );
-
-CREATE TABLE IF NOT EXISTS "service_record" (
-  "id" INTEGER PRIMARY KEY AUTOINCREMENT,
-  "children_id" INTEGER NOT NULL,
-  "day_of_week_id" INTEGER NOT NULL,
-  "item_id" INTEGER NOT NULL,
-  "served_date" TEXT NOT NULL,
-  "facility_id" INTEGER NOT NULL,
-  "note" TEXT,
-  "is_copy" INTEGER NOT NULL DEFAULT 0,
-  "is_deleted" INTEGER NOT NULL DEFAULT 0,
-  "recorded_staff_id" INTEGER NOT NULL DEFAULT -1,
-  "created_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  "updated_staff_id" INTEGER NOT NULL DEFAULT -1,
-  "updated_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  UNIQUE ("children_id", "day_of_week_id", "item_id", "served_date")
-);
-
-CREATE TABLE IF NOT EXISTS "memo" (
-  "id" INTEGER PRIMARY KEY AUTOINCREMENT,
-  "title" TEXT NOT NULL DEFAULT '',
-  "content" TEXT NOT NULL
-);
-
-CREATE TABLE IF NOT EXISTS "text_data" (
-  "id" INTEGER PRIMARY KEY AUTOINCREMENT,
-  "genre" TEXT NOT NULL,
-  "group" TEXT NOT NULL,
-  "sort" INTEGER NOT NULL,
-  "value" TEXT NOT NULL
-);
-
-CREATE TABLE IF NOT EXISTS "toolbox" (
-  "id" INTEGER PRIMARY KEY AUTOINCREMENT,
-  "title" TEXT NOT NULL,
-  "description" TEXT,
-  "layout" TEXT NOT NULL,
-  "is_tools" INTEGER NOT NULL DEFAULT 1,
-  "created_at" DATETIME DEFAULT CURRENT_TIMESTAMP,
-  "updated_at" DATETIME DEFAULT CURRENT_TIMESTAMP,
-  "permission" INTEGER NOT NULL DEFAULT 0,
-  "facility_id" INTEGER NOT NULL
-);
-
 CREATE TABLE IF NOT EXISTS "users" (
-  "id" INTEGER PRIMARY KEY AUTOINCREMENT,
-  "name" TEXT,
-  "email" TEXT NOT NULL,
-  "password" TEXT NOT NULL,
-  "created_at" DATETIME DEFAULT CURRENT_TIMESTAMP,
-  "leaving_at" TEXT,
-  UNIQUE ("email")
+	"id"	INTEGER NOT NULL,
+	"name"	TEXT DEFAULT NULL,
+	"email"	TEXT NOT NULL,
+	"password"	TEXT NOT NULL,
+	"created_at"	TEXT DEFAULT CURRENT_TIMESTAMP,
+	"leaving_at"	TEXT DEFAULT NULL,
+	PRIMARY KEY("id" AUTOINCREMENT),
+	UNIQUE("email")
 );
-
-CREATE TABLE IF NOT EXISTS "refresh_tokens" (
-  "id" INTEGER PRIMARY KEY AUTOINCREMENT,
-  "user_id" INTEGER NOT NULL,
-  "token" TEXT NOT NULL,
-  "revoked" INTEGER DEFAULT 0,
-  "expires_at" DATETIME NOT NULL,
-  "created_at" DATETIME DEFAULT CURRENT_TIMESTAMP
+CREATE TABLE IF NOT EXISTS "memo" (
+	"id"	INTEGER NOT NULL,
+	"title"	TEXT NOT NULL DEFAULT '',
+	"content"	TEXT NOT NULL,
+	PRIMARY KEY("id" AUTOINCREMENT)
 );
-
-CREATE TABLE IF NOT EXISTS "individual_support" (
-  "children_id" INTEGER PRIMARY KEY,
-  "family_intention" TEXT,
-  "support_policy" TEXT,
-  "long_term_goal" TEXT,
-  "short_term_goal" TEXT,
-  "support_date" TEXT,
-  "created_at" DATETIME DEFAULT CURRENT_TIMESTAMP,
-  "updated_at" DATETIME DEFAULT CURRENT_TIMESTAMP
+CREATE TABLE IF NOT EXISTS "text_data" (
+	"id"	INTEGER NOT NULL,
+	"genre"	TEXT NOT NULL,
+	"group"	TEXT NOT NULL,
+	"sort"	INTEGER NOT NULL,
+	"value"	TEXT NOT NULL,
+	PRIMARY KEY("id" AUTOINCREMENT)
 );
-
+CREATE TABLE IF NOT EXISTS "children" (
+	"id"	INTEGER NOT NULL,
+	"name"	TEXT NOT NULL,
+	"notes"	TEXT DEFAULT NULL,
+	"notes2"	TEXT DEFAULT NULL,
+	"personal_tmp"	TEXT DEFAULT NULL,
+	"pronunciation_id"	INTEGER DEFAULT NULL,
+	"children_type_id"	INTEGER NOT NULL DEFAULT 1,
+	"is_delete"	INTEGER NOT NULL DEFAULT 0,
+	"leaving_at"	TEXT DEFAULT NULL,
+	PRIMARY KEY("id"),
+	CONSTRAINT "FK_children_children_type" FOREIGN KEY("children_type_id") REFERENCES "children_type"("id") ON DELETE CASCADE,
+	CONSTRAINT "FK_children_pronunciation" FOREIGN KEY("pronunciation_id") REFERENCES "pronunciation"("id") ON DELETE CASCADE
+);
+CREATE TABLE IF NOT EXISTS "pc" (
+	"id"	INTEGER NOT NULL,
+	"facility_id"	INTEGER NOT NULL,
+	"pc_id"	INTEGER NOT NULL,
+	"name"	TEXT NOT NULL DEFAULT '',
+	"explanation"	TEXT DEFAULT NULL,
+	"memo"	TEXT DEFAULT NULL,
+	PRIMARY KEY("id" AUTOINCREMENT),
+	UNIQUE("facility_id","pc_id"),
+	CONSTRAINT "FK_pc_facilitys" FOREIGN KEY("facility_id") REFERENCES "facilitys"("id") ON DELETE NO ACTION
+);
+CREATE TABLE IF NOT EXISTS "facility_children" (
+	"facility_id"	INTEGER NOT NULL,
+	"children_id"	INTEGER NOT NULL,
+	PRIMARY KEY("facility_id","children_id"),
+	CONSTRAINT "FK__facility" FOREIGN KEY("facility_id") REFERENCES "facilitys"("id") ON DELETE CASCADE,
+	CONSTRAINT "FK__childrens" FOREIGN KEY("children_id") REFERENCES "children"("id") ON DELETE CASCADE
+);
+CREATE TABLE IF NOT EXISTS "facility_staff" (
+	"facility_id"	INTEGER NOT NULL,
+	"staff_id"	INTEGER NOT NULL,
+	PRIMARY KEY("facility_id","staff_id"),
+	CONSTRAINT "FK_facility_staff_facilitys" FOREIGN KEY("facility_id") REFERENCES "facilitys"("id") ON DELETE CASCADE,
+	CONSTRAINT "FK_facility_staff_staffs" FOREIGN KEY("staff_id") REFERENCES "staffs"("id") ON DELETE CASCADE
+);
+CREATE TABLE IF NOT EXISTS "staff_facility_roles" (
+	"id"	INTEGER NOT NULL,
+	"staff_id"	INTEGER NOT NULL,
+	"facility_id"	INTEGER NOT NULL,
+	"job_name"	TEXT NOT NULL,
+	"experience_label"	TEXT DEFAULT NULL,
+	"role_note"	TEXT DEFAULT NULL,
+	"raw_text"	TEXT DEFAULT NULL,
+	"created_at"	TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	"updated_at"	TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	PRIMARY KEY("id" AUTOINCREMENT),
+	UNIQUE("staff_id","facility_id","job_name","experience_label"),
+	CONSTRAINT "fk_staff_facility_roles_staffs" FOREIGN KEY("staff_id") REFERENCES "staffs"("id") ON DELETE CASCADE,
+	CONSTRAINT "fk_staff_facility_roles_facilitys" FOREIGN KEY("facility_id") REFERENCES "facilitys"("id") ON DELETE CASCADE
+);
+CREATE TABLE IF NOT EXISTS "managers2" (
+	"children_id"	INTEGER NOT NULL,
+	"staff_id"	INTEGER NOT NULL,
+	"day_of_week_id"	INTEGER NOT NULL,
+	"priority"	INTEGER NOT NULL DEFAULT 0,
+	PRIMARY KEY("children_id","staff_id","day_of_week_id"),
+	CONSTRAINT "FK_managers2_children" FOREIGN KEY("children_id") REFERENCES "children"("id") ON DELETE CASCADE,
+	CONSTRAINT "FK_managers2_staffs" FOREIGN KEY("staff_id") REFERENCES "staffs"("id") ON DELETE CASCADE,
+	CONSTRAINT "FK_managers2_day_of_week" FOREIGN KEY("day_of_week_id") REFERENCES "day_of_week"("id") ON DELETE CASCADE
+);
+CREATE TABLE IF NOT EXISTS "pc_to_children" (
+	"id"	INTEGER NOT NULL,
+	"pc_id"	INTEGER NOT NULL,
+	"children_id"	INTEGER NOT NULL,
+	"day_of_week"	INTEGER DEFAULT NULL,
+	"start_time"	TEXT DEFAULT NULL,
+	"end_time"	TEXT DEFAULT NULL,
+	PRIMARY KEY("id" AUTOINCREMENT),
+	CONSTRAINT "FK_pc_to_children_day_of_week" FOREIGN KEY("day_of_week") REFERENCES "day_of_week"("id") ON DELETE CASCADE,
+	CONSTRAINT "FK__childrenpc" FOREIGN KEY("children_id") REFERENCES "children"("id") ON DELETE CASCADE,
+	CONSTRAINT "FK__pc" FOREIGN KEY("pc_id") REFERENCES "pc"("id") ON DELETE CASCADE
+);
 CREATE TABLE IF NOT EXISTS "temp_notes" (
-  "children_id" INTEGER NOT NULL,
-  "staff_id" INTEGER NOT NULL,
-  "day_of_week_id" INTEGER NOT NULL,
-  "memo1" TEXT,
-  "memo2" TEXT,
-  "created_at" DATETIME DEFAULT CURRENT_TIMESTAMP,
-  "updated_at" DATETIME DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY ("children_id", "day_of_week_id")
+	"children_id"	INTEGER NOT NULL,
+	"staff_id"	INTEGER NOT NULL,
+	"day_of_week_id"	INTEGER NOT NULL DEFAULT 0,
+	"memo1"	TEXT DEFAULT NULL,
+	"memo2"	TEXT DEFAULT NULL,
+	"created_at"	TEXT DEFAULT CURRENT_TIMESTAMP,
+	"updated_at"	TEXT DEFAULT CURRENT_TIMESTAMP,
+	PRIMARY KEY("children_id","staff_id","day_of_week_id"),
+	CONSTRAINT "FK_temp_notes_staffs" FOREIGN KEY("staff_id") REFERENCES "staffs"("id") ON DELETE NO ACTION ON UPDATE NO ACTION,
+	CONSTRAINT "FK_temp_notes_day_of_week" FOREIGN KEY("day_of_week_id") REFERENCES "day_of_week"("id") ON DELETE NO ACTION ON UPDATE NO ACTION,
+	CONSTRAINT "FK_temp_notes_children" FOREIGN KEY("children_id") REFERENCES "children"("id") ON DELETE NO ACTION ON UPDATE NO ACTION
 );
-
+CREATE TABLE IF NOT EXISTS "child_records" (
+	"id"	INTEGER NOT NULL,
+	"children_id"	INTEGER NOT NULL,
+	"record_type_id"	INTEGER NOT NULL,
+	"date"	TEXT NOT NULL,
+	"score"	INTEGER DEFAULT NULL,
+	"mistakes"	INTEGER DEFAULT NULL,
+	"facility_id"	INTEGER NOT NULL,
+	"memo1"	TEXT DEFAULT NULL,
+	"memo2"	TEXT DEFAULT NULL,
+	"created_at"	TEXT DEFAULT CURRENT_TIMESTAMP,
+	"updated_at"	TEXT DEFAULT CURRENT_TIMESTAMP,
+	PRIMARY KEY("id" AUTOINCREMENT),
+	CONSTRAINT "FK_child_records_facilitys" FOREIGN KEY("facility_id") REFERENCES "facilitys"("id") ON DELETE CASCADE,
+	CONSTRAINT "FK_child_records_record_types" FOREIGN KEY("record_type_id") REFERENCES "record_types"("id") ON DELETE CASCADE,
+	CONSTRAINT "FK_child_records_children" FOREIGN KEY("children_id") REFERENCES "children"("id") ON DELETE CASCADE
+);
+CREATE TABLE IF NOT EXISTS "service_record" (
+	"id"	INTEGER NOT NULL,
+	"children_id"	INTEGER NOT NULL,
+	"day_of_week_id"	INTEGER NOT NULL,
+	"item_id"	INTEGER NOT NULL,
+	"served_date"	TEXT NOT NULL,
+	"facility_id"	INTEGER NOT NULL,
+	"note"	TEXT DEFAULT NULL,
+	"is_copy"	INTEGER NOT NULL DEFAULT 0,
+	"is_deleted"	INTEGER NOT NULL DEFAULT 0,
+	"recorded_staff_id"	INTEGER NOT NULL DEFAULT -1,
+	"created_at"	TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	"updated_staff_id"	INTEGER NOT NULL DEFAULT -1,
+	"updated_at"	TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	PRIMARY KEY("id" AUTOINCREMENT),
+	UNIQUE("children_id","day_of_week_id","item_id","served_date"),
+	CONSTRAINT "FK_service_record_day_of_week" FOREIGN KEY("day_of_week_id") REFERENCES "day_of_week"("id") ON DELETE CASCADE,
+	CONSTRAINT "service_record_ibfk_1" FOREIGN KEY("item_id") REFERENCES "m_service_items"("id") ON DELETE CASCADE,
+	CONSTRAINT "FK_service_record_facilitys" FOREIGN KEY("facility_id") REFERENCES "facilitys"("id") ON DELETE CASCADE,
+	CONSTRAINT "FK_service_record_children" FOREIGN KEY("children_id") REFERENCES "children"("id") ON DELETE CASCADE
+);
+CREATE TABLE IF NOT EXISTS "refresh_tokens" (
+	"id"	INTEGER NOT NULL,
+	"user_id"	INTEGER NOT NULL,
+	"token"	TEXT NOT NULL,
+	"revoked"	INTEGER DEFAULT 0,
+	"expires_at"	TEXT NOT NULL,
+	"created_at"	TEXT DEFAULT CURRENT_TIMESTAMP,
+	PRIMARY KEY("id" AUTOINCREMENT),
+	CONSTRAINT "refresh_tokens_ibfk_1" FOREIGN KEY("user_id") REFERENCES "users"("id")
+);
+CREATE TABLE IF NOT EXISTS "toolbox" (
+	"id"	INTEGER NOT NULL,
+	"title"	TEXT NOT NULL,
+	"description"	TEXT DEFAULT NULL,
+	"layout"	TEXT NOT NULL CHECK(json_valid("layout")),
+	"is_tools"	INTEGER NOT NULL DEFAULT 1,
+	"created_at"	TEXT DEFAULT CURRENT_TIMESTAMP,
+	"updated_at"	TEXT DEFAULT CURRENT_TIMESTAMP,
+	"permission"	INTEGER NOT NULL DEFAULT 0,
+	"facility_id"	INTEGER NOT NULL,
+	PRIMARY KEY("id" AUTOINCREMENT),
+	CONSTRAINT "FK_toolbox_facilitys" FOREIGN KEY("facility_id") REFERENCES "facilitys"("id") ON UPDATE CASCADE
+);
+CREATE TABLE IF NOT EXISTS "individual_support" (
+	"children_id"	INTEGER,
+	"family_intention"	TEXT,
+	"support_policy"	TEXT,
+	"long_term_goal"	TEXT,
+	"short_term_goal"	TEXT,
+	"support_date"	TEXT,
+	"created_at"	DATETIME DEFAULT CURRENT_TIMESTAMP,
+	"updated_at"	DATETIME DEFAULT CURRENT_TIMESTAMP,
+	PRIMARY KEY("children_id")
+);
+CREATE INDEX IF NOT EXISTS "idx_children_pronunciation_id" ON "children" (
+	"pronunciation_id"
+);
+CREATE INDEX IF NOT EXISTS "idx_children_children_type_id" ON "children" (
+	"children_type_id"
+);
+CREATE INDEX IF NOT EXISTS "idx_child_records_children_id" ON "child_records" (
+	"children_id"
+);
+CREATE INDEX IF NOT EXISTS "idx_child_records_record_type_id" ON "child_records" (
+	"record_type_id"
+);
+CREATE INDEX IF NOT EXISTS "idx_child_records_facility_id" ON "child_records" (
+	"facility_id"
+);
+CREATE INDEX IF NOT EXISTS "idx_facility_children_children_id" ON "facility_children" (
+	"children_id"
+);
+CREATE INDEX IF NOT EXISTS "idx_facility_staff_staff_id" ON "facility_staff" (
+	"staff_id"
+);
+CREATE INDEX IF NOT EXISTS "idx_managers2_staff_id" ON "managers2" (
+	"staff_id"
+);
+CREATE INDEX IF NOT EXISTS "idx_managers2_day_of_week_id" ON "managers2" (
+	"day_of_week_id"
+);
+CREATE INDEX IF NOT EXISTS "idx_pc_facility_id" ON "pc" (
+	"facility_id"
+);
+CREATE INDEX IF NOT EXISTS "idx_pc_to_children_children_id" ON "pc_to_children" (
+	"children_id"
+);
+CREATE INDEX IF NOT EXISTS "idx_pc_to_children_pc_id" ON "pc_to_children" (
+	"pc_id"
+);
+CREATE INDEX IF NOT EXISTS "idx_pc_to_children_day_of_week" ON "pc_to_children" (
+	"day_of_week"
+);
+CREATE INDEX IF NOT EXISTS "idx_refresh_tokens_user_id" ON "refresh_tokens" (
+	"user_id"
+);
+CREATE INDEX IF NOT EXISTS "idx_service_record_item_id" ON "service_record" (
+	"item_id"
+);
+CREATE INDEX IF NOT EXISTS "idx_service_record_day_of_week_id" ON "service_record" (
+	"day_of_week_id"
+);
+CREATE INDEX IF NOT EXISTS "idx_service_record_facility_id" ON "service_record" (
+	"facility_id"
+);
+CREATE INDEX IF NOT EXISTS "idx_staff_facility_roles_staff_id" ON "staff_facility_roles" (
+	"staff_id"
+);
+CREATE INDEX IF NOT EXISTS "idx_staff_facility_roles_facility_id" ON "staff_facility_roles" (
+	"facility_id"
+);
+CREATE INDEX IF NOT EXISTS "idx_temp_notes_staff_id" ON "temp_notes" (
+	"staff_id"
+);
+CREATE INDEX IF NOT EXISTS "idx_temp_notes_day_of_week_id" ON "temp_notes" (
+	"day_of_week_id"
+);
+CREATE INDEX IF NOT EXISTS "idx_toolbox_facility_id" ON "toolbox" (
+	"facility_id"
+);
+CREATE UNIQUE INDEX IF NOT EXISTS "idx_temp_notes_children_day" ON "temp_notes" (
+	"children_id",
+	"day_of_week_id"
+);
+CREATE UNIQUE INDEX IF NOT EXISTS "idx_facility_children_ids" ON "facility_children" (
+	"facility_id",
+	"children_id"
+);
+CREATE UNIQUE INDEX IF NOT EXISTS "idx_facility_staff_ids" ON "facility_staff" (
+	"facility_id",
+	"staff_id"
+);
+CREATE UNIQUE INDEX IF NOT EXISTS "idx_managers2_ids" ON "managers2" (
+	"children_id",
+	"staff_id",
+	"day_of_week_id"
+);
+CREATE UNIQUE INDEX IF NOT EXISTS "idx_pc_facility_pc_id" ON "pc" (
+	"facility_id",
+	"pc_id"
+);
+CREATE UNIQUE INDEX IF NOT EXISTS "idx_service_record_unique" ON "service_record" (
+	"children_id",
+	"day_of_week_id",
+	"item_id",
+	"served_date"
+);
+CREATE UNIQUE INDEX IF NOT EXISTS "idx_staff_facility_roles_unique" ON "staff_facility_roles" (
+	"staff_id",
+	"facility_id",
+	"job_name",
+	"experience_label"
+);
+CREATE UNIQUE INDEX IF NOT EXISTS "idx_users_email" ON "users" (
+	"email"
+);
 COMMIT;
 `;
 
@@ -371,16 +486,6 @@ COMMIT;
  * 既存DB向け追加カラムは基本的に nullable / default 付きにする。
  */
 async function migrateExistingDatabase(db) {
-  // ai_temp_notes
-  await ensureColumn(db, "ai_temp_notes", "children_id", `"children_id" INTEGER`);
-  await ensureColumn(db, "ai_temp_notes", "type", `"type" TEXT`);
-  await ensureColumn(db, "ai_temp_notes", "memo", `"memo" TEXT`);
-  await ensureColumn(
-    db,
-    "ai_temp_notes",
-    "updated_at",
-    `"updated_at" DATETIME DEFAULT CURRENT_TIMESTAMP`
-  );
 
   // children
   await ensureColumn(db, "children", "name", `"name" TEXT`);
@@ -620,14 +725,6 @@ async function migrateExistingDatabase(db) {
  * その場合でもアプリ起動を止めないように warning にする。
  */
 async function createIndexes(db) {
-  await tryRunSql(
-    db,
-    `
-      CREATE UNIQUE INDEX IF NOT EXISTS "idx_ai_temp_notes_children_id"
-      ON "ai_temp_notes" ("children_id")
-    `,
-    "idx_ai_temp_notes_children_id"
-  );
 
   await tryRunSql(
     db,
