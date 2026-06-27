@@ -11,6 +11,7 @@ import { useAttendanceFetch } from "@/hooks/useAttendanceFetch.js"
 import TableDataGetButton from "@/components/common/TableDataGetButon"
 import WeekdaySelect from "@/components/common/WeekdaySelect.jsx"
 import SelectChildFilter from "./SelectChildFilter.jsx"
+import Sql_SynchronizationBtn from "@/components/common/Sql_SynchronizationBtn";
 
 function SidebarHeader() {
   const { showInfoToast } = useToast()
@@ -125,6 +126,7 @@ function SidebarHeader() {
                 onToggleAutoFetch={toggleAutoFetch}
                 lastFetchedAt={attendanceData?.extractedAt}
               />
+              <Sql_SynchronizationBtn />
         </div>
 
 

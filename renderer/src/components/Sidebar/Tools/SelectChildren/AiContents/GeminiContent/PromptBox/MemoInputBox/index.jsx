@@ -194,7 +194,7 @@ export default function MemoInputBox({
         >
           このメモを保存
         </button>
-        {memoType === 1 && (
+        {(memoType === 1 || memoType === 2) && (
           <button
             type="button"
             id="kojin-kiroku"

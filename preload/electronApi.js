@@ -45,6 +45,10 @@ function createElectronApi(ipcRenderer, isDebugMode) {
     // ---- テーブル一括取得 ----
     fetchTableAll: () => ipcRenderer.invoke("fetchTableAll"),
 
+     // ---- テーブル一括同期処理 ----
+     syncDatabaseStateToSqlite: (databaseState) =>
+      ipcRenderer.invoke("sqlite:database:sync", databaseState),
+
     // ---- AI プロンプト ----
     loadPrompts: () => ipcRenderer.invoke("load-prompts"),
 

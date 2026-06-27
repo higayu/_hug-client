@@ -136,6 +136,8 @@ var require_electronApi = __commonJS({
         getDatabaseType: () => ipcRenderer2.invoke("get-database-type"),
         // ---- テーブル一括取得 ----
         fetchTableAll: () => ipcRenderer2.invoke("fetchTableAll"),
+        // ---- テーブル一括同期処理 ----
+        syncDatabaseStateToSqlite: (databaseState) => ipcRenderer2.invoke("sqlite:database:sync", databaseState),
         // ---- AI プロンプト ----
         loadPrompts: () => ipcRenderer2.invoke("load-prompts"),
         getAiPrompt: (promptKey) => ipcRenderer2.invoke("get-ai-prompt", promptKey),

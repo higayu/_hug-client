@@ -2,6 +2,9 @@
 
 const { initializeDatabase } = require("../utils/initDatabase");
 
+// MariaDBからSqliteへデータを同期処理
+const { connect } = require("./sqlite/base");
+
 // ============================================================
 // DB 初期化
 // ============================================================
@@ -54,6 +57,137 @@ function safeHandle(ipcMain, channel, handler) {
 }
 
 // ============================================================
+// SQLite Promise Helper
+// ============================================================
+
+function runSql(db, sql, params = []) {
+  return new Promise((resolve, reject) => {
+    db.run(sql, params, function (err) {
+      if (err) return reject(err);
+
+      resolve({
+        lastID: this.lastID,
+        changes: this.changes,
+      });
+    });
+  });
+}
+
+function allSql(db, sql, params = []) {
+  return new Promise((resolve, reject) => {
+    db.all(sql, params, (err, rows) => {
+      if (err) return reject(err);
+      resolve(rows);
+    });
+  });
+}
+
+function closeDb(db) {
+  return new Promise((resolve) => {
+    if (!db) return resolve();
+
+    db.close((err) => {
+      if (err) {
+        console.error("❌ SQLite close error:", err);
+      }
+      resolve();
+    });
+  });
+}
+
+async function getTableColumns(db, tableName) {
+  const rows = await allSql(db, `PRAGMA table_info("${tableName}");`);
+  return rows.map((row) => row.name);
+}
+
+function normalizeSyncValue(tableName, columnName, value) {
+  if (value === undefined) return null;
+
+  // day_of_week.days は getAll 側で配列に戻しているため、保存時は JSON 文字列に戻す
+  if (
+    tableName === "day_of_week" &&
+    columnName === "days" &&
+    Array.isArray(value)
+  ) {
+    return JSON.stringify(value);
+  }
+
+  // 万が一、配列やオブジェクトが来た場合は JSON 文字列として保存
+  if (Array.isArray(value)) {
+    return JSON.stringify(value);
+  }
+
+  if (value && typeof value === "object") {
+    return JSON.stringify(value);
+  }
+
+  return value;
+}
+
+async function insertRows(db, tableName, rows) {
+  if (!Array.isArray(rows)) {
+    return {
+      table: tableName,
+      skipped: true,
+      reason: "payload is not array",
+    };
+  }
+
+  const tableColumns = await getTableColumns(db, tableName);
+
+  if (!tableColumns || tableColumns.length === 0) {
+    return {
+      table: tableName,
+      skipped: true,
+      reason: "table not found or no columns",
+    };
+  }
+
+  if (rows.length === 0) {
+    return {
+      table: tableName,
+      inserted: 0,
+    };
+  }
+
+  let inserted = 0;
+
+  for (const row of rows) {
+    if (!row || typeof row !== "object") continue;
+
+    // SQLiteに実在するカラムだけ INSERT 対象にする
+    const insertColumns = tableColumns.filter((columnName) =>
+      Object.prototype.hasOwnProperty.call(row, columnName)
+    );
+
+    if (insertColumns.length === 0) {
+      console.warn(`⚠️ ${tableName}: INSERT可能なカラムがありません`, row);
+      continue;
+    }
+
+    const columnSql = insertColumns.map((col) => `"${col}"`).join(", ");
+    const placeholders = insertColumns.map(() => "?").join(", ");
+
+    const values = insertColumns.map((col) =>
+      normalizeSyncValue(tableName, col, row[col])
+    );
+
+    const sql = `
+      INSERT OR REPLACE INTO "${tableName}" (${columnSql})
+      VALUES (${placeholders});
+    `;
+
+    await runSql(db, sql, values);
+    inserted += 1;
+  }
+
+  return {
+    table: tableName,
+    inserted,
+  };
+}
+
+// ============================================================
 // 📘 SQLite IPCハンドラ登録（sqlite: プレフィックス付き）
 // ============================================================
 
@@ -87,6 +221,28 @@ function registerSqliteHandlers(ipcMain) {
     toolbox,
     memo,
   };
+
+  // databaseSlice から SQLite に同期する対象
+  // loading / error / metadata は Redux 管理用なので同期しない
+  const syncOrder = [
+    // マスタ系
+    "children_type",
+    "pronunciation",
+    "facilitys",
+    "staffs",
+    "children",
+    "day_of_week",
+    "pc",
+
+    // 関連テーブル
+    "facility_staff",
+    "facility_children",
+    "managers2",
+    "pc_to_children",
+
+    // 記録系
+    "service_record",
+  ];
 
   // ============================================================
   // CRUD 共通
@@ -154,6 +310,91 @@ function registerSqliteHandlers(ipcMain) {
       });
     }
   }
+
+  // ============================================================
+  // 🟢 databaseSlice 全体を SQLite に同期
+  // ============================================================
+
+  safeHandle(ipcMain, "sqlite:database:sync", async (_, databaseState) => {
+    const db = connect();
+
+    try {
+      if (!databaseState || typeof databaseState !== "object") {
+        throw new Error("databaseState が不正です");
+      }
+
+      console.log("🔄 SQLite databaseState 同期開始");
+
+      const deleteOrder = [...syncOrder].reverse();
+
+      await runSql(db, "PRAGMA foreign_keys = OFF;");
+      await runSql(db, "BEGIN TRANSACTION;");
+
+      // 先に同期対象テーブルを空にする
+      for (const tableName of deleteOrder) {
+        const rows = databaseState[tableName];
+
+        // databaseState に存在しないものは触らない
+        if (!Array.isArray(rows)) {
+          console.log(`⏭️ SQLite DELETE skip: ${tableName}`);
+          continue;
+        }
+
+        console.log(`🧹 SQLite DELETE: ${tableName}`);
+        await runSql(db, `DELETE FROM "${tableName}";`);
+      }
+
+      const results = [];
+
+      // Redux の databaseState から SQLite へ INSERT
+      for (const tableName of syncOrder) {
+        const rows = databaseState[tableName];
+
+        // databaseState に存在しないものは触らない
+        if (!Array.isArray(rows)) {
+          results.push({
+            table: tableName,
+            skipped: true,
+            reason: "databaseState does not have array",
+          });
+          continue;
+        }
+
+        console.log(`📥 SQLite INSERT: ${tableName}`, rows.length);
+
+        const result = await insertRows(db, tableName, rows);
+        results.push(result);
+      }
+
+      await runSql(db, "COMMIT;");
+      await runSql(db, "PRAGMA foreign_keys = ON;");
+
+      console.log("✅ SQLite databaseState 同期完了:", results);
+
+      return {
+        success: true,
+        results,
+      };
+    } catch (err) {
+      console.error("❌ SQLite databaseState 同期エラー:", err);
+
+      try {
+        await runSql(db, "ROLLBACK;");
+      } catch (rollbackErr) {
+        console.error("❌ SQLite ROLLBACK エラー:", rollbackErr);
+      }
+
+      try {
+        await runSql(db, "PRAGMA foreign_keys = ON;");
+      } catch (pragmaErr) {
+        console.error("❌ SQLite foreign_keys ON エラー:", pragmaErr);
+      }
+
+      throw err;
+    } finally {
+      await closeDb(db);
+    }
+  });
 
   // ============================================================
   // 🟢 ai_temp_notes（SQLite 専用）
