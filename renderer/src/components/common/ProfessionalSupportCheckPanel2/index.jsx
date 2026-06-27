@@ -217,9 +217,13 @@ export default function ProfessionalSupportCheckPanel2({
             `flex-1 bg-white text-xs text-gray-500 p-1.5 rounded text-center ${labelClassName}`.trim()
           }
           title={
-            todayProfessionalSupportRecordCount != null
-              ? `専門的支援保存件数：${todayProfessionalSupportRecordCount}件`
-              : "専門的支援保存件数：未取得"
+            checking
+              ? "本日の専門的支援登録状況：確認中"
+              : lastUseDaysResult?.ok === false
+                ? "本日の専門的支援登録状況：取得失敗"
+                : todayProfessionalSupportRecordCount != null
+                  ? `本日の専門的支援登録状況：${registeredText}（当日保存件数：${todayProfessionalSupportRecordCount}件）`
+                  : "本日の専門的支援登録状況：未取得"
           }
         >
           本日の専門:{" "}
