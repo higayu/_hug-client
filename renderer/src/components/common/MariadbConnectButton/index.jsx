@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Wifi, WifiOff, Loader2 } from "lucide-react";
 
-const MariadbConnectButton = () => {
+const MariadbConnectButton = ({ className = "" }) => {
   const [checking, setChecking] = useState(false);
   const [result, setResult] = useState(null);
 
@@ -15,7 +15,6 @@ const MariadbConnectButton = () => {
       }
 
       const res = await window.electronAPI.checkMariaDbConnection();
-
       setResult(res);
     } catch (err) {
       console.error("接続確認エラー:", err);
@@ -44,6 +43,7 @@ const MariadbConnectButton = () => {
           checking
             ? "cursor-not-allowed bg-gray-100 text-gray-500"
             : "bg-white text-gray-800 hover:bg-gray-50",
+          className,
         ].join(" ")}
       >
         {checking ? (
@@ -73,7 +73,10 @@ const MariadbConnectButton = () => {
           </div>
 
           <div className="mt-1">
-            {result.message || (isConnected ? "APIサーバに接続できました" : "APIサーバに接続できません")}
+            {result.message ||
+              (isConnected
+                ? "APIサーバに接続できました"
+                : "APIサーバに接続できません")}
           </div>
 
           {result.serverHost && (
@@ -83,7 +86,7 @@ const MariadbConnectButton = () => {
           )}
 
           {result.url && (
-            <div className="mt-1 text-xs opacity-80 break-all">
+            <div className="mt-1 break-all text-xs opacity-80">
               URL: {result.url}
             </div>
           )}
@@ -99,4 +102,4 @@ const MariadbConnectButton = () => {
   );
 };
 
-export default MariadbConnectButton
+export default MariadbConnectButton;
