@@ -42,6 +42,10 @@ function createElectronApi(ipcRenderer, isDebugMode) {
     // ---- DB 種別 ----
     getDatabaseType: () => ipcRenderer.invoke("get-database-type"),
 
+    // ---- MariaDB 接続確認 ----
+    checkMariaDbConnection: () =>
+      ipcRenderer.invoke("mariadb:connection:check"),
+
     // ---- テーブル一括取得 ----
     fetchTableAll: () => ipcRenderer.invoke("fetchTableAll"),
 

@@ -15,6 +15,7 @@ import FacilitySelector from '@/components/facility'
 import StaffUpdateButton from '@/components/common/StaffUpdateButton'
 import ProfessionalSupportListButton from '@/components/Header/ProfessionalSupportListButton'
 import Sql_SynchronizationBtn from "@/components/common/Sql_SynchronizationBtn";
+import MariadbConnectButton from "@/components/common/MariadbConnectButton";
 
 export default function Toolbar() {
   const { showInfoToast } = useToast()
@@ -351,6 +352,9 @@ export default function Toolbar() {
             </li>
             <li className="m-0 p-0">
                <Sql_SynchronizationBtn />
+            </li>
+            <li className="m-0 p-0">
+               <MariadbConnectButton />
             </li>
             {/* ★ DEBUG_FLG が true のときだけ描画 */}
             {DEBUG_FLG  && (

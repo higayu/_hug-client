@@ -41,6 +41,53 @@ function normalizePkValues(pk, values) {
 function registerMariadbHandlers(ipcMain) {
   console.log("🔥 registerMariadbHandlers (mariadb) CALLED");
 
+  // ============================================================
+  // MariaDB / API 接続確認
+  // ============================================================
+  ipcMain.handle("mariadb:connection:check", async () => {
+    try {
+      const result = await apiClient.checkConnection();
+
+      if (!result?.connected) {
+        return {
+          success: false,
+          connected: false,
+          message: result?.message || "API server connection failed",
+          url: result?.url || null,
+          code: result?.code || null,
+          status: result?.status || null,
+          statusText: result?.statusText || null,
+          data: result?.data || null,
+        };
+      }
+
+      const healthData = result.data;
+
+      return {
+        success: true,
+        connected: true,
+        message: healthData?.message || "API server connection OK",
+        status: healthData?.status || "ok",
+        serverHost: healthData?.serverHost || null,
+        timestamp: healthData?.timestamp || null,
+        url: result.url || null,
+        data: healthData,
+      };
+    } catch (err) {
+      console.error("❌ MariaDB connection check failed:", err);
+
+      return {
+        success: false,
+        connected: false,
+        message: err.message || "MariaDB/API connection failed",
+        code: err.code || null,
+        status: err.response?.status || null,
+        statusText: err.response?.statusText || null,
+        data: err.response?.data || null,
+      };
+    }
+  });
+
   const tables = [
     "children",
     "staffs",

@@ -133,6 +133,8 @@ var require_electronApi = __commonJS({
         isDebugMode: () => isDebugMode2,
         // ---- DB 種別 ----
         getDatabaseType: () => ipcRenderer2.invoke("get-database-type"),
+        // ---- MariaDB 接続確認 ----
+        checkMariaDbConnection: () => ipcRenderer2.invoke("mariadb:connection:check"),
         // ---- テーブル一括取得 ----
         fetchTableAll: () => ipcRenderer2.invoke("fetchTableAll"),
         // ---- テーブル一括同期処理 ----
