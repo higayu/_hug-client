@@ -4,17 +4,17 @@ const { ipcMain, app, BrowserWindow, clipboard } = require("electron");
 const path = require("path");
 const { pathToFileURL } = require("url");
 const fs = require("fs");
-const { handleLogin } = require("./parts/handlers/loginHandler");
-const { handleApiCalls } = require("./parts/handlers/apiHandler");
-const { handleConfigAccess } = require("./parts/handlers/readfile/configHandler");
-const { handleIniAccess } = require("./parts/handlers/readfile/iniHandler");
-const { handleCustomButtonsAccess } = require("./parts/handlers/readfile/customButtonsHandler");
+const { handleLogin } = require("./parts/loginHandler");
+const { handleApiCalls } = require("./parts/handlers");
+const { handleConfigAccess } = require("./parts/readfile/configHandler");
+const { handleIniAccess } = require("./parts/readfile/iniHandler");
+const { handleCustomButtonsAccess } = require("./parts/readfile/customButtonsHandler");
 const { registerPlanWindows } = require("./parts/window/planWindows");
 const { open_addition_compare_btn } = require("./parts/window/computeWindows/index");
 const { handleProfessionalSupportSearch } = require("./parts/window/handleProfessionalSupportSearch/index");
 
 const { resolvePreloadPath } = require("./parts/window/windowManager");
-const { handlePromptAccess } = require("./parts/handlers/readfile/promptHandler");
+const { handlePromptAccess } = require("./parts/readfile/promptHandler");
 
 function registerIpcHandlers(mainWindow, tempNoteHandler) {
   console.log("🔥 registerIpcHandlers CALLED");

@@ -12,8 +12,9 @@ import { ArrowRightOnRectangleIcon,TrashIcon,Cog6ToothIcon,AdjustmentsHorizontal
 import UrlContent from '@/components/common/UrlContent';
 import CloseToggleSwitch from '@/components/common/CloseToggleSwitch';
 import FacilitySelector from '@/components/facility'
-import StaffUpdateButton from '@/components/Header/StaffUpdateButton'
+import StaffUpdateButton from '@/components/common/StaffUpdateButton'
 import ProfessionalSupportListButton from '@/components/Header/ProfessionalSupportListButton'
+import Sql_SynchronizationBtn from "@/components/common/Sql_SynchronizationBtn";
 
 export default function Toolbar() {
   const { showInfoToast } = useToast()
@@ -348,11 +349,14 @@ export default function Toolbar() {
                 <span>設定編集</span>
               </button>
             </li>
+            <li className="m-0 p-0">
+               <Sql_SynchronizationBtn />
+            </li>
             {/* ★ DEBUG_FLG が true のときだけ描画 */}
             {DEBUG_FLG  && (
             <li className="m-0 p-0">
               <button
-                className="w-full bg-[#515152] text-white border-none rounded-md cursor-pointer transition-all whitespace-nowrap relative z-[1002] hover:bg-[#2196f3]"
+                className="w-full bg-[#515152] text-white border-none cursor-pointer transition-all whitespace-nowrap relative z-[1002] hover:bg-[#2196f3]"
                 id="devtools"
                 onClick={() => window.api.openDevTools()}
               >
@@ -364,7 +368,9 @@ export default function Toolbar() {
         </div>
       </nav>
 
-      {/* ======== ナビゲーションメニュー ======== */}
+    {/* ======== ナビゲーションメニュー ======== */}
+    {/* ★ DEBUG_FLG が true のときだけ描画 */}
+    {DEBUG_FLG  && (
       <nav className="relative inline-block ml-0 min-w-auto flex-shrink-0 z-[1001]">
         <button 
           id="custom-btn" 
@@ -379,7 +385,7 @@ export default function Toolbar() {
           <CustomButtonsPanel />
         </div>
       </nav>
-
+      )}
       <div className='w-full flex flex-col p-1'>
         <UrlContent/>
         <div className='flex flex-row'>

@@ -21,6 +21,11 @@ export default function Sql_SynchronizationBtn() {
       return;
     }
 
+    const shouldSync = window.confirm(
+      `MariaDBのデータをSqliteに同期します。このまま実行しますか？`
+    );
+    if (!shouldSync) return;
+
     try {
       setIsSyncing(true);
 
@@ -37,15 +42,16 @@ export default function Sql_SynchronizationBtn() {
   }
 
   return (
-    <div className="flex flex-col gap-2 items-center justify-center">
+    <>
       <button
         type="button"
         onClick={RunClick}
         disabled={isSyncing}
-        className="flex items-center justify-center px-7 py-2 gap-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white rounded-xl shadow-md"
+        className="w-full py-1 flex items-center justify-center bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white shadow-md"
       >
+        <span>同期</span>
         <RefreshCw size={16} className={isSyncing ? "animate-spin" : ""} />
       </button>
-    </div>
+    </>
   );
 }
