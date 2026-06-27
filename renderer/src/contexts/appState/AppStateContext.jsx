@@ -128,6 +128,7 @@ export function AppStateProvider({ children }) {
     init()
   }, [dispatch, resolveApiByDatabaseType, setActiveApi])
 
+
   // ===== ini 反映 =====
   useEffect(() => {
     const apiSettings = iniState?.apiSettings
@@ -138,13 +139,18 @@ export function AppStateProvider({ children }) {
     if (!redux.STAFF_ID && apiSettings.staffId != null) {
       updates.STAFF_ID = String(apiSettings.staffId)
     }
+
     if (!redux.FACILITY_ID && apiSettings.facilityId != null) {
       updates.FACILITY_ID = String(apiSettings.facilityId)
     }
 
+    const dbType = apiSettings.databaseType ?? 'sqlite'
+
     if (!activeApi) {
-      const dbType = apiSettings.databaseType ?? 'sqlite'
       setActiveApi(resolveApiByDatabaseType(dbType))
+    }
+
+    if (!redux.DATABASE_TYPE || redux.DATABASE_TYPE !== dbType) {
       updates.DATABASE_TYPE = dbType
     }
 
@@ -160,6 +166,7 @@ export function AppStateProvider({ children }) {
     iniState?.apiSettings,
     redux.STAFF_ID,
     redux.FACILITY_ID,
+    redux.DATABASE_TYPE,
     redux.DEBUG_FLG,
     activeApi,
     resolveApiByDatabaseType,

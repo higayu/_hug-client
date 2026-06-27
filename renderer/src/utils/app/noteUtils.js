@@ -10,6 +10,48 @@ const WEEKDAY_MAP = {
   土: 6,
 };
 
+function normalizeDatabaseType(value) {
+  if (typeof value === "string") return value;
+
+  if (value && typeof value === "object") {
+    return value.type || value.databaseType || value.dbType || "sqlite";
+  }
+
+  return "sqlite";
+}
+
+async function getDatabaseType() {
+  try {
+    const result = await window.electronAPI.getDatabaseType();
+    return normalizeDatabaseType(result);
+  } catch (err) {
+    console.warn("⚠️ databaseType取得失敗。SQLiteとして処理します:", err);
+    return "sqlite";
+  }
+}
+
+async function getTempNoteApiNames() {
+  const databaseType = await getDatabaseType();
+
+  if (databaseType === "mariadb") {
+    return {
+      databaseType,
+      save: "mariadb_saveTempNote",
+      save1: "mariadb_saveTempNote1",
+      save2: "mariadb_saveTempNote2",
+      get: "mariadb_getTempNote",
+    };
+  }
+
+  return {
+    databaseType,
+    save: "sqlite_saveTempNote",
+    save1: "sqlite_saveTempNote1",
+    save2: "sqlite_saveTempNote2",
+    get: "sqlite_getTempNote",
+  };
+}
+
 /**
  * 一時メモを保存する
  */
@@ -26,21 +68,37 @@ export async function saveTempNote(childId, memo1, memo2, appState) {
       throw new Error("必須パラメータ不足");
     }
 
+    const dayOfWeekId = appState?.CURRENT_DAY_OF_WEEK?.weekdayId;
+
+    if (dayOfWeekId == null) {
+      throw new Error("day_of_week_id が取得できません");
+    }
+
     const data = {
       children_id: childId,
       staff_id: appState.STAFF_ID,
-      day_of_week_id: appState?.CURRENT_DAY_OF_WEEK.weekdayId,
+      day_of_week_id: dayOfWeekId,
       memo1: memo1 ?? "",
       memo2: memo2 ?? "",
     };
 
-    console.log("📤 送信データ(saveTempNote):", data);
+    const apiNames = await getTempNoteApiNames();
 
-    const result = await window.electronAPI.saveTempNote(data);
+    console.log("🗄️ 使用DB:", apiNames.databaseType);
+    console.log("📤 送信データ(saveTempNote):", data);
+    console.log("📡 使用API:", apiNames.save);
+
+    const fn = window.electronAPI?.[apiNames.save];
+
+    if (typeof fn !== "function") {
+      throw new Error(`${apiNames.save} が window.electronAPI に存在しません`);
+    }
+
+    const result = await fn(data);
 
     console.log("📥 受信結果(saveTempNote):", result);
 
-    if (result?.success) {
+    if (result?.success || result?.affectedRows || result?.id || result?.changes) {
       console.log("✅ TEMP_NOTE 保存成功");
       return true;
     }
@@ -69,20 +127,36 @@ export async function saveTempNote1(childId, memo1, appState) {
       throw new Error("必須パラメータ不足");
     }
 
+    const dayOfWeekId = appState?.CURRENT_DAY_OF_WEEK?.weekdayId;
+
+    if (dayOfWeekId == null) {
+      throw new Error("day_of_week_id が取得できません");
+    }
+
     const data = {
       children_id: childId,
       staff_id: appState.STAFF_ID,
-      day_of_week_id: appState?.CURRENT_DAY_OF_WEEK.weekdayId,
+      day_of_week_id: dayOfWeekId,
       memo1: memo1 ?? "",
     };
 
-    console.log("📤 送信データ(saveTempNote1):", data);
+    const apiNames = await getTempNoteApiNames();
 
-    const result = await window.electronAPI.saveTempNote1(data);
+    console.log("🗄️ 使用DB:", apiNames.databaseType);
+    console.log("📤 送信データ(saveTempNote1):", data);
+    console.log("📡 使用API:", apiNames.save1);
+
+    const fn = window.electronAPI?.[apiNames.save1];
+
+    if (typeof fn !== "function") {
+      throw new Error(`${apiNames.save1} が window.electronAPI に存在しません`);
+    }
+
+    const result = await fn(data);
 
     console.log("📥 受信結果(saveTempNote1):", result);
 
-    if (result?.success) {
+    if (result?.success || result?.affectedRows || result?.id || result?.changes) {
       console.log("✅ TEMP_NOTE 保存成功");
       return true;
     }
@@ -111,20 +185,36 @@ export async function saveTempNote2(childId, memo2, appState) {
       throw new Error("必須パラメータ不足");
     }
 
+    const dayOfWeekId = appState?.CURRENT_DAY_OF_WEEK?.weekdayId;
+
+    if (dayOfWeekId == null) {
+      throw new Error("day_of_week_id が取得できません");
+    }
+
     const data = {
       children_id: childId,
       staff_id: appState.STAFF_ID,
-      day_of_week_id: appState?.CURRENT_DAY_OF_WEEK.weekdayId,
+      day_of_week_id: dayOfWeekId,
       memo2: memo2 ?? "",
     };
 
-    console.log("📤 送信データ(saveTempNote2):", data);
+    const apiNames = await getTempNoteApiNames();
 
-    const result = await window.electronAPI.saveTempNote2(data);
+    console.log("🗄️ 使用DB:", apiNames.databaseType);
+    console.log("📤 送信データ(saveTempNote2):", data);
+    console.log("📡 使用API:", apiNames.save2);
+
+    const fn = window.electronAPI?.[apiNames.save2];
+
+    if (typeof fn !== "function") {
+      throw new Error(`${apiNames.save2} が window.electronAPI に存在しません`);
+    }
+
+    const result = await fn(data);
 
     console.log("📥 受信結果(saveTempNote2):", result);
 
-    if (result?.success) {
+    if (result?.success || result?.affectedRows || result?.id || result?.changes) {
       console.log("✅ TEMP_NOTE 保存成功");
       return true;
     }
@@ -137,7 +227,6 @@ export async function saveTempNote2(childId, memo2, appState) {
     console.groupEnd();
   }
 }
-
 
 /**
  * 一時メモを読み込む
@@ -154,15 +243,31 @@ export async function loadTempNote(childId, proxy, appState) {
       throw new Error("必須パラメータ不足");
     }
 
+    const dayOfWeekId = appState?.CURRENT_DAY_OF_WEEK?.weekdayId;
+
+    if (dayOfWeekId == null) {
+      throw new Error("day_of_week_id が取得できません");
+    }
+
     const data = {
       children_id: childId,
       staff_id: appState.STAFF_ID,
-      day_of_week_id:appState?.CURRENT_DAY_OF_WEEK.weekdayId,
+      day_of_week_id: dayOfWeekId,
     };
 
-    console.log("📤 送信データ(getTempNote):", data);
+    const apiNames = await getTempNoteApiNames();
 
-    const result = await window.electronAPI.getTempNote(data);
+    console.log("🗄️ 使用DB:", apiNames.databaseType);
+    console.log("📤 送信データ(getTempNote):", data);
+    console.log("📡 使用API:", apiNames.get);
+
+    const fn = window.electronAPI?.[apiNames.get];
+
+    if (typeof fn !== "function") {
+      throw new Error(`${apiNames.get} が window.electronAPI に存在しません`);
+    }
+
+    const result = await fn(data);
 
     console.log("📥 受信結果(getTempNote):", result);
 

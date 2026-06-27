@@ -1,6 +1,39 @@
 // preload/electronApi.js
 const { createTableApis } = require("./tableApis");
 
+/**
+ * get-database-type の戻り値を吸収する
+ *
+ * 想定:
+ * - "sqlite"
+ * - "mariadb"
+ * - { type: "sqlite" }
+ * - { type: "mariadb" }
+ * - { databaseType: "sqlite" }
+ * - { databaseType: "mariadb" }
+ */
+function normalizeDatabaseType(value) {
+  if (typeof value === "string") {
+    return value;
+  }
+
+  if (value && typeof value === "object") {
+    return value.type || value.databaseType || value.dbType || "sqlite";
+  }
+
+  return "sqlite";
+}
+
+/**
+ * 現在のDB種別から IPC prefix を返す
+ */
+async function getDbPrefix(ipcRenderer) {
+  const result = await ipcRenderer.invoke("get-database-type");
+  const dbType = normalizeDatabaseType(result);
+
+  return dbType === "mariadb" ? "mariadb" : "sqlite";
+}
+
 function createElectronApi(ipcRenderer, isDebugMode) {
   return {
     // ---- デバッグ ----
@@ -21,22 +54,81 @@ function createElectronApi(ipcRenderer, isDebugMode) {
     buildAiPrompt: (promptKey, userText) =>
       ipcRenderer.invoke("build-ai-prompt", promptKey, userText),
 
-    // ---- 一時メモ ----
-    saveTempNote: (data) =>
+    // ============================================================
+    // 一時メモ
+    //
+    // 以前:
+    //   sqlite:saveTempNote 固定
+    //
+    // 修正後:
+    //   DB種別が mariadb なら mariadb:saveTempNote
+    //   それ以外なら sqlite:saveTempNote
+    // ============================================================
+
+    saveTempNote: async (data) => {
+      const prefix = await getDbPrefix(ipcRenderer);
+      return ipcRenderer.invoke(`${prefix}:saveTempNote`, data);
+    },
+
+    saveTempNote1: async (data) => {
+      const prefix = await getDbPrefix(ipcRenderer);
+      return ipcRenderer.invoke(`${prefix}:saveTempNote1`, data);
+    },
+
+    saveTempNote2: async (data) => {
+      const prefix = await getDbPrefix(ipcRenderer);
+      return ipcRenderer.invoke(`${prefix}:saveTempNote2`, data);
+    },
+
+    getTempNote: async ({ children_id, staff_id, day_of_week_id }) => {
+      const prefix = await getDbPrefix(ipcRenderer);
+
+      return ipcRenderer.invoke(`${prefix}:getTempNote`, {
+        children_id,
+        staff_id,
+        day_of_week_id,
+      });
+    },
+
+    // ---- 一時メモ: 明示的に SQLite を呼びたい場合 ----
+    sqlite_saveTempNote: (data) =>
       ipcRenderer.invoke("sqlite:saveTempNote", data),
 
-    saveTempNote1: (data) =>
+    sqlite_saveTempNote1: (data) =>
       ipcRenderer.invoke("sqlite:saveTempNote1", data),
 
-    saveTempNote2: (data) =>
+    sqlite_saveTempNote2: (data) =>
       ipcRenderer.invoke("sqlite:saveTempNote2", data),
 
-    getTempNote: ({ children_id, staff_id, day_of_week_id }) =>
+    sqlite_getTempNote: ({ children_id, staff_id, day_of_week_id }) =>
       ipcRenderer.invoke("sqlite:getTempNote", {
         children_id,
         staff_id,
         day_of_week_id,
       }),
+
+    // ---- 一時メモ: 明示的に MariaDB を呼びたい場合 ----
+    mariadb_saveTempNote: (data) =>
+      ipcRenderer.invoke("mariadb:saveTempNote", data),
+
+    mariadb_saveTempNote1: (data) =>
+      ipcRenderer.invoke("mariadb:saveTempNote1", data),
+
+    mariadb_saveTempNote2: (data) =>
+      ipcRenderer.invoke("mariadb:saveTempNote2", data),
+
+    mariadb_getTempNote: ({ children_id, staff_id, day_of_week_id }) =>
+      ipcRenderer.invoke("mariadb:getTempNote", {
+        children_id,
+        staff_id,
+        day_of_week_id,
+      }),
+
+    // ============================================================
+    // AI 一時メモ
+    //
+    // ai_temp_notes は SQLite 専用のまま
+    // ============================================================
 
     saveAiTempNote: (childId, note) =>
       ipcRenderer.invoke("sqlite:saveAiTempNote", { childId, note }),
@@ -78,7 +170,8 @@ function createElectronApi(ipcRenderer, isDebugMode) {
       }),
 
     // ---- 設定 ----
-    readConfig: () => ipcRenderer.invoke("read-config"),
+    readConfig: () =>
+      ipcRenderer.invoke("read-config"),
 
     saveConfig: (data) =>
       ipcRenderer.invoke("save-config", data),
@@ -140,12 +233,14 @@ function createElectronApi(ipcRenderer, isDebugMode) {
     saveAttendanceColumnData: (data) =>
       ipcRenderer.invoke("saveAttendanceColumnData", data),
 
+    // ---- MariaDB service_record ----
     mariadb_service_record_insert: (data) =>
       ipcRenderer.invoke("mariadb:service_record:insert", data),
 
     mariadb_service_record_upsert: (data) =>
       ipcRenderer.invoke("mariadb:service_record:upsert", data),
 
+    // ---- HUG staffs ----
     syncHugStaffs: (data) =>
       ipcRenderer.invoke("mariadb:hug_staffs:sync", data),
 

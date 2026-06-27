@@ -10,7 +10,7 @@ var __commonJS = (cb, mod) => function __require() {
 // preload/tables.js
 var require_tables = __commonJS({
   "preload/tables.js"(exports2, module2) {
-    var tables = [
+    var sqliteTables = [
       "children",
       "children_type",
       "day_of_week",
@@ -25,10 +25,43 @@ var require_tables = __commonJS({
       "staffs",
       "temp_notes",
       "ai_temp_notes",
-      "service_record"
+      "service_record",
+      // MariaDB 追加分を SQLite フォールバックでも使う場合
+      "record_types",
+      "child_records",
+      "m_service_items",
+      "staff_facility_roles",
+      "text_data",
+      "toolbox",
+      "memo"
+    ];
+    var mariadbTables = [
+      "children",
+      "children_type",
+      "day_of_week",
+      "facility_children",
+      "facility_staff",
+      "facilitys",
+      "individual_support",
+      "managers2",
+      "pc",
+      "pc_to_children",
+      "pronunciation",
+      "staffs",
+      "service_record",
+      "temp_notes",
+      // MariaDB 追加分
+      "record_types",
+      "child_records",
+      "m_service_items",
+      "staff_facility_roles",
+      "text_data",
+      "toolbox",
+      "memo"
     ];
     module2.exports = {
-      tables
+      sqliteTables,
+      mariadbTables
     };
   }
 });
@@ -36,20 +69,38 @@ var require_tables = __commonJS({
 // preload/tableApis.js
 var require_tableApis = __commonJS({
   "preload/tableApis.js"(exports2, module2) {
-    var { tables } = require_tables();
+    var { sqliteTables, mariadbTables } = require_tables();
     function createTableApis(ipcRenderer2) {
       const tableAPIs = {};
-      for (const table of tables) {
+      for (const table of sqliteTables) {
         tableAPIs[`sqlite_${table}_getAll`] = () => ipcRenderer2.invoke(`sqlite:${table}:getAll`);
         tableAPIs[`sqlite_${table}_getById`] = (id) => ipcRenderer2.invoke(`sqlite:${table}:getById`, id);
         tableAPIs[`sqlite_${table}_insert`] = (data) => ipcRenderer2.invoke(`sqlite:${table}:insert`, data);
         tableAPIs[`sqlite_${table}_update`] = (dataOrId, maybeData) => ipcRenderer2.invoke(`sqlite:${table}:update`, dataOrId, maybeData);
         tableAPIs[`sqlite_${table}_delete`] = (...args) => ipcRenderer2.invoke(`sqlite:${table}:delete`, ...args);
+        tableAPIs[`sqlite_${table}_upsert`] = (data) => ipcRenderer2.invoke(`sqlite:${table}:upsert`, data);
+      }
+      for (const table of mariadbTables) {
         tableAPIs[`mariadb_${table}_getAll`] = () => ipcRenderer2.invoke(`mariadb:${table}:getAll`);
-        tableAPIs[`mariadb_${table}_getById`] = (id) => ipcRenderer2.invoke(`mariadb:${table}:getById`, id);
+        tableAPIs[`mariadb_${table}_getById`] = (id, pk = "id") => ipcRenderer2.invoke(`mariadb:${table}:getByPk`, {
+          pk,
+          values: id
+        });
+        tableAPIs[`mariadb_${table}_getByPk`] = ({ pk, values }) => ipcRenderer2.invoke(`mariadb:${table}:getByPk`, {
+          pk,
+          values
+        });
         tableAPIs[`mariadb_${table}_insert`] = (data) => ipcRenderer2.invoke(`mariadb:${table}:insert`, data);
-        tableAPIs[`mariadb_${table}_update`] = (dataOrId, maybeData) => ipcRenderer2.invoke(`mariadb:${table}:update`, dataOrId, maybeData);
-        tableAPIs[`mariadb_${table}_delete`] = (...args) => ipcRenderer2.invoke(`mariadb:${table}:delete`, ...args);
+        tableAPIs[`mariadb_${table}_update`] = ({ pk, values, data }) => ipcRenderer2.invoke(`mariadb:${table}:update`, {
+          pk,
+          values,
+          data
+        });
+        tableAPIs[`mariadb_${table}_delete`] = ({ pk, values }) => ipcRenderer2.invoke(`mariadb:${table}:delete`, {
+          pk,
+          values
+        });
+        tableAPIs[`mariadb_${table}_upsert`] = (data) => ipcRenderer2.invoke(`mariadb:${table}:upsert`, data);
       }
       return tableAPIs;
     }
@@ -63,6 +114,20 @@ var require_tableApis = __commonJS({
 var require_electronApi = __commonJS({
   "preload/electronApi.js"(exports2, module2) {
     var { createTableApis } = require_tableApis();
+    function normalizeDatabaseType(value) {
+      if (typeof value === "string") {
+        return value;
+      }
+      if (value && typeof value === "object") {
+        return value.type || value.databaseType || value.dbType || "sqlite";
+      }
+      return "sqlite";
+    }
+    async function getDbPrefix(ipcRenderer2) {
+      const result = await ipcRenderer2.invoke("get-database-type");
+      const dbType = normalizeDatabaseType(result);
+      return dbType === "mariadb" ? "mariadb" : "sqlite";
+    }
     function createElectronApi2(ipcRenderer2, isDebugMode2) {
       return {
         // ---- デバッグ ----
@@ -75,15 +140,59 @@ var require_electronApi = __commonJS({
         loadPrompts: () => ipcRenderer2.invoke("load-prompts"),
         getAiPrompt: (promptKey) => ipcRenderer2.invoke("get-ai-prompt", promptKey),
         buildAiPrompt: (promptKey, userText) => ipcRenderer2.invoke("build-ai-prompt", promptKey, userText),
-        // ---- 一時メモ ----
-        saveTempNote: (data) => ipcRenderer2.invoke("sqlite:saveTempNote", data),
-        saveTempNote1: (data) => ipcRenderer2.invoke("sqlite:saveTempNote1", data),
-        saveTempNote2: (data) => ipcRenderer2.invoke("sqlite:saveTempNote2", data),
-        getTempNote: ({ children_id, staff_id, day_of_week_id }) => ipcRenderer2.invoke("sqlite:getTempNote", {
+        // ============================================================
+        // 一時メモ
+        //
+        // 以前:
+        //   sqlite:saveTempNote 固定
+        //
+        // 修正後:
+        //   DB種別が mariadb なら mariadb:saveTempNote
+        //   それ以外なら sqlite:saveTempNote
+        // ============================================================
+        saveTempNote: async (data) => {
+          const prefix = await getDbPrefix(ipcRenderer2);
+          return ipcRenderer2.invoke(`${prefix}:saveTempNote`, data);
+        },
+        saveTempNote1: async (data) => {
+          const prefix = await getDbPrefix(ipcRenderer2);
+          return ipcRenderer2.invoke(`${prefix}:saveTempNote1`, data);
+        },
+        saveTempNote2: async (data) => {
+          const prefix = await getDbPrefix(ipcRenderer2);
+          return ipcRenderer2.invoke(`${prefix}:saveTempNote2`, data);
+        },
+        getTempNote: async ({ children_id, staff_id, day_of_week_id }) => {
+          const prefix = await getDbPrefix(ipcRenderer2);
+          return ipcRenderer2.invoke(`${prefix}:getTempNote`, {
+            children_id,
+            staff_id,
+            day_of_week_id
+          });
+        },
+        // ---- 一時メモ: 明示的に SQLite を呼びたい場合 ----
+        sqlite_saveTempNote: (data) => ipcRenderer2.invoke("sqlite:saveTempNote", data),
+        sqlite_saveTempNote1: (data) => ipcRenderer2.invoke("sqlite:saveTempNote1", data),
+        sqlite_saveTempNote2: (data) => ipcRenderer2.invoke("sqlite:saveTempNote2", data),
+        sqlite_getTempNote: ({ children_id, staff_id, day_of_week_id }) => ipcRenderer2.invoke("sqlite:getTempNote", {
           children_id,
           staff_id,
           day_of_week_id
         }),
+        // ---- 一時メモ: 明示的に MariaDB を呼びたい場合 ----
+        mariadb_saveTempNote: (data) => ipcRenderer2.invoke("mariadb:saveTempNote", data),
+        mariadb_saveTempNote1: (data) => ipcRenderer2.invoke("mariadb:saveTempNote1", data),
+        mariadb_saveTempNote2: (data) => ipcRenderer2.invoke("mariadb:saveTempNote2", data),
+        mariadb_getTempNote: ({ children_id, staff_id, day_of_week_id }) => ipcRenderer2.invoke("mariadb:getTempNote", {
+          children_id,
+          staff_id,
+          day_of_week_id
+        }),
+        // ============================================================
+        // AI 一時メモ
+        //
+        // ai_temp_notes は SQLite 専用のまま
+        // ============================================================
         saveAiTempNote: (childId, note) => ipcRenderer2.invoke("sqlite:saveAiTempNote", { childId, note }),
         getAiTempNote: (childId) => ipcRenderer2.invoke("sqlite:getAiTempNote", { childId }),
         // ---- UI / Window ----
@@ -131,8 +240,10 @@ var require_electronApi = __commonJS({
         copyText: (text) => ipcRenderer2.invoke("clipboard:writeText", text),
         // ---- Attendance ----
         saveAttendanceColumnData: (data) => ipcRenderer2.invoke("saveAttendanceColumnData", data),
+        // ---- MariaDB service_record ----
         mariadb_service_record_insert: (data) => ipcRenderer2.invoke("mariadb:service_record:insert", data),
         mariadb_service_record_upsert: (data) => ipcRenderer2.invoke("mariadb:service_record:upsert", data),
+        // ---- HUG staffs ----
         syncHugStaffs: (data) => ipcRenderer2.invoke("mariadb:hug_staffs:sync", data),
         // ---- CRUD API 展開 ----
         ...createTableApis(ipcRenderer2)

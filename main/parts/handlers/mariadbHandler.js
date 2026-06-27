@@ -1,11 +1,21 @@
 // main/parts/handlers/mariadbHandler.js
+
 const apiClient = require("../../../src/apiClient");
+
 const {
   upsertServiceRecord,
 } = require("./mariadb/UpsertServiceRecord");
+
 const {
   syncHugStaffs,
 } = require("./mariadb/SyncHugStaffs");
+
+const {
+  upsertTempNote,
+  upsertTempNote1,
+  upsertTempNote2,
+  getTempNote,
+} = require("./mariadb/UpsertTempNote");
 
 /**
  * pk / values を MariaDB API 用に正規化
@@ -45,6 +55,9 @@ function registerMariadbHandlers(ipcMain) {
     "children_type",
     "day_of_week",
     "service_record",
+
+    // SQLite 側に任せていた一時メモを MariaDB 側でも使う
+    "temp_notes",
   ];
 
   for (const table of tables) {
@@ -63,7 +76,7 @@ function registerMariadbHandlers(ipcMain) {
       async (_, { pk, values }) => {
         const params = normalizePkValues(pk, values);
 
-        return apiClient.get(`${table}/search`, {
+        return apiClient.get(`${table}/_search`, {
           params,
         });
       }
@@ -105,10 +118,42 @@ function registerMariadbHandlers(ipcMain) {
     );
   }
 
+  // ============================================================
+  // service_record 専用 upsert
+  // ============================================================
   ipcMain.handle("mariadb:service_record:upsert", async (_, data) => {
     return upsertServiceRecord(data);
   });
 
+  // ============================================================
+  // temp_notes 専用 handler
+  // SQLite 側の saveTempNote / saveTempNote1 / saveTempNote2 / getTempNote と対応
+  // ============================================================
+
+  ipcMain.handle("mariadb:temp_notes:upsert", async (_, data) => {
+    return upsertTempNote(data);
+  });
+
+  ipcMain.handle("mariadb:saveTempNote", async (_, data) => {
+    return upsertTempNote(data);
+  });
+
+  ipcMain.handle("mariadb:saveTempNote1", async (_, data) => {
+    return upsertTempNote1(data);
+  });
+
+  ipcMain.handle("mariadb:saveTempNote2", async (_, data) => {
+    return upsertTempNote2(data);
+  });
+
+  ipcMain.handle("mariadb:getTempNote", async (_, data) => {
+    const result = await getTempNote(data);
+    return { success: true, data: result };
+  });
+
+  // ============================================================
+  // HUG staffs sync
+  // ============================================================
   ipcMain.handle("mariadb:hug_staffs:sync", async (_, data) => {
     return syncHugStaffs(data);
   });
