@@ -42,7 +42,7 @@ const MariadbConnectButton = ({ className = "" }) => {
           "border shadow-sm",
           checking
             ? "cursor-not-allowed bg-gray-100 hover:bg-gray-300  text-gray-500"
-            : "bg-white text-gray-800 hover:bg-gray-50",
+            : "bg-white text-gray-800 hover:bg-gray-300",
           className,
         ].join(" ")}
       >

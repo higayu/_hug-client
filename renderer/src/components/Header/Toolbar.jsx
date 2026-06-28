@@ -380,23 +380,6 @@ export default function Toolbar() {
       </nav>
 
     {/* ======== ナビゲーションメニュー ======== */}
-    {/* ★ DEBUG_FLG が true のときだけ描画 */}
-    {DEBUG_FLG  && (
-      <nav className="relative inline-block ml-0 min-w-auto flex-shrink-0 z-[1001]">
-        <button 
-          id="custom-btn" 
-          className="bg-[#515152] text-white border-none rounded-md px-3 py-1.5 cursor-pointer transition-all whitespace-nowrap relative z-[1002] hover:bg-[#2196f3]"
-        >
-          カスタムツール ▾
-        </button>
-        <div 
-          id="custom-panel" 
-          className="navInner fixed right-auto top-auto bg-white border border-gray-300 rounded-md shadow-lg z-[99999] min-w-[200px] max-h-[300px] overflow-y-auto"
-        >
-          <CustomButtonsPanel />
-        </div>
-      </nav>
-      )}
       <div className='w-full flex flex-col p-1'>
         <UrlContent/>
         <div className='flex flex-row'>
