@@ -7,8 +7,7 @@ import { saveConfig } from '@/utils/config/configUtils.js'
 import { useToast } from '@/components/common/ToastContext.jsx'
 import { loadAllReload } from '@/utils/config/reloadSettings.js'
 import { updateButtonVisibility } from '@/utils/app/buttonVisibility.js'
-import { useCustomButtonManager } from './useCustomButtonManager.js'
-// buttonVisibilityManager は削除されました（機能が空のため）
+import { useCustomButtonManager } from '@/hooks/useCustomButtonManager.js'
 import { getActiveWebview } from '@/utils/webview/webviewState.js'
 import { getJoinedStaffFacilityData } from "@/sql/staff_facility_v/staffDispatcher.js";
 import { sqliteApi } from "@/sql/sqliteApi.js";
