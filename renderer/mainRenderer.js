@@ -1,14 +1,12 @@
 // ===== モジュール読み込み =====
-import { updateButtonVisibility } from "./src/utils/app/buttonVisibility.js";
-
-import { loadAllReload } from "./src/utils/config/reloadSettings.js";
-
-import { getActiveWebview } from "./src/utils/webview/webviewState.js";
+import { updateButtonVisibility } from "@/utils/app/buttonVisibility";
+import { loadAllReload } from "@/utils/config/reloadSettings";
+import { getActiveWebview } from "@/utils/webview/webviewState";
 import { 
   fetchAttendanceTableData, 
   fetchAttendanceData, 
   parseAttendanceTable 
-} from "./src/utils/ToDayChildrenList/attendanceTable.js";
+} from "@/utils/ToDayChildrenList/attendanceTable";
 // toastはReact側のToastContextからwindow経由でアクセス可能
 
 // グローバルにエクスポート（デバッグ・開発用）

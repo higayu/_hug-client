@@ -20,7 +20,7 @@ export default function DataBaseButton({ className = "" }) {
 
   return (
     <button
-      className={`${className} bg-red-300 hover:bg-red-500  flex items-center text-gray-700 gap-2`}
+      className={`${className} bg-red-300 hover:bg-red-500 inline-flex justify-center items-center text-gray-700 gap-2`}
       onClick={handleClick}
     >
       <Database size={18} />
