@@ -16,6 +16,7 @@ import StaffUpdateButton from '@/components/common/StaffUpdateButton'
 import ProfessionalSupportListButton from '@/components/Header/ProfessionalSupportListButton'
 import Sql_SynchronizationBtn from "@/components/common/Sql_SynchronizationBtn";
 import MariadbConnectButton from "@/components/common/MariadbConnectButton";
+import DataBaseButton from "@/components/common/DataBaseButton";
 
 export default function Toolbar() {
   const { showInfoToast } = useToast()
@@ -355,6 +356,11 @@ export default function Toolbar() {
             </li>
             <li className="m-0 p-0">
                <MariadbConnectButton />
+            </li>
+            <li className="m-0 p-0">
+               <DataBaseButton
+                className="w-full py-2"
+               />
             </li>
             {/* ★ DEBUG_FLG が true のときだけ描画 */}
             {DEBUG_FLG  && (

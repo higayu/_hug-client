@@ -41,7 +41,7 @@ const MariadbConnectButton = ({ className = "" }) => {
           "inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition",
           "border shadow-sm",
           checking
-            ? "cursor-not-allowed bg-gray-100 text-gray-500"
+            ? "cursor-not-allowed bg-gray-100 hover:bg-gray-300  text-gray-500"
             : "bg-white text-gray-800 hover:bg-gray-50",
           className,
         ].join(" ")}

@@ -1,19 +1,17 @@
-import { useEffect } from "react"
+import { useEffect } from "react";
 
-import { useDataBase } from "@/hooks/useDataBase"
-import { useTabs } from "@/hooks/useTabs/index.js"
-import { useAppState } from "@/contexts/appState"
-import { getWeekdayIdFromDate } from "@/utils/date/dateUtils.js"
-import { getTodayYmdString } from "@/utils/date/dateYMD.js"
-import { useToast } from "@/components/common/ToastContext.jsx"
-import { useAttendanceFetch } from "@/hooks/useAttendanceFetch.js"
+import { useAppState } from "@/contexts/appState";
+import { getWeekdayIdFromDate } from "@/utils/date/dateUtils";
+import { getTodayYmdString } from "@/utils/date/dateYMD";
+import { useToast } from "@/components/common/ToastContext";
+import { useAttendanceFetch } from "@/hooks/useAttendanceFetch";
 
-import TableDataGetButton from "@/components/common/TableDataGetButon"
-import WeekdaySelect from "@/components/common/WeekdaySelect.jsx"
-import SelectChildFilter from "./SelectChildFilter.jsx"
+import TableDataGetButton from "@/components/common/TableDataGetButon";
+import WeekdaySelect from "@/components/common/WeekdaySelect";
+import SelectChildFilter from "./SelectChildFilter";
 
 function SidebarHeader() {
-  const { showInfoToast } = useToast()
+  const { showInfoToast } = useToast();
 
   const {
     CURRENT_DAY_OF_WEEK,
@@ -23,8 +21,6 @@ function SidebarHeader() {
     setCurrentYmd,
     DEBUG_FLG,
   } = useAppState()
-
-  const { loadDataBase } = useDataBase()
 
   const { runFetch, autoFetchEnabled, toggleAutoFetch } =
     useAttendanceFetch("SidebarHeader")
