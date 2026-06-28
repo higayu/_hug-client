@@ -146,7 +146,8 @@ export function AppStateProvider({ children }) {
 
     const dbType = apiSettings.databaseType ?? 'sqlite'
 
-    if (!activeApi) {
+    // databaseType が変わったら activeApi も切り替える
+    if (!activeApi || redux.DATABASE_TYPE !== dbType) {
       setActiveApi(resolveApiByDatabaseType(dbType))
     }
 

@@ -17,6 +17,7 @@ import ProfessionalSupportListButton from '@/components/Header/ProfessionalSuppo
 import Sql_SynchronizationBtn from "@/components/common/Sql_SynchronizationBtn";
 import MariadbConnectButton from "@/components/common/MariadbConnectButton";
 import DataBaseButton from "@/components/common/DataBaseButton";
+import ActiveApiStatus from "./ActiveApiStatus";
 
 export default function Toolbar() {
   const { showInfoToast } = useToast()
@@ -405,6 +406,7 @@ export default function Toolbar() {
             />
             {/* 🌟 設定フォルダーを開くボタン（救済措置・右クリック） */}
             <FacilitySelector  />
+            <ActiveApiStatus />
         </div>
       </div>
 

@@ -6,25 +6,30 @@ import {
   selectUseAI,
 } from '@/store/slices/appStateSlice'
 
-function ApiTab({ onSaveApiSettings, onReloadApiSettings, onInitializeSelectBoxes }) {
+function ApiTab({
+  onSaveApiSettings,
+  onReloadApiSettings,
+  onInitializeSelectBoxes,
+}) {
   const [isSaving, setIsSaving] = useState(false)
 
-  // 🔽 Redux(store) の値
+  // Redux store の値
   const STAFF_ID = useSelector(selectStaffId)
   const FACILITY_ID = useSelector(selectFacilityId)
   const USE_AI = useSelector(selectUseAI)
 
-  // 追加：画面の入力値を集める関数
+  // 画面の入力値を集める
   const collectSavePayload = () => {
-    const baseUrl = document.getElementById('api-base-url')?.value ?? ''
+    const baseURL = document.getElementById('api-base-url')?.value ?? ''
     const staffId = document.getElementById('api-staff-id')?.value ?? ''
     const facilityId = document.getElementById('api-facility-id')?.value ?? ''
-    const databaseType = document.getElementById('api-database-type')?.value ?? ''
+    const databaseType =
+      document.getElementById('api-database-type')?.value ?? ''
     const useAI = document.getElementById('api-ai-type')?.value ?? ''
 
     return {
       apiSettings: {
-        baseUrl,
+        baseURL,
         staffId,
         facilityId,
         databaseType,
@@ -39,6 +44,7 @@ function ApiTab({ onSaveApiSettings, onReloadApiSettings, onInitializeSelectBoxe
     }
   }
 
+  // 初期表示時に select/input を現在の iniState で初期化
   useEffect(() => {
     console.log('🧩 [ApiTab] mounted')
     console.log('🗂 [ApiTab] Redux store values', {
@@ -46,30 +52,27 @@ function ApiTab({ onSaveApiSettings, onReloadApiSettings, onInitializeSelectBoxe
       FACILITY_ID,
       USE_AI,
     })
-
     console.log('🧩 [ApiTab] props', {
       onSaveApiSettings,
       onReloadApiSettings,
       onInitializeSelectBoxes,
     })
-  }, [])
 
-
-  // 初期化ログ
-  useEffect(() => {
-    console.log('[ApiTab] mounted')
-    console.log('[ApiTab] props', {
-      onSaveApiSettings,
-      onReloadApiSettings,
-      onInitializeSelectBoxes,
-    })
-    // 初期表示時に select/input を現在の iniState で初期化
     if (onInitializeSelectBoxes) {
       onInitializeSelectBoxes()
     }
-  }, [onInitializeSelectBoxes, onReloadApiSettings, onSaveApiSettings])
+  }, [onInitializeSelectBoxes])
 
-  // 再読み込みボタンのハンドラー
+  // Redux値の変化確認用ログ
+  useEffect(() => {
+    console.log('🗂 [ApiTab] Redux store values changed', {
+      STAFF_ID,
+      FACILITY_ID,
+      USE_AI,
+    })
+  }, [STAFF_ID, FACILITY_ID, USE_AI])
+
+  // 再読み込みボタン
   const handleReload = async () => {
     console.log('[ApiTab] handleReload clicked')
 
@@ -92,7 +95,7 @@ function ApiTab({ onSaveApiSettings, onReloadApiSettings, onInitializeSelectBoxe
     }
   }
 
-  // 保存ボタンのハンドラー
+  // 保存ボタン
   const handleSave = async () => {
     console.log('[ApiTab] handleSave clicked')
 
@@ -101,7 +104,6 @@ function ApiTab({ onSaveApiSettings, onReloadApiSettings, onInitializeSelectBoxe
       return
     }
 
-    // ✅ 追加：送信データをログ出力
     const payload = collectSavePayload()
     console.log('📤 [ApiTab] save payload', payload)
 
@@ -109,7 +111,6 @@ function ApiTab({ onSaveApiSettings, onReloadApiSettings, onInitializeSelectBoxe
     console.log('[ApiTab] save start')
 
     try {
-      // ✅ payload を渡しても、受け側が使わなければ無視されるので基本安全
       const res = await onSaveApiSettings(payload)
       console.log('📥 [ApiTab] save response', res)
       console.log('[ApiTab] save success')
@@ -129,13 +130,16 @@ function ApiTab({ onSaveApiSettings, onReloadApiSettings, onInitializeSelectBoxe
 
       <div className="mb-6">
         <div className="flex items-center mb-3 py-2">
-          <label htmlFor="api-base-url" className="font-medium text-gray-700 min-w-[120px]">
+          <label
+            htmlFor="api-base-url"
+            className="font-medium text-gray-700 min-w-[120px]"
+          >
             APIベースURL:
           </label>
           <input
             type="text"
             id="api-base-url"
-            data-path="apiSettings."
+            data-path="apiSettings.baseURL"
             className="px-3 py-2 border border-gray-300 rounded-md text-sm transition-all flex-1 max-w-[200px]"
             onChange={(e) =>
               console.log('[ApiTab] api-base-url changed', e.target.value)
@@ -144,7 +148,10 @@ function ApiTab({ onSaveApiSettings, onReloadApiSettings, onInitializeSelectBoxe
         </div>
 
         <div className="flex items-center mb-3 py-2">
-          <label htmlFor="api-staff-id" className="font-medium text-gray-700 min-w-[120px]">
+          <label
+            htmlFor="api-staff-id"
+            className="font-medium text-gray-700 min-w-[120px]"
+          >
             スタッフ:
           </label>
           <select
@@ -160,7 +167,10 @@ function ApiTab({ onSaveApiSettings, onReloadApiSettings, onInitializeSelectBoxe
         </div>
 
         <div className="flex items-center mb-3 py-2">
-          <label htmlFor="api-facility-id" className="font-medium text-gray-700 min-w-[120px]">
+          <label
+            htmlFor="api-facility-id"
+            className="font-medium text-gray-700 min-w-[120px]"
+          >
             施設:
           </label>
           <select
@@ -176,7 +186,10 @@ function ApiTab({ onSaveApiSettings, onReloadApiSettings, onInitializeSelectBoxe
         </div>
 
         <div className="flex items-center mb-3 py-2">
-          <label htmlFor="api-database-type" className="font-medium text-gray-700 min-w-[120px]">
+          <label
+            htmlFor="api-database-type"
+            className="font-medium text-gray-700 min-w-[120px]"
+          >
             データベースタイプ:
           </label>
           <select
@@ -193,7 +206,10 @@ function ApiTab({ onSaveApiSettings, onReloadApiSettings, onInitializeSelectBoxe
         </div>
 
         <div className="flex items-center mb-3 py-2">
-          <label htmlFor="api-ai-type" className="font-medium text-gray-700 min-w-[120px]">
+          <label
+            htmlFor="api-ai-type"
+            className="font-medium text-gray-700 min-w-[120px]"
+          >
             AI種別:
           </label>
           <select
@@ -216,18 +232,20 @@ function ApiTab({ onSaveApiSettings, onReloadApiSettings, onInitializeSelectBoxe
       <div className="mb-6 flex gap-2.5">
         <button
           id="reload-api-settings"
+          type="button"
           onClick={handleReload}
           disabled={isSaving}
-          className="bg-gray-600 text-white px-5 py-2.5 rounded-md"
+          className="bg-gray-600 text-white px-5 py-2.5 rounded-md disabled:opacity-60"
         >
           {isSaving ? '再読み込み中...' : 'API設定を再読み込み'}
         </button>
 
         <button
           id="save-api-settings"
+          type="button"
           onClick={handleSave}
           disabled={isSaving}
-          className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-5 py-2.5 rounded-md"
+          className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-5 py-2.5 rounded-md disabled:opacity-60"
         >
           {isSaving ? '保存中...' : 'API設定を保存'}
         </button>
