@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useAppState } from "@/contexts/appState";
-import { useChildrenList } from "@/hooks/useChildrenList.js";
+import { useDataBase } from "@/hooks/useDataBase";
 import {
   selectCurrentYmd,
   selectFacilityId,
@@ -55,7 +55,7 @@ export function useProfessionalSupportCheck2(
     effectiveCurrentYmdType: typeof effectiveCurrentYmd,
   });
 
-  const { childrenData, patchChildUseSpeDate } = useChildrenList();
+  const { childrenData, patchChildUseSpeDate } = useDataBase();
 
   const selectedChild = childrenData.find(
     (c) => String(c.children_id) === String(effectiveChildId)

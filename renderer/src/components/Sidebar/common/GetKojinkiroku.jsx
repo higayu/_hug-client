@@ -6,7 +6,7 @@ import {
   selectAttendanceLoading,
   selectAttendanceError,
 } from "@/store/slices/attendanceSlice.js";
-import { useChildrenList } from "@/hooks/useChildrenList.js";
+import { useDataBase } from "@/hooks/useDataBase";
 import { useAppState } from "@/contexts/appState";
 
 import {
@@ -22,7 +22,7 @@ function GetKojinkiroku() {
    * Hooks（順序固定）
    * =============================== */
   const { appState, attendanceData } = useAppState();
-  const { childrenData } = useChildrenList();
+  const { childrenData } = useDataBase();
 
   const extractedData = useSelector(selectExtractedData);
   const loading = useSelector(selectAttendanceLoading);

@@ -1,25 +1,23 @@
-// renderer/src/sql/getChildren/Get_waiting_children_pc.js
+// renderer/src/hooks/useDataBase/splitChildrenData/Experience_children_v/index.js
+// ⚠️ sqliteApiとmariadbApiのimportを削除（使用していないため）
 
 /**
- * DBの種類に応じて「待機児童」データを取得
+ * DBの種類に応じて「体験児童（children_type_id = -1）」データを取得
  * @param {Object} params
  * @param {Object} params.tables - SQLiteモード時の全テーブル
- * @param {number|string} [params.facility_id] - 施設ID（MariaDBモード用）
  * @returns {Promise<Array>}
  */
-export async function Get_waiting_children_pc({ tables, facility_id = null }) {
+export async function Experience_children_v({ tables }) {
   try {
-
       if (!tables) {
-        console.error("❌ Get_waiting_children_pc: テーブルデータが未定義です");
+        console.error("❌ Experience_children_v: テーブルデータが未定義です");
         return [];
       }
 
       const { children, pc, pc_to_children } = tables;
 
-      // children_type_id = 2 が「待機児童」
-      const waitingChildren = children
-        .filter((c) => Number(c.children_type_id) === 2 && Number(c.is_delete) === 0)
+      const experienceChildren = children
+        .filter((c) => Number(c.children_type_id) === -1 && Number(c.is_delete) === 0)
         .map((c) => {
           const ptc = pc_to_children.find((p) => p.children_id === c.id);
           const pcItem = ptc ? pc.find((p) => p.id === ptc.pc_id) : null;
@@ -42,11 +40,11 @@ export async function Get_waiting_children_pc({ tables, facility_id = null }) {
         })
         .sort((a, b) => a.children_name.localeCompare(b.children_name, "ja"));
 
-      console.log(`✅ [Get_waiting_children_pc] 待機児童: ${waitingChildren.length}件`);
-      return waitingChildren;
+      console.log(`✅ [Experience_children_v] 体験児童: ${experienceChildren.length}件`);
+      return experienceChildren;
 
   } catch (error) {
-    console.error("❌ Get_waiting_children_pc エラー:", error);
+    console.error("❌ Experience_children_v エラー:", error);
     return [];
   }
 }

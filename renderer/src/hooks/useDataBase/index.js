@@ -1,19 +1,19 @@
-// src/hooks/useChildrenList.js
+// src/hooks/useDataBase/index.js
 import { useEffect, useState, useCallback, useRef } from "react"
 import { useDispatch, useSelector } from "react-redux"
 import { useAppState } from "@/contexts/appState"
-import { ELEMENT_IDS } from "@/utils/app/constants.js"
+import { ELEMENT_IDS } from "@/utils/app/constants"
 
-import { mariadbApi } from "@/sql/mariadbApi.js"
-import { sqliteApi } from "@/sql/sqliteApi.js"
-import { joinChildrenData } from "@/sql/getChildren/childrenJoinProcessor.js"
-import { fetchAllTables } from "@/store/slices/databaseSlice.js"
+import { mariadbApi } from "@/sql/mariadbApi"
+import { sqliteApi } from "@/sql/sqliteApi"
+import { splitChildrenData } from "./splitChildrenData"
+import { fetchAllTables } from "@/store/slices/databaseSlice"
 import {
   selectExtractedData,
   selectAttendanceError,
-} from "@/store/slices/attendanceSlice.js"
+} from "@/store/slices/attendanceSlice"
 
-export function useChildrenList() {
+export function useDataBase() {
   // =============================================================
   // AppState（必要なものだけ取り出す）
   // =============================================================
@@ -50,7 +50,7 @@ export function useChildrenList() {
   // =============================================================
   // 子どもデータ取得
   // =============================================================
-  const loadChildren = useCallback(async () => {
+  const loadDataBase = useCallback(async () => {
     if (!isInitialized || !activeApi || !STAFF_ID || !weekdayId) {
       console.warn("⏳ [useChildrenList] 前提条件不足", {
         isInitialized,
@@ -86,7 +86,7 @@ export function useChildrenList() {
       await dispatch(fetchAllTables(tables))
 
       // ★ 新仕様：weekdayId をそのまま渡す
-      const data = await joinChildrenData({
+      const data = await splitChildrenData({
         tables,
         staffId: STAFF_ID,
         weekdayId,
@@ -129,20 +129,20 @@ export function useChildrenList() {
   useEffect(() => {
     const handleWeekdayChanged = async () => {
       setSelectedChild("", "")
-      await loadChildren()
+      await loadDataBase()
     }
 
     window.addEventListener("weekday-changed", handleWeekdayChanged)
     return () =>
       window.removeEventListener("weekday-changed", handleWeekdayChanged)
-  }, [loadChildren, setSelectedChild])
+  }, [loadDataBase, setSelectedChild])
 
   // =============================================================
   // 初期化 & 依存変化で再取得
   // =============================================================
   useEffect(() => {
-    loadChildren()
-  }, [loadChildren])
+    loadDataBase()
+  }, [loadDataBase])
 
   // =============================================================
   // 専門的支援 利用日数（useSpeDate）を該当児童だけ更新
@@ -175,7 +175,7 @@ export function useChildrenList() {
     childrenData,
     waitingChildrenData,
     experienceChildrenData,
-    loadChildren,
+    loadDataBase,
     patchChildUseSpeDate,
 
     SELECT_CHILD,

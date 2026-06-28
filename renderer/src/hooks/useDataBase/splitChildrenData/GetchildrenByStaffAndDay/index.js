@@ -1,4 +1,4 @@
-// src/sql/getChildren/GetchildrenByStaffAndDay.js
+// src/hooks/useDataBase/splitChildrenData/GetchildrenByStaffAndDay/index.js
 
 import { DAY_OF_WEEK_MASTER } from "@/utils/date/dateUtils.js"
 

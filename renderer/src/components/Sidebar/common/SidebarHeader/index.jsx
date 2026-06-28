@@ -1,6 +1,6 @@
 import { useEffect } from "react"
 
-import { useChildrenList } from "@/hooks/useChildrenList.js"
+import { useDataBase } from "@/hooks/useDataBase"
 import { useTabs } from "@/hooks/useTabs/index.js"
 import { useAppState } from "@/contexts/appState"
 import { getWeekdayIdFromDate } from "@/utils/date/dateUtils.js"
@@ -24,7 +24,7 @@ function SidebarHeader() {
     DEBUG_FLG,
   } = useAppState()
 
-  const { loadChildren } = useChildrenList()
+  const { loadDataBase } = useDataBase()
 
   const { runFetch, autoFetchEnabled, toggleAutoFetch } =
     useAttendanceFetch("SidebarHeader")

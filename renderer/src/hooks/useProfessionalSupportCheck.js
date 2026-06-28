@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { useAppState } from "@/contexts/appState";
-import { useChildrenList } from "@/hooks/useChildrenList.js";
+import { useDataBase } from "@/hooks/useDataBase";
 import {
   selectCurrentYmd,
   selectFacilityId,
@@ -51,7 +51,7 @@ export function useProfessionalSupportCheck(logTag = "ProfessionalSupportCheck")
   const effectiveChildId = selectedChildIdFromStore || SELECT_CHILD;
   const effectiveFacilityId = facilityIdFromStore || FACILITY_ID || "3";
   const effectiveCurrentYmd = currentYmdFromStore || CURRENT_YMD;
-  const { childrenData, patchChildUseSpeDate } = useChildrenList();
+  const { childrenData, patchChildUseSpeDate } = useDataBase();
 
   const selectedChild = childrenData.find(
     (c) => c.children_id === effectiveChildId

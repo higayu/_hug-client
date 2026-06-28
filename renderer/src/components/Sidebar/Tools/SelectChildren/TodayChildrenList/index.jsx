@@ -1,7 +1,7 @@
 // src/components/Sidebar/SelectChildrenList/TodayChildrenList/index.jsx
 // 子どもリストを表示するコンポーネント
 import { useState, useMemo, useEffect, useCallback } from "react"
-import { useChildrenList } from "@/hooks/useChildrenList.js"
+import { useDataBase } from "@/hooks/useDataBase"
 import { useAppState } from "@/contexts/appState"
 import { ELEMENT_IDS } from "@/utils/app/constants.js"
 import {
@@ -19,7 +19,7 @@ export default function TodayChildrenList() {
     childrenData,
     waitingChildrenData,
     experienceChildrenData,
-  } = useChildrenList()
+  } = useDataBase()
 
   const {
     SELECT_CHILD,

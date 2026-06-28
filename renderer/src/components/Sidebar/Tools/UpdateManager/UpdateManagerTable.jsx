@@ -7,7 +7,7 @@ import { useAppState } from "@/contexts/appState";
 import { deleteManager } from "@/sql/useManager/deleteManager/deleteManager.js";
 import { store } from "@/store/store.js";
 import { useToast } from "@/components/common/ToastContext.jsx";
-import { useChildrenList } from "@/hooks/useChildrenList.js";
+import { useDataBase } from "@/hooks/useDataBase";
 import { selectManagersFull } from "./selectManagersFull.js";
 
 import { DAY_OF_WEEK_MASTER } from "@/utils/date/dateUtils.js"
@@ -19,7 +19,7 @@ const MODAL_COMPONENTS = {
 
 export default function UpdateManagerTable() {
   const { showInfoToast, showErrorToast } = useToast();
-  const { loadChildren } = useChildrenList();
+  const { loadDataBase } = useDataBase();
   const { STAFF_ID, appState, CURRENT_DAY_OF_WEEK, setCurrentDate } = useAppState();
 
   // DB から取得済みのテーブル
@@ -96,7 +96,7 @@ export default function UpdateManagerTable() {
       }
 
       showInfoToast("更新完了");
-      await loadChildren();
+      await loadDataBase();
     } catch {
       showErrorToast("エラー");
     } finally {

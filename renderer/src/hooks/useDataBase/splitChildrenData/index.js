@@ -1,8 +1,8 @@
-// renderer/src/sql/getChildren/childrenJoinProcessor.js
+// renderer/src/hooks/useDataBase/splitChildrenData/index.js
 // ⚠️ sqliteApiとmariadbApiのimportを削除（使用していないため）
-import { GetchildrenByStaffAndDay } from "./GetchildrenByStaffAndDay.js";
-import { Get_waiting_children_pc } from "./Get_waiting_children_pc.js";
-import { Experience_children_v } from "./Experience_children_v.js";
+import { GetchildrenByStaffAndDay } from "./GetchildrenByStaffAndDay";
+import { Get_waiting_children_pc } from "./Get_waiting_children_pc";
+import { Experience_children_v } from "./Experience_children_v";
 
 /**
  * 子どもデータを包括的に取得する（週／待機／体験）
@@ -13,7 +13,7 @@ import { Experience_children_v } from "./Experience_children_v.js";
  * @param {number|string|null} [params.facility_id] - 施設ID（省略可）
  * @returns {Promise<{ week_children:Array, waiting_children:Array, Experience_children:Array }>}
  */
-export async function joinChildrenData({ tables, staffId, weekdayId, facility_id = null }) {
+export async function splitChildrenData({ tables, staffId, weekdayId, facility_id = null }) {
   
   let myChildren = [];
   let myWaitingChildren = [];
@@ -26,15 +26,15 @@ export async function joinChildrenData({ tables, staffId, weekdayId, facility_id
     myWaitingChildren = await Get_waiting_children_pc({ tables, facility_id });
     myExperienceChildren = await Experience_children_v({ tables });
 
-    console.log("✅ [joinChildrenData] 抽出完了:", {
+    console.log("✅ [splitChildrenData] 抽出完了:", {
       week_children: myChildren.length,
       waiting_children: myWaitingChildren.length,
       experience_children: myExperienceChildren.length,
     });
 
-    console.log("✅ [joinChildrenData] 抽出完了:", myWaitingChildren);
-    console.log("✅ [joinChildrenData] 抽出完了:", myExperienceChildren);
-    console.log("✅ [joinChildrenData] 抽出完了:", myChildren);
+    console.log("✅ [splitChildrenData] 抽出完了:", myWaitingChildren);
+    console.log("✅ [splitChildrenData] 抽出完了:", myExperienceChildren);
+    console.log("✅ [splitChildrenData] 抽出完了:", myChildren);
 
   return {
     week_children: myChildren,

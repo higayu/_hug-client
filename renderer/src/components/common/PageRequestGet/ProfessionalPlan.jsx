@@ -26,7 +26,7 @@ async function fetchHtmlInWebview(webview, url) {
   return webview.executeJavaScript(script);
 }
 
-export default function ProfessionalPlan({ onFetched, reloadChildren }) {
+export default function ProfessionalPlan({ onFetched, reloadDataBase }) {
   const { SELECT_CHILD } = useAppState();
 
   const handleGetProfessionalPlan = async () => {
@@ -304,8 +304,8 @@ export default function ProfessionalPlan({ onFetched, reloadChildren }) {
       });
 
       onFetched?.(markdown);
-      if (typeof reloadChildren === "function") {
-        await reloadChildren();
+      if (typeof reloadDataBase === "function") {
+        await reloadDataBase();
       }
 
       if (window.showInfoToast) {

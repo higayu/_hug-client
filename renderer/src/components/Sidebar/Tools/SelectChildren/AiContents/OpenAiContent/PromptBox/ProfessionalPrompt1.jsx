@@ -1,7 +1,7 @@
 // renderer/src/components/Sidebar/Tools/MemoTool/Parts/AiContents/common/ProfessionalPrompt1.jsx
 import React, { useState, useEffect, useCallback } from "react";
 import { useAppState } from "@/contexts/appState";
-import { useChildrenList } from "@/hooks/useChildrenList.js";
+import { useDataBase } from "@/hooks/useDataBase";
 import ProfessionalPlan from "@/components/common/PageRequestGet/ProfessionalPlan.jsx";
 import ProfessionalSupportCheckPanel2 from "@/components/common/ProfessionalSupportCheckPanel2";
 
@@ -18,8 +18,8 @@ export default function ProfessionalPrompt1({
     childrenData,
     waitingChildrenData,
     experienceChildrenData,
-    loadChildren,
-  } = useChildrenList();
+    loadDataBase,
+  } = useDataBase();
 
   const [text1, setText1] = useState("");
   const [aiText, setAiText] = useState("");
@@ -82,7 +82,7 @@ export default function ProfessionalPrompt1({
           </h4>
           <ProfessionalPlan
             onFetched={setDbNote}
-            reloadChildren={loadChildren}
+            reloadDataBase={loadDataBase}
           />
         </div>
 

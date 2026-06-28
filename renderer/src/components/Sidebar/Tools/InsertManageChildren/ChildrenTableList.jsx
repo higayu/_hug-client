@@ -4,7 +4,7 @@ import ConfirmModal from "./ConfirmModal.jsx";
 import { store } from "@/store/store.js";
 import { insertManager } from "@/sql/useManager/insertManager/insertManager.js";
 import { useToast } from "@/components/common/ToastContext.jsx";
-import { useChildrenList } from "@/hooks/useChildrenList.js";
+import { useDataBase } from "@/hooks/useDataBase";
 import { useAppState } from "@/contexts/appState";
 
 /**
@@ -29,7 +29,7 @@ function ChildrenTableList({ childrenList = [] }) {
   const { showErrorToast, showSuccessToast } = useToast();
 
   // 当日の対応児童（managers2 構造）
-  const { childrenData } = useChildrenList();
+  const { childrenData } = useDataBase();
 
   // =============================================================
   // readonly 対象 children_id を Set 化（children_id 一致のみ）

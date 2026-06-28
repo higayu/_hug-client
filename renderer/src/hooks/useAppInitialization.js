@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 // initTabs は React側の useTabs() フックに移行済み
 import { updateButtonVisibility } from '../utils/app/buttonVisibility.js'
-// initChildrenList は React側の useChildrenList() フックに移行済み
+// initChildrenList は React側の useDataBase() フックに移行済み
 import { useHugActions } from './useHugActions.js'
 import { loadAllReload } from '../utils/config/reloadSettings.js'
 // updateUI は React側の useUpdateUI() フックに移行済み

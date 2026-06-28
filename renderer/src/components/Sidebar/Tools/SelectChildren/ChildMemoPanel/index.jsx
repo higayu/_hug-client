@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useDispatch } from 'react-redux'
 import { useAppState } from '@/contexts/appState'
-import { useChildrenList } from '@/hooks/useChildrenList.js'
-import { useTabs } from '@/hooks/useTabs/index.js'
+import { useDataBase } from '@/hooks/useDataBase'
+import { useTabs } from '@/hooks/useTabs'
 import {
   clickEnterButton,
   clickAbsenceButton,
@@ -40,7 +40,7 @@ export default function ChildMemoPanel() {
     childrenData,
     waitingChildrenData,
     experienceChildrenData,
-  } = useChildrenList()
+  } = useDataBase()
 
   const [selectedChildData, setSelectedChildData] = useState(null)
   const [attendanceItem, setAttendanceItem] = useState(null)
