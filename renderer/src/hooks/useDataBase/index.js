@@ -13,6 +13,9 @@ import {
   selectAttendanceError,
 } from "@/store/slices/attendanceSlice"
 
+import { selectDatabaseType } from "@/store/slices/appStateSlice"
+import { checkMariaDbConnection } from "@/components/common/MariadbConnectButton/checkMariaDbConnection"
+
 export function useDataBase() {
   // =============================================================
   // AppState（必要なものだけ取り出す）
@@ -23,7 +26,6 @@ export function useDataBase() {
     activeApi,
     isInitialized,
     setSelectedChild,
-    setSelectedPcName,
     setChildrenData,
     updateAppState,
     SELECT_CHILD,
@@ -34,6 +36,7 @@ export function useDataBase() {
   const dispatch = useDispatch()
   const extractedData = useSelector(selectExtractedData)
   const attendanceError = useSelector(selectAttendanceError)
+  const databaseType = useSelector(selectDatabaseType)
 
   // =============================================================
   // local state（表示用）
@@ -67,21 +70,57 @@ export function useDataBase() {
       )
       const facility_id = facilitySelect ? facilitySelect.value : null
 
+      // =============================================================
+      // サーバ接続チェック
+      // MariaDB使用時のみ、取得前に接続確認する
+      // 失敗した場合は checkMariaDbConnection 側で SQLite に自動切替
+      // =============================================================
+      let apiToUse = activeApi
+
+      const shouldCheckServer =
+        databaseType === "mariadb" || activeApi === mariadbApi
+
+      if (shouldCheckServer) {
+        console.log("🔌 [useChildrenList] MariaDB接続確認を実行します")
+
+        const connectionResult = await checkMariaDbConnection(dispatch, {
+          autoFallbackToSqlite: true,
+          switchToMariaDbOnSuccess: false,
+          persistIni: true,
+        })
+
+        console.log(
+          "🔌 [useChildrenList] MariaDB接続確認結果:",
+          connectionResult
+        )
+
+        if (connectionResult?.connected === true) {
+          apiToUse = mariadbApi
+        } else {
+          console.warn(
+            "⚠️ [useChildrenList] MariaDBに接続できないため SQLite で取得します"
+          )
+          apiToUse = sqliteApi
+        }
+      }
+
       console.log(
         "🔍 [useChildrenList] 使用API:",
-        activeApi === mariadbApi
+        apiToUse === mariadbApi
           ? "mariadbApi"
-          : activeApi === sqliteApi
-          ? "sqliteApi"
-          : "unknown"
+          : apiToUse === sqliteApi
+            ? "sqliteApi"
+            : "unknown"
       )
 
-      const tables = await activeApi.getAllTables()
+      const tables = await apiToUse.getAllTables()
+
       if (!tables) {
         console.error("❌ [useChildrenList] テーブル取得失敗")
         return
       }
-      console.log('テーブルのデータ',tables);
+
+      console.log("⭐loadDataBaseテーブルのデータ", tables)
 
       await dispatch(fetchAllTables(tables))
 
@@ -116,6 +155,7 @@ export function useDataBase() {
   }, [
     isInitialized,
     activeApi,
+    databaseType,
     STAFF_ID,
     weekdayId,
     dispatch,
@@ -154,19 +194,19 @@ export function useDataBase() {
           String(c.children_id) === String(childId)
             ? { ...c, useSpeDate }
             : c
-        );
+        )
 
-      const nextWeek = patchList(childrenDataRef.current);
-      childrenDataRef.current = nextWeek;
-      setLocalChildrenData(nextWeek);
-      setChildrenData(nextWeek);
-      updateAppState({ childrenData: nextWeek });
+      const nextWeek = patchList(childrenDataRef.current)
+      childrenDataRef.current = nextWeek
+      setLocalChildrenData(nextWeek)
+      setChildrenData(nextWeek)
+      updateAppState({ childrenData: nextWeek })
 
-      setWaitingChildrenData((prev) => patchList(prev));
-      setExperienceChildrenData((prev) => patchList(prev));
+      setWaitingChildrenData((prev) => patchList(prev))
+      setExperienceChildrenData((prev) => patchList(prev))
     },
     [setChildrenData, updateAppState]
-  );
+  )
 
   // =============================================================
   // return

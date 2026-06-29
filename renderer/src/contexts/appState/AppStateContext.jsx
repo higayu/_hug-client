@@ -22,7 +22,7 @@ import {
   setAttendanceData as setAttendanceDataRedux,
   setSelectedChildColumns,
   updateAppState as updateAppStateRedux,
-  setCurrentYmd as setCurrentYmdRedux,   // ★ 追加
+  setCurrentYmd as setCurrentYmdRedux,
   setSelectChildFilterMode as setSelectChildFilterModeRedux,
 } from '@/store/slices/appStateSlice'
 
@@ -33,7 +33,7 @@ const AppStateContext = createContext(null)
 export function AppStateProvider({ children }) {
   const dispatch = useDispatch()
 
-  // 🔒 初期化ガード
+  // 初期化ガード
   const didInitRef = useRef(false)
 
   const redux = useReduxBindings()
@@ -65,6 +65,7 @@ export function AppStateProvider({ children }) {
   const saveIni = useCallback(
     async (override) => {
       const source = override ?? iniState
+
       return window.electronAPI.saveIni({
         version: '1.0.0',
         appSettings: source.appSettings ?? {},
@@ -77,12 +78,24 @@ export function AppStateProvider({ children }) {
 
   const updateIniSetting = useCallback(async (path, value) => {
     await window.electronAPI.updateIniSetting(path, value)
+
     setIniState((prev) => {
       const next = structuredClone(prev)
       const keys = path.split('.')
       let cur = next
-      for (let i = 0; i < keys.length - 1; i++) cur = cur[keys[i]]
+
+      for (let i = 0; i < keys.length - 1; i++) {
+        const key = keys[i]
+
+        if (!cur[key]) {
+          cur[key] = {}
+        }
+
+        cur = cur[key]
+      }
+
       cur[keys.at(-1)] = value
+
       return next
     })
   }, [])
@@ -116,6 +129,7 @@ export function AppStateProvider({ children }) {
       })
 
       const iniData = ini ?? (await loadIniFromUtils())
+
       if (iniData) {
         setIniState({
           appSettings: iniData.appSettings ?? {},
@@ -127,7 +141,6 @@ export function AppStateProvider({ children }) {
 
     init()
   }, [dispatch, resolveApiByDatabaseType, setActiveApi])
-
 
   // ===== ini 反映 =====
   useEffect(() => {
@@ -146,11 +159,7 @@ export function AppStateProvider({ children }) {
 
     const dbType = apiSettings.databaseType ?? 'sqlite'
 
-    // databaseType が変わったら activeApi も切り替える
-    if (!activeApi || redux.DATABASE_TYPE !== dbType) {
-      setActiveApi(resolveApiByDatabaseType(dbType))
-    }
-
+    // activeApi の切替は下の専用 useEffect に任せる
     if (!redux.DATABASE_TYPE || redux.DATABASE_TYPE !== dbType) {
       updates.DATABASE_TYPE = dbType
     }
@@ -169,10 +178,40 @@ export function AppStateProvider({ children }) {
     redux.FACILITY_ID,
     redux.DATABASE_TYPE,
     redux.DEBUG_FLG,
+    dispatch,
+  ])
+
+  // ===== DATABASE_TYPE に応じて activeApi を同期 =====
+  useEffect(() => {
+    const dbType =
+      redux.DATABASE_TYPE ||
+      iniState?.apiSettings?.databaseType ||
+      'sqlite'
+
+    const nextApi = resolveApiByDatabaseType(dbType)
+
+    if (!nextApi) {
+      console.warn('[AppStateContext] activeApi の解決に失敗しました', {
+        dbType,
+      })
+      return
+    }
+
+    if (activeApi !== nextApi) {
+      console.log('[AppStateContext] activeApi を切り替えます', {
+        dbType,
+        from: activeApi,
+        to: nextApi,
+      })
+
+      setActiveApi(nextApi)
+    }
+  }, [
+    redux.DATABASE_TYPE,
+    iniState?.apiSettings?.databaseType,
     activeApi,
     resolveApiByDatabaseType,
     setActiveApi,
-    dispatch,
   ])
 
   // ===== Redux wrappers =====
@@ -185,10 +224,11 @@ export function AppStateProvider({ children }) {
     (payload) => dispatch(setCurrentDateRedux(payload)),
     [dispatch]
   )
- const setCurrentYmd = useCallback(
-   (payload) => dispatch(setCurrentYmdRedux(payload)),
-   [dispatch]
- )
+
+  const setCurrentYmd = useCallback(
+    (payload) => dispatch(setCurrentYmdRedux(payload)),
+    [dispatch]
+  )
 
   const setSelectedChildCallback = useCallback(
     (childId, childName) =>
@@ -233,7 +273,7 @@ export function AppStateProvider({ children }) {
     actions: {
       updateAppState,
       setCurrentDate,
-      setCurrentYmd, // ★ 追加
+      setCurrentYmd,
       setSelectedChild: setSelectedChildCallback,
       setChildrenData,
       setSelectedPcName: setSelectedPcNameCallback,
@@ -247,21 +287,25 @@ export function AppStateProvider({ children }) {
     <AppStateContext.Provider
       value={{
         ...redux,
+
         isInitialized,
         setIsInitialized,
+
         iniState,
         loadIni,
         saveIni,
         updateIniSetting,
         setIniState: setIniStateDirect,
+
         isFeatureEnabled,
         getUISettings,
         getWindowSettings,
+
         activeApi,
 
         updateAppState,
         setCurrentDate,
-        setCurrentYmd,   // ★ これが無かった
+        setCurrentYmd,
         setSelectedChild: setSelectedChildCallback,
         setChildrenData,
         setSelectedPcName: setSelectedPcNameCallback,
@@ -280,8 +324,10 @@ export function AppStateProvider({ children }) {
 
 export function useAppState() {
   const ctx = useContext(AppStateContext)
+
   if (!ctx) {
     throw new Error('useAppState must be used within AppStateProvider')
   }
+
   return ctx
 }
