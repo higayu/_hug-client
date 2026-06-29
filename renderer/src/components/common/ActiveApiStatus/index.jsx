@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import {
   Database,
   Server,
@@ -7,7 +7,8 @@ import {
   Loader2,
   RefreshCw,
 } from 'lucide-react'
-import { useAppState } from '@/AppStateContext'
+
+import { selectDatabaseType } from '@/store/slices/appStateSlice'
 import {
   checkMariaDbConnection,
   switchDatabaseType,
@@ -16,14 +17,13 @@ import {
 const ActiveApiStatus = ({ className = '' }) => {
   const dispatch = useDispatch()
 
-  // activeApi は使わない
-  // DATABASE_TYPE を正本にする
-  const { DATABASE_TYPE } = useAppState()
+  // ★ useAppState ではなく Redux Slice を直接読む
+  const reduxDatabaseType = useSelector(selectDatabaseType)
 
   const [switching, setSwitching] = useState(false)
   const [lastMessage, setLastMessage] = useState('')
 
-  const databaseType = DATABASE_TYPE || 'sqlite'
+  const databaseType = reduxDatabaseType || 'sqlite'
 
   const isMariaDb = databaseType === 'mariadb'
   const isSqlite = databaseType === 'sqlite'
@@ -55,29 +55,35 @@ const ActiveApiStatus = ({ className = '' }) => {
   const handleToggleDatabaseType = async () => {
     if (switching) return
 
+    console.group('[ActiveApiStatus] handleToggleDatabaseType')
+    console.log('クリック時 databaseType:', databaseType)
+    console.log('クリック時 isMariaDb:', isMariaDb)
+    console.log('クリック時 isSqlite:', isSqlite)
+
     setSwitching(true)
     setLastMessage('')
 
     try {
-      // MariaDB → SQLite は接続確認不要で即切替
       if (isMariaDb) {
-        await switchDatabaseType({
+        const result = await switchDatabaseType({
           dispatch,
           databaseType: 'sqlite',
           message: '手動で SQLite に切り替えました',
           persistIni: true,
         })
 
-        setLastMessage('SQLite に切り替えました')
+        console.log('[ActiveApiStatus] switchDatabaseType result:', result)
+        setLastMessage(result?.message || 'SQLite に切り替えました')
         return
       }
 
-      // SQLite / 未確定 → MariaDB は接続確認してから切替
       const result = await checkMariaDbConnection(dispatch, {
         autoFallbackToSqlite: true,
         switchToMariaDbOnSuccess: true,
         persistIni: true,
       })
+
+      console.log('[ActiveApiStatus] checkMariaDbConnection result:', result)
 
       setLastMessage(
         result?.message ||
@@ -90,6 +96,7 @@ const ActiveApiStatus = ({ className = '' }) => {
       setLastMessage(error?.message || 'DB切替に失敗しました')
     } finally {
       setSwitching(false)
+      console.groupEnd()
     }
   }
 
@@ -100,7 +107,7 @@ const ActiveApiStatus = ({ className = '' }) => {
         ? 'ローカルSQLiteを使用しています'
         : 'DATABASE_TYPE がまだ確定していません',
     `現在: ${label}`,
-    `DATABASE_TYPE: ${databaseType}`,
+    `Redux DATABASE_TYPE: ${databaseType}`,
     `操作: ${nextLabel}`,
     lastMessage ? `結果: ${lastMessage}` : null,
   ]
