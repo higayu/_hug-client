@@ -322,6 +322,23 @@ export async function switchDatabaseType({
   console.log("🖥 ApiTab select 表示同期開始:", databaseType);
   syncDatabaseTypeSelect(databaseType);
 
+  // ★ DB切替完了イベントを発火
+  console.log("📣 database-type-changed イベント発火:", {
+    databaseType,
+    message,
+    checkedAt,
+  });
+
+  window.dispatchEvent(
+    new CustomEvent("database-type-changed", {
+      detail: {
+        databaseType,
+        message,
+        checkedAt,
+      },
+    })
+  );
+
   console.log("✅ [switchDatabaseType] DB種別切替完了:", {
     databaseType,
     message,

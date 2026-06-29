@@ -45,6 +45,7 @@ export function useDataBase() {
   const [waitingChildrenData, setWaitingChildrenData] = useState([])
   const [experienceChildrenData, setExperienceChildrenData] = useState([])
   const childrenDataRef = useRef(childrenData)
+  const loadingRef = useRef(false)
 
   useEffect(() => {
     childrenDataRef.current = childrenData
@@ -53,32 +54,43 @@ export function useDataBase() {
   // =============================================================
   // 子どもデータ取得
   // =============================================================
-  const loadDataBase = useCallback(async () => {
-    if (!isInitialized || !activeApi || !STAFF_ID || !weekdayId) {
-      console.warn("⏳ [useChildrenList] 前提条件不足", {
-        isInitialized,
-        activeApi,
-        STAFF_ID,
-        weekdayId,
-      })
+  const loadDataBase = useCallback(async (options = {}) => {
+    const forceDatabaseType = options.forceDatabaseType
+
+    if (loadingRef.current) {
+      console.warn("⏳ [useDataBase] すでにデータ取得中のためスキップします")
       return
     }
 
+    loadingRef.current = true
+
     try {
+      if (!isInitialized || !activeApi || !STAFF_ID || !weekdayId) {
+        console.warn("⏳ [useChildrenList] 前提条件不足", {
+          isInitialized,
+          activeApi,
+          STAFF_ID,
+          weekdayId,
+        })
+        return
+      }
+
       const facilitySelect = document.getElementById(
         ELEMENT_IDS.FACILITY_SELECT
       )
       const facility_id = facilitySelect ? facilitySelect.value : null
 
-      // =============================================================
-      // サーバ接続チェック
-      // MariaDB使用時のみ、取得前に接続確認する
-      // 失敗した場合は checkMariaDbConnection 側で SQLite に自動切替
-      // =============================================================
-      let apiToUse = activeApi
+      const resolvedDatabaseType = forceDatabaseType || databaseType
+
+      let apiToUse =
+        resolvedDatabaseType === "mariadb"
+          ? mariadbApi
+          : resolvedDatabaseType === "sqlite"
+            ? sqliteApi
+            : activeApi
 
       const shouldCheckServer =
-        databaseType === "mariadb" || activeApi === mariadbApi
+        resolvedDatabaseType === "mariadb" || apiToUse === mariadbApi
 
       if (shouldCheckServer) {
         console.log("🔌 [useChildrenList] MariaDB接続確認を実行します")
@@ -124,7 +136,6 @@ export function useDataBase() {
 
       await dispatch(fetchAllTables(tables))
 
-      // ★ 新仕様：weekdayId をそのまま渡す
       const data = await splitChildrenData({
         tables,
         staffId: STAFF_ID,
@@ -136,21 +147,22 @@ export function useDataBase() {
       const waiting = data.waiting_children || []
       const experience = data.Experience_children || []
 
-      // Redux
       setChildrenData(weekChildren)
+
       updateAppState({
         childrenData: weekChildren,
         waiting_childrenData: waiting,
         Experience_childrenData: experience,
       })
 
-      // local
       childrenDataRef.current = weekChildren
       setLocalChildrenData(weekChildren)
       setWaitingChildrenData(waiting)
       setExperienceChildrenData(experience)
     } catch (error) {
       console.error("❌ [useChildrenList] 子どもデータ読み込みエラー:", error)
+    } finally {
+      loadingRef.current = false
     }
   }, [
     isInitialized,
@@ -168,13 +180,33 @@ export function useDataBase() {
   // =============================================================
   useEffect(() => {
     const handleWeekdayChanged = async () => {
+      console.log("📅 [useDataBase] weekday-changed 受信")
       setSelectedChild("", "")
       await loadDataBase()
     }
 
+    const handleDatabaseTypeChanged = async (event) => {
+      const nextDatabaseType = event?.detail?.databaseType
+
+      console.log("🔁 [useDataBase] database-type-changed 受信", {
+        nextDatabaseType,
+        detail: event?.detail,
+      })
+
+      setSelectedChild("", "")
+
+      await loadDataBase({
+        forceDatabaseType: nextDatabaseType,
+      })
+    }
+
     window.addEventListener("weekday-changed", handleWeekdayChanged)
-    return () =>
+    window.addEventListener("database-type-changed", handleDatabaseTypeChanged)
+
+    return () => {
       window.removeEventListener("weekday-changed", handleWeekdayChanged)
+      window.removeEventListener("database-type-changed", handleDatabaseTypeChanged)
+    }
   }, [loadDataBase, setSelectedChild])
 
   // =============================================================

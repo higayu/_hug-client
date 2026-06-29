@@ -3,8 +3,8 @@
 
 import { loadConfig } from './configUtils.js'
 import { loadIni as loadIniFromUtils, loadPrompt } from './iniUtils.js'
-import { sqliteApi } from '../../sql/sqliteApi.js'
-import { mariadbApi } from '../../sql/mariadbApi.js'
+import { sqliteApi } from '@/sql/sqliteApi.js'
+import { mariadbApi } from '@/sql/mariadbApi.js'
 import { store } from '@/store/store.js'
 import { setPrompts, updateAppState } from '@/store/slices/appStateSlice.js'
 /**
