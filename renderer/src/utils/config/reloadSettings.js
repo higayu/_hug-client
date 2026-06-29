@@ -12,7 +12,31 @@ import {
   setStaffId,
   setFacilityId,
   setDebugFlg,
+  setAutoSynchronization,
+  setAutoSwitching,
 } from '@/store/slices/appStateSlice.js'
+
+const toBooleanFlag = (value, defaultValue = true) => {
+  if (value === true || value === 'true') return true
+  if (value === false || value === 'false') return false
+  return defaultValue
+}
+
+const syncFormValue = (elementId, value) => {
+  const element = document.getElementById(elementId)
+
+  if (!element) {
+    return
+  }
+
+  if (element.type === 'checkbox') {
+    element.checked = value === true
+  } else {
+    element.value = String(value)
+  }
+
+  console.log(`🖥 [reloadSettings] ${elementId} 同期:`, value)
+}
 
 /**
  * config.json と ini.json の両方を再読み込みしてUIに反映
@@ -95,8 +119,30 @@ export async function loadAllReload() {
     const facilityId =
       apiSettings.facilityId != null ? String(apiSettings.facilityId) : ''
     const baseURL = apiSettings.baseURL || ''
+
     const debugFlg =
       apiSettings.debugFlg === true || apiSettings.debugFlg === 'true'
+
+    const autoSynchronization = toBooleanFlag(
+      apiSettings.autoSynchronization,
+      true
+    )
+
+    const autoSwitching = toBooleanFlag(
+      apiSettings.autoSwitching,
+      true
+    )
+
+    console.log('[reloadSettings] apiSettings normalized:', {
+      databaseType,
+      useAI,
+      staffId,
+      facilityId,
+      baseURL,
+      debugFlg,
+      autoSynchronization,
+      autoSwitching,
+    })
 
     // =============================================================
     // 5) ini.json → Redux
@@ -106,6 +152,8 @@ export async function loadAllReload() {
     store.dispatch(setStaffId(staffId))
     store.dispatch(setFacilityId(facilityId))
     store.dispatch(setDebugFlg(debugFlg))
+    store.dispatch(setAutoSynchronization(autoSynchronization))
+    store.dispatch(setAutoSwitching(autoSwitching))
 
     store.dispatch(
       updateAppState({
@@ -115,6 +163,8 @@ export async function loadAllReload() {
         FACILITY_ID: facilityId,
         VITE_API_BASE_URL: baseURL,
         DEBUG_FLG: debugFlg,
+        AUTO_SYNCHRONIZATION: autoSynchronization,
+        AUTO_SWITCHING: autoSwitching,
       })
     )
 
@@ -131,35 +181,15 @@ export async function loadAllReload() {
     // =============================================================
     // 7) ApiTab / select 表示同期
     // =============================================================
-    const databaseTypeSelect = document.getElementById('api-database-type')
-    if (databaseTypeSelect) {
-      databaseTypeSelect.value = databaseType
-      console.log('🖥 [reloadSettings] api-database-type 同期:', databaseType)
-    }
+    syncFormValue('api-database-type', databaseType)
+    syncFormValue('api-ai-type', useAI)
+    syncFormValue('api-staff-id', staffId)
+    syncFormValue('api-facility-id', facilityId)
+    syncFormValue('api-base-url', baseURL)
 
-    const aiTypeSelect = document.getElementById('api-ai-type')
-    if (aiTypeSelect) {
-      aiTypeSelect.value = useAI
-      console.log('🖥 [reloadSettings] api-ai-type 同期:', useAI)
-    }
-
-    const staffSelect = document.getElementById('api-staff-id')
-    if (staffSelect) {
-      staffSelect.value = staffId
-      console.log('🖥 [reloadSettings] api-staff-id 同期:', staffId)
-    }
-
-    const facilitySelect = document.getElementById('api-facility-id')
-    if (facilitySelect) {
-      facilitySelect.value = facilityId
-      console.log('🖥 [reloadSettings] api-facility-id 同期:', facilityId)
-    }
-
-    const baseUrlInput = document.getElementById('api-base-url')
-    if (baseUrlInput) {
-      baseUrlInput.value = baseURL
-      console.log('🖥 [reloadSettings] api-base-url 同期:', baseURL)
-    }
+    // 画面側に同名IDの input / checkbox がある場合だけ同期されます
+    syncFormValue('api-auto-synchronization', autoSynchronization)
+    syncFormValue('api-auto-switching', autoSwitching)
 
     // =============================================================
     // 8) DB種別変更イベントを発火
@@ -169,6 +199,8 @@ export async function loadAllReload() {
       new CustomEvent('database-type-changed', {
         detail: {
           databaseType,
+          autoSynchronization,
+          autoSwitching,
           message: `設定再読み込みにより ${databaseType} に切り替えました`,
           checkedAt: new Date().toISOString(),
           source: 'reloadSettings.loadAllReload',
@@ -186,6 +218,8 @@ export async function loadAllReload() {
           iniData,
           databaseType,
           useAI,
+          autoSynchronization,
+          autoSwitching,
         },
       })
     )

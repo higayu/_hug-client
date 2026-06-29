@@ -11,6 +11,10 @@ const DEFAULT_API_SETTINGS = {
   facilityId: '3',
   databaseType: 'mariadb',
   useAI: 'chatGPT',
+
+  // 自動同期 / 自動切替
+  autoSynchronization: 'true',
+  autoSwitching: 'true',
 }
 
 // 必須キーが欠けている場合にデフォルトで補完
@@ -31,7 +35,6 @@ export async function loadIni() {
   try {
     console.log('🔄 [INI] ini.json読み込み開始')
     const result = await window.electronAPI.readIni()
-
     console.log('🔍 [INI] readIni結果:', result)
     
     if (!result.success) {

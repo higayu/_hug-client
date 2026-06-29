@@ -4,6 +4,8 @@ import {
   selectStaffId,
   selectFacilityId,
   selectUseAI,
+  selectAutoSynchronization,
+  selectAutoSwitching,
 } from '@/store/slices/appStateSlice'
 
 function ApiTab({
@@ -17,6 +19,23 @@ function ApiTab({
   const STAFF_ID = useSelector(selectStaffId)
   const FACILITY_ID = useSelector(selectFacilityId)
   const USE_AI = useSelector(selectUseAI)
+  const AUTO_SYNCHRONIZATION = useSelector(selectAutoSynchronization)
+  const AUTO_SWITCHING = useSelector(selectAutoSwitching)
+
+  // チェックボックス用ローカル状態
+  const [autoSynchronization, setAutoSynchronization] = useState(
+    AUTO_SYNCHRONIZATION
+  )
+  const [autoSwitching, setAutoSwitching] = useState(AUTO_SWITCHING)
+
+  // Redux の値が再読み込みなどで変化したら画面にも反映
+  useEffect(() => {
+    setAutoSynchronization(AUTO_SYNCHRONIZATION)
+  }, [AUTO_SYNCHRONIZATION])
+
+  useEffect(() => {
+    setAutoSwitching(AUTO_SWITCHING)
+  }, [AUTO_SWITCHING])
 
   // 画面の入力値を集める
   const collectSavePayload = () => {
@@ -34,11 +53,17 @@ function ApiTab({
         facilityId,
         databaseType,
         useAI,
+
+        // ini.json には文字列として保存する
+        autoSynchronization: String(autoSynchronization),
+        autoSwitching: String(autoSwitching),
       },
       redux: {
         STAFF_ID,
         FACILITY_ID,
         USE_AI,
+        AUTO_SYNCHRONIZATION,
+        AUTO_SWITCHING,
       },
       at: new Date().toISOString(),
     }
@@ -51,6 +76,8 @@ function ApiTab({
       STAFF_ID,
       FACILITY_ID,
       USE_AI,
+      AUTO_SYNCHRONIZATION,
+      AUTO_SWITCHING,
     })
     console.log('🧩 [ApiTab] props', {
       onSaveApiSettings,
@@ -69,8 +96,32 @@ function ApiTab({
       STAFF_ID,
       FACILITY_ID,
       USE_AI,
+      AUTO_SYNCHRONIZATION,
+      AUTO_SWITCHING,
     })
-  }, [STAFF_ID, FACILITY_ID, USE_AI])
+  }, [
+    STAFF_ID,
+    FACILITY_ID,
+    USE_AI,
+    AUTO_SYNCHRONIZATION,
+    AUTO_SWITCHING,
+  ])
+
+  const handleAutoSynchronizationChange = (e) => {
+    const checked = e.target.checked
+
+    console.log('[ApiTab] autoSynchronization changed', checked)
+
+    setAutoSynchronization(checked)
+  }
+
+  const handleAutoSwitchingChange = (e) => {
+    const checked = e.target.checked
+
+    console.log('[ApiTab] autoSwitching changed', checked)
+
+    setAutoSwitching(checked)
+  }
 
   // 再読み込みボタン
   const handleReload = async () => {
@@ -226,6 +277,52 @@ function ApiTab({
             <option value="deepseek">deepseek</option>
             <option value="openrouter">OpenRouter</option>
           </select>
+        </div>
+
+        <div className="flex items-center mb-3 py-2">
+          <label
+            htmlFor="api-auto-synchronization"
+            className="font-medium text-gray-700 min-w-[120px]"
+          >
+            自動同期:
+          </label>
+
+          <label className="flex items-center gap-2 text-sm text-gray-700">
+            <input
+              type="checkbox"
+              id="api-auto-synchronization"
+              data-path="apiSettings.autoSynchronization"
+              checked={autoSynchronization}
+              onChange={handleAutoSynchronizationChange}
+              className="w-4 h-4"
+            />
+            <span>
+              有効にする
+            </span>
+          </label>
+        </div>
+
+        <div className="flex items-center mb-3 py-2">
+          <label
+            htmlFor="api-auto-switching"
+            className="font-medium text-gray-700 min-w-[120px]"
+          >
+            自動切替:
+          </label>
+
+          <label className="flex items-center gap-2 text-sm text-gray-700">
+            <input
+              type="checkbox"
+              id="api-auto-switching"
+              data-path="apiSettings.autoSwitching"
+              checked={autoSwitching}
+              onChange={handleAutoSwitchingChange}
+              className="w-4 h-4"
+            />
+            <span>
+              有効にする
+            </span>
+          </label>
         </div>
       </div>
 
