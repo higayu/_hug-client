@@ -7,11 +7,170 @@ import {
 } from "@/store/slices/appStateSlice";
 
 /**
+ * boolean / string boolean を吸収する
+ */
+function toBooleanFlag(value, defaultValue = true) {
+  if (value === true || value === "true") return true;
+  if (value === false || value === "false") return false;
+  return defaultValue;
+}
+
+/**
+ * DATABASE_TYPE の表記揺れを吸収する
+ */
+function normalizeDatabaseType(value) {
+  if (typeof value === "string") {
+    return value.toLowerCase() === "mariadb" ? "mariadb" : "sqlite";
+  }
+
+  if (value && typeof value === "object") {
+    const dbType =
+      value.type ||
+      value.databaseType ||
+      value.dbType ||
+      value.DATABASE_TYPE ||
+      "sqlite";
+
+    return String(dbType).toLowerCase() === "mariadb"
+      ? "mariadb"
+      : "sqlite";
+  }
+
+  return "sqlite";
+}
+
+/**
+ * 現在の DATABASE_TYPE を取得する
+ *
+ * 優先順位:
+ * 1. electronAPI.getDatabaseType()
+ * 2. window.IniState.apiSettings.databaseType
+ * 3. window.AppState.DATABASE_TYPE
+ * 4. sqlite
+ */
+async function getCurrentDatabaseType() {
+  console.group("🧭 [getCurrentDatabaseType] DATABASE_TYPE取得");
+
+  try {
+    if (typeof window.electronAPI?.getDatabaseType === "function") {
+      const result = await window.electronAPI.getDatabaseType();
+      const normalized = normalizeDatabaseType(result);
+
+      console.log("✅ electronAPI.getDatabaseType:", {
+        raw: result,
+        normalized,
+      });
+
+      console.groupEnd();
+      return normalized;
+    }
+
+    console.warn("⚠️ electronAPI.getDatabaseType がありません");
+  } catch (error) {
+    console.warn("⚠️ electronAPI.getDatabaseType 取得エラー:", error);
+  }
+
+  const iniValue = window.IniState?.apiSettings?.databaseType;
+
+  if (iniValue !== undefined && iniValue !== null) {
+    const normalized = normalizeDatabaseType(iniValue);
+
+    console.log("✅ IniState databaseType:", {
+      raw: iniValue,
+      normalized,
+    });
+
+    console.groupEnd();
+    return normalized;
+  }
+
+  const appStateValue =
+    window.AppState?.DATABASE_TYPE ||
+    window.AppState?.databaseType ||
+    window.AppState?.dbType;
+
+  if (appStateValue !== undefined && appStateValue !== null) {
+    const normalized = normalizeDatabaseType(appStateValue);
+
+    console.log("✅ AppState DATABASE_TYPE:", {
+      raw: appStateValue,
+      normalized,
+    });
+
+    console.groupEnd();
+    return normalized;
+  }
+
+  console.warn("⚠️ DATABASE_TYPE を取得できないため sqlite 扱いにします");
+  console.groupEnd();
+
+  return "sqlite";
+}
+
+/**
+ * AUTO_SWITCHING を取得する
+ *
+ * 優先順位:
+ * 1. window.IniState.apiSettings.autoSwitching
+ * 2. window.AppState.isAutoSwitchingEnabled()
+ * 3. window.AppState.AUTO_SWITCHING
+ * 4. true
+ */
+function getAutoSwitchingEnabled() {
+  console.group("🔀 [getAutoSwitchingEnabled] AUTO_SWITCHING取得");
+
+  const iniValue = window.IniState?.apiSettings?.autoSwitching;
+
+  if (iniValue !== undefined && iniValue !== null) {
+    const result = toBooleanFlag(iniValue, true);
+
+    console.log("✅ IniState autoSwitching:", {
+      raw: iniValue,
+      result,
+    });
+
+    console.groupEnd();
+    return result;
+  }
+
+  if (typeof window.AppState?.isAutoSwitchingEnabled === "function") {
+    const appStateResult = window.AppState.isAutoSwitchingEnabled();
+    const result = toBooleanFlag(appStateResult, true);
+
+    console.log("✅ AppState isAutoSwitchingEnabled:", {
+      raw: appStateResult,
+      result,
+    });
+
+    console.groupEnd();
+    return result;
+  }
+
+  if (window.AppState?.AUTO_SWITCHING !== undefined) {
+    const result = toBooleanFlag(window.AppState.AUTO_SWITCHING, true);
+
+    console.log("✅ AppState AUTO_SWITCHING:", {
+      raw: window.AppState.AUTO_SWITCHING,
+      result,
+    });
+
+    console.groupEnd();
+    return result;
+  }
+
+  console.warn("⚠️ AUTO_SWITCHING を取得できないため true 扱いにします");
+  console.groupEnd();
+
+  return true;
+}
+
+/**
  * MariaDB / APIサーバ接続確認
  *
  * 方針:
  * - activeApi は使わない
  * - DATABASE_TYPE を Redux の正本にする
+ * - AUTO_SWITCHING=true の場合、SQLite中でも接続成功なら MariaDB に切替える
  * - ini.json は必要に応じて更新する
  * - iniState 側の古い値による巻き戻りを防ぐため、ini 更新後に再読み込みする
  * - 最後にもう一度 Redux の DATABASE_TYPE を確定する
@@ -19,7 +178,7 @@ import {
  * @param {Function} dispatch Redux dispatch
  * @param {Object} options オプション
  * @param {boolean} options.autoFallbackToSqlite 接続失敗時にSQLiteへ切り替えるか
- * @param {boolean} options.switchToMariaDbOnSuccess 接続成功時にMariaDBへ切り替えるか
+ * @param {boolean} options.switchToMariaDbOnSuccess 接続成功時にMariaDBへ切り替えるか。AUTO_SWITCHINGとは別の強制切替オプション
  * @param {boolean} options.persistIni ini.jsonも更新するか
  * @returns {Promise<Object>} 接続確認結果
  */
@@ -33,11 +192,23 @@ export async function checkMariaDbConnection(dispatch, options = {}) {
   const checkedAt = new Date().toISOString();
 
   console.group("🔌 [checkMariaDbConnection] MariaDB接続確認開始");
+
+  const currentDatabaseType = await getCurrentDatabaseType();
+  const autoSwitching = getAutoSwitchingEnabled();
+
   console.log("📌 options:", {
     autoFallbackToSqlite,
     switchToMariaDbOnSuccess,
     persistIni,
   });
+
+  console.log("📌 current settings:", {
+    currentDatabaseType,
+    autoSwitching,
+    rawIniDatabaseType: window.IniState?.apiSettings?.databaseType,
+    rawIniAutoSwitching: window.IniState?.apiSettings?.autoSwitching,
+  });
+
   console.log("🕒 checkedAt:", checkedAt);
   console.log("🧩 dispatch exists:", Boolean(dispatch));
 
@@ -80,8 +251,13 @@ export async function checkMariaDbConnection(dispatch, options = {}) {
       checkedAt,
       data: res?.data || null,
       error: null,
+
+      currentDatabaseType,
+      autoSwitching,
+
       switchedDatabaseType: null,
       fallbackToSqlite: false,
+      autoSwitchingToMariaDb: false,
     };
 
     console.log("🧾 normalized result:", result);
@@ -97,12 +273,38 @@ export async function checkMariaDbConnection(dispatch, options = {}) {
       );
     }
 
-    // SQLite → MariaDB 切替
-    if (connected && switchToMariaDbOnSuccess) {
+    // =============================================================
+    // SQLite → MariaDB 自動切替
+    //
+    // 条件:
+    // - 接続成功
+    // - 現在 sqlite
+    // - AUTO_SWITCHING=true
+    //
+    // または switchToMariaDbOnSuccess=true の場合は強制的に切替
+    // =============================================================
+    const shouldSwitchToMariaDb =
+      connected &&
+      currentDatabaseType === "sqlite" &&
+      (autoSwitching || switchToMariaDbOnSuccess);
+
+    console.log("🔀 MariaDB切替判定:", {
+      connected,
+      currentDatabaseType,
+      autoSwitching,
+      switchToMariaDbOnSuccess,
+      shouldSwitchToMariaDb,
+    });
+
+    if (shouldSwitchToMariaDb) {
+      const reason = autoSwitching
+        ? "AUTO_SWITCHING=true かつ APIサーバに接続できたため MariaDB に切り替えました"
+        : "switchToMariaDbOnSuccess=true のため MariaDB に切り替えました";
+
       const switched = await switchDatabaseType({
         dispatch,
         databaseType: "mariadb",
-        message: "APIサーバに接続できたため MariaDB に切り替えました",
+        message: reason,
         persistIni,
       });
 
@@ -111,16 +313,51 @@ export async function checkMariaDbConnection(dispatch, options = {}) {
         message: switched.message,
         switchedDatabaseType: switched.databaseType,
         fallbackToSqlite: false,
+        autoSwitchingToMariaDb: autoSwitching,
       };
 
-      console.log("✅ MariaDB切替完了 result:", switchedResult);
+      console.log("✅ MariaDB自動切替完了 result:", switchedResult);
       console.groupEnd();
 
       return switchedResult;
     }
 
+    // =============================================================
+    // 接続成功だが切替しない
+    // =============================================================
+    if (connected) {
+      console.log("✅ 接続成功。ただし DB切替なし:", {
+        currentDatabaseType,
+        autoSwitching,
+        switchToMariaDbOnSuccess,
+      });
+
+      console.groupEnd();
+      return result;
+    }
+
+    // =============================================================
     // 接続失敗時の SQLite fallback
+    //
+    // すでに sqlite の場合は切替処理を省略
+    // =============================================================
     if (!connected && autoFallbackToSqlite) {
+      if (currentDatabaseType === "sqlite") {
+        const sqliteResult = {
+          ...result,
+          message:
+            result.message ||
+            "APIサーバに接続できません。現在 SQLite のため切替は行いません",
+          switchedDatabaseType: null,
+          fallbackToSqlite: false,
+        };
+
+        console.log("⏭ すでに SQLite のため fallback切替は省略:", sqliteResult);
+        console.groupEnd();
+
+        return sqliteResult;
+      }
+
       const switched = await switchDatabaseType({
         dispatch,
         databaseType: "sqlite",
@@ -164,8 +401,13 @@ export async function checkMariaDbConnection(dispatch, options = {}) {
         name: err?.name || "Error",
         message: err?.message || "接続確認に失敗しました",
       },
+
+      currentDatabaseType,
+      autoSwitching,
+
       switchedDatabaseType: null,
       fallbackToSqlite: false,
+      autoSwitchingToMariaDb: false,
     };
 
     if (dispatch) {
@@ -180,6 +422,22 @@ export async function checkMariaDbConnection(dispatch, options = {}) {
     }
 
     if (autoFallbackToSqlite) {
+      if (currentDatabaseType === "sqlite") {
+        const sqliteResult = {
+          ...baseResult,
+          message:
+            baseResult.message ||
+            "接続確認に失敗しました。現在 SQLite のため切替は行いません",
+          switchedDatabaseType: null,
+          fallbackToSqlite: false,
+        };
+
+        console.log("⏭ 例外後、すでに SQLite のため fallback省略:", sqliteResult);
+        console.groupEnd();
+
+        return sqliteResult;
+      }
+
       const switched = await switchDatabaseType({
         dispatch,
         databaseType: "sqlite",
