@@ -1,14 +1,14 @@
 import { useEffect, useRef } from 'react'
 // initTabs は React側の useTabs() フックに移行済み
-import { updateButtonVisibility } from '../utils/app/buttonVisibility.js'
+import { updateButtonVisibility } from '@/utils/app/buttonVisibility.js'
 // initChildrenList は React側の useDataBase() フックに移行済み
 import { useHugActions } from './useHugActions.js'
-import { loadAllReload } from '../utils/config/reloadSettings.js'
+import { loadAllReload } from '@/utils/config/reloadSettings.js'
 // updateUI は React側の useUpdateUI() フックに移行済み
 import { useUpdateUI } from './useUpdateUI.js'
 import { useCustomButtonManager } from './useCustomButtonManager.js'
 // buttonVisibilityManager は削除されました（機能が空のため）
-import { getActiveWebview } from '../utils/webview/webviewState.js'
+import { getActiveWebview } from '@/utils/webview/webviewState.js'
 import { useToast } from '@/components/common/ToastContext.jsx'
 
 function toBooleanFlag(value, defaultValue = true) {
@@ -30,10 +30,99 @@ function toBooleanFlag(value, defaultValue = true) {
   return result
 }
 
+function normalizeDatabaseType(value) {
+  if (typeof value === 'string') {
+    return value.toLowerCase()
+  }
+
+  if (value && typeof value === 'object') {
+    const dbType =
+      value.type ||
+      value.databaseType ||
+      value.dbType ||
+      value.DATABASE_TYPE ||
+      'sqlite'
+
+    return String(dbType).toLowerCase()
+  }
+
+  return 'sqlite'
+}
+
+async function getCurrentDatabaseType() {
+  console.log('🔍 [useAppInitialization] DATABASE_TYPE 判定開始')
+
+  try {
+    if (typeof window.electronAPI?.getDatabaseType === 'function') {
+      const result = await window.electronAPI.getDatabaseType()
+      const normalized = normalizeDatabaseType(result)
+
+      console.log('✅ [useAppInitialization] DATABASE_TYPE from electronAPI:', {
+        raw: result,
+        normalized,
+      })
+
+      return normalized
+    }
+
+    console.warn(
+      '⚠️ [useAppInitialization] electronAPI.getDatabaseType がありません。IniState/AppState を参照します'
+    )
+  } catch (error) {
+    console.warn(
+      '⚠️ [useAppInitialization] electronAPI.getDatabaseType 取得エラー。IniState/AppState を参照します:',
+      error
+    )
+  }
+
+  const iniDatabaseType = window.IniState?.apiSettings?.databaseType
+
+  if (iniDatabaseType !== undefined && iniDatabaseType !== null) {
+    const normalized = normalizeDatabaseType(iniDatabaseType)
+
+    console.log('✅ [useAppInitialization] DATABASE_TYPE from IniState:', {
+      raw: iniDatabaseType,
+      normalized,
+    })
+
+    return normalized
+  }
+
+  const appStateDatabaseType =
+    window.AppState?.DATABASE_TYPE ||
+    window.AppState?.databaseType ||
+    window.AppState?.dbType
+
+  if (appStateDatabaseType !== undefined && appStateDatabaseType !== null) {
+    const normalized = normalizeDatabaseType(appStateDatabaseType)
+
+    console.log('✅ [useAppInitialization] DATABASE_TYPE from AppState:', {
+      raw: appStateDatabaseType,
+      normalized,
+    })
+
+    return normalized
+  }
+
+  console.warn(
+    '⚠️ [useAppInitialization] DATABASE_TYPE を取得できないため sqlite 扱いにします'
+  )
+
+  return 'sqlite'
+}
+
 function logCloseSnapshot(label) {
   console.log(`🧭 [useAppInitialization] ${label}`, {
     IniStateExists: !!window.IniState,
     AppStateExists: !!window.AppState,
+
+    rawIniDatabaseType:
+      window.IniState?.apiSettings?.databaseType,
+
+    rawAppStateDatabaseType:
+      window.AppState?.DATABASE_TYPE ||
+      window.AppState?.databaseType ||
+      window.AppState?.dbType,
 
     rawIniAutoSynchronization:
       window.IniState?.apiSettings?.autoSynchronization,
@@ -43,6 +132,9 @@ function logCloseSnapshot(label) {
 
     rawConfirmOnClose:
       window.IniState?.appSettings?.ui?.confirmOnClose,
+
+    hasGetDatabaseType:
+      typeof window.electronAPI?.getDatabaseType === 'function',
 
     hasSyncDatabaseStateToSqlite:
       typeof window.electronAPI?.syncDatabaseStateToSqlite === 'function',
@@ -129,9 +221,10 @@ function getConfirmOnCloseEnabled() {
   return result
 }
 
-function getCloseConfirmMessage({ autoSynchronization, syncResult }) {
+function getCloseConfirmMessage({ autoSynchronization, syncResult, databaseType }) {
   console.log('📝 [useAppInitialization] getCloseConfirmMessage START:', {
     autoSynchronization,
+    databaseType,
     syncResult,
   })
 
@@ -140,6 +233,17 @@ function getCloseConfirmMessage({ autoSynchronization, syncResult }) {
 
     console.log('📝 [useAppInitialization] confirm message selected:', {
       reason: 'autoSynchronization=false',
+      message,
+    })
+
+    return message
+  }
+
+  if (databaseType === 'sqlite') {
+    const message = 'アプリを終了しますか？'
+
+    console.log('📝 [useAppInitialization] confirm message selected:', {
+      reason: 'DATABASE_TYPE=sqlite のため自動同期なし',
       message,
     })
 
@@ -161,13 +265,10 @@ function getCloseConfirmMessage({ autoSynchronization, syncResult }) {
   }
 
   if (syncResult?.skipped) {
-    const message = [
-      'MariaDBからSQLiteへの自動同期はスキップされました。',
-      'アプリを終了しますか？',
-    ].join('\n')
+    const message = 'アプリを終了しますか？'
 
     console.log('📝 [useAppInitialization] confirm message selected:', {
-      reason: 'sync skipped',
+      reason: syncResult?.reason || 'sync skipped',
       message,
     })
 
@@ -189,12 +290,16 @@ function getCloseConfirmMessage({ autoSynchronization, syncResult }) {
 
 async function runAutoSynchronizationBeforeConfirm(
   showErrorToastRef,
-  autoSynchronization
+  autoSynchronization,
+  databaseType
 ) {
   console.log('🚀 [useAppInitialization] runAutoSynchronizationBeforeConfirm START')
 
   console.log('🔍 [useAppInitialization] 同期前フラグ確認:', {
     autoSynchronization,
+    databaseType,
+    rawIniDatabaseType:
+      window.IniState?.apiSettings?.databaseType,
     rawIniAutoSynchronization:
       window.IniState?.apiSettings?.autoSynchronization,
   })
@@ -208,6 +313,36 @@ async function runAutoSynchronizationBeforeConfirm(
       success: true,
       skipped: true,
       reason: 'autoSynchronization is false',
+      databaseType,
+    }
+  }
+
+  if (databaseType === 'sqlite') {
+    console.log(
+      '⏭ [useAppInitialization] DATABASE_TYPE=sqlite のため終了時自動同期を実行しません'
+    )
+
+    return {
+      success: true,
+      skipped: true,
+      reason: 'DATABASE_TYPE is sqlite',
+      databaseType,
+    }
+  }
+
+  if (databaseType !== 'mariadb') {
+    console.log(
+      '⏭ [useAppInitialization] DATABASE_TYPE が mariadb ではないため終了時自動同期を実行しません',
+      {
+        databaseType,
+      }
+    )
+
+    return {
+      success: true,
+      skipped: true,
+      reason: 'DATABASE_TYPE is not mariadb',
+      databaseType,
     }
   }
 
@@ -220,12 +355,13 @@ async function runAutoSynchronizationBeforeConfirm(
       success: false,
       skipped: false,
       reason: 'syncDatabaseStateToSqlite is not exposed',
+      databaseType,
     }
   }
 
   try {
     console.log(
-      '🔄 [useAppInitialization] window.confirm 前に MariaDB → SQLite 自動同期を実行します'
+      '🔄 [useAppInitialization] DATABASE_TYPE=mariadb のため window.confirm 前に MariaDB → SQLite 自動同期を実行します'
     )
 
     console.time('⏱ [useAppInitialization] SQLite auto sync time')
@@ -239,6 +375,7 @@ async function runAutoSynchronizationBeforeConfirm(
     const normalizedResult = {
       success: result?.success !== false,
       skipped: false,
+      databaseType,
       result,
       error: result?.success === false ? result?.error : null,
     }
@@ -263,6 +400,7 @@ async function runAutoSynchronizationBeforeConfirm(
     return {
       success: false,
       skipped: false,
+      databaseType,
       error: error?.message || String(error),
     }
   } finally {
@@ -344,21 +482,28 @@ export function useAppInitialization() {
               logCloseSnapshot('onConfirmCloseRequest 開始時 snapshot')
 
               const autoSynchronization = getAutoSynchronizationEnabled()
+              const databaseType = await getCurrentDatabaseType()
 
               console.log(
-                '🚪 [useAppInitialization] 終了確認前 autoSynchronization:',
+                '🚪 [useAppInitialization] 終了確認前 条件判定:',
                 {
                   autoSynchronization,
-                  rawIniValue:
+                  databaseType,
+                  rawIniAutoSynchronization:
                     window.IniState?.apiSettings?.autoSynchronization,
+                  rawIniDatabaseType:
+                    window.IniState?.apiSettings?.databaseType,
                 }
               )
 
-              // window.confirm 実行前に apiSettings.autoSynchronization を確認して、
-              // true の場合のみ同期処理を実行する
+              // window.confirm 実行前に以下の条件を確認する
+              // - autoSynchronization=true
+              // - DATABASE_TYPE=mariadb
+              // 上記を満たす場合のみ MariaDB → SQLite 同期を実行する
               const syncResult = await runAutoSynchronizationBeforeConfirm(
                 showErrorToastRef,
-                autoSynchronization
+                autoSynchronization,
+                databaseType
               )
 
               console.log(
@@ -379,6 +524,7 @@ export function useAppInitialization() {
               if (confirmOnCloseEnabled) {
                 const confirmMessage = getCloseConfirmMessage({
                   autoSynchronization,
+                  databaseType,
                   syncResult,
                 })
 
