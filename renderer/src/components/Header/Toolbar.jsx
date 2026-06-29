@@ -15,9 +15,9 @@ import FacilitySelector from '@/components/facility'
 import StaffUpdateButton from '@/components/common/StaffUpdateButton'
 import ProfessionalSupportListButton from '@/components/Header/ProfessionalSupportListButton'
 import Sql_SynchronizationBtn from "@/components/common/Sql_SynchronizationBtn";
-import MariadbConnectButton from "@/components/common/MariadbConnectButton";
+import ServerConnectButton from "@/components/common/ServerConnectButton";
 import DataBaseButton from "@/components/common/DataBaseButton";
-import ActiveApiStatus from "./ActiveApiStatus";
+import ActiveApiStatus from "@/components/common/ActiveApiStatus";
 
 export default function Toolbar() {
   const { showInfoToast } = useToast()
@@ -353,18 +353,19 @@ export default function Toolbar() {
               </button>
             </li>
             <li className="m-0 p-0">
-               <Sql_SynchronizationBtn />
-            </li>
-            <li className="m-0 p-0">
-               <MariadbConnectButton />
-            </li>
-            <li className="m-0 p-0">
                <DataBaseButton
                 className="w-full py-2"
                />
             </li>
             {/* ★ DEBUG_FLG が true のときだけ描画 */}
             {DEBUG_FLG  && (
+            <>
+            <li className="m-0 p-0">
+               <Sql_SynchronizationBtn />
+            </li>
+            <li className="m-0 p-0">
+               <ServerConnectButton />
+            </li>
             <li className="m-0 p-0">
               <button
                 className="w-full bg-[#515152] text-white border-none cursor-pointer transition-all whitespace-nowrap relative z-[1002] hover:bg-[#2196f3]"
@@ -374,6 +375,7 @@ export default function Toolbar() {
                 デベロッパー
               </button>
             </li>
+            </>
             )}
           </ul>
         </div>

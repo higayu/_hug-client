@@ -14,7 +14,7 @@ import {
 } from "@/store/slices/attendanceSlice"
 
 import { selectDatabaseType } from "@/store/slices/appStateSlice"
-import { checkMariaDbConnection } from "@/components/common/MariadbConnectButton/checkMariaDbConnection"
+import { checkMariaDbConnection } from "./checkMariaDbConnection"
 
 export function useDataBase() {
   // =============================================================
