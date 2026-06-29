@@ -46,6 +46,12 @@ function ApiTab({
       document.getElementById('api-database-type')?.value ?? ''
     const useAI = document.getElementById('api-ai-type')?.value ?? ''
 
+    const autoSynchronization =
+      document.getElementById('api-auto-synchronization')?.checked ?? true
+
+    const autoSwitching =
+      document.getElementById('api-auto-switching')?.checked ?? true
+
     return {
       apiSettings: {
         baseURL,
@@ -53,8 +59,6 @@ function ApiTab({
         facilityId,
         databaseType,
         useAI,
-
-        // ini.json には文字列として保存する
         autoSynchronization: String(autoSynchronization),
         autoSwitching: String(autoSwitching),
       },
@@ -62,8 +66,8 @@ function ApiTab({
         STAFF_ID,
         FACILITY_ID,
         USE_AI,
-        AUTO_SYNCHRONIZATION,
-        AUTO_SWITCHING,
+        AUTO_SYNCHRONIZATION: autoSynchronization,
+        AUTO_SWITCHING: autoSwitching,
       },
       at: new Date().toISOString(),
     }
@@ -299,6 +303,7 @@ function ApiTab({
             <span>
               有効にする
             </span>
+            <label>※閉じる前に同期処理を実行します</label>
           </label>
         </div>
 
@@ -322,6 +327,7 @@ function ApiTab({
             <span>
               有効にする
             </span>
+            <label>※吉島サーバに接続できる場合に自動で切り替わります</label>
           </label>
         </div>
       </div>

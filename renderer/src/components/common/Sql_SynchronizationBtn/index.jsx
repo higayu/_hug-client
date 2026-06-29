@@ -29,9 +29,9 @@ export default function Sql_SynchronizationBtn() {
     try {
       setIsSyncing(true);
 
-      const result = await window.electronAPI.syncDatabaseStateToSqlite(
-        databaseState
-      );
+     // const result = await window.electronAPI.syncDatabaseStateToSqlite(databaseState);
+      const result = await window.electronAPI.syncDatabaseStateToSqlite();
+
 
       console.log("✅ SQLite 同期完了:", result);
     } catch (error) {

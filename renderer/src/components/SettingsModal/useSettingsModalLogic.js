@@ -11,6 +11,16 @@ import { getJoinedStaffFacilityData } from '@/sql/staff_facility_v/staffDispatch
 import { sqliteApi } from '@/sql/sqliteApi.js'
 import { mariadbApi } from '@/sql/mariadbApi.js'
 
+const toBooleanFlag = (value, defaultValue = true) => {
+  if (value === true || value === 'true') return true
+  if (value === false || value === 'false') return false
+  return defaultValue
+}
+
+const toIniBooleanString = (value, defaultValue = true) => {
+  return String(toBooleanFlag(value, defaultValue))
+}
+
 // 設定モーダルの初期化と設定の保存
 export function useSettingsModalLogic(isOpen) {
   const { showSuccessToast, showErrorToast } = useToast()
@@ -152,6 +162,7 @@ export function useSettingsModalLogic(isOpen) {
     const configOpenRouterModel = document.getElementById(
       'config-openrouter-model'
     )
+
     if (configOpenRouterModel) {
       configOpenRouterModel.value =
         appState.OPEN_ROUTER_MODEL || 'openai/gpt-oss-120b:free'
@@ -165,6 +176,7 @@ export function useSettingsModalLogic(isOpen) {
     const configDeepSeekPassword = document.getElementById(
       'config-deepseek-password'
     )
+
     if (configDeepSeekPassword) {
       configDeepSeekPassword.value = appState.DEEPSEEK_PASSWORD || ''
     }
@@ -177,6 +189,7 @@ export function useSettingsModalLogic(isOpen) {
     const configOpenaiPassword = document.getElementById(
       'config-openai-password'
     )
+
     if (configOpenaiPassword) {
       configOpenaiPassword.value = appState.OPENAI_PASSWORD || ''
     }
@@ -203,7 +216,8 @@ export function useSettingsModalLogic(isOpen) {
 
     const apiDatabaseType = document.getElementById('api-database-type')
     if (apiDatabaseType) {
-      apiDatabaseType.value = apiSettings.databaseType || appState.DATABASE_TYPE || 'sqlite'
+      apiDatabaseType.value =
+        apiSettings.databaseType || appState.DATABASE_TYPE || 'sqlite'
     }
 
     const apiAiType = document.getElementById('api-ai-type')
@@ -212,6 +226,26 @@ export function useSettingsModalLogic(isOpen) {
       console.log('🔍 [SettingsModal] apiAiType:', apiAiType.value)
     } else {
       console.warn('⚠️ [SettingsModal] api-ai-type 要素が見つかりません')
+    }
+
+    const apiAutoSynchronization = document.getElementById(
+      'api-auto-synchronization'
+    )
+
+    if (apiAutoSynchronization) {
+      apiAutoSynchronization.checked = toBooleanFlag(
+        apiSettings.autoSynchronization,
+        true
+      )
+    }
+
+    const apiAutoSwitching = document.getElementById('api-auto-switching')
+
+    if (apiAutoSwitching) {
+      apiAutoSwitching.checked = toBooleanFlag(
+        apiSettings.autoSwitching,
+        true
+      )
     }
 
     console.log('✅ [SettingsModal] フォームに値を設定しました')
@@ -261,7 +295,9 @@ export function useSettingsModalLogic(isOpen) {
     if (themeSelect) newIniState.appSettings.ui.theme = themeSelect.value
 
     const languageSelect = document.getElementById('language-select')
-    if (languageSelect) newIniState.appSettings.ui.language = languageSelect.value
+    if (languageSelect) {
+      newIniState.appSettings.ui.language = languageSelect.value
+    }
 
     const showCloseButtons = document.getElementById('show-close-buttons')
     if (showCloseButtons) {
@@ -331,6 +367,26 @@ export function useSettingsModalLogic(isOpen) {
     const apiAiType = document.getElementById('api-ai-type')
     if (apiAiType) {
       newIniState.apiSettings.useAI = apiAiType.value || 'gemini'
+    }
+
+    const apiAutoSynchronization = document.getElementById(
+      'api-auto-synchronization'
+    )
+
+    if (apiAutoSynchronization) {
+      newIniState.apiSettings.autoSynchronization = toIniBooleanString(
+        apiAutoSynchronization.checked,
+        true
+      )
+    }
+
+    const apiAutoSwitching = document.getElementById('api-auto-switching')
+
+    if (apiAutoSwitching) {
+      newIniState.apiSettings.autoSwitching = toIniBooleanString(
+        apiAutoSwitching.checked,
+        true
+      )
     }
 
     setIniState(newIniState)
@@ -462,6 +518,8 @@ export function useSettingsModalLogic(isOpen) {
             facilityId: '3',
             databaseType: 'mariadb',
             useAI: 'chatGPT',
+            autoSynchronization: 'true',
+            autoSwitching: 'true',
           },
         }
 
@@ -469,7 +527,6 @@ export function useSettingsModalLogic(isOpen) {
 
         setTimeout(() => {
           populateForm()
-          initializeApiSelectBoxes()
         }, 100)
 
         console.log('✅ [SettingsModal] デフォルト値にリセットしました')
@@ -576,6 +633,10 @@ export function useSettingsModalLogic(isOpen) {
       const aiSelect = document.getElementById('api-ai-type')
       const baseUrlInput = document.getElementById('api-base-url')
       const databaseTypeSelect = document.getElementById('api-database-type')
+      const autoSynchronizationInput = document.getElementById(
+        'api-auto-synchronization'
+      )
+      const autoSwitchingInput = document.getElementById('api-auto-switching')
 
       const selectedDatabaseType =
         iniState?.apiSettings?.databaseType ||
@@ -602,7 +663,10 @@ export function useSettingsModalLogic(isOpen) {
           const tables = await apiToUse.getAllTables()
           console.log('📊 データベースから取得したテーブル:', tables)
 
-          if (tables && (tables.staffs || tables.facility_staff || tables.facilitys)) {
+          if (
+            tables &&
+            (tables.staffs || tables.facility_staff || tables.facilitys)
+          ) {
             const staffs = tables.staffs || []
             const facilityStaff = tables.facility_staff || []
             const facilitys = tables.facilitys || []
@@ -734,18 +798,36 @@ export function useSettingsModalLogic(isOpen) {
       const selectedAiType =
         iniState?.apiSettings?.useAI || appState?.USE_AI || 'gemini'
       const selectedBaseUrl = iniState?.apiSettings?.baseURL || ''
+      const selectedAutoSynchronization = toBooleanFlag(
+        iniState?.apiSettings?.autoSynchronization,
+        true
+      )
+      const selectedAutoSwitching = toBooleanFlag(
+        iniState?.apiSettings?.autoSwitching,
+        true
+      )
 
       console.log('🎯 iniState.apiSettings:', iniState?.apiSettings)
       console.log('🎯 適用 staffId:', selectedStaffId)
       console.log('🎯 適用 facilityId:', selectedFacilityId)
       console.log('🎯 適用 AI種別:', selectedAiType)
       console.log('🎯 適用 DB種別:', selectedDatabaseType)
+      console.log('🎯 適用 自動同期:', selectedAutoSynchronization)
+      console.log('🎯 適用 自動切替:', selectedAutoSwitching)
 
       if (staffSelect) staffSelect.value = selectedStaffId
       if (facilitySelect) facilitySelect.value = selectedFacilityId
       if (aiSelect) aiSelect.value = selectedAiType
       if (baseUrlInput) baseUrlInput.value = selectedBaseUrl
       if (databaseTypeSelect) databaseTypeSelect.value = selectedDatabaseType
+
+      if (autoSynchronizationInput) {
+        autoSynchronizationInput.checked = selectedAutoSynchronization
+      }
+
+      if (autoSwitchingInput) {
+        autoSwitchingInput.checked = selectedAutoSwitching
+      }
 
       console.groupEnd()
     } catch (error) {
@@ -755,34 +837,85 @@ export function useSettingsModalLogic(isOpen) {
   }, [iniState, appState, getApiByDatabaseType])
 
   // API設定を保存
-  const saveApiSettingsFromForm = useCallback(async () => {
+  const saveApiSettingsFromForm = useCallback(async (payload = null) => {
     try {
+      console.group('💾 [SettingsModal] saveApiSettingsFromForm START')
+      console.log('payload:', payload)
+
       const newIniState = JSON.parse(JSON.stringify(iniState || {}))
+
+      if (!newIniState.appSettings) {
+        newIniState.appSettings = {}
+      }
+
+      if (!newIniState.userPreferences) {
+        newIniState.userPreferences = {}
+      }
 
       if (!newIniState.apiSettings) {
         newIniState.apiSettings = {}
       }
 
+      const payloadApiSettings = payload?.apiSettings || {}
+
       const apiBaseUrl = document.getElementById('api-base-url')
-      if (apiBaseUrl) newIniState.apiSettings.baseURL = apiBaseUrl.value || ''
-
       const apiStaffId = document.getElementById('api-staff-id')
-      if (apiStaffId) newIniState.apiSettings.staffId = apiStaffId.value || ''
-
       const apiFacilityId = document.getElementById('api-facility-id')
-      if (apiFacilityId) {
-        newIniState.apiSettings.facilityId = apiFacilityId.value || ''
-      }
-
       const apiDatabaseType = document.getElementById('api-database-type')
-      if (apiDatabaseType) {
-        newIniState.apiSettings.databaseType = apiDatabaseType.value || 'sqlite'
-      }
-
       const apiAiType = document.getElementById('api-ai-type')
-      if (apiAiType) {
-        newIniState.apiSettings.useAI = apiAiType.value || 'gemini'
-      }
+      const apiAutoSynchronization = document.getElementById(
+        'api-auto-synchronization'
+      )
+      const apiAutoSwitching = document.getElementById('api-auto-switching')
+
+      newIniState.apiSettings.baseURL =
+        apiBaseUrl?.value ??
+        payloadApiSettings.baseURL ??
+        newIniState.apiSettings.baseURL ??
+        ''
+
+      newIniState.apiSettings.staffId =
+        apiStaffId?.value ??
+        payloadApiSettings.staffId ??
+        newIniState.apiSettings.staffId ??
+        ''
+
+      newIniState.apiSettings.facilityId =
+        apiFacilityId?.value ??
+        payloadApiSettings.facilityId ??
+        newIniState.apiSettings.facilityId ??
+        ''
+
+      newIniState.apiSettings.databaseType =
+        apiDatabaseType?.value ??
+        payloadApiSettings.databaseType ??
+        newIniState.apiSettings.databaseType ??
+        'sqlite'
+
+      newIniState.apiSettings.useAI =
+        apiAiType?.value ??
+        payloadApiSettings.useAI ??
+        newIniState.apiSettings.useAI ??
+        'gemini'
+
+      newIniState.apiSettings.autoSynchronization = toIniBooleanString(
+        apiAutoSynchronization?.checked ??
+          payloadApiSettings.autoSynchronization ??
+          newIniState.apiSettings.autoSynchronization,
+        true
+      )
+
+      newIniState.apiSettings.autoSwitching = toIniBooleanString(
+        apiAutoSwitching?.checked ??
+          payloadApiSettings.autoSwitching ??
+          newIniState.apiSettings.autoSwitching,
+        true
+      )
+
+      console.log(
+        '💾 [SettingsModal] 保存する apiSettings:',
+        newIniState.apiSettings
+      )
 
       const success = await saveIni(newIniState)
 
@@ -794,6 +927,14 @@ export function useSettingsModalLogic(isOpen) {
         const staffId = newIniState.apiSettings.staffId || ''
         const facilityId = newIniState.apiSettings.facilityId || ''
         const baseURL = newIniState.apiSettings.baseURL || ''
+        const autoSynchronization = toBooleanFlag(
+          newIniState.apiSettings.autoSynchronization,
+          true
+        )
+        const autoSwitching = toBooleanFlag(
+          newIniState.apiSettings.autoSwitching,
+          true
+        )
 
         updateAppState({
           DATABASE_TYPE: databaseType,
@@ -801,6 +942,8 @@ export function useSettingsModalLogic(isOpen) {
           STAFF_ID: staffId,
           FACILITY_ID: facilityId,
           VITE_API_BASE_URL: baseURL,
+          AUTO_SYNCHRONIZATION: autoSynchronization,
+          AUTO_SWITCHING: autoSwitching,
         })
 
         const databaseTypeSelect = document.getElementById('api-database-type')
@@ -808,13 +951,32 @@ export function useSettingsModalLogic(isOpen) {
           databaseTypeSelect.value = databaseType
         }
 
+        if (apiAutoSynchronization) {
+          apiAutoSynchronization.checked = autoSynchronization
+        }
+
+        if (apiAutoSwitching) {
+          apiAutoSwitching.checked = autoSwitching
+        }
+
         window.dispatchEvent(
           new CustomEvent('database-type-changed', {
             detail: {
               databaseType,
+              autoSynchronization,
+              autoSwitching,
               message: `API設定保存により ${databaseType} に切り替えました`,
               checkedAt: new Date().toISOString(),
               source: 'useSettingsModalLogic.saveApiSettingsFromForm',
+            },
+          })
+        )
+
+        document.dispatchEvent(
+          new CustomEvent('app-settings-updated', {
+            detail: {
+              IniState: newIniState,
+              apiSettings: newIniState.apiSettings,
             },
           })
         )
@@ -823,16 +985,25 @@ export function useSettingsModalLogic(isOpen) {
           databaseType,
         })
         console.log('🔄 [useSettingsModalLogic] USE_AI 更新:', { useAI })
+        console.log('🔄 [useSettingsModalLogic] AUTO_SYNCHRONIZATION 更新:', {
+          autoSynchronization,
+        })
+        console.log('🔄 [useSettingsModalLogic] AUTO_SWITCHING 更新:', {
+          autoSwitching,
+        })
 
         showSuccessToast('✅ API設定の保存が完了しました')
+        console.groupEnd()
         return true
       }
 
       showErrorToast('❌ API設定の保存に失敗しました')
+      console.groupEnd()
       return false
     } catch (error) {
       console.error('❌ API設定保存エラー:', error)
       showErrorToast('❌ エラーが発生しました: ' + error.message)
+      console.groupEnd()
       return false
     }
   }, [

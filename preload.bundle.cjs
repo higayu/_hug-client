@@ -138,7 +138,10 @@ var require_electronApi = __commonJS({
         // ---- テーブル一括取得 ----
         fetchTableAll: () => ipcRenderer2.invoke("fetchTableAll"),
         // ---- テーブル一括同期処理 ----
-        syncDatabaseStateToSqlite: (databaseState) => ipcRenderer2.invoke("sqlite:database:sync", databaseState),
+        // renderer から databaseState を渡さない。
+        // main 側の sqlite:database:sync 内で apiClient.fetchTableAll() を呼び、
+        // その戻り値を SQLite に同期する。
+        syncDatabaseStateToSqlite: () => ipcRenderer2.invoke("sqlite:database:sync"),
         // ---- AI プロンプト ----
         loadPrompts: () => ipcRenderer2.invoke("load-prompts"),
         getAiPrompt: (promptKey) => ipcRenderer2.invoke("get-ai-prompt", promptKey),

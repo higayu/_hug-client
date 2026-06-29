@@ -4,8 +4,7 @@ const path = require("path");
 const { app } = require("electron");
 const apiClient = require("../../../src/apiClient");
 const { registerSqliteHandlers } = require("./sqliteHandler");
-const { registerMariadbHandlers } = require("./mariadbHandler"); // ⚠️ 追加
-const sqlite3 = require("sqlite3").verbose(); // ← ここで一括読み込み
+const { registerMariadbHandlers } = require("./mariadbHandler");
 
 function resolveIniPath() {
   if (app.isPackaged) {
@@ -18,12 +17,15 @@ function resolveIniPath() {
 function getDatabaseType() {
   try {
     const iniPath = resolveIniPath();
+
     if (!fs.existsSync(iniPath)) {
       console.log("ini.json not found");
       return "sqlite";
     }
+
     const iniData = JSON.parse(fs.readFileSync(iniPath, "utf8"));
     const dbType = iniData?.apiSettings?.databaseType || "sqlite";
+
     return dbType.toLowerCase();
   } catch (err) {
     console.error("⚠️ ini.jsonの読み込みに失敗:", err.message);
@@ -36,7 +38,10 @@ function getDatabaseType() {
 // ============================================================
 async function handleApiCalls(ipcMain) {
   console.log("🔥 handleApiCalls START");
+
   const DB_TYPE = getDatabaseType();
+
+  console.log("📌 現在のDB_TYPE:", DB_TYPE);
 
   // ============================================================
   // 📗 SQLite/MariaDB CRUD IPC登録
@@ -44,8 +49,25 @@ async function handleApiCalls(ipcMain) {
   registerMariadbHandlers(ipcMain);
   registerSqliteHandlers(ipcMain);
 
+  // ============================================================
+  // 🔹 全テーブル取得
+  // ============================================================
   ipcMain.handle("fetchTableAll", async () => {
-    return await apiClient.fetchTableAll();
+    try {
+      console.log("🔄 [fetchTableAll] START");
+
+      const result = await apiClient.fetchTableAll();
+
+      console.log("✅ [fetchTableAll] DONE");
+      return result;
+    } catch (err) {
+      console.error("❌ [fetchTableAll] ERROR:", err);
+
+      return {
+        success: false,
+        error: err?.message || String(err),
+      };
+    }
   });
 
   // ============================================================
@@ -60,8 +82,6 @@ async function handleApiCalls(ipcMain) {
       return "sqlite";
     }
   });
-
-
 }
 
 module.exports = { handleApiCalls };

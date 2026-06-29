@@ -1,6 +1,7 @@
 // main/parts/handlers/sqliteHandler/index.js
 
 const { initializeDatabase } = require("./initDatabase");
+const apiClient = require("../../../../src/apiClient");
 
 // MariaDBからSqliteへデータを同期処理
 const { connect } = require("./sqlite/base");
@@ -154,7 +155,7 @@ async function insertRows(db, tableName, rows) {
   for (const row of rows) {
     if (!row || typeof row !== "object") continue;
 
-    // SQLiteに実在するカラムだけ INSERT 対象にする
+    // SQLite に実在するカラムだけ INSERT 対象にする
     const insertColumns = tableColumns.filter((columnName) =>
       Object.prototype.hasOwnProperty.call(row, columnName)
     );
@@ -184,6 +185,54 @@ async function insertRows(db, tableName, rows) {
     table: tableName,
     inserted,
   };
+}
+
+// ============================================================
+// fetchTableAll 戻り値の正規化
+// ============================================================
+
+function normalizeFetchTableAllResult(fetchResult) {
+  console.log("🔎 [sqlite:database:sync] normalizeFetchTableAllResult:", {
+    hasFetchResult: !!fetchResult,
+    type: typeof fetchResult,
+    isArray: Array.isArray(fetchResult),
+    keys:
+      fetchResult && typeof fetchResult === "object"
+        ? Object.keys(fetchResult)
+        : [],
+  });
+
+  if (!fetchResult || typeof fetchResult !== "object") {
+    return null;
+  }
+
+  // API側が失敗レスポンスを返した場合
+  if (fetchResult.success === false) {
+    throw new Error(
+      fetchResult.error ||
+        fetchResult.message ||
+        "fetchTableAll が success:false を返しました"
+    );
+  }
+
+  // 想定パターン:
+  // 1. { children: [...], staffs: [...], ... }
+  // 2. { data: { children: [...], staffs: [...] } }
+  // 3. { tables: { children: [...], staffs: [...] } }
+  const databaseState =
+    fetchResult.data ??
+    fetchResult.tables ??
+    fetchResult;
+
+  if (!databaseState || typeof databaseState !== "object") {
+    return null;
+  }
+
+  console.log("📦 [sqlite:database:sync] normalized databaseState:", {
+    tableNames: Object.keys(databaseState),
+  });
+
+  return databaseState;
 }
 
 // ============================================================
@@ -220,7 +269,7 @@ function registerSqliteHandlers(ipcMain) {
     memo,
   };
 
-  // databaseSlice から SQLite に同期する対象
+  // apiClient.fetchTableAll() から SQLite に同期する対象
   // loading / error / metadata は Redux 管理用なので同期しない
   const syncOrder = [
     // マスタ系
@@ -252,7 +301,7 @@ function registerSqliteHandlers(ipcMain) {
     "memo",
 
     // temp_notes
-     "temp_notes",
+    "temp_notes",
   ];
 
   // ============================================================
@@ -323,31 +372,61 @@ function registerSqliteHandlers(ipcMain) {
   }
 
   // ============================================================
-  // 🟢 databaseSlice 全体を SQLite に同期
+  // 🟢 apiClient.fetchTableAll() のデータを SQLite に同期
   // ============================================================
 
-  safeHandle(ipcMain, "sqlite:database:sync", async (_, databaseState) => {
+  safeHandle(ipcMain, "sqlite:database:sync", async () => {
     const db = connect();
 
     try {
+      console.log("==================================================");
+      console.log("🔄 [sqlite:database:sync] START");
+      console.log("📡 [sqlite:database:sync] apiClient.fetchTableAll() を実行します");
+      console.log("==================================================");
+
+      console.time("⏱ [sqlite:database:sync] total sync time");
+
+      // MariaDB/API 側から全テーブル取得
+      const fetchResult = await apiClient.fetchTableAll();
+
+      console.log("📦 [sqlite:database:sync] fetchTableAll raw result:", {
+        type: typeof fetchResult,
+        isArray: Array.isArray(fetchResult),
+        keys:
+          fetchResult && typeof fetchResult === "object"
+            ? Object.keys(fetchResult)
+            : [],
+      });
+
+      const databaseState = normalizeFetchTableAllResult(fetchResult);
+
       if (!databaseState || typeof databaseState !== "object") {
-        throw new Error("databaseState が不正です");
+        throw new Error(
+          "fetchTableAll から SQLite 同期対象データを取得できませんでした"
+        );
       }
 
-      console.log("🔄 SQLite databaseState 同期開始");
+      console.log("📦 [sqlite:database:sync] 同期対象テーブル一覧:", {
+        tableNames: Object.keys(databaseState),
+      });
 
       const deleteOrder = [...syncOrder].reverse();
 
       await runSql(db, "PRAGMA foreign_keys = OFF;");
       await runSql(db, "BEGIN TRANSACTION;");
 
+      console.log("🧹 [sqlite:database:sync] DELETE phase START");
+
       // 先に同期対象テーブルを空にする
       for (const tableName of deleteOrder) {
         const rows = databaseState[tableName];
 
-        // databaseState に存在しないものは触らない
+        // fetchTableAll の結果に存在しないものは触らない
         if (!Array.isArray(rows)) {
-          console.log(`⏭️ SQLite DELETE skip: ${tableName}`);
+          console.log(`⏭️ SQLite DELETE skip: ${tableName}`, {
+            reason: "fetchTableAll result does not have array",
+            valueType: typeof rows,
+          });
           continue;
         }
 
@@ -355,39 +434,56 @@ function registerSqliteHandlers(ipcMain) {
         await runSql(db, `DELETE FROM "${tableName}";`);
       }
 
+      console.log("✅ [sqlite:database:sync] DELETE phase END");
+
       const results = [];
 
-      // Redux の databaseState から SQLite へ INSERT
+      console.log("📥 [sqlite:database:sync] INSERT phase START");
+
+      // fetchTableAll の結果から SQLite へ INSERT
       for (const tableName of syncOrder) {
         const rows = databaseState[tableName];
 
-        // databaseState に存在しないものは触らない
+        // fetchTableAll の結果に存在しないものは触らない
         if (!Array.isArray(rows)) {
-          results.push({
+          const skippedResult = {
             table: tableName,
             skipped: true,
-            reason: "databaseState does not have array",
-          });
+            reason: "fetchTableAll result does not have array",
+          };
+
+          console.log(`⏭️ SQLite INSERT skip: ${tableName}`, skippedResult);
+          results.push(skippedResult);
           continue;
         }
 
-        console.log(`📥 SQLite INSERT: ${tableName}`, rows.length);
+        console.log(`📥 SQLite INSERT: ${tableName}`, {
+          rowCount: rows.length,
+        });
 
         const result = await insertRows(db, tableName, rows);
+
+        console.log(`✅ SQLite INSERT DONE: ${tableName}`, result);
+
         results.push(result);
       }
+
+      console.log("✅ [sqlite:database:sync] INSERT phase END");
 
       await runSql(db, "COMMIT;");
       await runSql(db, "PRAGMA foreign_keys = ON;");
 
-      console.log("✅ SQLite databaseState 同期完了:", results);
+      console.timeEnd("⏱ [sqlite:database:sync] total sync time");
+
+      console.log("✅ [sqlite:database:sync] DONE:", results);
 
       return {
         success: true,
+        source: "apiClient.fetchTableAll",
         results,
       };
     } catch (err) {
-      console.error("❌ SQLite databaseState 同期エラー:", err);
+      console.error("❌ [sqlite:database:sync] ERROR:", err);
 
       try {
         await runSql(db, "ROLLBACK;");
@@ -404,10 +500,10 @@ function registerSqliteHandlers(ipcMain) {
       throw err;
     } finally {
       await closeDb(db);
+      console.log("🏁 [sqlite:database:sync] END");
     }
   });
 
- 
   // ============================================================
   // 🟢 temp_notes（SQLite 専用）
   // ============================================================

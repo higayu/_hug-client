@@ -49,9 +49,12 @@ function createElectronApi(ipcRenderer, isDebugMode) {
     // ---- テーブル一括取得 ----
     fetchTableAll: () => ipcRenderer.invoke("fetchTableAll"),
 
-     // ---- テーブル一括同期処理 ----
-     syncDatabaseStateToSqlite: (databaseState) =>
-      ipcRenderer.invoke("sqlite:database:sync", databaseState),
+    // ---- テーブル一括同期処理 ----
+    // renderer から databaseState を渡さない。
+    // main 側の sqlite:database:sync 内で apiClient.fetchTableAll() を呼び、
+    // その戻り値を SQLite に同期する。
+    syncDatabaseStateToSqlite: () =>
+      ipcRenderer.invoke("sqlite:database:sync"),
 
     // ---- AI プロンプト ----
     loadPrompts: () => ipcRenderer.invoke("load-prompts"),
@@ -131,7 +134,6 @@ function createElectronApi(ipcRenderer, isDebugMode) {
         staff_id,
         day_of_week_id,
       }),
-
 
     // ---- UI / Window ----
     clearWebviewCache: (wcId) =>

@@ -31,11 +31,23 @@ import {
   setFacilityId as setFacilityIdRedux,
   setDebugFlg as setDebugFlgRedux,
   setServerConnectionState as setServerConnectionStateRedux,
+  setAutoSynchronization as setAutoSynchronizationRedux,
+  setAutoSwitching as setAutoSwitchingRedux,
 } from '@/store/slices/appStateSlice'
 
 import { loadIni as loadIniFromUtils } from '@/utils/config/iniUtils'
 
 const AppStateContext = createContext(null)
+
+const toBooleanFlag = (value, defaultValue = true) => {
+  if (value === true || value === 'true') return true
+  if (value === false || value === 'false') return false
+  return defaultValue
+}
+
+const toIniBooleanString = (value, defaultValue = true) => {
+  return String(toBooleanFlag(value, defaultValue))
+}
 
 export function AppStateProvider({ children }) {
   const dispatch = useDispatch()
@@ -63,10 +75,23 @@ export function AppStateProvider({ children }) {
     console.log('redux.STAFF_ID:', redux.STAFF_ID)
     console.log('redux.FACILITY_ID:', redux.FACILITY_ID)
     console.log('redux.DEBUG_FLG:', redux.DEBUG_FLG)
+    console.log(
+      'redux.AUTO_SYNCHRONIZATION:',
+      redux.AUTO_SYNCHRONIZATION
+    )
+    console.log('redux.AUTO_SWITCHING:', redux.AUTO_SWITCHING)
     console.log('iniState.apiSettings:', iniState?.apiSettings)
     console.log(
       'iniState.apiSettings.databaseType:',
       iniState?.apiSettings?.databaseType
+    )
+    console.log(
+      'iniState.apiSettings.autoSynchronization:',
+      iniState?.apiSettings?.autoSynchronization
+    )
+    console.log(
+      'iniState.apiSettings.autoSwitching:',
+      iniState?.apiSettings?.autoSwitching
     )
     console.groupEnd()
   }, [
@@ -76,6 +101,8 @@ export function AppStateProvider({ children }) {
     redux.STAFF_ID,
     redux.FACILITY_ID,
     redux.DEBUG_FLG,
+    redux.AUTO_SYNCHRONIZATION,
+    redux.AUTO_SWITCHING,
     iniState?.apiSettings,
   ])
 
@@ -90,6 +117,14 @@ export function AppStateProvider({ children }) {
       console.log(
         '[AppStateContext/loadIni] iniData.apiSettings.databaseType:',
         iniData?.apiSettings?.databaseType
+      )
+      console.log(
+        '[AppStateContext/loadIni] iniData.apiSettings.autoSynchronization:',
+        iniData?.apiSettings?.autoSynchronization
+      )
+      console.log(
+        '[AppStateContext/loadIni] iniData.apiSettings.autoSwitching:',
+        iniData?.apiSettings?.autoSwitching
       )
 
       if (!iniData) {
@@ -128,6 +163,14 @@ export function AppStateProvider({ children }) {
         console.log(
           '[AppStateContext/saveIni] 保存 databaseType:',
           source?.apiSettings?.databaseType
+        )
+        console.log(
+          '[AppStateContext/saveIni] 保存 autoSynchronization:',
+          source?.apiSettings?.autoSynchronization
+        )
+        console.log(
+          '[AppStateContext/saveIni] 保存 autoSwitching:',
+          source?.apiSettings?.autoSwitching
         )
 
         const result = await window.electronAPI.saveIni({
@@ -184,6 +227,14 @@ export function AppStateProvider({ children }) {
           '[AppStateContext/updateIniSetting] after databaseType:',
           next?.apiSettings?.databaseType
         )
+        console.log(
+          '[AppStateContext/updateIniSetting] after autoSynchronization:',
+          next?.apiSettings?.autoSynchronization
+        )
+        console.log(
+          '[AppStateContext/updateIniSetting] after autoSwitching:',
+          next?.apiSettings?.autoSwitching
+        )
 
         return next
       })
@@ -210,6 +261,79 @@ export function AppStateProvider({ children }) {
   const getWindowSettings = useCallback(
     () => iniState.appSettings.window,
     [iniState]
+  )
+
+  const getApiSettings = useCallback(
+    () => iniState.apiSettings ?? {},
+    [iniState]
+  )
+
+  const isAutoSynchronizationEnabled = useCallback(() => {
+    return toBooleanFlag(
+      iniState?.apiSettings?.autoSynchronization,
+      true
+    )
+  }, [iniState?.apiSettings?.autoSynchronization])
+
+  const isAutoSwitchingEnabled = useCallback(() => {
+    return toBooleanFlag(
+      iniState?.apiSettings?.autoSwitching,
+      true
+    )
+  }, [iniState?.apiSettings?.autoSwitching])
+
+  const setAutoSynchronization = useCallback(
+    async (enabled) => {
+      const value = toIniBooleanString(enabled, true)
+
+      console.group('[AppStateContext/setAutoSynchronization]')
+      console.log('enabled:', enabled)
+      console.log('save value:', value)
+
+      try {
+        const result = await updateIniSetting(
+          'apiSettings.autoSynchronization',
+          value
+        )
+
+        dispatch(setAutoSynchronizationRedux(toBooleanFlag(enabled, true)))
+
+        console.groupEnd()
+        return result
+      } catch (error) {
+        console.error('[AppStateContext/setAutoSynchronization] エラー:', error)
+        console.groupEnd()
+        return null
+      }
+    },
+    [dispatch, updateIniSetting]
+  )
+
+  const setAutoSwitching = useCallback(
+    async (enabled) => {
+      const value = toIniBooleanString(enabled, true)
+
+      console.group('[AppStateContext/setAutoSwitching]')
+      console.log('enabled:', enabled)
+      console.log('save value:', value)
+
+      try {
+        const result = await updateIniSetting(
+          'apiSettings.autoSwitching',
+          value
+        )
+
+        dispatch(setAutoSwitchingRedux(toBooleanFlag(enabled, true)))
+
+        console.groupEnd()
+        return result
+      } catch (error) {
+        console.error('[AppStateContext/setAutoSwitching] エラー:', error)
+        console.groupEnd()
+        return null
+      }
+    },
+    [dispatch, updateIniSetting]
   )
 
   // ===== 初期化 =====
@@ -239,6 +363,14 @@ export function AppStateProvider({ children }) {
           '[AppStateContext/init] returned ini databaseType:',
           ini?.apiSettings?.databaseType
         )
+        console.log(
+          '[AppStateContext/init] returned ini autoSynchronization:',
+          ini?.apiSettings?.autoSynchronization
+        )
+        console.log(
+          '[AppStateContext/init] returned ini autoSwitching:',
+          ini?.apiSettings?.autoSwitching
+        )
 
         const iniData = ini ?? (await loadIniFromUtils())
 
@@ -246,6 +378,14 @@ export function AppStateProvider({ children }) {
         console.log(
           '[AppStateContext/init] 最終 iniData databaseType:',
           iniData?.apiSettings?.databaseType
+        )
+        console.log(
+          '[AppStateContext/init] 最終 iniData autoSynchronization:',
+          iniData?.apiSettings?.autoSynchronization
+        )
+        console.log(
+          '[AppStateContext/init] 最終 iniData autoSwitching:',
+          iniData?.apiSettings?.autoSwitching
         )
 
         if (iniData) {
@@ -279,12 +419,19 @@ export function AppStateProvider({ children }) {
 
     console.log('iniState.apiSettings:', apiSettings)
     console.log('iniState databaseType:', apiSettings?.databaseType)
+    console.log(
+      'iniState autoSynchronization:',
+      apiSettings?.autoSynchronization
+    )
+    console.log('iniState autoSwitching:', apiSettings?.autoSwitching)
     console.log('redux snapshot:', {
       DATABASE_TYPE: redux.DATABASE_TYPE,
       STAFF_ID: redux.STAFF_ID,
       FACILITY_ID: redux.FACILITY_ID,
       USE_AI: redux.USE_AI,
       DEBUG_FLG: redux.DEBUG_FLG,
+      AUTO_SYNCHRONIZATION: redux.AUTO_SYNCHRONIZATION,
+      AUTO_SWITCHING: redux.AUTO_SWITCHING,
     })
 
     if (!apiSettings) {
@@ -336,6 +483,24 @@ export function AppStateProvider({ children }) {
       }
     }
 
+    const autoSynchronization = toBooleanFlag(
+      apiSettings.autoSynchronization,
+      true
+    )
+
+    if (redux.AUTO_SYNCHRONIZATION !== autoSynchronization) {
+      updates.AUTO_SYNCHRONIZATION = autoSynchronization
+    }
+
+    const autoSwitching = toBooleanFlag(
+      apiSettings.autoSwitching,
+      true
+    )
+
+    if (redux.AUTO_SWITCHING !== autoSwitching) {
+      updates.AUTO_SWITCHING = autoSwitching
+    }
+
     console.log('[AppStateContext] updates:', updates)
 
     if (Object.keys(updates).length > 0) {
@@ -357,6 +522,8 @@ export function AppStateProvider({ children }) {
     redux.DATABASE_TYPE,
     redux.USE_AI,
     redux.DEBUG_FLG,
+    redux.AUTO_SYNCHRONIZATION,
+    redux.AUTO_SWITCHING,
     dispatch,
   ])
 
@@ -510,6 +677,11 @@ export function AppStateProvider({ children }) {
     console.group('[AppStateContext/setIniStateDirect]')
     console.log('next:', next)
     console.log('next databaseType:', next?.apiSettings?.databaseType)
+    console.log(
+      'next autoSynchronization:',
+      next?.apiSettings?.autoSynchronization
+    )
+    console.log('next autoSwitching:', next?.apiSettings?.autoSwitching)
     console.groupEnd()
 
     setIniState(next)
@@ -524,6 +696,12 @@ export function AppStateProvider({ children }) {
       loadIni,
       saveIni,
       updateIniSetting,
+
+      getApiSettings,
+      isAutoSynchronizationEnabled,
+      isAutoSwitchingEnabled,
+      setAutoSynchronization,
+      setAutoSwitching,
 
       setDatabaseType,
       setUseAI,
@@ -552,6 +730,14 @@ export function AppStateProvider({ children }) {
     console.log('window.loadIni exists:', typeof window.loadIni)
     console.log('window.updateAppState exists:', typeof window.updateAppState)
     console.log('window.setDatabaseType exists:', typeof window.setDatabaseType)
+    console.log(
+      'window.AppState.isAutoSynchronizationEnabled exists:',
+      typeof window.AppState?.isAutoSynchronizationEnabled
+    )
+    console.log(
+      'window.AppState.isAutoSwitchingEnabled exists:',
+      typeof window.AppState?.isAutoSwitchingEnabled
+    )
     console.groupEnd()
   }, [isInitialized, redux.appState])
 
@@ -568,6 +754,12 @@ export function AppStateProvider({ children }) {
         saveIni,
         updateIniSetting,
         setIniState: setIniStateDirect,
+
+        getApiSettings,
+        isAutoSynchronizationEnabled,
+        isAutoSwitchingEnabled,
+        setAutoSynchronization,
+        setAutoSwitching,
 
         isFeatureEnabled,
         getUISettings,
