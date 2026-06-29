@@ -1,6 +1,6 @@
 // renderer/src/hooks/useTabs/index.js
 import { useEffect, useCallback, useRef } from 'react'
-import { useAppState } from '@/contexts/appState'
+import { useAppState } from '@/AppStateContext'
 import { setActiveWebview } from '@/utils/webview/webviewState.js'
 import { activateTab, closeTab, clearActiveWebviewCache } from './common/index.js'
 import { addNormalTabAction } from './actions/normal.js'

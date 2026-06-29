@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from "react";
-import { useAppState } from "@/contexts/appState";
+import { useAppState } from "@/AppStateContext";
 import { useToast } from "@/components/common/ToastContext.jsx";
 import PromptBox from "@/components/common/PromptBox";
 import AccountInfoPanel from "@/components/common/AccountInfoPanel";

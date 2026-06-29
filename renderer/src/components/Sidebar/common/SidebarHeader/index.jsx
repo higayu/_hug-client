@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 
-import { useAppState } from "@/contexts/appState";
+import { useAppState } from "@/AppStateContext";
 import { getWeekdayIdFromDate } from "@/utils/date/dateUtils";
 import { getTodayYmdString } from "@/utils/date/dateYMD";
 import { useToast } from "@/components/common/ToastContext";

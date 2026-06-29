@@ -1,4 +1,4 @@
-import { useAppState } from '@/contexts/appState'
+import { useAppState } from '@/AppStateContext';
 
 export default function SelectChildFilter() {
   const { SELECT_CHILD_FILTER_MODE, setSelectChildFilterMode } = useAppState()

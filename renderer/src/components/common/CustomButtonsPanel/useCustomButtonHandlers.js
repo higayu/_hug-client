@@ -1,6 +1,6 @@
 // src/components/CustomButtonsPanel/useCustomButtonHandlers.js
 
-import { useAppState } from '@/contexts/appState'
+import { useAppState } from '@/AppStateContext';
 import { useSelector } from 'react-redux'
 import {
   handleAdditionCompare,

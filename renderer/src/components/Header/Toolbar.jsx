@@ -2,8 +2,7 @@ import { useEffect, useState } from 'react'
 import SettingsModal from '@/components/SettingsModal';
 import CustomButtonsPanel from '@/components/common/CustomButtonsPanel'
 import { useToast } from  '@/components/common/ToastContext'
-////import { useAppState } from '@/contexts/AppStateContext.jsx'
-import { useAppState } from '@/contexts/appState'
+import { useAppState } from '@/AppStateContext';
 import { useTabs } from '@/hooks/useTabs'
 import { useHugActions } from '@/hooks/useHugActions'
 import { useDispatch, useSelector } from 'react-redux'

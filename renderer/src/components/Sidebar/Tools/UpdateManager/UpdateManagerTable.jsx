@@ -3,7 +3,7 @@ import { useSelector } from "react-redux";
 import { useEffect, useState, useMemo } from "react";
 import EditModal from "./Modals/EditModal.jsx";
 import DeleteModal from "./Modals/DeleteModal.jsx";
-import { useAppState } from "@/contexts/appState";
+import { useAppState } from "@/AppStateContext";
 import { deleteManager } from "@/sql/useManager/deleteManager/deleteManager.js";
 import { store } from "@/store/store.js";
 import { useToast } from "@/components/common/ToastContext.jsx";

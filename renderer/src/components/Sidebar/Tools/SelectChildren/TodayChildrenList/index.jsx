@@ -2,7 +2,7 @@
 // 子どもリストを表示するコンポーネント
 import { useState, useMemo, useEffect, useCallback } from "react"
 import { useDataBase } from "@/hooks/useDataBase"
-import { useAppState } from "@/contexts/appState"
+import { useAppState } from "@/AppStateContext"
 import { ELEMENT_IDS } from "@/utils/app/constants.js"
 import {
   getAttendanceItemForChild,

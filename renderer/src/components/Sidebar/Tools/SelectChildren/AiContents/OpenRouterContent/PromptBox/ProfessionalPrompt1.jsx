@@ -1,6 +1,6 @@
 // renderer/src/components/Sidebar/Tools/MemoTool/Parts/AiContents/common/ProfessionalPrompt1.jsx
 import React, { useState, useEffect, useCallback } from "react";
-import { useAppState } from "@/contexts/appState";
+import { useAppState } from "@/AppStateContext";
 import { useDataBase } from "@/hooks/useDataBase";
 import ProfessionalPlan from "@/components/common/PageRequestGet/ProfessionalPlan.jsx";
 import ProfessionalSupportCheckPanel2 from "@/components/common/ProfessionalSupportCheckPanel2";

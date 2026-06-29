@@ -1,4 +1,4 @@
-// contexts/appState/AppStateContext.jsx
+// AppStateContext/index.jsx
 import {
   createContext,
   useContext,

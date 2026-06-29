@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useAppState } from '@/contexts/appState'
+import { useAppState } from '@/AppStateContext';
 import { useCustomButtons } from '@/components/common/CustomButtonsContext.jsx'
 import { loadConfig } from '@/utils/config/configUtils.js'
 

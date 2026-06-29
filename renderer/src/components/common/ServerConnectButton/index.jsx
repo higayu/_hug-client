@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Wifi, WifiOff, Loader2 } from "lucide-react";
-import { useAppState } from "@/contexts/appState/AppStateContext";
+import { useAppState } from "@/AppStateContext";
 
 const ServerConnectButton = ({
   className = "",

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useAppState } from "@/contexts/appState";
+import { useAppState } from "@/AppStateContext";
 import { store } from "@/store/store.js";
 import { useSelector } from "react-redux";
 import { updateManager, getManagerRecord } from "@/utils/managers/managersUtils.js";

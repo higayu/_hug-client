@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useDispatch } from 'react-redux'
-import { useAppState } from '@/contexts/appState'
+import { useAppState } from '@/AppStateContext'
 import { useDataBase } from '@/hooks/useDataBase'
 import { useTabs } from '@/hooks/useTabs'
 import {

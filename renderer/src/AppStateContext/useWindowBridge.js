@@ -1,4 +1,4 @@
-// contexts/appState/useWindowBridge.js
+// AppStateContext/useWindowBridge.js
 import { useEffect } from 'react'
 
 export function useWindowBridge({ isInitialized, appState, activeApi, actions }) {

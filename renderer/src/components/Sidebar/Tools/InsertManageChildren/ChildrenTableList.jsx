@@ -5,7 +5,7 @@ import { store } from "@/store/store.js";
 import { insertManager } from "@/sql/useManager/insertManager/insertManager.js";
 import { useToast } from "@/components/common/ToastContext.jsx";
 import { useDataBase } from "@/hooks/useDataBase";
-import { useAppState } from "@/contexts/appState";
+import { useAppState } from "@/AppStateContext";
 
 /**
  * 出勤データを一覧表示するコンポーネント（managers2 対応）

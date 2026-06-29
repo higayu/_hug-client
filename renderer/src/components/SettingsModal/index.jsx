@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import './index.css'
 import { useSettingsModal } from './useSettingsModal.js'
 import { useSettingsModalLogic } from './useSettingsModalLogic.js'
-import { useAppState } from '@/contexts/appState'
+import { useAppState } from '@/AppStateContext';
 import FeaturesTab from './tabs/FeaturesTab'
 import ConfigTab from './tabs/ConfigTab'
 import UITab from './tabs/UITab'

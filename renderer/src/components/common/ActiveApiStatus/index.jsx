@@ -7,7 +7,7 @@ import {
   Loader2,
   RefreshCw,
 } from 'lucide-react'
-import { useAppState } from '@/contexts/appState/AppStateContext'
+import { useAppState } from '@/AppStateContext'
 import {
   checkMariaDbConnection,
   switchDatabaseType,

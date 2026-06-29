@@ -1,6 +1,6 @@
 // renderer/src/hooks/useSettingsModalLogic.js
 import { useEffect, useRef, useCallback, useState } from 'react'
-import { useAppState } from '@/contexts/appState'
+import { useAppState } from '@/AppStateContext';
 import { useCustomButtons } from '@/components/common/CustomButtonsContext.jsx'
 // AppState は window.AppState または useAppState() フック経由でアクセス可能
 import { saveConfig } from '@/utils/config/configUtils.js'

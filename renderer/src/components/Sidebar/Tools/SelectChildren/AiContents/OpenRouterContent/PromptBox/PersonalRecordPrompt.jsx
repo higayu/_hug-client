@@ -1,8 +1,7 @@
 // renderer/src/components/Sidebar/Tools/MemoTool/Parts/AiContents/common/PersonalRecordPrompt.jsx
 import React, { useState, useEffect } from "react";
 import { getActiveWebview } from '@/utils/webview/webviewState.js'
-//import { useAppState } from "@/contexts/AppStateContext.jsx";
-import { useAppState } from '@/contexts/appState';
+import { useAppState } from '@/AppStateContext';
 
 import { useToast } from '@/components/common/ToastContext.jsx'
 import { useDispatch, useSelector } from 'react-redux'

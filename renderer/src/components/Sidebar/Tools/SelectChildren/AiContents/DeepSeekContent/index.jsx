@@ -1,5 +1,5 @@
 import React, { useEffect } from "react"
-import { useAppState } from "@/contexts/appState"
+import { useAppState } from "@/AppStateContext";
 import PromptBox from "@/components/common/PromptBox"
 import AccountInfoPanel from "@/components/common/AccountInfoPanel"
 import DeepseekTabButton from "@/components/common/DeepseekTabButton"

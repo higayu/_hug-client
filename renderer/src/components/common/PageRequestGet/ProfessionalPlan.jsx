@@ -1,6 +1,6 @@
 // renderer/src/components/common/PageRequestGet/ProfessionalPlan.jsx
 import React from "react";
-import { useAppState } from "@/contexts/appState";
+import { useAppState } from "@/AppStateContext";
 import { getActiveWebview } from "@/utils/webview/webviewState.js";
 import { ArrowPathIcon } from "@heroicons/react/24/solid";
 /**

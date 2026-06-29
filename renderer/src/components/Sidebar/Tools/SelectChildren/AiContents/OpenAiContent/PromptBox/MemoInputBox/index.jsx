@@ -1,7 +1,7 @@
 // renderer/src/components/Sidebar/Tools/SelectChildren/MemoTool/Parts/MemoInput/index.jsx
 import React, { useRef, useState, useEffect, useCallback } from "react";
 import { useToast } from "@/components/common/ToastContext.jsx";
-import { useAppState } from "@/contexts/appState";
+import { useAppState } from "@/AppStateContext";
 import { useNote } from "@/hooks/useNote.js";
 import { addPersonalRecordTabAction3 } from "@/hooks/useTabs/actions/personalRecord.js";
 import { useTabs } from "@/hooks/useTabs/index.js"

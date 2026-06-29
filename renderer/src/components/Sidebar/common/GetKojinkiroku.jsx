@@ -7,7 +7,7 @@ import {
   selectAttendanceError,
 } from "@/store/slices/attendanceSlice.js";
 import { useDataBase } from "@/hooks/useDataBase";
-import { useAppState } from "@/contexts/appState";
+import { useAppState } from "@/AppStateContext";
 
 import {
   clickEnterButton,

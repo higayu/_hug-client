@@ -4,7 +4,7 @@ import { FaRobot } from "react-icons/fa"
 
 import { useTabs } from "@/hooks/useTabs"
 
-import { useAppState } from "@/contexts/appState"
+import { useAppState } from "@/AppStateContext";
 
 import { createWebview, createTabButton } from "@/hooks/useTabs/common/index.js"
 

@@ -1,6 +1,6 @@
 // src/components/common/WeekdaySelect.jsx
 import React from "react"
-import { useAppState } from "@/contexts/appState"
+import { useAppState } from "@/AppStateContext";
 import { useToast } from "@/components/common/ToastContext.jsx"
 import { DAY_OF_WEEK_MASTER } from "@/utils/date/dateUtils.js"
 

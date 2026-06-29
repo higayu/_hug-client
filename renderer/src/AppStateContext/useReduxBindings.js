@@ -1,4 +1,4 @@
-// contexts/appState/useReduxBindings.js
+// AppStateContext/useReduxBindings.js
 import { useSelector, shallowEqual } from 'react-redux'
 import * as s from '@/store/slices/appStateSlice'
 

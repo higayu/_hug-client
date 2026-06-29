@@ -1,4 +1,4 @@
-// contexts/appState/useActiveApi.js
+// AppStateContext/useActiveApi.js
 import { useState } from 'react'
 import { sqliteApi } from '@/sql/sqliteApi'
 import { mariadbApi } from '@/sql/mariadbApi'

@@ -1,6 +1,6 @@
 // ./Parts/AiContents/index.jsx
 import React from "react";
-import { useAppState } from "@/contexts/appState";
+import { useAppState } from "@/AppStateContext";
 
 import OpenAiContent from "./OpenAiContent";
 import GeminiContent from "./GeminiContent";

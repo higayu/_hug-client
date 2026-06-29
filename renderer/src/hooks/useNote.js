@@ -1,5 +1,4 @@
-// import { useAppState } from "@/contexts/AppStateContext.jsx";
-import { useAppState } from "@/contexts/appState";
+import { useAppState } from "@/AppStateContext";
 import {
   saveTempNote,
   saveTempNote1,
