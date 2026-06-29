@@ -192,7 +192,7 @@ const ServerConnectButton = ({
   };
 
   return (
-    <div className="inline-flex items-center">
+    <div className={`${className} inline-flex items-center`}>
       <button
         type="button"
         onClick={handleCheckConnection}
@@ -200,7 +200,7 @@ const ServerConnectButton = ({
         title={titleText}
         aria-label={titleText}
         className={[
-          "inline-flex h-9 w-9 items-center justify-center rounded-lg text-sm font-medium transition",
+          "inline-flex items-center justify-center gap-2 rounded-lg text-sm font-medium transition",
           "border shadow-sm",
           isChecking
             ? "cursor-not-allowed bg-gray-100 text-gray-500"
@@ -217,6 +217,8 @@ const ServerConnectButton = ({
         ) : (
           <Wifi size={18} />
         )}
+
+        <span>サーバ接続</span>
       </button>
     </div>
   );

@@ -329,7 +329,7 @@ export default function StaffUpdateButton() {
       type="button"
       onClick={handleClick}
       disabled={isLoading}
-      className="flex items-center gap-2 w-full px-4 py-2 text-center bg-emerald-600 text-sm text-white transition-colors hover:bg-emerald-700 disabled:cursor-wait disabled:opacity-60"
+      className="flex items-center gap-2 w-full px-4 py-2 text-center bg-sky-600 text-sm text-white transition-colors hover:bg-blue-700 disabled:cursor-wait disabled:opacity-60"
       title="HUGの職員データを取得してDBへ同期"
     >
       <ArrowPathIcon

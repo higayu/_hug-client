@@ -364,7 +364,7 @@ export default function Toolbar() {
                <Sql_SynchronizationBtn />
             </li>
             <li className="m-0 p-0">
-               <ServerConnectButton />
+              <ServerConnectButton className="w-full py-2" />
             </li>
             <li className="m-0 p-0">
               <button
