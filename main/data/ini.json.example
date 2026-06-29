@@ -68,6 +68,8 @@
     "facilityId": "3",
     "databaseType": "mariadb",
     "useAI": "gemini",
+    "autoSynchronization":"true",
+    "autoSwitching":"true",
     "debugFlg": "false"
   }
 }

@@ -52,6 +52,8 @@ function loadDefaultIni() {
       facilityId: "3",
       databaseType: "mariadb",
       useAI: "chatGPT",
+      autoSynchronization:"true",
+      autoSwitching:"true",
       debugFlg:"false"
     },
   };
