@@ -13,38 +13,20 @@ import {
   switchDatabaseType,
 } from '@/hooks/useDataBase/checkMariaDbConnection'
 
-function getActiveApiType(activeApi) {
-  if (!activeApi) return 'unknown'
-
-  if (typeof activeApi === 'string') {
-    return activeApi
-  }
-
-  if (typeof activeApi === 'object') {
-    return (
-      activeApi.type ||
-      activeApi.databaseType ||
-      activeApi.dbType ||
-      activeApi.name ||
-      'unknown'
-    )
-  }
-
-  return 'unknown'
-}
-
 const ActiveApiStatus = ({ className = '' }) => {
   const dispatch = useDispatch()
-  const { activeApi, DATABASE_TYPE } = useAppState()
+
+  // activeApi は使わない
+  // DATABASE_TYPE を正本にする
+  const { DATABASE_TYPE } = useAppState()
 
   const [switching, setSwitching] = useState(false)
   const [lastMessage, setLastMessage] = useState('')
 
-  const apiType = getActiveApiType(activeApi)
-  const displayType = apiType !== 'unknown' ? apiType : DATABASE_TYPE
+  const databaseType = DATABASE_TYPE || 'sqlite'
 
-  const isMariaDb = displayType === 'mariadb'
-  const isSqlite = displayType === 'sqlite'
+  const isMariaDb = databaseType === 'mariadb'
+  const isSqlite = databaseType === 'sqlite'
 
   const icon = switching ? (
     <Loader2 size={10} className="animate-spin" />
@@ -116,8 +98,9 @@ const ActiveApiStatus = ({ className = '' }) => {
       ? 'サーバー側APIを使用しています'
       : isSqlite
         ? 'ローカルSQLiteを使用しています'
-        : 'activeApi がまだ初期化されていません',
+        : 'DATABASE_TYPE がまだ確定していません',
     `現在: ${label}`,
+    `DATABASE_TYPE: ${databaseType}`,
     `操作: ${nextLabel}`,
     lastMessage ? `結果: ${lastMessage}` : null,
   ]

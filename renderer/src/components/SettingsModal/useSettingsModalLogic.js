@@ -1,17 +1,15 @@
 // renderer/src/hooks/useSettingsModalLogic.js
-import { useEffect, useRef, useCallback, useState } from 'react'
-import { useAppState } from '@/AppStateContext';
+import { useEffect, useRef, useCallback } from 'react'
+import { useAppState } from '@/AppStateContext'
 import { useCustomButtons } from '@/components/common/CustomButtonsContext.jsx'
-// AppState は window.AppState または useAppState() フック経由でアクセス可能
 import { saveConfig } from '@/utils/config/configUtils.js'
 import { useToast } from '@/components/common/ToastContext.jsx'
 import { loadAllReload } from '@/utils/config/reloadSettings.js'
 import { updateButtonVisibility } from '@/utils/app/buttonVisibility.js'
 import { useCustomButtonManager } from '@/hooks/useCustomButtonManager.js'
-import { getActiveWebview } from '@/utils/webview/webviewState.js'
-import { getJoinedStaffFacilityData } from "@/sql/staff_facility_v/staffDispatcher.js";
-import { sqliteApi } from "@/sql/sqliteApi.js";
-import { mariadbApi } from "@/sql/mariadbApi.js";
+import { getJoinedStaffFacilityData } from '@/sql/staff_facility_v/staffDispatcher.js'
+import { sqliteApi } from '@/sql/sqliteApi.js'
+import { mariadbApi } from '@/sql/mariadbApi.js'
 
 // 設定モーダルの初期化と設定の保存
 export function useSettingsModalLogic(isOpen) {
@@ -23,19 +21,28 @@ export function useSettingsModalLogic(isOpen) {
 
     // ini 関連（AppStateContext から）
     iniState,
-    loadIni,
     saveIni,
-    updateIniSetting,
-    setIniState
+    setIniState,
   } = useAppState()
+
   const { saveCustomButtons: saveCustomButtonsContext } = useCustomButtons()
   const { reloadCustomButtons } = useCustomButtonManager()
+
   const originalSettingsRef = useRef(null)
+
+  const getApiByDatabaseType = useCallback((databaseType) => {
+    return databaseType === 'mariadb' ? mariadbApi : sqliteApi
+  }, [])
+
   // モーダルが開かれた時に元の設定をバックアップ
   useEffect(() => {
     if (isOpen && !originalSettingsRef.current) {
       originalSettingsRef.current = JSON.parse(JSON.stringify(iniState))
       console.log('✅ [SettingsModal] 元の設定をバックアップしました')
+    }
+
+    if (!isOpen) {
+      originalSettingsRef.current = null
     }
   }, [isOpen, iniState])
 
@@ -43,33 +50,41 @@ export function useSettingsModalLogic(isOpen) {
   const populateForm = useCallback(() => {
     console.log('🔍 [SettingsModal] フォームに値を設定中...')
 
+    const safeIniState = iniState || {}
+    const appSettings = safeIniState.appSettings || {}
+    const apiSettings = safeIniState.apiSettings || {}
+    const features = appSettings.features || {}
+    const ui = appSettings.ui || {}
+    const windowSettings = appSettings.window || {}
+
     // 機能の有効/無効
-    const features = iniState.appSettings.features
-    Object.keys(features).forEach(featureName => {
+    Object.keys(features).forEach((featureName) => {
       const checkbox = document.getElementById(`feature-${featureName}`)
+
       if (checkbox) {
-        checkbox.checked = features[featureName].enabled
+        checkbox.checked = features[featureName].enabled === true
       }
     })
 
     // ボタンテキスト
-    Object.keys(features).forEach(featureName => {
+    Object.keys(features).forEach((featureName) => {
       const textInput = document.getElementById(`text-${featureName}`)
+
       if (textInput) {
         textInput.value = features[featureName].buttonText || ''
       }
     })
 
     // ボタンカラー
-    Object.keys(features).forEach(featureName => {
+    Object.keys(features).forEach((featureName) => {
       const colorInput = document.getElementById(`color-${featureName}`)
+
       if (colorInput) {
         colorInput.value = features[featureName].buttonColor || '#007bff'
       }
     })
 
     // UI設定
-    const ui = iniState.appSettings.ui
     const themeSelect = document.getElementById('theme-select')
     if (themeSelect) themeSelect.value = ui.theme || 'light'
 
@@ -77,34 +92,42 @@ export function useSettingsModalLogic(isOpen) {
     if (languageSelect) languageSelect.value = ui.language || 'ja'
 
     const showCloseButtons = document.getElementById('show-close-buttons')
-    if (showCloseButtons) showCloseButtons.checked = ui.showCloseButtons || false
+    if (showCloseButtons) {
+      showCloseButtons.checked = ui.showCloseButtons === true
+    }
 
     const autoRefresh = document.getElementById('auto-refresh')
-    if (autoRefresh) autoRefresh.checked = ui.autoRefresh?.enabled || false
+    if (autoRefresh) {
+      autoRefresh.checked = ui.autoRefresh?.enabled === true
+    }
 
     const refreshInterval = document.getElementById('refresh-interval')
-    if (refreshInterval) refreshInterval.value = ui.autoRefresh?.interval || 30000
+    if (refreshInterval) {
+      refreshInterval.value = ui.autoRefresh?.interval || 30000
+    }
 
     const confirmOnClose = document.getElementById('confirm-on-close')
     if (confirmOnClose) {
-      confirmOnClose.checked = ui.confirmOnClose !== undefined ? ui.confirmOnClose : true
+      confirmOnClose.checked =
+        ui.confirmOnClose !== undefined ? ui.confirmOnClose : true
     }
 
     // ウィンドウ設定
-    const window = iniState.appSettings.window
     const windowWidth = document.getElementById('window-width')
-    if (windowWidth) windowWidth.value = window.width || 1200
+    if (windowWidth) windowWidth.value = windowSettings.width || 1200
 
     const windowHeight = document.getElementById('window-height')
-    if (windowHeight) windowHeight.value = window.height || 800
+    if (windowHeight) windowHeight.value = windowSettings.height || 800
 
     const windowMaximized = document.getElementById('window-maximized')
-    if (windowMaximized) windowMaximized.checked = window.maximized || false
+    if (windowMaximized) {
+      windowMaximized.checked = windowSettings.maximized === true
+    }
 
     const windowAlwaysOnTop = document.getElementById('window-always-on-top')
-    if (windowAlwaysOnTop) windowAlwaysOnTop.checked = window.alwaysOnTop || false
-
-    // 現在のURL表示: 表示/値の制御はReact側(FeaturesTab)に委譲
+    if (windowAlwaysOnTop) {
+      windowAlwaysOnTop.checked = windowSettings.alwaysOnTop === true
+    }
 
     // Config.json設定
     const configUsername = document.getElementById('config-username')
@@ -113,52 +136,79 @@ export function useSettingsModalLogic(isOpen) {
     const configPassword = document.getElementById('config-password')
     if (configPassword) configPassword.value = appState.HUG_PASSWORD || ''
 
-    // Gemini 用の認証情報（APIキー / モデル）も appState に反映
     const configGemini = document.getElementById('config-gemini')
     if (configGemini) configGemini.value = appState.GEMINI_API_KEY || ''
+
     const configGeminiModel = document.getElementById('config-gemini-model')
-    if (configGeminiModel) configGeminiModel.value = appState.GEMINI_MODEL || 'gemini-3.5-flash'
+    if (configGeminiModel) {
+      configGeminiModel.value = appState.GEMINI_MODEL || 'gemini-3.5-flash'
+    }
 
-    // OpenRouter 用の認証情報（APIキー / モデル）も appState に反映
     const configOpenRouter = document.getElementById('config-openrouter-key')
-    if (configOpenRouter) configOpenRouter.value = appState.OPEN_ROUTER_API_KEY || ''
-    const configOpenRouterModel = document.getElementById('config-openrouter-model')
-    if (configOpenRouterModel) configOpenRouterModel.value = appState.OPEN_ROUTER_MODEL || 'openai/gpt-oss-120b:free'
+    if (configOpenRouter) {
+      configOpenRouter.value = appState.OPEN_ROUTER_API_KEY || ''
+    }
 
-    // DeepSeek 用の認証情報（メール / パスワード）も appState に反映
+    const configOpenRouterModel = document.getElementById(
+      'config-openrouter-model'
+    )
+    if (configOpenRouterModel) {
+      configOpenRouterModel.value =
+        appState.OPEN_ROUTER_MODEL || 'openai/gpt-oss-120b:free'
+    }
+
     const configDeepSeekMail = document.getElementById('config-deepseek-mail')
-    if (configDeepSeekMail) configDeepSeekMail.value = appState.DEEPSEEK_MAIL || ''
-    const configDeepSeekPassword = document.getElementById('config-deepseek-password')
-    if (configDeepSeekPassword) configDeepSeekPassword.value = appState.DEEPSEEK_PASSWORD || ''
+    if (configDeepSeekMail) {
+      configDeepSeekMail.value = appState.DEEPSEEK_MAIL || ''
+    }
 
-    // OpenAI 用の認証情報（メール / パスワード）も appState に反映
+    const configDeepSeekPassword = document.getElementById(
+      'config-deepseek-password'
+    )
+    if (configDeepSeekPassword) {
+      configDeepSeekPassword.value = appState.DEEPSEEK_PASSWORD || ''
+    }
+
     const configOpenaiMail = document.getElementById('config-openai-mail')
-    if (configOpenaiMail) configOpenaiMail.value = appState.OPENAI_MAIL || ''
-    const configOpenaiPassword = document.getElementById('config-openai-password')
-    if (configOpenaiPassword) configOpenaiPassword.value = appState.OPENAI_PASSWORD || ''
+    if (configOpenaiMail) {
+      configOpenaiMail.value = appState.OPENAI_MAIL || ''
+    }
 
-    // Ollama 用の認証情報（URL / モデル）も appState に反映
+    const configOpenaiPassword = document.getElementById(
+      'config-openai-password'
+    )
+    if (configOpenaiPassword) {
+      configOpenaiPassword.value = appState.OPENAI_PASSWORD || ''
+    }
+
     const configOllamaUrl = document.getElementById('config-ollama-url')
-    if (configOllamaUrl) configOllamaUrl.value = appState.OLLAMA_URL || ''
-    const configOllamaModel = document.getElementById('config-ollama-model')
-    if (configOllamaModel) configOllamaModel.value = appState.OLLAMA_MODEL || 'llama3.1'
+    if (configOllamaUrl) {
+      configOllamaUrl.value = appState.OLLAMA_URL || ''
+    }
 
-    // API設定 (ini.json)
+    const configOllamaModel = document.getElementById('config-ollama-model')
+    if (configOllamaModel) {
+      configOllamaModel.value = appState.OLLAMA_MODEL || 'llama3.1'
+    }
+
+    // API設定 ini.json
     const apiBaseUrl = document.getElementById('api-base-url')
-    if (apiBaseUrl) apiBaseUrl.value = iniState?.apiSettings?.baseURL || ''
+    if (apiBaseUrl) apiBaseUrl.value = apiSettings.baseURL || ''
 
     const apiStaffId = document.getElementById('api-staff-id')
-    if (apiStaffId) apiStaffId.value = iniState?.apiSettings?.staffId || ''
+    if (apiStaffId) apiStaffId.value = apiSettings.staffId || ''
 
     const apiFacilityId = document.getElementById('api-facility-id')
-    if (apiFacilityId) apiFacilityId.value = iniState?.apiSettings?.facilityId || ''
+    if (apiFacilityId) apiFacilityId.value = apiSettings.facilityId || ''
 
     const apiDatabaseType = document.getElementById('api-database-type')
-    if (apiDatabaseType) apiDatabaseType.value = iniState?.apiSettings?.databaseType || 'sqlite'
+    if (apiDatabaseType) {
+      apiDatabaseType.value = apiSettings.databaseType || appState.DATABASE_TYPE || 'sqlite'
+    }
 
     const apiAiType = document.getElementById('api-ai-type')
     if (apiAiType) {
-      apiAiType.value = iniState?.apiSettings?.useAI || 'gemini'
+      apiAiType.value = apiSettings.useAI || appState.USE_AI || 'gemini'
       console.log('🔍 [SettingsModal] apiAiType:', apiAiType.value)
     } else {
       console.warn('⚠️ [SettingsModal] api-ai-type 要素が見つかりません')
@@ -169,29 +219,38 @@ export function useSettingsModalLogic(isOpen) {
 
   // フォームの値をIniStateに反映
   const updateIniStateFromForm = useCallback(() => {
-    // 新しい状態オブジェクトを作成
-    const newIniState = JSON.parse(JSON.stringify(iniState)) // ディープコピー
+    const newIniState = JSON.parse(JSON.stringify(iniState || {}))
+
+    if (!newIniState.appSettings) newIniState.appSettings = {}
+    if (!newIniState.appSettings.features) newIniState.appSettings.features = {}
+    if (!newIniState.appSettings.ui) newIniState.appSettings.ui = {}
+    if (!newIniState.appSettings.window) newIniState.appSettings.window = {}
+    if (!newIniState.apiSettings) newIniState.apiSettings = {}
+
+    const features = newIniState.appSettings.features
 
     // 機能の有効/無効
-    const features = newIniState.appSettings.features
-    Object.keys(features).forEach(featureName => {
+    Object.keys(features).forEach((featureName) => {
       const checkbox = document.getElementById(`feature-${featureName}`)
+
       if (checkbox) {
         features[featureName].enabled = checkbox.checked
       }
     })
 
     // ボタンテキスト
-    Object.keys(features).forEach(featureName => {
+    Object.keys(features).forEach((featureName) => {
       const textInput = document.getElementById(`text-${featureName}`)
+
       if (textInput) {
         features[featureName].buttonText = textInput.value
       }
     })
 
     // ボタンカラー
-    Object.keys(features).forEach(featureName => {
+    Object.keys(features).forEach((featureName) => {
       const colorInput = document.getElementById(`color-${featureName}`)
+
       if (colorInput) {
         features[featureName].buttonColor = colorInput.value
       }
@@ -205,37 +264,54 @@ export function useSettingsModalLogic(isOpen) {
     if (languageSelect) newIniState.appSettings.ui.language = languageSelect.value
 
     const showCloseButtons = document.getElementById('show-close-buttons')
-    if (showCloseButtons) newIniState.appSettings.ui.showCloseButtons = showCloseButtons.checked
+    if (showCloseButtons) {
+      newIniState.appSettings.ui.showCloseButtons = showCloseButtons.checked
+    }
+
+    if (!newIniState.appSettings.ui.autoRefresh) {
+      newIniState.appSettings.ui.autoRefresh = {}
+    }
 
     const autoRefresh = document.getElementById('auto-refresh')
-    if (autoRefresh) newIniState.appSettings.ui.autoRefresh.enabled = autoRefresh.checked
+    if (autoRefresh) {
+      newIniState.appSettings.ui.autoRefresh.enabled = autoRefresh.checked
+    }
 
     const refreshInterval = document.getElementById('refresh-interval')
     if (refreshInterval) {
-      newIniState.appSettings.ui.autoRefresh.interval = parseInt(refreshInterval.value)
+      newIniState.appSettings.ui.autoRefresh.interval =
+        Number.parseInt(refreshInterval.value, 10) || 30000
     }
 
     const confirmOnClose = document.getElementById('confirm-on-close')
-    if (confirmOnClose) newIniState.appSettings.ui.confirmOnClose = confirmOnClose.checked
+    if (confirmOnClose) {
+      newIniState.appSettings.ui.confirmOnClose = confirmOnClose.checked
+    }
 
     // ウィンドウ設定
     const windowWidth = document.getElementById('window-width')
-    if (windowWidth) newIniState.appSettings.window.width = parseInt(windowWidth.value)
-
-    const windowHeight = document.getElementById('window-height')
-    if (windowHeight) newIniState.appSettings.window.height = parseInt(windowHeight.value)
-
-    const windowMaximized = document.getElementById('window-maximized')
-    if (windowMaximized) newIniState.appSettings.window.maximized = windowMaximized.checked
-
-    const windowAlwaysOnTop = document.getElementById('window-always-on-top')
-    if (windowAlwaysOnTop) newIniState.appSettings.window.alwaysOnTop = windowAlwaysOnTop.checked
-
-    // API設定 (ini.json)
-    if (!newIniState.apiSettings) {
-      newIniState.apiSettings = {}
+    if (windowWidth) {
+      newIniState.appSettings.window.width =
+        Number.parseInt(windowWidth.value, 10) || 1200
     }
 
+    const windowHeight = document.getElementById('window-height')
+    if (windowHeight) {
+      newIniState.appSettings.window.height =
+        Number.parseInt(windowHeight.value, 10) || 800
+    }
+
+    const windowMaximized = document.getElementById('window-maximized')
+    if (windowMaximized) {
+      newIniState.appSettings.window.maximized = windowMaximized.checked
+    }
+
+    const windowAlwaysOnTop = document.getElementById('window-always-on-top')
+    if (windowAlwaysOnTop) {
+      newIniState.appSettings.window.alwaysOnTop = windowAlwaysOnTop.checked
+    }
+
+    // API設定 ini.json
     const apiBaseUrl = document.getElementById('api-base-url')
     if (apiBaseUrl) newIniState.apiSettings.baseURL = apiBaseUrl.value || ''
 
@@ -243,71 +319,86 @@ export function useSettingsModalLogic(isOpen) {
     if (apiStaffId) newIniState.apiSettings.staffId = apiStaffId.value || ''
 
     const apiFacilityId = document.getElementById('api-facility-id')
-    if (apiFacilityId) newIniState.apiSettings.facilityId = apiFacilityId.value || ''
+    if (apiFacilityId) {
+      newIniState.apiSettings.facilityId = apiFacilityId.value || ''
+    }
 
     const apiDatabaseType = document.getElementById('api-database-type')
-    if (apiDatabaseType) newIniState.apiSettings.databaseType = apiDatabaseType.value || 'sqlite'
+    if (apiDatabaseType) {
+      newIniState.apiSettings.databaseType = apiDatabaseType.value || 'sqlite'
+    }
 
     const apiAiType = document.getElementById('api-ai-type')
-    if (apiAiType) newIniState.apiSettings.useAI = apiAiType.value || 'gemini'
+    if (apiAiType) {
+      newIniState.apiSettings.useAI = apiAiType.value || 'gemini'
+    }
 
-    // 状態を更新
     setIniState(newIniState)
+
     return newIniState
   }, [iniState, setIniState])
 
   // 設定を保存
   const saveSettings = useCallback(async () => {
     try {
-      // フォームの値をIniStateに反映（保存用に新状態を受け取る）
       const newState = updateIniStateFromForm()
 
-      // ini.jsonに保存（非同期setStateの反映待ち不要のため新状態を直接保存）
       const iniSuccess = await saveIni(newState)
-
-      // カスタムボタンを保存
       const customButtonsSuccess = await saveCustomButtonsContext()
 
       if (iniSuccess && customButtonsSuccess) {
         showSuccessToast('✅ 設定を保存しました')
 
-        // 🔄 全設定をリロードし、UIを最新化
         try {
           const reloadOk = await loadAllReload()
+
           if (reloadOk) {
             updateButtonVisibility()
             await reloadCustomButtons()
           }
-        } catch (e) {
-          console.error('❌ 全設定リロード中にエラー:', e)
+        } catch (error) {
+          console.error('❌ 全設定リロード中にエラー:', error)
         }
 
-        // 他UIへ設定更新を通知
         try {
-          document.dispatchEvent(new CustomEvent('app-settings-updated', { detail: { IniState: iniState } }))
-        } catch (e) {
+          document.dispatchEvent(
+            new CustomEvent('app-settings-updated', {
+              detail: { IniState: newState },
+            })
+          )
+        } catch {
           // 通知失敗は無視
         }
 
         return true
-      } else {
-        showErrorToast('❌ 設定の保存に失敗しました')
-        return false
       }
+
+      showErrorToast('❌ 設定の保存に失敗しました')
+      return false
     } catch (error) {
       console.error('設定保存エラー:', error)
       showErrorToast('❌ 設定の保存中にエラーが発生しました')
       return false
     }
-  }, [updateIniStateFromForm, saveIni, saveCustomButtonsContext, iniState, showSuccessToast, showErrorToast])
+  }, [
+    updateIniStateFromForm,
+    saveIni,
+    saveCustomButtonsContext,
+    showSuccessToast,
+    showErrorToast,
+    reloadCustomButtons,
+  ])
 
-  // 編集前に戻す（元のリセット機能をリネーム）
+  // 編集前に戻す
   const resetToOriginal = useCallback(() => {
     if (confirm('編集前の状態に戻しますか？')) {
-      // バックアップから復元
       if (originalSettingsRef.current) {
         setIniState(JSON.parse(JSON.stringify(originalSettingsRef.current)))
-        populateForm()
+
+        setTimeout(() => {
+          populateForm()
+        }, 0)
+
         console.log('✅ [SettingsModal] 編集前の状態に戻しました')
       }
     }
@@ -315,20 +406,23 @@ export function useSettingsModalLogic(isOpen) {
 
   // デフォルト値にリセット
   const resetToDefault = useCallback(async () => {
-    if (confirm('設定をデフォルト値にリセットしますか？\nこの操作は保存しない限り反映されません。')) {
+    if (
+      confirm(
+        '設定をデフォルト値にリセットしますか？\nこの操作は保存しない限り反映されません。'
+      )
+    ) {
       try {
-        // デフォルト設定を構築（iniHandler.jsのdefaultIniと同じ構造）
         const defaultIniState = {
-          version: "1.0.0",
+          version: '1.0.0',
           appSettings: {
             autoLogin: {
               enabled: true,
-              username: "",
-              password: "",
+              username: '',
+              password: '',
             },
             ui: {
-              theme: "light",
-              language: "ja",
+              theme: 'light',
+              language: 'ja',
               showCloseButtons: true,
               confirmOnClose: true,
               autoRefresh: {
@@ -339,8 +433,8 @@ export function useSettingsModalLogic(isOpen) {
             features: {
               getUrl: {
                 enabled: true,
-                buttonText: "URL取得",
-                buttonColor: "#17a2b8",
+                buttonText: 'URL取得',
+                buttonColor: '#17a2b8',
               },
             },
             window: {
@@ -358,57 +452,67 @@ export function useSettingsModalLogic(isOpen) {
             },
           },
           userPreferences: {
-            lastLoginDate: "",
+            lastLoginDate: '',
             rememberWindowState: true,
             showWelcomeMessage: true,
           },
           apiSettings: {
-            baseURL: "http://192.168.1.229",
-            staffId: "",
-            facilityId: "3",
-            databaseType: "mariadb",
-            useAI: "chatGPT",
+            baseURL: 'http://192.168.1.229',
+            staffId: '',
+            facilityId: '3',
+            databaseType: 'mariadb',
+            useAI: 'chatGPT',
           },
         }
 
-        // 状態を更新
         setIniState(defaultIniState)
-        // フォームに値を設定（少し遅延させてDOMが更新されるのを待つ）
+
         setTimeout(() => {
           populateForm()
-          // セレクトボックスも初期化
           initializeApiSelectBoxes()
         }, 100)
 
         console.log('✅ [SettingsModal] デフォルト値にリセットしました')
-        showSuccessToast('✅ デフォルト値にリセットしました（保存ボタンを押して確定してください）')
+        showSuccessToast(
+          '✅ デフォルト値にリセットしました（保存ボタンを押して確定してください）'
+        )
       } catch (error) {
         console.error('❌ [SettingsModal] リセットエラー:', error)
         showErrorToast('❌ リセット中にエラーが発生しました')
       }
     }
-  }, [populateForm, setIniState, showSuccessToast, showErrorToast])
+  }, [
+    populateForm,
+    setIniState,
+    showSuccessToast,
+    showErrorToast,
+  ])
 
   // パスワード表示切替え
-  const togglePasswordVisibility = useCallback((inputId = 'config-password', btnId = 'toggle-password') => {
-    const targetInputId = typeof inputId === 'string' ? inputId : 'config-password'
-    const targetBtnId = typeof btnId === 'string' ? btnId : 'toggle-password'
+  const togglePasswordVisibility = useCallback(
+    (inputId = 'config-password', btnId = 'toggle-password') => {
+      const targetInputId =
+        typeof inputId === 'string' ? inputId : 'config-password'
+      const targetBtnId =
+        typeof btnId === 'string' ? btnId : 'toggle-password'
 
-    const passwordInput = document.getElementById(targetInputId)
-    const toggleBtn = document.getElementById(targetBtnId)
+      const passwordInput = document.getElementById(targetInputId)
+      const toggleBtn = document.getElementById(targetBtnId)
 
-    if (passwordInput && toggleBtn) {
-      if (passwordInput.type === 'password') {
-        passwordInput.type = 'text'
-        toggleBtn.textContent = '🙈'
-        toggleBtn.title = 'パスワードを隠す'
-      } else {
-        passwordInput.type = 'password'
-        toggleBtn.textContent = '👁️'
-        toggleBtn.title = 'パスワードを表示'
+      if (passwordInput && toggleBtn) {
+        if (passwordInput.type === 'password') {
+          passwordInput.type = 'text'
+          toggleBtn.textContent = '🙈'
+          toggleBtn.title = 'パスワードを隠す'
+        } else {
+          passwordInput.type = 'password'
+          toggleBtn.textContent = '👁️'
+          toggleBtn.title = 'パスワードを表示'
+        }
       }
-    }
-  }, [])
+    },
+    []
+  )
 
   // Config.jsonを保存
   const saveConfigFromForm = useCallback(async () => {
@@ -417,32 +521,39 @@ export function useSettingsModalLogic(isOpen) {
         HUG_USERNAME: document.getElementById('config-username')?.value || '',
         HUG_PASSWORD: document.getElementById('config-password')?.value || '',
         GEMINI_API_KEY: document.getElementById('config-gemini')?.value || '',
-        GEMINI_MODEL: document.getElementById('config-gemini-model')?.value || 'gemini-3.5-flash',
-        OPEN_ROUTER_API_KEY: document.getElementById('config-openrouter-key')?.value || '',
-        OPEN_ROUTER_MODEL:document.getElementById('config-openrouter-model')?.value || '',
-        DEEPSEEK_MAIL: document.getElementById('config-deepseek-mail')?.value || '',
-        DEEPSEEK_PASSWORD: document.getElementById('config-deepseek-password')?.value || '',
-        OPENAI_MAIL: document.getElementById('config-openai-mail')?.value || '',
-        OPENAI_PASSWORD: document.getElementById('config-openai-password')?.value || '',
-        OLLAMA_URL: document.getElementById('config-ollama-url')?.value || '',
-        OLLAMA_MODEL: document.getElementById('config-ollama-model')?.value || 'gemma4:latest'
+        GEMINI_MODEL:
+          document.getElementById('config-gemini-model')?.value ||
+          'gemini-3.5-flash',
+        OPEN_ROUTER_API_KEY:
+          document.getElementById('config-openrouter-key')?.value || '',
+        OPEN_ROUTER_MODEL:
+          document.getElementById('config-openrouter-model')?.value || '',
+        DEEPSEEK_MAIL:
+          document.getElementById('config-deepseek-mail')?.value || '',
+        DEEPSEEK_PASSWORD:
+          document.getElementById('config-deepseek-password')?.value || '',
+        OPENAI_MAIL:
+          document.getElementById('config-openai-mail')?.value || '',
+        OPENAI_PASSWORD:
+          document.getElementById('config-openai-password')?.value || '',
+        OLLAMA_URL:
+          document.getElementById('config-ollama-url')?.value || '',
+        OLLAMA_MODEL:
+          document.getElementById('config-ollama-model')?.value ||
+          'gemma4:latest',
       }
 
-      // AppStateを更新（Context APIとwindow.AppStateの両方を更新）
       updateAppState(configData)
-      if (window.AppState) {
-        Object.assign(window.AppState, configData)
-      }
 
-      // ファイルに保存
       const success = await saveConfig(configData)
+
       if (success) {
         showSuccessToast('✅ Config.jsonの保存が完了しました')
         return true
-      } else {
-        showErrorToast('❌ Config.jsonの保存に失敗しました')
-        return false
       }
+
+      showErrorToast('❌ Config.jsonの保存に失敗しました')
+      return false
     } catch (error) {
       console.error('❌ Config.json保存エラー:', error)
       showErrorToast('❌ エラーが発生しました: ' + error.message)
@@ -452,180 +563,206 @@ export function useSettingsModalLogic(isOpen) {
 
   // セレクトボックスを初期化（Config用 - 現在は使用されていない）
   const initializeSelectBoxes = useCallback(async () => {
-    // Config.jsonにはスタッフIDと施設IDがなくなったため、空の実装
     console.log('✅ [SettingsModal] Configセレクトボックス初期化（不要）')
   }, [])
-
 
   // API設定のセレクトボックスを初期化
   const initializeApiSelectBoxes = useCallback(async () => {
     try {
-      console.group("🧩 [SettingsModal] initializeApiSelectBoxes 開始");
+      console.group('🧩 [SettingsModal] initializeApiSelectBoxes 開始')
 
-      const staffSelect = document.getElementById("api-staff-id");
-      const facilitySelect = document.getElementById("api-facility-id");
-      const aiSelect = document.getElementById("api-ai-type");
-      const baseUrlInput = document.getElementById("api-base-url");
+      const staffSelect = document.getElementById('api-staff-id')
+      const facilitySelect = document.getElementById('api-facility-id')
+      const aiSelect = document.getElementById('api-ai-type')
+      const baseUrlInput = document.getElementById('api-base-url')
+      const databaseTypeSelect = document.getElementById('api-database-type')
 
-      // activeApiを取得（appStateから、またはiniStateのdatabaseTypeに基づいて）
-      const apiToUse = appState?.activeApi || (iniState?.apiSettings?.databaseType === 'mariadb' ? mariadbApi : sqliteApi);
-      console.log("📌 activeApi:", apiToUse === mariadbApi ? 'mariadbApi' : 'sqliteApi');
+      const selectedDatabaseType =
+        iniState?.apiSettings?.databaseType ||
+        appState?.DATABASE_TYPE ||
+        'sqlite'
 
-      // まずReduxストアからデータを取得
-      let data = getJoinedStaffFacilityData();
-      console.log("📊 Reduxストアから取得データ:", data);
+      const apiToUse = getApiByDatabaseType(selectedDatabaseType)
 
-      // Reduxストアにデータがない場合は、データベースから直接取得
+      console.log('📌 使用DB:', selectedDatabaseType)
+      console.log(
+        '📌 使用API:',
+        selectedDatabaseType === 'mariadb' ? 'mariadbApi' : 'sqliteApi'
+      )
+
+      let data = getJoinedStaffFacilityData()
+      console.log('📊 Reduxストアから取得データ:', data)
+
       if (!data || !Array.isArray(data) || data.length === 0) {
-        console.log("⚠️ Reduxストアにデータがないため、データベースから直接取得します");
+        console.log(
+          '⚠️ Reduxストアにデータがないため、データベースから直接取得します'
+        )
 
         try {
-          // activeApiを使ってデータベースから全テーブルを取得
-          const tables = await apiToUse.getAllTables();
-          console.log("📊 データベースから取得したテーブル:", tables);
+          const tables = await apiToUse.getAllTables()
+          console.log('📊 データベースから取得したテーブル:', tables)
 
           if (tables && (tables.staffs || tables.facility_staff || tables.facilitys)) {
-            // getJoinedStaffFacilityDataと同じ処理を実行
-            const staffs = tables.staffs || [];
-            const facilityStaff = tables.facility_staff || [];
-            const facilitys = tables.facilitys || [];
+            const staffs = tables.staffs || []
+            const facilityStaff = tables.facility_staff || []
+            const facilitys = tables.facilitys || []
 
-            console.log("🧾 データ確認:", { staffs, facilityStaff, facilitys });
+            console.log('🧾 データ確認:', {
+              staffs,
+              facilityStaff,
+              facilitys,
+            })
 
-            // スタッフごとの施設情報をまとめる
             data = staffs
-              .filter((s) => s.id !== -1 && s.is_delete !== 1)
-              .map((s) => {
-                const relatedFs = facilityStaff.filter((fs) => fs.staff_id === s.id);
-                const relatedFacilities = relatedFs
-                  .map((fs) => facilitys.find((f) => f.id === fs.facility_id))
-                  .filter(Boolean);
+              .filter((staff) => staff.id !== -1 && staff.is_delete !== 1)
+              .map((staff) => {
+                const relatedFacilityStaff = facilityStaff.filter(
+                  (fs) => fs.staff_id === staff.id
+                )
 
-                const facility_ids = relatedFacilities.map((f) => f.id).join(",");
-                const facility_names = relatedFacilities.map((f) => f.name).join(", ");
+                const relatedFacilities = relatedFacilityStaff
+                  .map((fs) =>
+                    facilitys.find((facility) => facility.id === fs.facility_id)
+                  )
+                  .filter(Boolean)
+
+                const facility_ids = relatedFacilities
+                  .map((facility) => facility.id)
+                  .join(',')
+
+                const facility_names = relatedFacilities
+                  .map((facility) => facility.name)
+                  .join(', ')
 
                 return {
-                  staff_id: s.id,
-                  staff_name: s.name,
-                  notes: s.notes,
-                  is_delete: s.is_delete,
+                  staff_id: staff.id,
+                  staff_name: staff.name,
+                  notes: staff.notes,
+                  is_delete: staff.is_delete,
                   facility_ids,
                   facility_names,
-                };
-              });
+                }
+              })
 
-            console.log("✅ データベースから結合結果:", data);
+            console.log('✅ データベースから結合結果:', data)
           } else {
-            console.warn("⚠️ テーブルデータが取得できませんでした");
-            console.groupEnd();
-            return;
+            console.warn('⚠️ テーブルデータが取得できませんでした')
+            console.groupEnd()
+            return
           }
         } catch (error) {
-          console.error("❌ データベースからの取得エラー:", error);
-          console.groupEnd();
-          return;
+          console.error('❌ データベースからの取得エラー:', error)
+          console.groupEnd()
+          return
         }
       }
 
       if (!data || !Array.isArray(data) || data.length === 0) {
-        console.warn("⚠️ データが取得できませんでした");
-        console.groupEnd();
-        return;
+        console.warn('⚠️ データが取得できませんでした')
+        console.groupEnd()
+        return
       }
 
-      // スタッフリストを生成（dataそのものを使用）
       const staffList = data.map((item) => ({
         staff_id: item.staff_id,
         staff_name: item.staff_name,
-      }));
+      }))
 
-      // 施設リストを生成（facility_namesを分割して重複を削除）
-      const facilityMap = new Map();
+      const facilityMap = new Map()
+
       data.forEach((item) => {
         if (item.facility_names && item.facility_ids) {
-          const facilityNames = item.facility_names.split(", ").map((name) => name.trim());
-          const facilityIds = item.facility_ids.split(",").map((id) => id.trim());
+          const facilityNames = item.facility_names
+            .split(', ')
+            .map((name) => name.trim())
+
+          const facilityIds = item.facility_ids
+            .split(',')
+            .map((id) => id.trim())
 
           facilityNames.forEach((name, index) => {
             if (name && !facilityMap.has(name)) {
-              facilityMap.set(name, facilityIds[index] || "");
+              facilityMap.set(name, facilityIds[index] || '')
             }
-          });
+          })
         }
-      });
+      })
 
-      const facilityList = Array.from(facilityMap.entries()).map(([name, id]) => ({
-        id: id || "",
-        name: name,
-      }));
+      const facilityList = Array.from(facilityMap.entries()).map(
+        ([name, id]) => ({
+          id: id || '',
+          name,
+        })
+      )
 
-      // スタッフセレクト初期化
       if (staffSelect) {
         while (staffSelect.children.length > 1) {
-          staffSelect.removeChild(staffSelect.lastChild);
+          staffSelect.removeChild(staffSelect.lastChild)
         }
+
         staffList.forEach((staff) => {
-          const option = document.createElement("option");
-          option.value = staff.staff_id;
-          option.textContent = staff.staff_name;
-          staffSelect.appendChild(option);
-        });
-        console.log("✅ [SettingsModal] スタッフセレクト初期化完了");
+          const option = document.createElement('option')
+          option.value = staff.staff_id
+          option.textContent = staff.staff_name
+          staffSelect.appendChild(option)
+        })
+
+        console.log('✅ [SettingsModal] スタッフセレクト初期化完了')
       } else {
-        console.warn("⚠️ staffSelect 要素が見つかりません");
+        console.warn('⚠️ staffSelect 要素が見つかりません')
       }
 
-      // 施設セレクト初期化
       if (facilitySelect) {
         while (facilitySelect.children.length > 1) {
-          facilitySelect.removeChild(facilitySelect.lastChild);
+          facilitySelect.removeChild(facilitySelect.lastChild)
         }
+
         facilityList.forEach((facility) => {
-          const option = document.createElement("option");
-          option.value = facility.id;
-          option.textContent = facility.name;
-          facilitySelect.appendChild(option);
-        });
-        console.log("✅ [SettingsModal] 施設セレクト初期化完了");
+          const option = document.createElement('option')
+          option.value = facility.id
+          option.textContent = facility.name
+          facilitySelect.appendChild(option)
+        })
+
+        console.log('✅ [SettingsModal] 施設セレクト初期化完了')
       } else {
-        console.warn("⚠️ facilitySelect 要素が見つかりません");
+        console.warn('⚠️ facilitySelect 要素が見つかりません')
       }
 
-      // 現在値の設定
-      const selectedStaffId = iniState?.apiSettings?.staffId || "";
-      const selectedFacilityId = iniState?.apiSettings?.facilityId || "";
-      const selectedAiType = iniState?.apiSettings?.useAI || "gemini";
-      const selectedBaseUrl = iniState?.apiSettings?.baseURL || "";
+      const selectedStaffId = iniState?.apiSettings?.staffId || ''
+      const selectedFacilityId = iniState?.apiSettings?.facilityId || ''
+      const selectedAiType =
+        iniState?.apiSettings?.useAI || appState?.USE_AI || 'gemini'
+      const selectedBaseUrl = iniState?.apiSettings?.baseURL || ''
 
-      console.log("🎯 iniState.apiSettings:", iniState?.apiSettings);
-      console.log("🎯 適用 staffId:", selectedStaffId);
-      console.log("🎯 適用 facilityId:", selectedFacilityId);
-      console.log("🎯 適用 AI種別:", selectedAiType);
-      if (staffSelect) staffSelect.value = selectedStaffId;
-      if (facilitySelect) facilitySelect.value = selectedFacilityId;
-      if (aiSelect) aiSelect.value = selectedAiType;
-      if (baseUrlInput) baseUrlInput.value = selectedBaseUrl;
-      console.groupEnd();
+      console.log('🎯 iniState.apiSettings:', iniState?.apiSettings)
+      console.log('🎯 適用 staffId:', selectedStaffId)
+      console.log('🎯 適用 facilityId:', selectedFacilityId)
+      console.log('🎯 適用 AI種別:', selectedAiType)
+      console.log('🎯 適用 DB種別:', selectedDatabaseType)
+
+      if (staffSelect) staffSelect.value = selectedStaffId
+      if (facilitySelect) facilitySelect.value = selectedFacilityId
+      if (aiSelect) aiSelect.value = selectedAiType
+      if (baseUrlInput) baseUrlInput.value = selectedBaseUrl
+      if (databaseTypeSelect) databaseTypeSelect.value = selectedDatabaseType
+
+      console.groupEnd()
     } catch (error) {
-      console.error("❌ [SettingsModal] APIセレクトボックス初期化エラー:", error);
-      console.groupEnd();
+      console.error('❌ [SettingsModal] APIセレクトボックス初期化エラー:', error)
+      console.groupEnd()
     }
-  }, [iniState, appState]);
-
-
+  }, [iniState, appState, getApiByDatabaseType])
 
   // API設定を保存
   const saveApiSettingsFromForm = useCallback(async () => {
     try {
-      // 新しい状態オブジェクトを作成
-      const newIniState = JSON.parse(JSON.stringify(iniState)) // ディープコピー
+      const newIniState = JSON.parse(JSON.stringify(iniState || {}))
 
-      // apiSettingsが存在しない場合は作成
       if (!newIniState.apiSettings) {
         newIniState.apiSettings = {}
       }
 
-      // フォームから値を取得して設定
       const apiBaseUrl = document.getElementById('api-base-url')
       if (apiBaseUrl) newIniState.apiSettings.baseURL = apiBaseUrl.value || ''
 
@@ -633,60 +770,91 @@ export function useSettingsModalLogic(isOpen) {
       if (apiStaffId) newIniState.apiSettings.staffId = apiStaffId.value || ''
 
       const apiFacilityId = document.getElementById('api-facility-id')
-      if (apiFacilityId) newIniState.apiSettings.facilityId = apiFacilityId.value || ''
+      if (apiFacilityId) {
+        newIniState.apiSettings.facilityId = apiFacilityId.value || ''
+      }
 
       const apiDatabaseType = document.getElementById('api-database-type')
-      if (apiDatabaseType) newIniState.apiSettings.databaseType = apiDatabaseType.value || 'sqlite'
+      if (apiDatabaseType) {
+        newIniState.apiSettings.databaseType = apiDatabaseType.value || 'sqlite'
+      }
 
       const apiAiType = document.getElementById('api-ai-type')
-      if (apiAiType) newIniState.apiSettings.useAI = apiAiType.value || 'gemini'
+      if (apiAiType) {
+        newIniState.apiSettings.useAI = apiAiType.value || 'gemini'
+      }
 
-      // ini.jsonに保存
       const success = await saveIni(newIniState)
+
       if (success) {
-        // Reactの状態も更新（これが重要！）
         setIniState(newIniState)
 
-        // databaseType に基づく activeApi は非シリアライズのため Redux には流さない
         const databaseType = newIniState.apiSettings.databaseType || 'sqlite'
-        const newActiveApi = databaseType === 'mariadb' ? mariadbApi : sqliteApi
         const useAI = newIniState.apiSettings.useAI || 'gemini'
+        const staffId = newIniState.apiSettings.staffId || ''
+        const facilityId = newIniState.apiSettings.facilityId || ''
+        const baseURL = newIniState.apiSettings.baseURL || ''
 
-        // window.AppState 上で直接更新（Reduxには関数を流さない）
-        if (window.AppState) {
-          window.AppState.activeApi = newActiveApi
-          window.AppState.USE_AI = useAI
-          window.AppState.DATABASE_TYPE = databaseType
-        }
-        if (window.updateAppState) {
-          window.updateAppState({ USE_AI: useAI, DATABASE_TYPE: databaseType })
+        updateAppState({
+          DATABASE_TYPE: databaseType,
+          USE_AI: useAI,
+          STAFF_ID: staffId,
+          FACILITY_ID: facilityId,
+          VITE_API_BASE_URL: baseURL,
+        })
+
+        const databaseTypeSelect = document.getElementById('api-database-type')
+        if (databaseTypeSelect) {
+          databaseTypeSelect.value = databaseType
         }
 
-        console.log('🔄 [useSettingsModalLogic] activeApi更新:', { databaseType, activeApi: newActiveApi === mariadbApi ? 'mariadbApi' : 'sqliteApi' })
-        console.log('🔄 [useSettingsModalLogic] useAI更新:', { useAI })
+        window.dispatchEvent(
+          new CustomEvent('database-type-changed', {
+            detail: {
+              databaseType,
+              message: `API設定保存により ${databaseType} に切り替えました`,
+              checkedAt: new Date().toISOString(),
+              source: 'useSettingsModalLogic.saveApiSettingsFromForm',
+            },
+          })
+        )
+
+        console.log('🔄 [useSettingsModalLogic] DATABASE_TYPE 更新:', {
+          databaseType,
+        })
+        console.log('🔄 [useSettingsModalLogic] USE_AI 更新:', { useAI })
 
         showSuccessToast('✅ API設定の保存が完了しました')
         return true
-      } else {
-        showErrorToast('❌ API設定の保存に失敗しました')
-        return false
       }
+
+      showErrorToast('❌ API設定の保存に失敗しました')
+      return false
     } catch (error) {
       console.error('❌ API設定保存エラー:', error)
       showErrorToast('❌ エラーが発生しました: ' + error.message)
       return false
     }
-  }, [iniState, saveIni, setIniState, showSuccessToast, showErrorToast])
+  }, [
+    iniState,
+    saveIni,
+    setIniState,
+    updateAppState,
+    showSuccessToast,
+    showErrorToast,
+  ])
 
   // Config.jsonを再読み込みする
   const reloadConfig = useCallback(async () => {
     try {
       const success = await loadAllReload()
+
       if (success) {
         populateForm()
         showSuccessToast('✅ Config.jsonを再読み込みしました')
         return true
       }
+
       return false
     } catch (error) {
       console.error('❌ Config.json再読み込みエラー:', error)
@@ -705,7 +873,6 @@ export function useSettingsModalLogic(isOpen) {
     initializeSelectBoxes,
     saveApiSettingsFromForm,
     initializeApiSelectBoxes,
-    reloadConfig
+    reloadConfig,
   }
 }
-

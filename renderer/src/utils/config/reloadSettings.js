@@ -3,70 +3,192 @@
 
 import { loadConfig } from './configUtils.js'
 import { loadIni as loadIniFromUtils, loadPrompt } from './iniUtils.js'
-import { sqliteApi } from '@/sql/sqliteApi.js'
-import { mariadbApi } from '@/sql/mariadbApi.js'
 import { store } from '@/store/store.js'
-import { setPrompts, updateAppState } from '@/store/slices/appStateSlice.js'
+import {
+  setPrompts,
+  updateAppState,
+  setDatabaseType,
+  setUseAI,
+  setStaffId,
+  setFacilityId,
+  setDebugFlg,
+} from '@/store/slices/appStateSlice.js'
+
 /**
  * config.json と ini.json の両方を再読み込みしてUIに反映
+ *
+ * 方針:
+ * - activeApi は使わない
+ * - sqliteApi / mariadbApi はここでは import しない
+ * - DATABASE_TYPE を Redux の正本にする
+ * - reloadSettings は「設定ファイルを読み込んで Redux に反映するだけ」にする
+ *
  * @returns {Promise<boolean>} 成功なら true
  */
 export async function loadAllReload() {
   try {
     console.log('🔄 全設定リロード開始...')
 
-    // config.json
+    // =============================================================
+    // 1) config.json 読み込み
+    // =============================================================
     const configData = await loadConfig()
-    const prompt = await loadPrompt()
-    store.dispatch(setPrompts(prompt || {}))
-    console.log('AIのprompt', prompt)
 
     if (!configData) {
       console.warn('⚠️ config.json の読み込みに失敗しました')
       return false
     }
 
-    store.dispatch(updateAppState({
-      HUG_USERNAME: configData.HUG_USERNAME,
-      HUG_PASSWORD: configData.HUG_PASSWORD,
-      GEMINI_API_KEY: configData.GEMINI_API_KEY,
-      GEMINI_MODEL: configData.GEMINI_MODEL,
-      OPEN_ROUTER_API_KEY: configData.OPEN_ROUTER_API_KEY,
-      OPEN_ROUTER_MODEL:configData.OPEN_ROUTER_MODEL,
-      DEEPSEEK_MAIL: configData.DEEPSEEK_MAIL,
-      DEEPSEEK_PASSWORD: configData.DEEPSEEK_PASSWORD,
-      OPENAI_MAIL: configData.OPENAI_MAIL,
-      OPENAI_PASSWORD: configData.OPENAI_PASSWORD,
-      OLLAMA_URL: configData.OLLAMA_URL,
-      OLLAMA_MODEL: configData.OLLAMA_MODEL,
-    }))
+    console.log('📄 [reloadSettings] config.json:', configData)
 
-    // ini.json（Context経由）
-    if (window.IniState?.loadIni) {
-      await window.IniState.loadIni()
-      console.log('✅ ini.json の読み込み成功')
-    } else {
-      console.warn('⚠️ window.IniState.loadIni が未初期化')
-    }
+    // =============================================================
+    // 2) prompt 読み込み
+    // =============================================================
+    const prompt = await loadPrompt()
 
-    // databaseType → activeApi 切替（★ここが本命）
+    store.dispatch(setPrompts(prompt || {}))
+
+    console.log('🤖 [reloadSettings] AI prompt:', prompt)
+
+    // =============================================================
+    // 3) config.json → Redux
+    // =============================================================
+    store.dispatch(
+      updateAppState({
+        HUG_USERNAME: configData.HUG_USERNAME,
+        HUG_PASSWORD: configData.HUG_PASSWORD,
+
+        GEMINI_API_KEY: configData.GEMINI_API_KEY,
+        GEMINI_MODEL: configData.GEMINI_MODEL,
+
+        OPEN_ROUTER_API_KEY: configData.OPEN_ROUTER_API_KEY,
+        OPEN_ROUTER_MODEL: configData.OPEN_ROUTER_MODEL,
+
+        DEEPSEEK_MAIL: configData.DEEPSEEK_MAIL,
+        DEEPSEEK_PASSWORD: configData.DEEPSEEK_PASSWORD,
+
+        OPENAI_MAIL: configData.OPENAI_MAIL,
+        OPENAI_PASSWORD: configData.OPENAI_PASSWORD,
+
+        OLLAMA_URL: configData.OLLAMA_URL,
+        OLLAMA_MODEL: configData.OLLAMA_MODEL,
+      })
+    )
+
+    // =============================================================
+    // 4) ini.json 読み込み
+    // =============================================================
     const iniData = await loadIniFromUtils()
 
-    if (iniData?.apiSettings?.databaseType) {
-      const databaseType = iniData.apiSettings.databaseType
-      const newActiveApi =
-        databaseType === 'mariadb' ? mariadbApi : sqliteApi
-
-      if (window.AppState?.setActiveApi) {
-        window.AppState.setActiveApi(newActiveApi)
-        console.log(
-          '🔄 [reloadSettings] activeApi switched:',
-          databaseType
-        )
-      } else {
-        console.warn('⚠️ window.AppState.setActiveApi が存在しません')
-      }
+    if (!iniData) {
+      console.warn('⚠️ ini.json の読み込みに失敗しました')
+      return false
     }
+
+    console.log('📄 [reloadSettings] ini.json:', iniData)
+
+    const apiSettings = iniData.apiSettings || {}
+
+    const databaseType = apiSettings.databaseType || 'sqlite'
+    const useAI = apiSettings.useAI || 'gemini'
+    const staffId = apiSettings.staffId != null ? String(apiSettings.staffId) : ''
+    const facilityId =
+      apiSettings.facilityId != null ? String(apiSettings.facilityId) : ''
+    const baseURL = apiSettings.baseURL || ''
+    const debugFlg =
+      apiSettings.debugFlg === true || apiSettings.debugFlg === 'true'
+
+    // =============================================================
+    // 5) ini.json → Redux
+    // =============================================================
+    store.dispatch(setDatabaseType(databaseType))
+    store.dispatch(setUseAI(useAI))
+    store.dispatch(setStaffId(staffId))
+    store.dispatch(setFacilityId(facilityId))
+    store.dispatch(setDebugFlg(debugFlg))
+
+    store.dispatch(
+      updateAppState({
+        DATABASE_TYPE: databaseType,
+        USE_AI: useAI,
+        STAFF_ID: staffId,
+        FACILITY_ID: facilityId,
+        VITE_API_BASE_URL: baseURL,
+        DEBUG_FLG: debugFlg,
+      })
+    )
+
+    // =============================================================
+    // 6) Context 側の iniState も同期
+    // =============================================================
+    if (window.IniState?.loadIni) {
+      await window.IniState.loadIni()
+      console.log('✅ [reloadSettings] window.IniState.loadIni 実行完了')
+    } else {
+      console.warn('⚠️ [reloadSettings] window.IniState.loadIni が未初期化')
+    }
+
+    // =============================================================
+    // 7) ApiTab / select 表示同期
+    // =============================================================
+    const databaseTypeSelect = document.getElementById('api-database-type')
+    if (databaseTypeSelect) {
+      databaseTypeSelect.value = databaseType
+      console.log('🖥 [reloadSettings] api-database-type 同期:', databaseType)
+    }
+
+    const aiTypeSelect = document.getElementById('api-ai-type')
+    if (aiTypeSelect) {
+      aiTypeSelect.value = useAI
+      console.log('🖥 [reloadSettings] api-ai-type 同期:', useAI)
+    }
+
+    const staffSelect = document.getElementById('api-staff-id')
+    if (staffSelect) {
+      staffSelect.value = staffId
+      console.log('🖥 [reloadSettings] api-staff-id 同期:', staffId)
+    }
+
+    const facilitySelect = document.getElementById('api-facility-id')
+    if (facilitySelect) {
+      facilitySelect.value = facilityId
+      console.log('🖥 [reloadSettings] api-facility-id 同期:', facilityId)
+    }
+
+    const baseUrlInput = document.getElementById('api-base-url')
+    if (baseUrlInput) {
+      baseUrlInput.value = baseURL
+      console.log('🖥 [reloadSettings] api-base-url 同期:', baseURL)
+    }
+
+    // =============================================================
+    // 8) DB種別変更イベントを発火
+    // useDataBase 側で再取得するため
+    // =============================================================
+    window.dispatchEvent(
+      new CustomEvent('database-type-changed', {
+        detail: {
+          databaseType,
+          message: `設定再読み込みにより ${databaseType} に切り替えました`,
+          checkedAt: new Date().toISOString(),
+          source: 'reloadSettings.loadAllReload',
+        },
+      })
+    )
+
+    // =============================================================
+    // 9) その他UIへ設定更新通知
+    // =============================================================
+    document.dispatchEvent(
+      new CustomEvent('app-settings-reloaded', {
+        detail: {
+          configData,
+          iniData,
+          databaseType,
+          useAI,
+        },
+      })
+    )
 
     console.log('✅ 全設定リロード完了')
     return true

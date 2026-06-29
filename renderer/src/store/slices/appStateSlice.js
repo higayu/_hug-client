@@ -2,8 +2,8 @@
 // アプリケーション状態の管理
 
 import { createSlice } from '@reduxjs/toolkit'
-import { getDateString, getTodayWeekdayId } from '../../utils/date/dateUtils.js'
-import { getTodayYmdString } from '../../utils/date/dateYMD.js'
+import { getDateString, getTodayWeekdayId } from '@/utils/date/dateUtils.js'
+import { getTodayYmdString } from '@/utils/date/dateYMD.js'
 
 // 初期状態
 const initialState = {

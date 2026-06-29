@@ -9,7 +9,6 @@ import {
 } from 'react'
 import { useDispatch } from 'react-redux'
 
-import { useActiveApi } from './useActiveApi'
 import { useReduxBindings } from './useReduxBindings'
 import { useWindowBridge } from './useWindowBridge'
 import { initializeAppState } from './useAppInitializer'
@@ -19,11 +18,19 @@ import {
   setSelectedChild,
   setSelectedPcName,
   setChildrenData as setChildrenDataRedux,
+  setWaitingChildrenData as setWaitingChildrenDataRedux,
+  setExperienceChildrenData as setExperienceChildrenDataRedux,
   setAttendanceData as setAttendanceDataRedux,
   setSelectedChildColumns,
   updateAppState as updateAppStateRedux,
   setCurrentYmd as setCurrentYmdRedux,
   setSelectChildFilterMode as setSelectChildFilterModeRedux,
+  setDatabaseType as setDatabaseTypeRedux,
+  setUseAI as setUseAIRedux,
+  setStaffId as setStaffIdRedux,
+  setFacilityId as setFacilityIdRedux,
+  setDebugFlg as setDebugFlgRedux,
+  setServerConnectionState as setServerConnectionStateRedux,
 } from '@/store/slices/appStateSlice'
 
 import { loadIni as loadIniFromUtils } from '@/utils/config/iniUtils'
@@ -32,12 +39,9 @@ const AppStateContext = createContext(null)
 
 export function AppStateProvider({ children }) {
   const dispatch = useDispatch()
-
-  // 初期化ガード
   const didInitRef = useRef(false)
 
   const redux = useReduxBindings()
-  const { activeApi, setActiveApi, resolveApiByDatabaseType } = useActiveApi()
 
   const [isInitialized, setIsInitialized] = useState(false)
   const [activeSidebarTab, setActiveSidebarTab] = useState('tools')
@@ -123,8 +127,6 @@ export function AppStateProvider({ children }) {
     const init = async () => {
       const { ini } = await initializeAppState({
         dispatch,
-        resolveApiByDatabaseType,
-        setActiveApi,
         setIsInitialized,
       })
 
@@ -140,33 +142,43 @@ export function AppStateProvider({ children }) {
     }
 
     init()
-  }, [dispatch, resolveApiByDatabaseType, setActiveApi])
+  }, [dispatch])
 
-  // ===== ini 反映 =====
+  // ===== iniState → Redux反映 =====
   useEffect(() => {
     const apiSettings = iniState?.apiSettings
     if (!apiSettings) return
 
     const updates = {}
 
-    if (!redux.STAFF_ID && apiSettings.staffId != null) {
+    if (apiSettings.staffId != null && redux.STAFF_ID !== String(apiSettings.staffId)) {
       updates.STAFF_ID = String(apiSettings.staffId)
     }
 
-    if (!redux.FACILITY_ID && apiSettings.facilityId != null) {
+    if (
+      apiSettings.facilityId != null &&
+      redux.FACILITY_ID !== String(apiSettings.facilityId)
+    ) {
       updates.FACILITY_ID = String(apiSettings.facilityId)
     }
 
     const dbType = apiSettings.databaseType ?? 'sqlite'
 
-    // activeApi の切替は下の専用 useEffect に任せる
-    if (!redux.DATABASE_TYPE || redux.DATABASE_TYPE !== dbType) {
+    if (redux.DATABASE_TYPE !== dbType) {
       updates.DATABASE_TYPE = dbType
     }
 
+    if (apiSettings.useAI != null && redux.USE_AI !== apiSettings.useAI) {
+      updates.USE_AI = apiSettings.useAI
+    }
+
     if (apiSettings.debugFlg != null) {
-      updates.DEBUG_FLG =
+      const debugFlg =
         apiSettings.debugFlg === true || apiSettings.debugFlg === 'true'
+
+      if (redux.DEBUG_FLG !== debugFlg) {
+        updates.DEBUG_FLG = debugFlg
+      }
     }
 
     if (Object.keys(updates).length > 0) {
@@ -177,46 +189,44 @@ export function AppStateProvider({ children }) {
     redux.STAFF_ID,
     redux.FACILITY_ID,
     redux.DATABASE_TYPE,
+    redux.USE_AI,
     redux.DEBUG_FLG,
     dispatch,
-  ])
-
-  // ===== DATABASE_TYPE に応じて activeApi を同期 =====
-  useEffect(() => {
-    const dbType =
-      redux.DATABASE_TYPE ||
-      iniState?.apiSettings?.databaseType ||
-      'sqlite'
-
-    const nextApi = resolveApiByDatabaseType(dbType)
-
-    if (!nextApi) {
-      console.warn('[AppStateContext] activeApi の解決に失敗しました', {
-        dbType,
-      })
-      return
-    }
-
-    if (activeApi !== nextApi) {
-      console.log('[AppStateContext] activeApi を切り替えます', {
-        dbType,
-        from: activeApi,
-        to: nextApi,
-      })
-
-      setActiveApi(nextApi)
-    }
-  }, [
-    redux.DATABASE_TYPE,
-    iniState?.apiSettings?.databaseType,
-    activeApi,
-    resolveApiByDatabaseType,
-    setActiveApi,
   ])
 
   // ===== Redux wrappers =====
   const updateAppState = useCallback(
     (updates) => dispatch(updateAppStateRedux(updates)),
+    [dispatch]
+  )
+
+  const setDatabaseType = useCallback(
+    (databaseType) => dispatch(setDatabaseTypeRedux(databaseType)),
+    [dispatch]
+  )
+
+  const setUseAI = useCallback(
+    (useAI) => dispatch(setUseAIRedux(useAI)),
+    [dispatch]
+  )
+
+  const setStaffId = useCallback(
+    (staffId) => dispatch(setStaffIdRedux(staffId)),
+    [dispatch]
+  )
+
+  const setFacilityId = useCallback(
+    (facilityId) => dispatch(setFacilityIdRedux(facilityId)),
+    [dispatch]
+  )
+
+  const setDebugFlg = useCallback(
+    (debugFlg) => dispatch(setDebugFlgRedux(debugFlg)),
+    [dispatch]
+  )
+
+  const setServerConnectionState = useCallback(
+    (payload) => dispatch(setServerConnectionStateRedux(payload)),
     [dispatch]
   )
 
@@ -238,6 +248,16 @@ export function AppStateProvider({ children }) {
 
   const setChildrenData = useCallback(
     (data) => dispatch(setChildrenDataRedux(data)),
+    [dispatch]
+  )
+
+  const setWaitingChildrenData = useCallback(
+    (data) => dispatch(setWaitingChildrenDataRedux(data)),
+    [dispatch]
+  )
+
+  const setExperienceChildrenData = useCallback(
+    (data) => dispatch(setExperienceChildrenDataRedux(data)),
     [dispatch]
   )
 
@@ -269,13 +289,20 @@ export function AppStateProvider({ children }) {
   useWindowBridge({
     isInitialized,
     appState: redux.appState,
-    activeApi,
     actions: {
       updateAppState,
+      setDatabaseType,
+      setUseAI,
+      setStaffId,
+      setFacilityId,
+      setDebugFlg,
+      setServerConnectionState,
       setCurrentDate,
       setCurrentYmd,
       setSelectedChild: setSelectedChildCallback,
       setChildrenData,
+      setWaitingChildrenData,
+      setExperienceChildrenData,
       setSelectedPcName: setSelectedPcNameCallback,
       setAttendanceData,
       setActiveSidebarTab,
@@ -301,13 +328,20 @@ export function AppStateProvider({ children }) {
         getUISettings,
         getWindowSettings,
 
-        activeApi,
-
         updateAppState,
+        setDatabaseType,
+        setUseAI,
+        setStaffId,
+        setFacilityId,
+        setDebugFlg,
+        setServerConnectionState,
+
         setCurrentDate,
         setCurrentYmd,
         setSelectedChild: setSelectedChildCallback,
         setChildrenData,
+        setWaitingChildrenData,
+        setExperienceChildrenData,
         setSelectedPcName: setSelectedPcNameCallback,
         setAttendanceData,
         setSelectedChildColumns: setSelectedChildColumnsCallback,
