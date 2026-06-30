@@ -107,6 +107,7 @@ export function useDataBase() {
           databaseType,
           resolvedDatabaseType,
           reduxDatabaseType: databaseTypeFromRedux,
+          appStateDatabaseType: window.AppState?.DATABASE_TYPE,
           iniDatabaseType: window.IniState?.apiSettings?.databaseType,
           iniAutoSwitching: window.IniState?.apiSettings?.autoSwitching,
         })
@@ -114,26 +115,35 @@ export function useDataBase() {
         // =============================================================
         // DATABASE_TYPE=sqlite の場合
         //
-        // AUTO_SWITCHING=true なら checkMariaDbConnection 側で
-        // サーバ接続OK時に mariadb へ切り替わる。
+        // 重要:
+        // 画面・一時判定では sqlite でも、
+        // window.AppState / Redux 側が mariadb の場合がある。
         //
-        // ここで重要なのは、sqlite のときも checkMariaDbConnection を呼ぶこと。
-        // これをしないと AUTO_SWITCHING 判定まで到達しない。
+        // その状態で MariaDB 接続失敗した場合、
+        // checkMariaDbConnection 側で正式に
+        // ini.json / Redux / window.AppState を sqlite に切り替える必要がある。
+        //
+        // そのため autoFallbackToSqlite は true にする。
+        //
+        // checkMariaDbConnection 側では currentDatabaseType === "sqlite" の場合、
+        // fallback 切替は省略されるので true にしても問題ない。
         // =============================================================
         if (resolvedDatabaseType === "sqlite") {
           console.log(
-            "🔌 [useDataBase] DATABASE_TYPE=sqlite のため AUTO_SWITCHING 判定用に MariaDB接続確認を実行します"
+            "🔌 [useDataBase] DATABASE_TYPE=sqlite のため AUTO_SWITCHING / fallback 判定用に MariaDB接続確認を実行します"
           )
 
           mariaDbConnectionResult = await checkMariaDbConnection(dispatch, {
-            // sqlite中のチェックなので、失敗しても fallback 切替は不要
-            autoFallbackToSqlite: false,
+            // 重要:
+            // false だと currentDatabaseType=mariadb でも正式な SQLite fallback が走らない
+            autoFallbackToSqlite: true,
 
             // AUTO_SWITCHING の判定は checkMariaDbConnection.js 側に任せる
             // ここを true にすると AUTO_SWITCHING=false でも強制切替になるので false
             switchToMariaDbOnSuccess: false,
 
-            // AUTO_SWITCHING=true で切り替わった場合は ini.json に保存する
+            // AUTO_SWITCHING=true で MariaDB へ切替、
+            // または MariaDB失敗で SQLite fallback した場合は ini.json に保存する
             persistIni: true,
           })
 
@@ -146,7 +156,15 @@ export function useDataBase() {
 
           if (mariaDbConnectionResult?.switchedDatabaseType === "mariadb") {
             console.log(
-              "✅ [useDataBase] AUTO_SWITCHING により mariadb へ切替済み。今回の取得も mariadbApi を使用します"
+              "✅ [useDataBase] AUTO_SWITCHING により mariadb へ切替済み。今回の取得も mariadbApi を使用します",
+              {
+                connected: mariaDbConnectionResult?.connected,
+                switchedDatabaseType:
+                  mariaDbConnectionResult?.switchedDatabaseType,
+                autoSwitching: mariaDbConnectionResult?.autoSwitching,
+                currentDatabaseType:
+                  mariaDbConnectionResult?.currentDatabaseType,
+              }
             )
 
             resolvedDatabaseType = "mariadb"
@@ -159,6 +177,8 @@ export function useDataBase() {
                 autoSwitching: mariaDbConnectionResult?.autoSwitching,
                 switchedDatabaseType:
                   mariaDbConnectionResult?.switchedDatabaseType,
+                fallbackToSqlite:
+                  mariaDbConnectionResult?.fallbackToSqlite,
                 currentDatabaseType:
                   mariaDbConnectionResult?.currentDatabaseType,
               }
@@ -185,6 +205,10 @@ export function useDataBase() {
                 connected: mariaDbConnectionResult?.connected,
                 switchedDatabaseType:
                   mariaDbConnectionResult?.switchedDatabaseType,
+                fallbackToSqlite:
+                  mariaDbConnectionResult?.fallbackToSqlite,
+                currentDatabaseType:
+                  mariaDbConnectionResult?.currentDatabaseType,
               }
             )
 
@@ -199,10 +223,12 @@ export function useDataBase() {
               apiToUse = sqliteApi
             }
           } else {
-            console.log("🔌 [useDataBase] DATABASE_TYPE=mariadb のため MariaDB接続確認を実行します")
+            console.log(
+              "🔌 [useDataBase] DATABASE_TYPE=mariadb のため MariaDB接続確認を実行します"
+            )
 
             mariaDbConnectionResult = await checkMariaDbConnection(dispatch, {
-              // mariadb中の接続失敗時は sqlite に fallback
+              // mariadb中の接続失敗時は sqlite に正式 fallback
               autoFallbackToSqlite: true,
               switchToMariaDbOnSuccess: false,
               persistIni: true,
@@ -220,7 +246,16 @@ export function useDataBase() {
               apiToUse = mariadbApi
             } else {
               console.warn(
-                "⚠️ [useDataBase] MariaDBに接続できないため SQLite で取得します"
+                "⚠️ [useDataBase] MariaDBに接続できないため SQLite で取得します",
+                {
+                  connected: mariaDbConnectionResult?.connected,
+                  switchedDatabaseType:
+                    mariaDbConnectionResult?.switchedDatabaseType,
+                  fallbackToSqlite:
+                    mariaDbConnectionResult?.fallbackToSqlite,
+                  currentDatabaseType:
+                    mariaDbConnectionResult?.currentDatabaseType,
+                }
               )
 
               resolvedDatabaseType = "sqlite"

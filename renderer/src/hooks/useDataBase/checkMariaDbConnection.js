@@ -20,7 +20,12 @@ function toBooleanFlag(value, defaultValue = true) {
  */
 function normalizeDatabaseType(value) {
   if (typeof value === "string") {
-    return value.toLowerCase() === "mariadb" ? "mariadb" : "sqlite";
+    const normalized = value.trim().toLowerCase();
+
+    if (normalized === "mariadb") return "mariadb";
+    if (normalized === "sqlite") return "sqlite";
+
+    return "sqlite";
   }
 
   if (value && typeof value === "object") {
@@ -31,9 +36,7 @@ function normalizeDatabaseType(value) {
       value.DATABASE_TYPE ||
       "sqlite";
 
-    return String(dbType).toLowerCase() === "mariadb"
-      ? "mariadb"
-      : "sqlite";
+    return normalizeDatabaseType(dbType);
   }
 
   return "sqlite";
@@ -42,15 +45,91 @@ function normalizeDatabaseType(value) {
 /**
  * 現在の DATABASE_TYPE を取得する
  *
+ * 重要:
+ * 今の正本は Redux → window.AppState。
+ *
  * 優先順位:
- * 1. electronAPI.getDatabaseType()
- * 2. window.IniState.apiSettings.databaseType
- * 3. window.AppState.DATABASE_TYPE
- * 4. sqlite
+ * 1. window.AppState.DATABASE_TYPE
+ * 2. window.getApiSettings().databaseType
+ * 3. window.IniState.apiSettings.databaseType
+ * 4. electronAPI.getDatabaseType()
+ * 5. sqlite
  */
 async function getCurrentDatabaseType() {
   console.group("🧭 [getCurrentDatabaseType] DATABASE_TYPE取得");
 
+  // =============================================================
+  // 1) Redux のミラーである window.AppState を最優先
+  // =============================================================
+  const appStateValue =
+    window.AppState?.DATABASE_TYPE ||
+    window.AppState?.databaseType ||
+    window.AppState?.dbType;
+
+  if (appStateValue !== undefined && appStateValue !== null) {
+    const normalized = normalizeDatabaseType(appStateValue);
+
+    console.log("✅ AppState DATABASE_TYPE:", {
+      raw: appStateValue,
+      normalized,
+    });
+
+    console.groupEnd();
+    return normalized;
+  }
+
+  // =============================================================
+  // 2) AppStateContext の getApiSettings
+  // useWindowBridge により window 直下に公開される
+  // =============================================================
+  try {
+    if (typeof window.getApiSettings === "function") {
+      const apiSettings = window.getApiSettings();
+      const apiSettingsDatabaseType = apiSettings?.databaseType;
+
+      if (
+        apiSettingsDatabaseType !== undefined &&
+        apiSettingsDatabaseType !== null
+      ) {
+        const normalized = normalizeDatabaseType(apiSettingsDatabaseType);
+
+        console.log("✅ window.getApiSettings databaseType:", {
+          raw: apiSettingsDatabaseType,
+          normalized,
+          apiSettings,
+        });
+
+        console.groupEnd();
+        return normalized;
+      }
+    }
+  } catch (error) {
+    console.warn("⚠️ window.getApiSettings 取得エラー:", error);
+  }
+
+  // =============================================================
+  // 3) 旧互換: window.IniState
+  // =============================================================
+  const iniValue = window.IniState?.apiSettings?.databaseType;
+
+  if (iniValue !== undefined && iniValue !== null) {
+    const normalized = normalizeDatabaseType(iniValue);
+
+    console.log("✅ IniState databaseType:", {
+      raw: iniValue,
+      normalized,
+    });
+
+    console.groupEnd();
+    return normalized;
+  }
+
+  // =============================================================
+  // 4) 最後に electronAPI.getDatabaseType
+  //
+  // ここを先に見ると、古い ini / main 側の値によって
+  // Redux上は mariadb なのに sqlite と誤判定する可能性がある。
+  // =============================================================
   try {
     if (typeof window.electronAPI?.getDatabaseType === "function") {
       const result = await window.electronAPI.getDatabaseType();
@@ -70,37 +149,6 @@ async function getCurrentDatabaseType() {
     console.warn("⚠️ electronAPI.getDatabaseType 取得エラー:", error);
   }
 
-  const iniValue = window.IniState?.apiSettings?.databaseType;
-
-  if (iniValue !== undefined && iniValue !== null) {
-    const normalized = normalizeDatabaseType(iniValue);
-
-    console.log("✅ IniState databaseType:", {
-      raw: iniValue,
-      normalized,
-    });
-
-    console.groupEnd();
-    return normalized;
-  }
-
-  const appStateValue =
-    window.AppState?.DATABASE_TYPE ||
-    window.AppState?.databaseType ||
-    window.AppState?.dbType;
-
-  if (appStateValue !== undefined && appStateValue !== null) {
-    const normalized = normalizeDatabaseType(appStateValue);
-
-    console.log("✅ AppState DATABASE_TYPE:", {
-      raw: appStateValue,
-      normalized,
-    });
-
-    console.groupEnd();
-    return normalized;
-  }
-
   console.warn("⚠️ DATABASE_TYPE を取得できないため sqlite 扱いにします");
   console.groupEnd();
 
@@ -111,14 +159,77 @@ async function getCurrentDatabaseType() {
  * AUTO_SWITCHING を取得する
  *
  * 優先順位:
- * 1. window.IniState.apiSettings.autoSwitching
- * 2. window.AppState.isAutoSwitchingEnabled()
- * 3. window.AppState.AUTO_SWITCHING
- * 4. true
+ * 1. window.AppState.AUTO_SWITCHING
+ * 2. window.isAutoSwitchingEnabled()
+ * 3. window.getApiSettings().autoSwitching
+ * 4. window.IniState.apiSettings.autoSwitching
+ * 5. true
  */
 function getAutoSwitchingEnabled() {
   console.group("🔀 [getAutoSwitchingEnabled] AUTO_SWITCHING取得");
 
+  // =============================================================
+  // 1) Redux のミラーである window.AppState を最優先
+  // =============================================================
+  if (window.AppState?.AUTO_SWITCHING !== undefined) {
+    const result = toBooleanFlag(window.AppState.AUTO_SWITCHING, true);
+
+    console.log("✅ AppState AUTO_SWITCHING:", {
+      raw: window.AppState.AUTO_SWITCHING,
+      result,
+    });
+
+    console.groupEnd();
+    return result;
+  }
+
+  // =============================================================
+  // 2) useWindowBridge により window 直下に公開される関数
+  // =============================================================
+  if (typeof window.isAutoSwitchingEnabled === "function") {
+    const fnResult = window.isAutoSwitchingEnabled();
+    const result = toBooleanFlag(fnResult, true);
+
+    console.log("✅ window.isAutoSwitchingEnabled:", {
+      raw: fnResult,
+      result,
+    });
+
+    console.groupEnd();
+    return result;
+  }
+
+  // =============================================================
+  // 3) AppStateContext の getApiSettings
+  // =============================================================
+  try {
+    if (typeof window.getApiSettings === "function") {
+      const apiSettings = window.getApiSettings();
+      const apiSettingsAutoSwitching = apiSettings?.autoSwitching;
+
+      if (
+        apiSettingsAutoSwitching !== undefined &&
+        apiSettingsAutoSwitching !== null
+      ) {
+        const result = toBooleanFlag(apiSettingsAutoSwitching, true);
+
+        console.log("✅ window.getApiSettings autoSwitching:", {
+          raw: apiSettingsAutoSwitching,
+          result,
+          apiSettings,
+        });
+
+        console.groupEnd();
+        return result;
+      }
+    }
+  } catch (error) {
+    console.warn("⚠️ window.getApiSettings autoSwitching 取得エラー:", error);
+  }
+
+  // =============================================================
+  // 4) 旧互換: window.IniState
+  // =============================================================
   const iniValue = window.IniState?.apiSettings?.autoSwitching;
 
   if (iniValue !== undefined && iniValue !== null) {
@@ -133,24 +244,16 @@ function getAutoSwitchingEnabled() {
     return result;
   }
 
+  // =============================================================
+  // 5) 旧参照方式
+  // 基本的には存在しない想定
+  // =============================================================
   if (typeof window.AppState?.isAutoSwitchingEnabled === "function") {
     const appStateResult = window.AppState.isAutoSwitchingEnabled();
     const result = toBooleanFlag(appStateResult, true);
 
     console.log("✅ AppState isAutoSwitchingEnabled:", {
       raw: appStateResult,
-      result,
-    });
-
-    console.groupEnd();
-    return result;
-  }
-
-  if (window.AppState?.AUTO_SWITCHING !== undefined) {
-    const result = toBooleanFlag(window.AppState.AUTO_SWITCHING, true);
-
-    console.log("✅ AppState AUTO_SWITCHING:", {
-      raw: window.AppState.AUTO_SWITCHING,
       result,
     });
 
@@ -169,16 +272,15 @@ function getAutoSwitchingEnabled() {
  *
  * 方針:
  * - activeApi は使わない
- * - DATABASE_TYPE を Redux の正本にする
+ * - DATABASE_TYPE を Redux / window.AppState の正本にする
  * - AUTO_SWITCHING=true の場合、SQLite中でも接続成功なら MariaDB に切替える
- * - ini.json は必要に応じて更新する
- * - iniState 側の古い値による巻き戻りを防ぐため、ini 更新後に再読み込みする
- * - 最後にもう一度 Redux の DATABASE_TYPE を確定する
+ * - MariaDB中に接続失敗した場合は SQLite へ fallback する
+ * - fallback時は Redux / ini.json / window.AppState / ApiTab select をまとめて更新する
  *
  * @param {Function} dispatch Redux dispatch
  * @param {Object} options オプション
  * @param {boolean} options.autoFallbackToSqlite 接続失敗時にSQLiteへ切り替えるか
- * @param {boolean} options.switchToMariaDbOnSuccess 接続成功時にMariaDBへ切り替えるか。AUTO_SWITCHINGとは別の強制切替オプション
+ * @param {boolean} options.switchToMariaDbOnSuccess 接続成功時にMariaDBへ切り替えるか
  * @param {boolean} options.persistIni ini.jsonも更新するか
  * @returns {Promise<Object>} 接続確認結果
  */
@@ -205,8 +307,16 @@ export async function checkMariaDbConnection(dispatch, options = {}) {
   console.log("📌 current settings:", {
     currentDatabaseType,
     autoSwitching,
+
+    rawAppStateDatabaseType: window.AppState?.DATABASE_TYPE,
+    rawAppStateAutoSwitching: window.AppState?.AUTO_SWITCHING,
+
     rawIniDatabaseType: window.IniState?.apiSettings?.databaseType,
     rawIniAutoSwitching: window.IniState?.apiSettings?.autoSwitching,
+
+    hasWindowGetApiSettings: typeof window.getApiSettings === "function",
+    hasWindowLoadIni: typeof window.loadIni === "function",
+    hasWindowUpdateIniSetting: typeof window.updateIniSetting === "function",
   });
 
   console.log("🕒 checkedAt:", checkedAt);
@@ -258,6 +368,7 @@ export async function checkMariaDbConnection(dispatch, options = {}) {
       switchedDatabaseType: null,
       fallbackToSqlite: false,
       autoSwitchingToMariaDb: false,
+      switchResult: null,
     };
 
     console.log("🧾 normalized result:", result);
@@ -314,6 +425,7 @@ export async function checkMariaDbConnection(dispatch, options = {}) {
         switchedDatabaseType: switched.databaseType,
         fallbackToSqlite: false,
         autoSwitchingToMariaDb: autoSwitching,
+        switchResult: switched,
       };
 
       console.log("✅ MariaDB自動切替完了 result:", switchedResult);
@@ -339,8 +451,20 @@ export async function checkMariaDbConnection(dispatch, options = {}) {
     // =============================================================
     // 接続失敗時の SQLite fallback
     //
-    // すでに sqlite の場合は切替処理を省略
+    // currentDatabaseType が mariadb の場合は必ず switchDatabaseType を呼ぶ。
+    // ここで呼ばれないと、useDataBase 側だけ sqliteApi に逃げて
+    // ini.json / Redux が mariadb のままになる。
     // =============================================================
+    console.error("🚨 [checkMariaDbConnection] SQLite fallback 判定直前", {
+      connected,
+      autoFallbackToSqlite,
+      currentDatabaseType,
+      rawAppStateDatabaseType: window.AppState?.DATABASE_TYPE,
+      rawIniDatabaseType: window.IniState?.apiSettings?.databaseType,
+      shouldCallSwitchDatabaseType:
+        !connected && autoFallbackToSqlite && currentDatabaseType !== "sqlite",
+    });
+
     if (!connected && autoFallbackToSqlite) {
       if (currentDatabaseType === "sqlite") {
         const sqliteResult = {
@@ -369,7 +493,8 @@ export async function checkMariaDbConnection(dispatch, options = {}) {
         ...result,
         message: switched.message,
         switchedDatabaseType: switched.databaseType,
-        fallbackToSqlite: true,
+        fallbackToSqlite: switched.success === true,
+        switchResult: switched,
       };
 
       console.log("✅ SQLite自動切替完了 result:", fallbackResult);
@@ -408,6 +533,7 @@ export async function checkMariaDbConnection(dispatch, options = {}) {
       switchedDatabaseType: null,
       fallbackToSqlite: false,
       autoSwitchingToMariaDb: false,
+      switchResult: null,
     };
 
     if (dispatch) {
@@ -420,6 +546,15 @@ export async function checkMariaDbConnection(dispatch, options = {}) {
         })
       );
     }
+
+    console.error("🚨 [checkMariaDbConnection] 例外後 SQLite fallback 判定直前", {
+      autoFallbackToSqlite,
+      currentDatabaseType,
+      rawAppStateDatabaseType: window.AppState?.DATABASE_TYPE,
+      rawIniDatabaseType: window.IniState?.apiSettings?.databaseType,
+      shouldCallSwitchDatabaseType:
+        autoFallbackToSqlite && currentDatabaseType !== "sqlite",
+    });
 
     if (autoFallbackToSqlite) {
       if (currentDatabaseType === "sqlite") {
@@ -449,7 +584,8 @@ export async function checkMariaDbConnection(dispatch, options = {}) {
         ...baseResult,
         message: switched.message,
         switchedDatabaseType: switched.databaseType,
-        fallbackToSqlite: true,
+        fallbackToSqlite: switched.success === true,
+        switchResult: switched,
       };
 
       console.log("✅ 例外後 SQLite自動切替完了 result:", fallbackResult);
@@ -472,8 +608,8 @@ export async function checkMariaDbConnection(dispatch, options = {}) {
  * - activeApi は使わない
  * - Redux の DATABASE_TYPE を必ず更新する
  * - ini.json を必要に応じて更新する
- * - iniState の古い値による巻き戻りを避けるため、ini 更新後に再読み込みする
- * - 最後にもう一度 Redux を更新して表示を確定する
+ * - AppStateContext 側の iniState を可能なら更新する
+ * - 最後に Redux / window.AppState / ApiTab select を確定する
  */
 export async function switchDatabaseType({
   dispatch,
@@ -484,7 +620,7 @@ export async function switchDatabaseType({
   const checkedAt = new Date().toISOString();
 
   const resolvedDatabaseType =
-    databaseType === "mariadb" ? "mariadb" : "sqlite";
+    normalizeDatabaseType(databaseType) === "mariadb" ? "mariadb" : "sqlite";
 
   const resolvedMessage =
     message ||
@@ -517,24 +653,39 @@ export async function switchDatabaseType({
     }
 
     // =============================================================
-    // 2) ini.json を更新する
+    // 2) window.AppState を即時同期
+    // Reactの再描画を待たず、互換参照側でも即座に値が見えるようにする
     // =============================================================
+    syncWindowAppStateDatabaseType({
+      databaseType: resolvedDatabaseType,
+      message: resolvedMessage,
+      checkedAt,
+    });
+
+    // =============================================================
+    // 3) ini.json / AppStateContext iniState を更新する
+    // =============================================================
+    let iniResult = {
+      success: true,
+      skipped: true,
+      message: "persistIni=false のため ini.json は更新しません",
+    };
+
     if (persistIni) {
-      const iniResult = await updateIniDatabaseType(resolvedDatabaseType);
+      iniResult = await updateIniDatabaseType(resolvedDatabaseType);
       console.log("💾 ini.json 更新結果:", iniResult);
     } else {
       console.log("💾 persistIni=false のため ini.json は更新しません");
     }
 
     // =============================================================
-    // 3) AppStateContext / iniState 側を再読み込みする
-    // 古い iniState が Redux を mariadb に戻す事故を防ぐ
+    // 4) AppStateContext / iniState 側を再読み込みする
     // =============================================================
-    await reloadIniStateIfPossible();
+    const reloadResult = await reloadIniStateIfPossible();
 
     // =============================================================
-    // 4) Redux を最後にもう一度確定する
-    // ここが重要。iniState 側の useEffect による巻き戻り対策
+    // 5) Redux を最後にもう一度確定する
+    // iniState 側の useEffect による巻き戻り対策
     // =============================================================
     if (dispatch) {
       applyDatabaseTypeToRedux(dispatch, {
@@ -545,24 +696,21 @@ export async function switchDatabaseType({
     }
 
     // =============================================================
-    // 5) ApiTab select 表示同期
+    // 6) window.AppState をもう一度確定
+    // =============================================================
+    syncWindowAppStateDatabaseType({
+      databaseType: resolvedDatabaseType,
+      message: resolvedMessage,
+      checkedAt,
+    });
+
+    // =============================================================
+    // 7) ApiTab select 表示同期
     // =============================================================
     syncDatabaseTypeSelect(resolvedDatabaseType);
 
     // =============================================================
-    // 6) window.AppState はReduxのミラーなので基本触らないが、
-    // 互換表示用に値だけ同期しておく
-    // =============================================================
-    if (window.AppState) {
-      window.AppState.DATABASE_TYPE = resolvedDatabaseType;
-      window.AppState.SERVER_CONNECTED = resolvedDatabaseType === "mariadb";
-      window.AppState.SERVER_CONNECTION_CHECKING = false;
-      window.AppState.SERVER_CONNECTION_MESSAGE = resolvedMessage;
-      window.AppState.SERVER_CONNECTION_CHECKED_AT = checkedAt;
-    }
-
-    // =============================================================
-    // 7) DB切替完了イベントを発火
+    // 8) DB切替完了イベントを発火
     // useDataBase 側の再取得トリガー
     // =============================================================
     window.dispatchEvent(
@@ -572,6 +720,8 @@ export async function switchDatabaseType({
           message: resolvedMessage,
           checkedAt,
           source: "switchDatabaseType",
+          iniResult,
+          reloadResult,
         },
       })
     );
@@ -582,6 +732,8 @@ export async function switchDatabaseType({
       databaseType: resolvedDatabaseType,
       message: resolvedMessage,
       checkedAt,
+      iniResult,
+      reloadResult,
     };
 
     console.log("✅ [switchDatabaseType] DB種別切替完了:", result);
@@ -661,43 +813,122 @@ function applyDatabaseTypeToRedux(
 }
 
 /**
- * main/data/ini.json の apiSettings.databaseType を更新
+ * window.AppState の互換ミラーを即時更新
+ */
+function syncWindowAppStateDatabaseType({
+  databaseType,
+  message,
+  checkedAt,
+}) {
+  console.group("🪟 [syncWindowAppStateDatabaseType] window.AppState同期");
+
+  if (!window.AppState) {
+    console.warn("⚠️ window.AppState がないため同期できません");
+    console.groupEnd();
+    return false;
+  }
+
+  window.AppState.DATABASE_TYPE = databaseType;
+  window.AppState.SERVER_CONNECTED = databaseType === "mariadb";
+  window.AppState.SERVER_CONNECTION_CHECKING = false;
+  window.AppState.SERVER_CONNECTION_MESSAGE = message;
+  window.AppState.SERVER_CONNECTION_CHECKED_AT = checkedAt;
+
+  console.log("✅ window.AppState updated:", {
+    DATABASE_TYPE: window.AppState.DATABASE_TYPE,
+    SERVER_CONNECTED: window.AppState.SERVER_CONNECTED,
+    SERVER_CONNECTION_MESSAGE: window.AppState.SERVER_CONNECTION_MESSAGE,
+  });
+
+  console.groupEnd();
+  return true;
+}
+
+/**
+ * ini.json の apiSettings.databaseType を更新
+ *
+ * 優先順位:
+ * 1. window.updateIniSetting
+ *    AppStateContext 側の iniState も更新されるため最優先
+ * 2. window.electronAPI.updateIniSetting
+ *    preload直呼びのfallback
  */
 async function updateIniDatabaseType(databaseType) {
   console.group("💾 [updateIniDatabaseType] ini.json更新");
 
+  const normalizedDatabaseType = normalizeDatabaseType(databaseType);
+
   try {
-    if (!window.electronAPI?.updateIniSetting) {
-      const result = {
-        success: false,
-        message: "updateIniSetting が preload に定義されていません",
-      };
+    // =============================================================
+    // 1) AppStateContext 経由
+    // window.updateIniSetting は useWindowBridge により window 直下に公開される
+    // =============================================================
+    if (typeof window.updateIniSetting === "function") {
+      const res = await window.updateIniSetting(
+        "apiSettings.databaseType",
+        normalizedDatabaseType
+      );
 
-      console.warn("⚠️", result.message);
+      const result = normalizeIniUpdateResult(res, {
+        source: "window.updateIniSetting",
+        databaseType: normalizedDatabaseType,
+      });
+
+      console.log("✅ ini databaseType updated via window.updateIniSetting:", {
+        databaseType: normalizedDatabaseType,
+        rawResult: res,
+        result,
+      });
+
       console.groupEnd();
-
       return result;
     }
 
-    const res = await window.electronAPI.updateIniSetting(
-      "apiSettings.databaseType",
-      databaseType
-    );
+    // =============================================================
+    // 2) preload 経由 fallback
+    // =============================================================
+    if (typeof window.electronAPI?.updateIniSetting === "function") {
+      const res = await window.electronAPI.updateIniSetting(
+        "apiSettings.databaseType",
+        normalizedDatabaseType
+      );
 
-    console.log("✅ ini databaseType updated:", {
-      databaseType,
-      res,
-    });
+      const result = normalizeIniUpdateResult(res, {
+        source: "electronAPI.updateIniSetting",
+        databaseType: normalizedDatabaseType,
+      });
 
+      console.log("✅ ini databaseType updated via electronAPI:", {
+        databaseType: normalizedDatabaseType,
+        rawResult: res,
+        result,
+      });
+
+      console.groupEnd();
+      return result;
+    }
+
+    const result = {
+      success: false,
+      source: null,
+      databaseType: normalizedDatabaseType,
+      message:
+        "updateIniSetting が window / preload のどちらにも定義されていません",
+    };
+
+    console.warn("⚠️", result.message);
     console.groupEnd();
 
-    return res;
+    return result;
   } catch (error) {
     console.error("❌ ini.json の databaseType 更新に失敗しました:", error);
 
     const result = {
       success: false,
+      source: "updateIniDatabaseType",
+      databaseType: normalizedDatabaseType,
       message: error?.message || "ini.json の更新に失敗しました",
+      error,
     };
 
     console.groupEnd();
@@ -707,39 +938,98 @@ async function updateIniDatabaseType(databaseType) {
 }
 
 /**
+ * ini更新結果を正規化する
+ */
+function normalizeIniUpdateResult(res, extra = {}) {
+  if (res === false) {
+    return {
+      success: false,
+      ...extra,
+      rawResult: res,
+      message: "ini.json の更新が false を返しました",
+    };
+  }
+
+  if (res && typeof res === "object" && res.success === false) {
+    return {
+      success: false,
+      ...extra,
+      rawResult: res,
+      message: res.message || res.error || "ini.json の更新に失敗しました",
+    };
+  }
+
+  return {
+    success: true,
+    ...extra,
+    rawResult: res,
+    message: "ini.json を更新しました",
+  };
+}
+
+/**
  * AppStateContext 側の iniState を再読み込み
- *
- * window.IniState.loadIni がある場合にも対応
- * window.loadIni がある場合にも対応
  */
 async function reloadIniStateIfPossible() {
   console.group("🔄 [reloadIniStateIfPossible] iniState 再読み込み");
 
   try {
-    if (window.IniState?.loadIni) {
-      await window.IniState.loadIni();
-      console.log("✅ window.IniState.loadIni 実行完了");
-      console.groupEnd();
-      return true;
-    }
-
+    // =============================================================
+    // useWindowBridge で window 直下に公開される loadIni
+    // =============================================================
     if (typeof window.loadIni === "function") {
-      await window.loadIni();
-      console.log("✅ window.loadIni 実行完了");
+      const result = await window.loadIni();
+
+      console.log("✅ window.loadIni 実行完了:", result);
       console.groupEnd();
-      return true;
+
+      return {
+        success: true,
+        source: "window.loadIni",
+        result,
+      };
     }
 
-    console.warn(
-      "⚠️ iniState 再読み込み関数が window に見つかりません。AppStateContext 側で loadIni を useWindowBridge に公開してください。"
-    );
+    // =============================================================
+    // 旧互換
+    // =============================================================
+    if (window.IniState?.loadIni) {
+      const result = await window.IniState.loadIni();
 
+      console.log("✅ window.IniState.loadIni 実行完了:", result);
+      console.groupEnd();
+
+      return {
+        success: true,
+        source: "window.IniState.loadIni",
+        result,
+      };
+    }
+
+    const result = {
+      success: false,
+      source: null,
+      message:
+        "iniState 再読み込み関数が window に見つかりません。AppStateContext 側で loadIni を useWindowBridge に公開してください。",
+    };
+
+    console.warn("⚠️", result.message);
     console.groupEnd();
-    return false;
+
+    return result;
   } catch (error) {
     console.error("❌ iniState 再読み込みエラー:", error);
+
+    const result = {
+      success: false,
+      source: "reloadIniStateIfPossible",
+      message: error?.message || "iniState 再読み込みエラー",
+      error,
+    };
+
     console.groupEnd();
-    return false;
+
+    return result;
   }
 }
 
