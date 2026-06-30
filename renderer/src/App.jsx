@@ -4,7 +4,7 @@ import {
   parseAttendanceTable 
 } from '@/utils/ToDayChildrenList/attendanceTable.js'
 import { usePreloadPath } from '@/hooks/usePreloadPath.js'
-import { useAppInitialization } from '@/hooks/useAppInitialization.js'
+import { useAppInitialization } from '@/AppStateContext/useAppInitializer/useAppInitialization.js'
 import { Provider } from 'react-redux'
 import { store } from '@/store/store.js'
 import { ToastProvider } from '@/components/common/ToastContext.jsx'

@@ -5,6 +5,32 @@ import { loadIni, loadPrompt } from '@/utils/config/iniUtils'
 import { updateAppState, setPrompts } from '@/store/slices/appStateSlice'
 
 /**
+ * boolean / string boolean を吸収する
+ *
+ * ini.json では
+ * "true" / "false"
+ * true / false
+ * の両方が来る可能性があるため、ここで統一する
+ */
+const toBooleanFlag = (value, defaultValue = true) => {
+  if (value === true || value === 'true') return true
+  if (value === false || value === 'false') return false
+  return defaultValue
+}
+
+/**
+ * DATABASE_TYPE の表記を正規化する
+ */
+const normalizeDatabaseType = (value) => {
+  if (value === 'mariadb') return 'mariadb'
+  if (value === 'MariaDB') return 'mariadb'
+  if (value === 'sqlite') return 'sqlite'
+  if (value === 'SQLite') return 'sqlite'
+
+  return 'sqlite'
+}
+
+/**
  * AppState 初期化
  *
  * 方針:
@@ -12,6 +38,7 @@ import { updateAppState, setPrompts } from '@/store/slices/appStateSlice'
  * - 読み込んだ値はすべて Redux(appStateSlice) に反映する
  * - activeApi は使わない
  * - DATABASE_TYPE を正本にする
+ * - AUTO_SYNCHRONIZATION / AUTO_SWITCHING も ini.json から Redux に反映する
  *
  * @param {Object} params
  * @param {Function} params.dispatch Redux dispatch
@@ -25,7 +52,7 @@ export async function initializeAppState({
   const merged = {}
 
   try {
-    console.log('🚀 [initializeAppState] 初期化開始')
+    console.group('🚀 [initializeAppState] 初期化開始')
 
     // =============================================================
     // 1) ファイル読み込み
@@ -107,8 +134,26 @@ export async function initializeAppState({
     // =============================================================
     const apiSettings = ini?.apiSettings ?? {}
 
-    merged.DATABASE_TYPE = apiSettings.databaseType || 'sqlite'
+    const databaseType = normalizeDatabaseType(apiSettings.databaseType)
+
+    const autoSynchronization = toBooleanFlag(
+      apiSettings.autoSynchronization,
+      true
+    )
+
+    const autoSwitching = toBooleanFlag(
+      apiSettings.autoSwitching,
+      true
+    )
+
+    merged.DATABASE_TYPE = databaseType
     merged.USE_AI = apiSettings.useAI || 'gemini'
+
+    // 重要:
+    // ini.json の apiSettings.autoSynchronization / autoSwitching を
+    // Redux の AUTO_SYNCHRONIZATION / AUTO_SWITCHING に反映する
+    merged.AUTO_SYNCHRONIZATION = autoSynchronization
+    merged.AUTO_SWITCHING = autoSwitching
 
     if (apiSettings.staffId != null) {
       merged.STAFF_ID = String(apiSettings.staffId)
@@ -119,13 +164,35 @@ export async function initializeAppState({
     }
 
     if (apiSettings.debugFlg != null) {
-      merged.DEBUG_FLG =
-        apiSettings.debugFlg === true || apiSettings.debugFlg === 'true'
+      merged.DEBUG_FLG = toBooleanFlag(apiSettings.debugFlg, false)
     }
 
     if (apiSettings.baseURL !== undefined) {
       merged.VITE_API_BASE_URL = apiSettings.baseURL || ''
     }
+
+    console.log('🧾 [initializeAppState] apiSettings normalized:', {
+      rawDatabaseType: apiSettings.databaseType,
+      databaseType,
+
+      rawAutoSynchronization: apiSettings.autoSynchronization,
+      autoSynchronization,
+
+      rawAutoSwitching: apiSettings.autoSwitching,
+      autoSwitching,
+
+      rawUseAI: apiSettings.useAI,
+      useAI: merged.USE_AI,
+
+      rawStaffId: apiSettings.staffId,
+      STAFF_ID: merged.STAFF_ID,
+
+      rawFacilityId: apiSettings.facilityId,
+      FACILITY_ID: merged.FACILITY_ID,
+
+      rawDebugFlg: apiSettings.debugFlg,
+      DEBUG_FLG: merged.DEBUG_FLG,
+    })
 
     // =============================================================
     // 4) Redux 反映
@@ -143,7 +210,13 @@ export async function initializeAppState({
     // =============================================================
     setIsInitialized(true)
 
-    console.log('✅ [initializeAppState] 初期化完了')
+    console.log('✅ [initializeAppState] 初期化完了:', {
+      DATABASE_TYPE: merged.DATABASE_TYPE,
+      AUTO_SYNCHRONIZATION: merged.AUTO_SYNCHRONIZATION,
+      AUTO_SWITCHING: merged.AUTO_SWITCHING,
+    })
+
+    console.groupEnd()
 
     return { ini }
   } catch (error) {
@@ -151,6 +224,8 @@ export async function initializeAppState({
 
     // 初期化に失敗してもアプリを完全停止させない
     setIsInitialized(true)
+
+    console.groupEnd()
 
     return { ini: null }
   }

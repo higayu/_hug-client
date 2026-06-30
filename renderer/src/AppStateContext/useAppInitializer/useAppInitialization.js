@@ -2,11 +2,11 @@ import { useEffect, useRef } from 'react'
 // initTabs は React側の useTabs() フックに移行済み
 import { updateButtonVisibility } from '@/utils/app/buttonVisibility.js'
 // initChildrenList は React側の useDataBase() フックに移行済み
-import { useHugActions } from './useHugActions.js'
+import { useHugActions } from '@/hooks/useHugActions.js'
 import { loadAllReload } from '@/utils/config/reloadSettings.js'
 // updateUI は React側の useUpdateUI() フックに移行済み
-import { useUpdateUI } from './useUpdateUI.js'
-import { useCustomButtonManager } from './useCustomButtonManager.js'
+import { useUpdateUI } from '@/hooks/useUpdateUI.js'
+import { useCustomButtonManager } from '@/hooks/useCustomButtonManager.js'
 // buttonVisibilityManager は削除されました（機能が空のため）
 import { getActiveWebview } from '@/utils/webview/webviewState.js'
 import { useToast } from '@/components/common/ToastContext.jsx'
@@ -116,6 +116,9 @@ function logCloseSnapshot(label) {
     IniStateExists: !!window.IniState,
     AppStateExists: !!window.AppState,
 
+    // ============================================================
+    // DATABASE_TYPE
+    // ============================================================
     rawIniDatabaseType:
       window.IniState?.apiSettings?.databaseType,
 
@@ -124,14 +127,109 @@ function logCloseSnapshot(label) {
       window.AppState?.databaseType ||
       window.AppState?.dbType,
 
+    normalizedAppStateDatabaseType:
+      normalizeDatabaseType(
+        window.AppState?.DATABASE_TYPE ||
+          window.AppState?.databaseType ||
+          window.AppState?.dbType
+      ),
+
+    // ============================================================
+    // AUTO_SYNCHRONIZATION
+    // ============================================================
     rawIniAutoSynchronization:
       window.IniState?.apiSettings?.autoSynchronization,
 
+    parsedIniAutoSynchronizationDefaultTrue:
+      toBooleanFlag(
+        window.IniState?.apiSettings?.autoSynchronization,
+        true
+      ),
+
+    parsedIniAutoSynchronizationDefaultFalse:
+      toBooleanFlag(
+        window.IniState?.apiSettings?.autoSynchronization,
+        false
+      ),
+
+    rawAppStateAutoSynchronization:
+      window.AppState?.AUTO_SYNCHRONIZATION,
+
+    parsedAppStateAutoSynchronization:
+      toBooleanFlag(
+        window.AppState?.AUTO_SYNCHRONIZATION,
+        false
+      ),
+
+    // useWindowBridge では actions は window.AppState ではなく window 直下に出る
+    hasWindowAutoSynchronizationFunction:
+      typeof window.isAutoSynchronizationEnabled === 'function',
+
+    windowAutoSynchronizationFunctionValue:
+      typeof window.isAutoSynchronizationEnabled === 'function'
+        ? window.isAutoSynchronizationEnabled()
+        : undefined,
+
+    parsedWindowAutoSynchronizationFunctionValue:
+      typeof window.isAutoSynchronizationEnabled === 'function'
+        ? toBooleanFlag(window.isAutoSynchronizationEnabled(), false)
+        : undefined,
+
+    // 古い参照方式。基本的には存在しない想定
+    hasAppStateAutoSyncFunction:
+      typeof window.AppState?.isAutoSynchronizationEnabled === 'function',
+
+    appStateAutoSyncValue:
+      typeof window.AppState?.isAutoSynchronizationEnabled === 'function'
+        ? window.AppState.isAutoSynchronizationEnabled()
+        : undefined,
+
+    // ============================================================
+    // AUTO_SWITCHING
+    // ============================================================
     rawIniAutoSwitching:
       window.IniState?.apiSettings?.autoSwitching,
 
+    parsedIniAutoSwitchingDefaultTrue:
+      toBooleanFlag(
+        window.IniState?.apiSettings?.autoSwitching,
+        true
+      ),
+
+    parsedIniAutoSwitchingDefaultFalse:
+      toBooleanFlag(
+        window.IniState?.apiSettings?.autoSwitching,
+        false
+      ),
+
+    rawAppStateAutoSwitching:
+      window.AppState?.AUTO_SWITCHING,
+
+    parsedAppStateAutoSwitching:
+      toBooleanFlag(
+        window.AppState?.AUTO_SWITCHING,
+        false
+      ),
+
+    hasWindowAutoSwitchingFunction:
+      typeof window.isAutoSwitchingEnabled === 'function',
+
+    windowAutoSwitchingFunctionValue:
+      typeof window.isAutoSwitchingEnabled === 'function'
+        ? window.isAutoSwitchingEnabled()
+        : undefined,
+
+    // ============================================================
+    // confirm / IPC
+    // ============================================================
     rawConfirmOnClose:
       window.IniState?.appSettings?.ui?.confirmOnClose,
+
+    parsedConfirmOnClose:
+      toBooleanFlag(
+        window.IniState?.appSettings?.ui?.confirmOnClose,
+        true
+      ),
 
     hasGetDatabaseType:
       typeof window.electronAPI?.getDatabaseType === 'function',
@@ -144,14 +242,6 @@ function logCloseSnapshot(label) {
 
     hasSendConfirmCloseResponse:
       typeof window.electronAPI?.sendConfirmCloseResponse === 'function',
-
-    hasAppStateAutoSyncFunction:
-      typeof window.AppState?.isAutoSynchronizationEnabled === 'function',
-
-    appStateAutoSyncValue:
-      typeof window.AppState?.isAutoSynchronizationEnabled === 'function'
-        ? window.AppState.isAutoSynchronizationEnabled()
-        : undefined,
   })
 }
 
@@ -161,50 +251,75 @@ function getAutoSynchronizationEnabled() {
 
     logCloseSnapshot('autoSynchronization 判定前 snapshot')
 
+    // ============================================================
+    // 1. Redux → window.AppState の値を最優先
+    // useWindowBridge により window.AppState には Redux appState が入る
+    // ============================================================
+    const appStateValue = window.AppState?.AUTO_SYNCHRONIZATION
+
+    if (appStateValue !== undefined && appStateValue !== null) {
+      const result = toBooleanFlag(appStateValue, false)
+
+      console.log('✅ [useAppInitialization] autoSynchronization from window.AppState:', {
+        raw: appStateValue,
+        rawType: typeof appStateValue,
+        result,
+      })
+
+      return result
+    }
+
+    // ============================================================
+    // 2. window 直下の関数を見る
+    // useWindowBridge は actions を window.AppState ではなく window 直下に出す
+    // ============================================================
+    if (typeof window.isAutoSynchronizationEnabled === 'function') {
+      const fnResult = window.isAutoSynchronizationEnabled()
+      const result = toBooleanFlag(fnResult, false)
+
+      console.log('✅ [useAppInitialization] autoSynchronization from window.isAutoSynchronizationEnabled:', {
+        raw: fnResult,
+        rawType: typeof fnResult,
+        result,
+      })
+
+      return result
+    }
+
+    // ============================================================
+    // 3. 古い互換用: window.IniState
+    // 現状 undefined になっているので優先度は下げる
+    // ============================================================
     const iniValue = window.IniState?.apiSettings?.autoSynchronization
 
-    console.log('🔍 [useAppInitialization] IniState autoSynchronization raw:', {
-      iniValue,
-      type: typeof iniValue,
-    })
-
-    // ini.json の値を最優先する
     if (iniValue !== undefined && iniValue !== null) {
-      const result = toBooleanFlag(iniValue, true)
+      const result = toBooleanFlag(iniValue, false)
 
-      console.log('✅ [useAppInitialization] autoSynchronization from IniState:', {
+      console.log('✅ [useAppInitialization] autoSynchronization from window.IniState:', {
         raw: iniValue,
+        rawType: typeof iniValue,
         result,
       })
 
       return result
     }
 
-    // IniState がまだない場合だけ AppState を見る
-    if (typeof window.AppState?.isAutoSynchronizationEnabled === 'function') {
-      const appStateResult = window.AppState.isAutoSynchronizationEnabled()
-      const result = toBooleanFlag(appStateResult, true)
-
-      console.log('✅ [useAppInitialization] autoSynchronization from AppState:', {
-        raw: appStateResult,
-        result,
-      })
-
-      return result
-    }
-
+    // ============================================================
+    // 4. どこからも取れない場合
+    // 同期処理は危険側なので false 扱いにする
+    // ============================================================
     console.warn(
-      '⚠️ [useAppInitialization] autoSynchronization が取得できないため true 扱いにします'
+      '⚠️ [useAppInitialization] autoSynchronization を取得できないため false 扱いにします'
     )
 
-    return true
+    return false
   } catch (error) {
     console.warn(
-      '⚠️ [useAppInitialization] autoSynchronization 判定に失敗。安全側で true 扱いにします:',
+      '⚠️ [useAppInitialization] autoSynchronization 判定に失敗。安全側で false 扱いにします:',
       error
     )
 
-    return true
+    return false
   }
 }
 
@@ -221,6 +336,37 @@ function getConfirmOnCloseEnabled() {
   return result
 }
 
+function shouldSkipAutoSynchronization({ autoSynchronization, databaseType }) {
+  const shouldSkip =
+    !autoSynchronization || databaseType === 'sqlite' || databaseType !== 'mariadb'
+
+  let reason = null
+
+  if (!autoSynchronization) {
+    reason = 'AUTO_SYNCHRONIZATION is false'
+  } else if (databaseType === 'sqlite') {
+    reason = 'DATABASE_TYPE is sqlite'
+  } else if (databaseType !== 'mariadb') {
+    reason = 'DATABASE_TYPE is not mariadb'
+  }
+
+  console.log('🔍 [useAppInitialization] 自動同期スキップ判定:', {
+    autoSynchronization,
+    databaseType,
+    shouldSkip,
+    reason,
+    rawIniAutoSynchronization:
+      window.IniState?.apiSettings?.autoSynchronization,
+    rawIniDatabaseType:
+      window.IniState?.apiSettings?.databaseType,
+  })
+
+  return {
+    shouldSkip,
+    reason,
+  }
+}
+
 function getCloseConfirmMessage({ autoSynchronization, syncResult, databaseType }) {
   console.log('📝 [useAppInitialization] getCloseConfirmMessage START:', {
     autoSynchronization,
@@ -228,22 +374,16 @@ function getCloseConfirmMessage({ autoSynchronization, syncResult, databaseType 
     syncResult,
   })
 
-  if (!autoSynchronization) {
+  const skipCheck = shouldSkipAutoSynchronization({
+    autoSynchronization,
+    databaseType,
+  })
+
+  if (skipCheck.shouldSkip) {
     const message = 'アプリを終了しますか？'
 
     console.log('📝 [useAppInitialization] confirm message selected:', {
-      reason: 'autoSynchronization=false',
-      message,
-    })
-
-    return message
-  }
-
-  if (databaseType === 'sqlite') {
-    const message = 'アプリを終了しますか？'
-
-    console.log('📝 [useAppInitialization] confirm message selected:', {
-      reason: 'DATABASE_TYPE=sqlite のため自動同期なし',
+      reason: skipCheck.reason,
       message,
     })
 
@@ -304,36 +444,17 @@ async function runAutoSynchronizationBeforeConfirm(
       window.IniState?.apiSettings?.autoSynchronization,
   })
 
-  if (!autoSynchronization) {
+  const skipCheck = shouldSkipAutoSynchronization({
+    autoSynchronization,
+    databaseType,
+  })
+
+  if (skipCheck.shouldSkip) {
     console.log(
-      '⏭ [useAppInitialization] autoSynchronization=false のため同期をスキップします'
-    )
-
-    return {
-      success: true,
-      skipped: true,
-      reason: 'autoSynchronization is false',
-      databaseType,
-    }
-  }
-
-  if (databaseType === 'sqlite') {
-    console.log(
-      '⏭ [useAppInitialization] DATABASE_TYPE=sqlite のため終了時自動同期を実行しません'
-    )
-
-    return {
-      success: true,
-      skipped: true,
-      reason: 'DATABASE_TYPE is sqlite',
-      databaseType,
-    }
-  }
-
-  if (databaseType !== 'mariadb') {
-    console.log(
-      '⏭ [useAppInitialization] DATABASE_TYPE が mariadb ではないため終了時自動同期を実行しません',
+      '⏭ [useAppInitialization] 終了時自動同期をスキップします',
       {
+        reason: skipCheck.reason,
+        autoSynchronization,
         databaseType,
       }
     )
@@ -341,8 +462,9 @@ async function runAutoSynchronizationBeforeConfirm(
     return {
       success: true,
       skipped: true,
-      reason: 'DATABASE_TYPE is not mariadb',
+      reason: skipCheck.reason,
       databaseType,
+      autoSynchronization,
     }
   }
 
@@ -356,12 +478,13 @@ async function runAutoSynchronizationBeforeConfirm(
       skipped: false,
       reason: 'syncDatabaseStateToSqlite is not exposed',
       databaseType,
+      autoSynchronization,
     }
   }
 
   try {
     console.log(
-      '🔄 [useAppInitialization] DATABASE_TYPE=mariadb のため window.confirm 前に MariaDB → SQLite 自動同期を実行します'
+      '🔄 [useAppInitialization] AUTO_SYNCHRONIZATION=true かつ DATABASE_TYPE=mariadb のため MariaDB → SQLite 自動同期を実行します'
     )
 
     console.time('⏱ [useAppInitialization] SQLite auto sync time')
@@ -376,6 +499,7 @@ async function runAutoSynchronizationBeforeConfirm(
       success: result?.success !== false,
       skipped: false,
       databaseType,
+      autoSynchronization,
       result,
       error: result?.success === false ? result?.error : null,
     }
@@ -401,6 +525,7 @@ async function runAutoSynchronizationBeforeConfirm(
       success: false,
       skipped: false,
       databaseType,
+      autoSynchronization,
       error: error?.message || String(error),
     }
   } finally {

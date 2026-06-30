@@ -235,6 +235,133 @@ function normalizeFetchTableAllResult(fetchResult) {
   return databaseState;
 }
 
+// テーブルの定義の確認
+async function getExpectedColumnsFromRows(rows) {
+  const columnSet = new Set()
+
+  if (!Array.isArray(rows)) return []
+
+  for (const row of rows) {
+    if (!row || typeof row !== "object") continue
+
+    Object.keys(row).forEach((key) => {
+      columnSet.add(key)
+    })
+  }
+
+  return Array.from(columnSet)
+}
+
+async function validateTableSchema(db, tableName, rows) {
+  const sqliteColumns = await getTableColumns(db, tableName)
+  const expectedColumns = await getExpectedColumnsFromRows(rows)
+
+  const missingColumns = expectedColumns.filter(
+    (columnName) => !sqliteColumns.includes(columnName)
+  )
+
+  const valid = missingColumns.length === 0
+
+  console.log(`🔍 [schema-check] ${tableName}:`, {
+    valid,
+    sqliteColumns,
+    expectedColumns,
+    missingColumns,
+  })
+
+  return {
+    tableName,
+    valid,
+    sqliteColumns,
+    expectedColumns,
+    missingColumns,
+  }
+}
+
+async function validateDatabaseSchema(db, databaseState, syncOrder) {
+  console.group("🔍 [schema-check] SQLite schema validation START")
+
+  const results = []
+
+  for (const tableName of syncOrder) {
+    const rows = databaseState[tableName]
+
+    if (!Array.isArray(rows)) {
+      console.log(`⏭️ [schema-check] skip: ${tableName}`, {
+        reason: "fetchTableAll result does not have array",
+      })
+      continue
+    }
+
+    const result = await validateTableSchema(db, tableName, rows)
+    results.push(result)
+  }
+
+  const invalidTables = results.filter((result) => !result.valid)
+
+  const valid = invalidTables.length === 0
+
+  console.log("🔍 [schema-check] SQLite schema validation result:", {
+    valid,
+    invalidTables,
+  })
+
+  console.groupEnd()
+
+  return {
+    valid,
+    results,
+    invalidTables,
+  }
+}
+
+async function dropSyncTargetTables(db, syncOrder) {
+  console.group("🧨 [schema-rebuild] DROP sync target tables START")
+
+  const dropOrder = [...syncOrder].reverse()
+
+  await runSql(db, "PRAGMA foreign_keys = OFF;")
+
+  for (const tableName of dropOrder) {
+    console.log(`🧨 DROP TABLE IF EXISTS: ${tableName}`)
+    await runSql(db, `DROP TABLE IF EXISTS "${tableName}";`)
+  }
+
+  await runSql(db, "PRAGMA foreign_keys = ON;")
+
+  console.groupEnd()
+}
+
+async function rebuildDatabaseIfSchemaInvalid(db, databaseState, syncOrder) {
+  const schemaCheck = await validateDatabaseSchema(db, databaseState, syncOrder)
+
+  if (schemaCheck.valid) {
+    console.log("✅ [schema-rebuild] SQLite schema is latest. rebuild skipped.")
+
+    return {
+      rebuilt: false,
+      schemaCheck,
+    }
+  }
+
+  console.warn(
+    "⚠️ [schema-rebuild] SQLite schema is old. Rebuilding tables...",
+    schemaCheck.invalidTables
+  )
+
+  await dropSyncTargetTables(db, syncOrder)
+
+  console.log("🔄 [schema-rebuild] initializeDatabase() を再実行します")
+  initializeDatabase()
+
+  console.log("✅ [schema-rebuild] SQLite tables rebuilt")
+
+  return {
+    rebuilt: true,
+    schemaCheck,
+  }
+}
+
 // ============================================================
 // 📘 SQLite IPCハンドラ登録（sqlite: プレフィックス付き）
 // ============================================================
@@ -409,6 +536,18 @@ function registerSqliteHandlers(ipcMain) {
       console.log("📦 [sqlite:database:sync] 同期対象テーブル一覧:", {
         tableNames: Object.keys(databaseState),
       });
+
+      // ============================================================
+      // SQLite テーブル定義チェック
+      // 古い定義の場合は DROP → initializeDatabase() で作り直す
+      // ============================================================
+      const rebuildResult = await rebuildDatabaseIfSchemaInvalid(
+        db,
+        databaseState,
+        syncOrder
+      )
+
+      console.log("🧱 [sqlite:database:sync] schema rebuild result:", rebuildResult)
 
       const deleteOrder = [...syncOrder].reverse();
 

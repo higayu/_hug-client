@@ -1,4 +1,4 @@
-// AppStateContext/useReduxBindings.js
+// AppStateContext/useReduxBindings/index.js
 import { useSelector, shallowEqual } from 'react-redux'
 import * as s from '@/store/slices/appStateSlice'
 
@@ -33,6 +33,9 @@ export function useReduxBindings() {
 
   const USE_AI = useSelector(s.selectUseAI)
   const DATABASE_TYPE = useSelector(s.selectDatabaseType)
+
+  const AUTO_SYNCHRONIZATION = useSelector(s.selectAutoSynchronization)
+  const AUTO_SWITCHING = useSelector(s.selectAutoSwitching)
 
   const STAFF_ID = useSelector(s.selectStaffId)
   const FACILITY_ID = useSelector(s.selectFacilityId)
@@ -74,6 +77,9 @@ export function useReduxBindings() {
 
     USE_AI,
     DATABASE_TYPE,
+
+    AUTO_SYNCHRONIZATION,
+    AUTO_SWITCHING,
 
     STAFF_ID,
     FACILITY_ID,
