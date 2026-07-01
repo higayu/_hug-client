@@ -10,8 +10,17 @@ const IBOX_SELECTOR = "body > div.contents > div.ibox";
 const POST_PARAMS = [
   ["mode", "search"],
   ["search", ""],
-  ["f_ary[3]", "PD吉島"],
-  ["f_ary[6]", "PD光"],
+
+  // ['f_ary[1]', 'あゆむ'],
+  // ['f_ary[2]', 'PD仁保'],
+  ['f_ary[3]', 'PD吉島'],//とりあえず制限
+  // ['f_ary[4]', 'はーとけあ'],
+  // ['f_ary[5]', 'PD五日市'],
+  // ['f_ary[6]', 'PD光'],
+  // ['f_ary[7]', 'PD横川'],
+  // ['f_ary[8]', 'PD五日市駅前'],
+  // ["f_ary[6]", "PD光"],
+
   ["j_ary[1]", "管理者"],
   ["j_ary[2]", "児童発達支援管理責任者"],
   ["j_ary[40]", "みなし児童発達支援管理責任者"],
