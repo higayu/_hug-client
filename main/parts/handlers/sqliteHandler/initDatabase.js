@@ -213,6 +213,7 @@ CREATE TABLE IF NOT EXISTS "text_data" (
 CREATE TABLE IF NOT EXISTS "children" (
 	"id"	INTEGER NOT NULL,
 	"name"	TEXT NOT NULL,
+	"furigana"	TEXT DEFAULT NULL,
 	"notes"	TEXT DEFAULT NULL,
 	"notes2"	TEXT DEFAULT NULL,
 	"personal_tmp"	TEXT DEFAULT NULL,
@@ -494,6 +495,7 @@ async function migrateExistingDatabase(db) {
 
   // children
   await ensureColumn(db, "children", "name", `"name" TEXT`);
+  await ensureColumn(db, "children", "furigana", `"furigana" TEXT`);
   await ensureColumn(db, "children", "notes", `"notes" TEXT`);
   await ensureColumn(db, "children", "notes2", `"notes2" TEXT`);
   await ensureColumn(db, "children", "personal_tmp", `"personal_tmp" TEXT`);
@@ -723,12 +725,6 @@ async function migrateExistingDatabase(db) {
   );
 }
 
-/**
- * INDEX / UNIQUE INDEX 作成
- *
- * 既存DBに重複データがあると UNIQUE INDEX 作成に失敗する。
- * その場合でもアプリ起動を止めないように warning にする。
- */
 /**
  * INDEX / UNIQUE INDEX 作成
  *

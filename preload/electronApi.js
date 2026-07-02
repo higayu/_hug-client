@@ -243,6 +243,10 @@ function createElectronApi(ipcRenderer, isDebugMode) {
     syncHugStaffs: (data) =>
       ipcRenderer.invoke("mariadb:hug_staffs:sync", data),
 
+    // ---- HUG childrens ----
+    syncHugChildrens: (data) =>
+      ipcRenderer.invoke("mariadb:hug_childrens:sync", data),
+
     // ---- CRUD API 展開 ----
     ...createTableApis(ipcRenderer),
   };

@@ -11,6 +11,10 @@ const {
 } = require("./mariadb/SyncHugStaffs");
 
 const {
+  syncHugChildrens,
+} = require("./mariadb/SyncHugChildrens");
+
+const {
   upsertTempNote,
   upsertTempNote1,
   upsertTempNote2,
@@ -204,6 +208,14 @@ function registerMariadbHandlers(ipcMain) {
   ipcMain.handle("mariadb:hug_staffs:sync", async (_, data) => {
     return syncHugStaffs(data);
   });
+
+  // ============================================================
+  // HUG childrens sync
+  // ============================================================
+  ipcMain.handle("mariadb:hug_childrens:sync", async (_, data) => {
+    return syncHugChildrens(data);
+  });
+
 }
 
 module.exports = { registerMariadbHandlers };

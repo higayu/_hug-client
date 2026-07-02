@@ -28,6 +28,7 @@ module.exports = {
     const {
       id,
       name,
+      furigana,
       notes,
       notes2,
       personal_tmp,
@@ -39,10 +40,11 @@ module.exports = {
     return new Promise((resolve, reject) => {
       const db = connect();
       db.run(
-        "INSERT INTO children (id, name, notes, notes2, personal_tmp, pronunciation_id, children_type_id, is_delete, leaving_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);",
+        "INSERT INTO children (id, name, furigana, notes, notes2, personal_tmp, pronunciation_id, children_type_id, is_delete, leaving_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);",
         [
           id,
           name,
+          furigana,
           notes,
           notes2,
           personal_tmp,
@@ -63,6 +65,7 @@ module.exports = {
   update(id, data) {
     const {
       name,
+      furigana,
       notes,
       notes2,
       personal_tmp,
@@ -74,9 +77,10 @@ module.exports = {
     return new Promise((resolve, reject) => {
       const db = connect();
       db.run(
-        "UPDATE children SET name=?, notes=?, notes2=?, personal_tmp=?, pronunciation_id=?, children_type_id=?, is_delete=?, leaving_at=? WHERE id=?;",
+        "UPDATE children SET name=?, furigana=?, notes=?, notes2=?, personal_tmp=?, pronunciation_id=?, children_type_id=?, is_delete=?, leaving_at=? WHERE id=?;",
         [
           name,
+          furigana,
           notes,
           notes2,
           personal_tmp,

@@ -2,7 +2,7 @@
 -- ホスト:                          192.168.1.229
 -- サーバーのバージョン:                   10.11.14-MariaDB-0ubuntu0.24.04.1 - Ubuntu 24.04
 -- サーバー OS:                      debian-linux-gnu
--- HeidiSQL バージョン:               12.11.0.7065
+-- HeidiSQL バージョン:               12.6.0.6765
 -- --------------------------------------------------------
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
@@ -22,12 +22,13 @@ USE `houday`;
 --  テーブル houday.children の構造をダンプしています
 CREATE TABLE IF NOT EXISTS `children` (
   `id` int(11) NOT NULL,
-  `name` varchar(100) NOT NULL,
-  `notes` text DEFAULT NULL,
-  `notes2` text DEFAULT NULL,
-  `personal_tmp` text DEFAULT NULL,
+  `name` varchar(255) NOT NULL,
+  `furigana` varchar(255) DEFAULT NULL,
   `pronunciation_id` int(11) DEFAULT NULL COMMENT '検索文字（ひらがな）',
   `children_type_id` int(11) NOT NULL DEFAULT 1,
+  `notes` text DEFAULT NULL COMMENT '専門的支援計画',
+  `notes2` text DEFAULT NULL COMMENT 'その他メモ',
+  `personal_tmp` text DEFAULT NULL,
   `is_delete` tinyint(4) NOT NULL DEFAULT 0,
   `leaving_at` date DEFAULT NULL,
   PRIMARY KEY (`id`),
@@ -43,12 +44,12 @@ CREATE TABLE IF NOT EXISTS `children` (
 -- VIEW 依存エラーを克服するために、一時テーブルを作成
 CREATE TABLE `children_facility2_v` (
 	`children_id` INT(11) NOT NULL,
-	`children_name` VARCHAR(1) NOT NULL COLLATE 'utf8mb4_general_ci',
+	`children_name` VARCHAR(255) NOT NULL COLLATE 'utf8mb4_general_ci',
 	`is_delete` TINYINT(4) NOT NULL,
-	`children_pronunciation` VARCHAR(1) NULL COLLATE 'utf8mb4_general_ci',
-	`children_notes` TEXT NULL COLLATE 'utf8mb4_general_ci',
+	`children_pronunciation` VARCHAR(10) NULL COLLATE 'utf8mb4_general_ci',
+	`children_notes` TEXT NULL COMMENT '専門的支援計画' COLLATE 'utf8mb4_general_ci',
 	`children_type_id` INT(11) NOT NULL,
-	`children_type_name` VARCHAR(1) NULL COLLATE 'utf8mb4_general_ci',
+	`children_type_name` VARCHAR(50) NULL COLLATE 'utf8mb4_general_ci',
 	`facility_ids` MEDIUMTEXT NULL COLLATE 'utf8mb4_general_ci',
 	`facility_names` MEDIUMTEXT NULL COLLATE 'utf8mb4_general_ci',
 	`pc_ids` MEDIUMTEXT NULL COLLATE 'utf8mb4_general_ci',
@@ -59,18 +60,18 @@ CREATE TABLE `children_facility2_v` (
 	`ptc_ids` MEDIUMTEXT NULL COLLATE 'utf8mb4_general_ci',
 	`manager_day_of_week_ids` MEDIUMTEXT NULL COLLATE 'utf8mb4_general_ci',
 	`manager_days_of_week` MEDIUMTEXT NULL COLLATE 'utf8mb4_general_ci'
-);
+) ENGINE=MyISAM;
 
 --  ビュー houday.children_facility_all2_v の構造をダンプしています
 -- VIEW 依存エラーを克服するために、一時テーブルを作成
 CREATE TABLE `children_facility_all2_v` (
 	`children_id` INT(11) NOT NULL,
-	`children_name` VARCHAR(1) NOT NULL COLLATE 'utf8mb4_general_ci',
+	`children_name` VARCHAR(255) NOT NULL COLLATE 'utf8mb4_general_ci',
 	`is_delete` TINYINT(4) NOT NULL,
-	`children_pronunciation` VARCHAR(1) NULL COLLATE 'utf8mb4_general_ci',
-	`children_notes` TEXT NULL COLLATE 'utf8mb4_general_ci',
+	`children_pronunciation` VARCHAR(10) NULL COLLATE 'utf8mb4_general_ci',
+	`children_notes` TEXT NULL COMMENT '専門的支援計画' COLLATE 'utf8mb4_general_ci',
 	`children_type_id` INT(11) NOT NULL,
-	`children_type_name` VARCHAR(1) NULL COLLATE 'utf8mb4_general_ci',
+	`children_type_name` VARCHAR(50) NULL COLLATE 'utf8mb4_general_ci',
 	`facility_ids` MEDIUMTEXT NULL COLLATE 'utf8mb4_general_ci',
 	`facility_names` MEDIUMTEXT NULL COLLATE 'utf8mb4_general_ci',
 	`pc_ids` MEDIUMTEXT NULL COLLATE 'utf8mb4_general_ci',
@@ -81,7 +82,7 @@ CREATE TABLE `children_facility_all2_v` (
 	`ptc_ids` MEDIUMTEXT NULL COLLATE 'utf8mb4_general_ci',
 	`manager_day_of_week_ids` MEDIUMTEXT NULL COLLATE 'utf8mb4_general_ci',
 	`manager_days_of_week` MEDIUMTEXT NULL COLLATE 'utf8mb4_general_ci'
-);
+) ENGINE=MyISAM;
 
 --  テーブル houday.children_type の構造をダンプしています
 CREATE TABLE IF NOT EXISTS `children_type` (
@@ -112,7 +113,7 @@ CREATE TABLE IF NOT EXISTS `child_records` (
   CONSTRAINT `FK_child_records_children` FOREIGN KEY (`children_id`) REFERENCES `children` (`id`) ON DELETE CASCADE,
   CONSTRAINT `FK_child_records_facilitys` FOREIGN KEY (`facility_id`) REFERENCES `facilitys` (`id`) ON DELETE CASCADE,
   CONSTRAINT `FK_child_records_record_types` FOREIGN KEY (`record_type_id`) REFERENCES `record_types` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=50 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=51 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- エクスポートするデータが選択されていません
 
@@ -122,19 +123,19 @@ CREATE TABLE `child_records_v` (
 	`id` INT(11) NOT NULL,
 	`date` DATE NOT NULL,
 	`children_id` INT(11) NOT NULL,
-	`child_name` VARCHAR(1) NULL COLLATE 'utf8mb4_general_ci',
-	`child_type_name` VARCHAR(1) NULL COLLATE 'utf8mb4_general_ci',
+	`child_name` VARCHAR(255) NULL COLLATE 'utf8mb4_general_ci',
+	`child_type_name` VARCHAR(50) NULL COLLATE 'utf8mb4_general_ci',
 	`record_type_id` INT(11) NOT NULL,
-	`record_type_name` VARCHAR(1) NULL COLLATE 'utf8mb4_general_ci',
+	`record_type_name` VARCHAR(100) NULL COLLATE 'utf8mb4_general_ci',
 	`facility_id` INT(11) NOT NULL,
-	`facility_name` VARCHAR(1) NULL COLLATE 'utf8mb4_general_ci',
+	`facility_name` VARCHAR(250) NULL COLLATE 'utf8mb4_general_ci',
 	`score` INT(11) NULL,
 	`mistakes` INT(11) NULL,
-	`memo1` VARCHAR(1) NULL COLLATE 'utf8mb4_general_ci',
+	`memo1` VARCHAR(255) NULL COLLATE 'utf8mb4_general_ci',
 	`memo2` TEXT NULL COLLATE 'utf8mb4_general_ci',
 	`created_at` DATETIME NULL,
 	`updated_at` DATETIME NULL
-);
+) ENGINE=MyISAM;
 
 --  テーブル houday.day_of_week の構造をダンプしています
 CREATE TABLE IF NOT EXISTS `day_of_week` (
@@ -151,18 +152,18 @@ CREATE TABLE IF NOT EXISTS `day_of_week` (
 -- VIEW 依存エラーを克服するために、一時テーブルを作成
 CREATE TABLE `experience_children_v` (
 	`children_id` INT(11) NOT NULL,
-	`children_name` VARCHAR(1) NOT NULL COLLATE 'utf8mb4_general_ci',
-	`notes` TEXT NULL COLLATE 'utf8mb4_general_ci',
+	`children_name` VARCHAR(255) NOT NULL COLLATE 'utf8mb4_general_ci',
+	`notes` TEXT NULL COMMENT '専門的支援計画' COLLATE 'utf8mb4_general_ci',
 	`is_delete` TINYINT(4) NOT NULL,
 	`pronunciation_id` INT(11) NULL COMMENT '検索文字（ひらがな）',
 	`children_type_id` INT(11) NOT NULL,
 	`pc_id` INT(11) NULL,
-	`pc_name` VARCHAR(1) NULL COLLATE 'utf8mb4_general_ci',
-	`explanation` VARCHAR(1) NULL COLLATE 'utf8mb4_general_ci',
-	`memo` VARCHAR(1) NULL COLLATE 'utf8mb4_general_ci',
+	`pc_name` VARCHAR(50) NULL COLLATE 'utf8mb4_general_ci',
+	`explanation` VARCHAR(50) NULL COLLATE 'utf8mb4_general_ci',
+	`memo` VARCHAR(255) NULL COLLATE 'utf8mb4_general_ci',
 	`facility_id` INT(11) NULL,
 	`ptc_id` INT(11) NULL
-);
+) ENGINE=MyISAM;
 
 --  テーブル houday.facilitys の構造をダンプしています
 CREATE TABLE IF NOT EXISTS `facilitys` (
@@ -550,25 +551,25 @@ CREATE TABLE IF NOT EXISTS `managers2` (
 -- VIEW 依存エラーを克服するために、一時テーブルを作成
 CREATE TABLE `managers2_pri_v` (
 	`children_id` INT(11) NOT NULL,
-	`children_name` VARCHAR(1) NOT NULL COLLATE 'utf8mb4_general_ci',
+	`children_name` VARCHAR(255) NOT NULL COLLATE 'utf8mb4_general_ci',
 	`staff_id` INT(11) NOT NULL,
-	`staff_name` VARCHAR(1) NOT NULL COLLATE 'utf8mb4_general_ci',
+	`staff_name` VARCHAR(50) NOT NULL COLLATE 'utf8mb4_general_ci',
 	`day_of_week_id` TINYINT(4) NOT NULL,
-	`day_of_week_label` VARCHAR(1) NOT NULL COLLATE 'utf8mb4_general_ci',
+	`day_of_week_label` VARCHAR(10) NOT NULL COLLATE 'utf8mb4_general_ci',
 	`day_sort_order` TINYINT(4) NOT NULL,
 	`priority` TINYINT(4) NOT NULL
-);
+) ENGINE=MyISAM;
 
 --  ビュー houday.managers2_v の構造をダンプしています
 -- VIEW 依存エラーを克服するために、一時テーブルを作成
 CREATE TABLE `managers2_v` (
 	`children_id` INT(11) NOT NULL,
-	`children_name` VARCHAR(1) NOT NULL COLLATE 'utf8mb4_general_ci',
+	`children_name` VARCHAR(255) NOT NULL COLLATE 'utf8mb4_general_ci',
 	`staff_id` INT(11) NOT NULL,
-	`staff_name` VARCHAR(1) NOT NULL COLLATE 'utf8mb4_general_ci',
+	`staff_name` VARCHAR(50) NOT NULL COLLATE 'utf8mb4_general_ci',
 	`day_of_week` MEDIUMTEXT NULL COLLATE 'utf8mb4_general_ci',
 	`day_of_week_id` MEDIUMTEXT NULL COLLATE 'utf8mb4_general_ci'
-);
+) ENGINE=MyISAM;
 
 --  テーブル houday.memo の構造をダンプしています
 CREATE TABLE IF NOT EXISTS `memo` (
@@ -630,15 +631,15 @@ CREATE TABLE `pc_to_children_v` (
 	`id` INT(11) NOT NULL,
 	`pc_id` INT(11) NOT NULL,
 	`pcid` INT(11) NOT NULL,
-	`pc_name` VARCHAR(1) NOT NULL COLLATE 'utf8mb4_general_ci',
-	`pc_explanation` VARCHAR(1) NULL COLLATE 'utf8mb4_general_ci',
+	`pc_name` VARCHAR(50) NOT NULL COLLATE 'utf8mb4_general_ci',
+	`pc_explanation` VARCHAR(50) NULL COLLATE 'utf8mb4_general_ci',
 	`children_id` INT(11) NOT NULL,
-	`children_name` VARCHAR(1) NOT NULL COLLATE 'utf8mb4_general_ci',
+	`children_name` VARCHAR(255) NOT NULL COLLATE 'utf8mb4_general_ci',
 	`day_of_week` TINYINT(4) NULL,
-	`facility_name` VARCHAR(1) NULL COLLATE 'utf8mb4_general_ci',
+	`facility_name` VARCHAR(250) NULL COLLATE 'utf8mb4_general_ci',
 	`start_time` TIME NULL,
 	`end_time` TIME NULL
-);
+) ENGINE=MyISAM;
 
 --  テーブル houday.pronunciation の構造をダンプしています
 CREATE TABLE IF NOT EXISTS `pronunciation` (
@@ -682,7 +683,10 @@ CREATE PROCEDURE `register_facility_children`(
 )
 BEGIN
     DECLARE v_child_inserted INT DEFAULT 0;
+    DECLARE v_child_updated INT DEFAULT 0;
     DECLARE v_link_inserted INT DEFAULT 0;
+    DECLARE v_link_deleted INT DEFAULT 0;
+    DECLARE v_delete_candidates INT DEFAULT 0;
 
     DECLARE EXIT HANDLER FOR SQLEXCEPTION
     BEGIN
@@ -693,58 +697,104 @@ BEGIN
     START TRANSACTION;
 
     -- 施設ID存在チェック
-    IF NOT EXISTS (
-        SELECT 1
-        FROM `facilitys`
-        WHERE `id` = p_facility_id
-    ) THEN
+    IF NOT EXISTS (SELECT 1 FROM `facilitys` WHERE `id` = p_facility_id) THEN
         SIGNAL SQLSTATE '45000'
             SET MESSAGE_TEXT = '指定された施設IDが存在しません。';
     END IF;
 
-    -- children 登録
-    -- 既存の id は INSERT IGNORE でスキップ
-    INSERT IGNORE INTO `children` (
+    -- ① 削除予定の児童数を事前確認（警告用）
+    SELECT COUNT(*) INTO v_delete_candidates
+    FROM `facility_children`
+    WHERE `facility_id` = p_facility_id
+      AND `children_id` NOT IN (
+          SELECT DISTINCT jt.children_id
+          FROM JSON_TABLE(
+              p_children_json,
+              '$[*]' COLUMNS (children_id INT PATH '$.id')
+          ) AS jt
+          WHERE jt.children_id IS NOT NULL
+      );
+
+    -- 削除件数が10件以上の場合は警告（エラーにはしない）
+    IF v_delete_candidates >= 10 THEN
+        -- 警告をログに残す（SIGNALは使わず、結果に含める）
+        SET @warning_msg = CONCAT('警告: ', v_delete_candidates, '件の児童が施設から外れます。');
+    END IF;
+
+    -- ② children テーブルの登録・更新
+    --    name の先頭に "[利用停止]" が付いている場合は is_delete=1 に設定
+    INSERT INTO `children` (
         `id`,
         `name`,
+        `furigana`,
+        `pronunciation_id`,
+        `children_type_id`,
         `notes`,
         `notes2`,
         `personal_tmp`,
-        `pronunciation_id`,
-        `children_type_id`,
+        `is_delete`,
         `leaving_at`
     )
     SELECT
         jt.children_id,
         jt.name,
+        NULLIF(jt.furigana, ''),
+        jt.pronunciation_id,
+        IFNULL(jt.children_type_id, 1),
         NULLIF(jt.notes, ''),
         NULLIF(jt.notes2, ''),
         NULLIF(jt.personal_tmp, ''),
-        jt.pronunciation_id,
-        IFNULL(jt.children_type_id, 1),
+        -- name の先頭に "[利用停止]" が付いている場合は is_delete=1
+        IF(
+            jt.name LIKE '[利用停止]%',
+            1,
+            IFNULL(jt.is_delete, 0)
+        ),
         NULLIF(jt.leaving_at, '')
     FROM JSON_TABLE(
         p_children_json,
         '$[*]' COLUMNS (
             children_id INT PATH '$.id',
-            name VARCHAR(100) PATH '$.name',
+            name VARCHAR(255) PATH '$.name',
+            furigana VARCHAR(255) PATH '$.furigana' NULL ON EMPTY NULL ON ERROR,
+            pronunciation_id INT PATH '$.pronunciation_id' NULL ON EMPTY NULL ON ERROR,
+            children_type_id INT PATH '$.children_type_id' NULL ON EMPTY NULL ON ERROR,
             notes VARCHAR(2000) PATH '$.notes' NULL ON EMPTY NULL ON ERROR,
             notes2 VARCHAR(2000) PATH '$.notes2' NULL ON EMPTY NULL ON ERROR,
             personal_tmp VARCHAR(2000) PATH '$.personal_tmp' NULL ON EMPTY NULL ON ERROR,
-            pronunciation_id INT PATH '$.pronunciation_id' NULL ON EMPTY NULL ON ERROR,
-            children_type_id INT PATH '$.children_type_id' NULL ON EMPTY NULL ON ERROR,
+            is_delete TINYINT PATH '$.is_delete' NULL ON EMPTY NULL ON ERROR,
             leaving_at VARCHAR(20) PATH '$.leaving_at' NULL ON EMPTY NULL ON ERROR
         )
     ) AS jt
     WHERE jt.children_id IS NOT NULL
       AND jt.name IS NOT NULL
-      AND jt.name <> '';
+      AND jt.name <> ''
+    ON DUPLICATE KEY UPDATE
+        `name` = VALUES(`name`),
+        `furigana` = VALUES(`furigana`),
+        `pronunciation_id` = VALUES(`pronunciation_id`),
+        `children_type_id` = VALUES(`children_type_id`),
+        `notes` = VALUES(`notes`),
+        `notes2` = VALUES(`notes2`),
+        `personal_tmp` = VALUES(`personal_tmp`),
+        `is_delete` = VALUES(`is_delete`),
+        `leaving_at` = VALUES(`leaving_at`);
 
-    SET v_child_inserted = ROW_COUNT();
+    -- ③ 施設紐付けの削除（HUGデータに含まれていない児童を施設から外す）
+    DELETE FROM `facility_children`
+    WHERE `facility_id` = p_facility_id
+      AND `children_id` NOT IN (
+          SELECT DISTINCT jt.children_id
+          FROM JSON_TABLE(
+              p_children_json,
+              '$[*]' COLUMNS (children_id INT PATH '$.id')
+          ) AS jt
+          WHERE jt.children_id IS NOT NULL
+      );
 
-    -- facility_children 登録
-    -- children に存在する児童だけ施設に紐づける
-    -- 既存の組み合わせは INSERT IGNORE でスキップ
+    SET v_link_deleted = ROW_COUNT();
+
+    -- ④ facility_children の紐付けを登録（INSERT IGNORE で重複スキップ）
     INSERT IGNORE INTO `facility_children` (
         `facility_id`,
         `children_id`
@@ -755,19 +805,20 @@ BEGIN
     FROM `children` c
     INNER JOIN JSON_TABLE(
         p_children_json,
-        '$[*]' COLUMNS (
-            children_id INT PATH '$.id'
-        )
+        '$[*]' COLUMNS (children_id INT PATH '$.id')
     ) AS jt
-        ON jt.children_id = c.id;
+        ON jt.children_id = c.id
+    WHERE c.is_delete = 0;  -- 削除フラグが立っていない児童のみ紐付け
 
     SET v_link_inserted = ROW_COUNT();
 
     COMMIT;
 
+    -- 結果を返す
     SELECT
         JSON_LENGTH(p_children_json) AS target_count,
-        v_child_inserted AS child_inserted,
+        v_delete_candidates AS delete_candidate_count,
+        v_link_deleted AS facility_link_deleted,
         v_link_inserted AS facility_link_inserted;
 END//
 DELIMITER ;
@@ -796,7 +847,7 @@ CREATE TABLE IF NOT EXISTS `service_record` (
   CONSTRAINT `FK_service_record_day_of_week` FOREIGN KEY (`day_of_week_id`) REFERENCES `day_of_week` (`id`) ON DELETE CASCADE,
   CONSTRAINT `FK_service_record_facilitys` FOREIGN KEY (`facility_id`) REFERENCES `facilitys` (`id`) ON DELETE CASCADE,
   CONSTRAINT `service_record_ibfk_1` FOREIGN KEY (`item_id`) REFERENCES `m_service_items` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=40 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='サービス全体記録';
+) ENGINE=InnoDB AUTO_INCREMENT=50 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='サービス全体記録';
 
 -- エクスポートするデータが選択されていません
 
@@ -823,12 +874,12 @@ CREATE TABLE IF NOT EXISTS `staffs` (
 CREATE TABLE `staff_all_v` (
 	`staff_id` INT(11) NOT NULL,
 	`staff_admin` TINYINT(4) NULL,
-	`staff_name` VARCHAR(1) NOT NULL COLLATE 'utf8mb4_general_ci',
+	`staff_name` VARCHAR(50) NOT NULL COLLATE 'utf8mb4_general_ci',
 	`notes` TEXT NOT NULL COLLATE 'utf8mb4_general_ci',
 	`is_delete` TINYINT(4) NOT NULL,
 	`facility_ids` MEDIUMTEXT NULL COLLATE 'utf8mb4_general_ci',
 	`facility_names` MEDIUMTEXT NULL COLLATE 'utf8mb4_general_ci'
-);
+) ENGINE=MyISAM;
 
 --  テーブル houday.staff_facility_roles の構造をダンプしています
 CREATE TABLE IF NOT EXISTS `staff_facility_roles` (
@@ -847,7 +898,7 @@ CREATE TABLE IF NOT EXISTS `staff_facility_roles` (
   KEY `idx_staff_facility_roles_facility_id` (`facility_id`),
   CONSTRAINT `fk_staff_facility_roles_facilitys` FOREIGN KEY (`facility_id`) REFERENCES `facilitys` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_staff_facility_roles_staffs` FOREIGN KEY (`staff_id`) REFERENCES `staffs` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=171 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=272 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- エクスポートするデータが選択されていません
 
@@ -856,24 +907,24 @@ CREATE TABLE IF NOT EXISTS `staff_facility_roles` (
 CREATE TABLE `staff_facility_v` (
 	`staff_id` INT(11) NOT NULL,
 	`staff_admin` TINYINT(4) NULL,
-	`staff_name` VARCHAR(1) NOT NULL COLLATE 'utf8mb4_general_ci',
+	`staff_name` VARCHAR(50) NOT NULL COLLATE 'utf8mb4_general_ci',
 	`notes` TEXT NOT NULL COLLATE 'utf8mb4_general_ci',
 	`is_delete` TINYINT(4) NOT NULL,
 	`facility_ids` MEDIUMTEXT NULL COLLATE 'utf8mb4_general_ci',
 	`facility_names` MEDIUMTEXT NULL COLLATE 'utf8mb4_general_ci'
-);
+) ENGINE=MyISAM;
 
 --  ビュー houday.staff_v の構造をダンプしています
 -- VIEW 依存エラーを克服するために、一時テーブルを作成
 CREATE TABLE `staff_v` (
 	`staff_id` INT(11) NOT NULL,
 	`staff_admin` TINYINT(4) NULL,
-	`staff_name` VARCHAR(1) NOT NULL COLLATE 'utf8mb4_general_ci',
+	`staff_name` VARCHAR(50) NOT NULL COLLATE 'utf8mb4_general_ci',
 	`notes` TEXT NOT NULL COLLATE 'utf8mb4_general_ci',
 	`is_delete` TINYINT(4) NOT NULL,
 	`facility_ids` MEDIUMTEXT NULL COLLATE 'utf8mb4_general_ci',
 	`facility_names` MEDIUMTEXT NULL COLLATE 'utf8mb4_general_ci'
-);
+) ENGINE=MyISAM;
 
 --  プロシージャ houday.sync_hug_staffs の構造をダンプしています
 DELIMITER //
@@ -1143,6 +1194,25 @@ BEGIN
 END//
 DELIMITER ;
 
+--  テーブル houday.temp_notes の構造をダンプしています
+CREATE TABLE IF NOT EXISTS `temp_notes` (
+  `children_id` int(11) NOT NULL,
+  `staff_id` int(11) NOT NULL,
+  `day_of_week_id` tinyint(4) NOT NULL DEFAULT 0,
+  `memo1` text DEFAULT NULL,
+  `memo2` text DEFAULT NULL,
+  `created_at` datetime DEFAULT current_timestamp(),
+  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`children_id`,`staff_id`,`day_of_week_id`),
+  KEY `FK_temp_notes_staffs` (`staff_id`),
+  KEY `FK_temp_notes_day_of_week` (`day_of_week_id`),
+  CONSTRAINT `FK_temp_notes_children` FOREIGN KEY (`children_id`) REFERENCES `children` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
+  CONSTRAINT `FK_temp_notes_day_of_week` FOREIGN KEY (`day_of_week_id`) REFERENCES `day_of_week` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
+  CONSTRAINT `FK_temp_notes_staffs` FOREIGN KEY (`staff_id`) REFERENCES `staffs` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- エクスポートするデータが選択されていません
+
 --  テーブル houday.text_data の構造をダンプしています
 CREATE TABLE IF NOT EXISTS `text_data` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
@@ -1272,53 +1342,43 @@ CREATE TABLE IF NOT EXISTS `users` (
 
 -- 一時テーブルを削除して、最終的な VIEW 構造を作成
 DROP TABLE IF EXISTS `children_facility2_v`;
-CREATE ALGORITHM=UNDEFINED SQL SECURITY DEFINER VIEW `children_facility2_v` AS select `c`.`id` AS `children_id`,`c`.`name` AS `children_name`,`c`.`is_delete` AS `is_delete`,`p`.`pronunciation` AS `children_pronunciation`,`c`.`notes` AS `children_notes`,`c`.`children_type_id` AS `children_type_id`,`ct`.`name` AS `children_type_name`,group_concat(distinct `f`.`id` order by `f`.`id` ASC separator ',') AS `facility_ids`,group_concat(distinct `f`.`name` order by `f`.`name` ASC separator ',') AS `facility_names`,group_concat(distinct `pc`.`id` order by `pc`.`id` ASC separator ',') AS `pc_ids`,group_concat(distinct `pc`.`name` order by `pc`.`name` ASC separator ',') AS `pc_names`,group_concat(distinct `pc`.`explanation` order by `pc`.`id` ASC separator ',') AS `pc_explanations`,group_concat(distinct `pc`.`memo` order by `pc`.`id` ASC separator ',') AS `pc_memos`,group_concat(distinct `ptc`.`day_of_week` order by `ptc`.`day_of_week` ASC separator ',') AS `pc_days_of_week`,group_concat(distinct `ptc`.`id` order by `ptc`.`id` ASC separator ',') AS `ptc_ids`,group_concat(distinct `m`.`day_of_week_id` order by `d`.`sort_order` ASC separator ',') AS `manager_day_of_week_ids`,group_concat(distinct `d`.`label_jp` order by `d`.`sort_order` ASC separator ',') AS `manager_days_of_week` from ((((((((`children` `c` left join `pronunciation` `p` on(`c`.`pronunciation_id` = `p`.`id`)) left join `facility_children` `fc` on(`c`.`id` = `fc`.`children_id`)) left join `facilitys` `f` on(`fc`.`facility_id` = `f`.`id`)) left join `pc_to_children` `ptc` on(`c`.`id` = `ptc`.`children_id`)) left join `pc` on(`ptc`.`pc_id` = `pc`.`id`)) left join `children_type` `ct` on(`c`.`children_type_id` = `ct`.`id`)) left join `managers2` `m` on(`c`.`id` = `m`.`children_id`)) left join `day_of_week` `d` on(`m`.`day_of_week_id` = `d`.`id`)) where `c`.`children_type_id` <> -1 and `c`.`is_delete` <> 1 group by `c`.`id`,`c`.`name`,`p`.`pronunciation`,`c`.`notes`,`c`.`children_type_id`,`ct`.`name` order by `p`.`id`,`c`.`name`
-;
+CREATE ALGORITHM=UNDEFINED SQL SECURITY DEFINER VIEW `children_facility2_v` AS select `c`.`id` AS `children_id`,`c`.`name` AS `children_name`,`c`.`is_delete` AS `is_delete`,`p`.`pronunciation` AS `children_pronunciation`,`c`.`notes` AS `children_notes`,`c`.`children_type_id` AS `children_type_id`,`ct`.`name` AS `children_type_name`,group_concat(distinct `f`.`id` order by `f`.`id` ASC separator ',') AS `facility_ids`,group_concat(distinct `f`.`name` order by `f`.`name` ASC separator ',') AS `facility_names`,group_concat(distinct `pc`.`id` order by `pc`.`id` ASC separator ',') AS `pc_ids`,group_concat(distinct `pc`.`name` order by `pc`.`name` ASC separator ',') AS `pc_names`,group_concat(distinct `pc`.`explanation` order by `pc`.`id` ASC separator ',') AS `pc_explanations`,group_concat(distinct `pc`.`memo` order by `pc`.`id` ASC separator ',') AS `pc_memos`,group_concat(distinct `ptc`.`day_of_week` order by `ptc`.`day_of_week` ASC separator ',') AS `pc_days_of_week`,group_concat(distinct `ptc`.`id` order by `ptc`.`id` ASC separator ',') AS `ptc_ids`,group_concat(distinct `m`.`day_of_week_id` order by `d`.`sort_order` ASC separator ',') AS `manager_day_of_week_ids`,group_concat(distinct `d`.`label_jp` order by `d`.`sort_order` ASC separator ',') AS `manager_days_of_week` from ((((((((`children` `c` left join `pronunciation` `p` on(`c`.`pronunciation_id` = `p`.`id`)) left join `facility_children` `fc` on(`c`.`id` = `fc`.`children_id`)) left join `facilitys` `f` on(`fc`.`facility_id` = `f`.`id`)) left join `pc_to_children` `ptc` on(`c`.`id` = `ptc`.`children_id`)) left join `pc` on(`ptc`.`pc_id` = `pc`.`id`)) left join `children_type` `ct` on(`c`.`children_type_id` = `ct`.`id`)) left join `managers2` `m` on(`c`.`id` = `m`.`children_id`)) left join `day_of_week` `d` on(`m`.`day_of_week_id` = `d`.`id`)) where `c`.`children_type_id` <> -1 and `c`.`is_delete` <> 1 group by `c`.`id`,`c`.`name`,`p`.`pronunciation`,`c`.`notes`,`c`.`children_type_id`,`ct`.`name` order by `p`.`id`,`c`.`name`;
 
 -- 一時テーブルを削除して、最終的な VIEW 構造を作成
 DROP TABLE IF EXISTS `children_facility_all2_v`;
-CREATE ALGORITHM=UNDEFINED SQL SECURITY DEFINER VIEW `children_facility_all2_v` AS select `c`.`id` AS `children_id`,`c`.`name` AS `children_name`,`c`.`is_delete` AS `is_delete`,`p`.`pronunciation` AS `children_pronunciation`,`c`.`notes` AS `children_notes`,`c`.`children_type_id` AS `children_type_id`,`ct`.`name` AS `children_type_name`,group_concat(distinct `f`.`id` order by `f`.`id` ASC separator ',') AS `facility_ids`,group_concat(distinct `f`.`name` order by `f`.`name` ASC separator ',') AS `facility_names`,group_concat(distinct `pc`.`id` order by `pc`.`id` ASC separator ',') AS `pc_ids`,group_concat(distinct `pc`.`name` order by `pc`.`name` ASC separator ',') AS `pc_names`,group_concat(distinct `pc`.`explanation` order by `pc`.`id` ASC separator ',') AS `pc_explanations`,group_concat(distinct `pc`.`memo` order by `pc`.`id` ASC separator ',') AS `pc_memos`,group_concat(distinct `ptc`.`day_of_week` order by `ptc`.`day_of_week` ASC separator ',') AS `pc_days_of_week`,group_concat(distinct `ptc`.`id` order by `ptc`.`id` ASC separator ',') AS `ptc_ids`,group_concat(distinct `m`.`day_of_week_id` order by `d`.`sort_order` ASC separator ',') AS `manager_day_of_week_ids`,group_concat(distinct `d`.`label_jp` order by `d`.`sort_order` ASC separator ',') AS `manager_days_of_week` from ((((((((`children` `c` left join `pronunciation` `p` on(`c`.`pronunciation_id` = `p`.`id`)) left join `facility_children` `fc` on(`c`.`id` = `fc`.`children_id`)) left join `facilitys` `f` on(`fc`.`facility_id` = `f`.`id`)) left join `pc_to_children` `ptc` on(`c`.`id` = `ptc`.`children_id`)) left join `pc` on(`ptc`.`pc_id` = `pc`.`id`)) left join `children_type` `ct` on(`c`.`children_type_id` = `ct`.`id`)) left join `managers2` `m` on(`c`.`id` = `m`.`children_id`)) left join `day_of_week` `d` on(`m`.`day_of_week_id` = `d`.`id`)) where `c`.`children_type_id` <> -1 group by `c`.`id`,`c`.`name`,`p`.`pronunciation`,`c`.`notes`,`c`.`children_type_id`,`ct`.`name` order by `p`.`id`,`c`.`name`
-;
+CREATE ALGORITHM=UNDEFINED SQL SECURITY DEFINER VIEW `children_facility_all2_v` AS select `c`.`id` AS `children_id`,`c`.`name` AS `children_name`,`c`.`is_delete` AS `is_delete`,`p`.`pronunciation` AS `children_pronunciation`,`c`.`notes` AS `children_notes`,`c`.`children_type_id` AS `children_type_id`,`ct`.`name` AS `children_type_name`,group_concat(distinct `f`.`id` order by `f`.`id` ASC separator ',') AS `facility_ids`,group_concat(distinct `f`.`name` order by `f`.`name` ASC separator ',') AS `facility_names`,group_concat(distinct `pc`.`id` order by `pc`.`id` ASC separator ',') AS `pc_ids`,group_concat(distinct `pc`.`name` order by `pc`.`name` ASC separator ',') AS `pc_names`,group_concat(distinct `pc`.`explanation` order by `pc`.`id` ASC separator ',') AS `pc_explanations`,group_concat(distinct `pc`.`memo` order by `pc`.`id` ASC separator ',') AS `pc_memos`,group_concat(distinct `ptc`.`day_of_week` order by `ptc`.`day_of_week` ASC separator ',') AS `pc_days_of_week`,group_concat(distinct `ptc`.`id` order by `ptc`.`id` ASC separator ',') AS `ptc_ids`,group_concat(distinct `m`.`day_of_week_id` order by `d`.`sort_order` ASC separator ',') AS `manager_day_of_week_ids`,group_concat(distinct `d`.`label_jp` order by `d`.`sort_order` ASC separator ',') AS `manager_days_of_week` from ((((((((`children` `c` left join `pronunciation` `p` on(`c`.`pronunciation_id` = `p`.`id`)) left join `facility_children` `fc` on(`c`.`id` = `fc`.`children_id`)) left join `facilitys` `f` on(`fc`.`facility_id` = `f`.`id`)) left join `pc_to_children` `ptc` on(`c`.`id` = `ptc`.`children_id`)) left join `pc` on(`ptc`.`pc_id` = `pc`.`id`)) left join `children_type` `ct` on(`c`.`children_type_id` = `ct`.`id`)) left join `managers2` `m` on(`c`.`id` = `m`.`children_id`)) left join `day_of_week` `d` on(`m`.`day_of_week_id` = `d`.`id`)) where `c`.`children_type_id` <> -1 group by `c`.`id`,`c`.`name`,`p`.`pronunciation`,`c`.`notes`,`c`.`children_type_id`,`ct`.`name` order by `p`.`id`,`c`.`name`;
 
 -- 一時テーブルを削除して、最終的な VIEW 構造を作成
 DROP TABLE IF EXISTS `child_records_v`;
-CREATE ALGORITHM=UNDEFINED SQL SECURITY DEFINER VIEW `child_records_v` AS select `cr`.`id` AS `id`,`cr`.`date` AS `date`,`cr`.`children_id` AS `children_id`,`c`.`name` AS `child_name`,`ct`.`name` AS `child_type_name`,`cr`.`record_type_id` AS `record_type_id`,`rt`.`name` AS `record_type_name`,`cr`.`facility_id` AS `facility_id`,`f`.`name` AS `facility_name`,`cr`.`score` AS `score`,`cr`.`mistakes` AS `mistakes`,`cr`.`memo1` AS `memo1`,`cr`.`memo2` AS `memo2`,`cr`.`created_at` AS `created_at`,`cr`.`updated_at` AS `updated_at` from ((((`child_records` `cr` left join `children` `c` on(`cr`.`children_id` = `c`.`id`)) left join `children_type` `ct` on(`c`.`children_type_id` = `ct`.`id`)) left join `record_types` `rt` on(`cr`.`record_type_id` = `rt`.`id`)) left join `facilitys` `f` on(`cr`.`facility_id` = `f`.`id`)) order by `cr`.`date` desc
-;
+CREATE ALGORITHM=UNDEFINED SQL SECURITY DEFINER VIEW `child_records_v` AS select `cr`.`id` AS `id`,`cr`.`date` AS `date`,`cr`.`children_id` AS `children_id`,`c`.`name` AS `child_name`,`ct`.`name` AS `child_type_name`,`cr`.`record_type_id` AS `record_type_id`,`rt`.`name` AS `record_type_name`,`cr`.`facility_id` AS `facility_id`,`f`.`name` AS `facility_name`,`cr`.`score` AS `score`,`cr`.`mistakes` AS `mistakes`,`cr`.`memo1` AS `memo1`,`cr`.`memo2` AS `memo2`,`cr`.`created_at` AS `created_at`,`cr`.`updated_at` AS `updated_at` from ((((`child_records` `cr` left join `children` `c` on(`cr`.`children_id` = `c`.`id`)) left join `children_type` `ct` on(`c`.`children_type_id` = `ct`.`id`)) left join `record_types` `rt` on(`cr`.`record_type_id` = `rt`.`id`)) left join `facilitys` `f` on(`cr`.`facility_id` = `f`.`id`)) order by `cr`.`date` desc;
 
 -- 一時テーブルを削除して、最終的な VIEW 構造を作成
 DROP TABLE IF EXISTS `experience_children_v`;
-CREATE ALGORITHM=UNDEFINED SQL SECURITY DEFINER VIEW `experience_children_v` AS select `c`.`id` AS `children_id`,`c`.`name` AS `children_name`,`c`.`notes` AS `notes`,`c`.`is_delete` AS `is_delete`,`c`.`pronunciation_id` AS `pronunciation_id`,`c`.`children_type_id` AS `children_type_id`,`p`.`id` AS `pc_id`,`p`.`name` AS `pc_name`,`p`.`explanation` AS `explanation`,`p`.`memo` AS `memo`,`p`.`facility_id` AS `facility_id`,`ptc`.`id` AS `ptc_id` from ((`children` `c` left join `pc_to_children` `ptc` on(`c`.`id` = `ptc`.`children_id`)) left join `pc` `p` on(`ptc`.`pc_id` = `p`.`id`)) where `c`.`children_type_id` = -1
-;
+CREATE ALGORITHM=UNDEFINED SQL SECURITY DEFINER VIEW `experience_children_v` AS select `c`.`id` AS `children_id`,`c`.`name` AS `children_name`,`c`.`notes` AS `notes`,`c`.`is_delete` AS `is_delete`,`c`.`pronunciation_id` AS `pronunciation_id`,`c`.`children_type_id` AS `children_type_id`,`p`.`id` AS `pc_id`,`p`.`name` AS `pc_name`,`p`.`explanation` AS `explanation`,`p`.`memo` AS `memo`,`p`.`facility_id` AS `facility_id`,`ptc`.`id` AS `ptc_id` from ((`children` `c` left join `pc_to_children` `ptc` on(`c`.`id` = `ptc`.`children_id`)) left join `pc` `p` on(`ptc`.`pc_id` = `p`.`id`)) where `c`.`children_type_id` = -1;
 
 -- 一時テーブルを削除して、最終的な VIEW 構造を作成
 DROP TABLE IF EXISTS `managers2_pri_v`;
-CREATE ALGORITHM=UNDEFINED SQL SECURITY DEFINER VIEW `managers2_pri_v` AS select `m`.`children_id` AS `children_id`,`c`.`name` AS `children_name`,`m`.`staff_id` AS `staff_id`,`s`.`name` AS `staff_name`,`m`.`day_of_week_id` AS `day_of_week_id`,`d`.`label_jp` AS `day_of_week_label`,`d`.`sort_order` AS `day_sort_order`,`m`.`priority` AS `priority` from (((`managers2` `m` join `children` `c` on(`c`.`id` = `m`.`children_id`)) join `staffs` `s` on(`s`.`id` = `m`.`staff_id`)) join `day_of_week` `d` on(`d`.`id` = `m`.`day_of_week_id`))
-;
+CREATE ALGORITHM=UNDEFINED SQL SECURITY DEFINER VIEW `managers2_pri_v` AS select `m`.`children_id` AS `children_id`,`c`.`name` AS `children_name`,`m`.`staff_id` AS `staff_id`,`s`.`name` AS `staff_name`,`m`.`day_of_week_id` AS `day_of_week_id`,`d`.`label_jp` AS `day_of_week_label`,`d`.`sort_order` AS `day_sort_order`,`m`.`priority` AS `priority` from (((`managers2` `m` join `children` `c` on(`c`.`id` = `m`.`children_id`)) join `staffs` `s` on(`s`.`id` = `m`.`staff_id`)) join `day_of_week` `d` on(`d`.`id` = `m`.`day_of_week_id`));
 
 -- 一時テーブルを削除して、最終的な VIEW 構造を作成
 DROP TABLE IF EXISTS `managers2_v`;
-CREATE ALGORITHM=UNDEFINED SQL SECURITY DEFINER VIEW `managers2_v` AS select `c`.`id` AS `children_id`,`c`.`name` AS `children_name`,`s`.`id` AS `staff_id`,`s`.`name` AS `staff_name`,group_concat(`d`.`label_jp` order by `d`.`sort_order` ASC separator ',') AS `day_of_week`,group_concat(`m`.`day_of_week_id` order by `d`.`sort_order` ASC separator ',') AS `day_of_week_id` from (((`managers2` `m` join `children` `c` on(`m`.`children_id` = `c`.`id`)) join `staffs` `s` on(`m`.`staff_id` = `s`.`id`)) join `day_of_week` `d` on(`m`.`day_of_week_id` = `d`.`id`)) group by `c`.`id`,`c`.`name`,`s`.`id`,`s`.`name` order by `c`.`id`,`s`.`id`
-;
+CREATE ALGORITHM=UNDEFINED SQL SECURITY DEFINER VIEW `managers2_v` AS select `c`.`id` AS `children_id`,`c`.`name` AS `children_name`,`s`.`id` AS `staff_id`,`s`.`name` AS `staff_name`,group_concat(`d`.`label_jp` order by `d`.`sort_order` ASC separator ',') AS `day_of_week`,group_concat(`m`.`day_of_week_id` order by `d`.`sort_order` ASC separator ',') AS `day_of_week_id` from (((`managers2` `m` join `children` `c` on(`m`.`children_id` = `c`.`id`)) join `staffs` `s` on(`m`.`staff_id` = `s`.`id`)) join `day_of_week` `d` on(`m`.`day_of_week_id` = `d`.`id`)) group by `c`.`id`,`c`.`name`,`s`.`id`,`s`.`name` order by `c`.`id`,`s`.`id`;
 
 -- 一時テーブルを削除して、最終的な VIEW 構造を作成
 DROP TABLE IF EXISTS `pc_to_children_v`;
-CREATE ALGORITHM=UNDEFINED SQL SECURITY DEFINER VIEW `pc_to_children_v` AS select `ptc`.`id` AS `id`,`p`.`pc_id` AS `pc_id`,`p`.`id` AS `pcid`,`p`.`name` AS `pc_name`,`p`.`explanation` AS `pc_explanation`,`c`.`id` AS `children_id`,`c`.`name` AS `children_name`,`ptc`.`day_of_week` AS `day_of_week`,`f`.`name` AS `facility_name`,`ptc`.`start_time` AS `start_time`,`ptc`.`end_time` AS `end_time` from (((`pc_to_children` `ptc` join `pc` `p` on(`ptc`.`pc_id` = `p`.`id`)) join `children` `c` on(`ptc`.`children_id` = `c`.`id`)) join `facilitys` `f` on(`p`.`facility_id` = `f`.`id`)) order by `p`.`pc_id`
-;
+CREATE ALGORITHM=UNDEFINED SQL SECURITY DEFINER VIEW `pc_to_children_v` AS select `ptc`.`id` AS `id`,`p`.`pc_id` AS `pc_id`,`p`.`id` AS `pcid`,`p`.`name` AS `pc_name`,`p`.`explanation` AS `pc_explanation`,`c`.`id` AS `children_id`,`c`.`name` AS `children_name`,`ptc`.`day_of_week` AS `day_of_week`,`f`.`name` AS `facility_name`,`ptc`.`start_time` AS `start_time`,`ptc`.`end_time` AS `end_time` from (((`pc_to_children` `ptc` join `pc` `p` on(`ptc`.`pc_id` = `p`.`id`)) join `children` `c` on(`ptc`.`children_id` = `c`.`id`)) join `facilitys` `f` on(`p`.`facility_id` = `f`.`id`)) order by `p`.`pc_id`;
 
 -- 一時テーブルを削除して、最終的な VIEW 構造を作成
 DROP TABLE IF EXISTS `staff_all_v`;
-CREATE ALGORITHM=UNDEFINED SQL SECURITY DEFINER VIEW `staff_all_v` AS select `s`.`id` AS `staff_id`,`s`.`admin` AS `staff_admin`,`s`.`name` AS `staff_name`,`s`.`notes` AS `notes`,`s`.`is_delete` AS `is_delete`,group_concat(`f`.`id` order by `f`.`id` ASC separator ',') AS `facility_ids`,group_concat(`f`.`name` order by `f`.`name` ASC separator ', ') AS `facility_names` from ((`staffs` `s` left join `facility_staff` `fs` on(`s`.`id` = `fs`.`staff_id`)) left join `facilitys` `f` on(`fs`.`facility_id` = `f`.`id`)) where `s`.`id` <> -1 group by `s`.`id`,`s`.`name`
-;
+CREATE ALGORITHM=UNDEFINED SQL SECURITY DEFINER VIEW `staff_all_v` AS select `s`.`id` AS `staff_id`,`s`.`admin` AS `staff_admin`,`s`.`name` AS `staff_name`,`s`.`notes` AS `notes`,`s`.`is_delete` AS `is_delete`,group_concat(`f`.`id` order by `f`.`id` ASC separator ',') AS `facility_ids`,group_concat(`f`.`name` order by `f`.`name` ASC separator ', ') AS `facility_names` from ((`staffs` `s` left join `facility_staff` `fs` on(`s`.`id` = `fs`.`staff_id`)) left join `facilitys` `f` on(`fs`.`facility_id` = `f`.`id`)) where `s`.`id` <> -1 group by `s`.`id`,`s`.`name`;
 
 -- 一時テーブルを削除して、最終的な VIEW 構造を作成
 DROP TABLE IF EXISTS `staff_facility_v`;
-CREATE ALGORITHM=UNDEFINED SQL SECURITY DEFINER VIEW `staff_facility_v` AS select `s`.`id` AS `staff_id`,`s`.`admin` AS `staff_admin`,`s`.`name` AS `staff_name`,`s`.`notes` AS `notes`,`s`.`is_delete` AS `is_delete`,group_concat(`f`.`id` order by `f`.`id` ASC separator ',') AS `facility_ids`,group_concat(`f`.`name` order by `f`.`name` ASC separator ', ') AS `facility_names` from ((`facility_staff` `fs` join `staffs` `s` on(`fs`.`staff_id` = `s`.`id`)) join `facilitys` `f` on(`fs`.`facility_id` = `f`.`id`)) where `s`.`id` <> -1 and `s`.`is_delete` <> 1 group by `s`.`id`,`s`.`name`
-;
+CREATE ALGORITHM=UNDEFINED SQL SECURITY DEFINER VIEW `staff_facility_v` AS select `s`.`id` AS `staff_id`,`s`.`admin` AS `staff_admin`,`s`.`name` AS `staff_name`,`s`.`notes` AS `notes`,`s`.`is_delete` AS `is_delete`,group_concat(`f`.`id` order by `f`.`id` ASC separator ',') AS `facility_ids`,group_concat(`f`.`name` order by `f`.`name` ASC separator ', ') AS `facility_names` from ((`facility_staff` `fs` join `staffs` `s` on(`fs`.`staff_id` = `s`.`id`)) join `facilitys` `f` on(`fs`.`facility_id` = `f`.`id`)) where `s`.`id` <> -1 and `s`.`is_delete` <> 1 group by `s`.`id`,`s`.`name`;
 
 -- 一時テーブルを削除して、最終的な VIEW 構造を作成
 DROP TABLE IF EXISTS `staff_v`;
-CREATE ALGORITHM=UNDEFINED SQL SECURITY DEFINER VIEW `staff_v` AS select `s`.`id` AS `staff_id`,`s`.`admin` AS `staff_admin`,`s`.`name` AS `staff_name`,`s`.`notes` AS `notes`,`s`.`is_delete` AS `is_delete`,group_concat(`f`.`id` order by `f`.`id` ASC separator ',') AS `facility_ids`,group_concat(`f`.`name` order by `f`.`name` ASC separator ', ') AS `facility_names` from ((`staffs` `s` left join `facility_staff` `fs` on(`s`.`id` = `fs`.`staff_id`)) left join `facilitys` `f` on(`fs`.`facility_id` = `f`.`id`)) where `s`.`id` <> -1 and `s`.`is_delete` <> 1 group by `s`.`id`,`s`.`name`
-;
+CREATE ALGORITHM=UNDEFINED SQL SECURITY DEFINER VIEW `staff_v` AS select `s`.`id` AS `staff_id`,`s`.`admin` AS `staff_admin`,`s`.`name` AS `staff_name`,`s`.`notes` AS `notes`,`s`.`is_delete` AS `is_delete`,group_concat(`f`.`id` order by `f`.`id` ASC separator ',') AS `facility_ids`,group_concat(`f`.`name` order by `f`.`name` ASC separator ', ') AS `facility_names` from ((`staffs` `s` left join `facility_staff` `fs` on(`s`.`id` = `fs`.`staff_id`)) left join `facilitys` `f` on(`fs`.`facility_id` = `f`.`id`)) where `s`.`id` <> -1 and `s`.`is_delete` <> 1 group by `s`.`id`,`s`.`name`;
 
 /*!40103 SET TIME_ZONE=IFNULL(@OLD_TIME_ZONE, 'system') */;
 /*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '') */;
