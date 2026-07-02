@@ -17,6 +17,10 @@ export default function ChildrenUpdateButton() {
   const handleClick = async () => {
     if (isLoading) return;
 
+    if (!window.confirm('本当に実行しますか？')) {
+      return;
+    }
+
     setIsLoading(true);
     setLabel("児童取得中...");
     showInfoToast("HUGから児童データを取得しています", 2000);

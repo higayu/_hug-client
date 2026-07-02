@@ -15,6 +15,10 @@ export default function StaffUpdateButton() {
   const handleClick = async () => {
     if (isLoading) return;
 
+    if (!window.confirm('本当に実行しますか？')) {
+      return;
+    }
+
     setIsLoading(true);
     setLabel("職員取得中...");
     showInfoToast("HUGから職員データを取得しています", 2000);
