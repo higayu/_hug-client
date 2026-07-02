@@ -715,14 +715,11 @@ BEGIN
           WHERE jt.children_id IS NOT NULL
       );
 
-    -- 削除件数が10件以上の場合は警告（エラーにはしない）
     IF v_delete_candidates >= 10 THEN
-        -- 警告をログに残す（SIGNALは使わず、結果に含める）
         SET @warning_msg = CONCAT('警告: ', v_delete_candidates, '件の児童が施設から外れます。');
     END IF;
 
     -- ② children テーブルの登録・更新
-    --    name の先頭に "[利用停止]" が付いている場合は is_delete=1 に設定
     INSERT INTO `children` (
         `id`,
         `name`,
@@ -744,7 +741,6 @@ BEGIN
         NULLIF(jt.notes, ''),
         NULLIF(jt.notes2, ''),
         NULLIF(jt.personal_tmp, ''),
-        -- name の先頭に "[利用停止]" が付いている場合は is_delete=1
         IF(
             jt.name LIKE '[利用停止]%',
             1,
@@ -774,9 +770,9 @@ BEGIN
         `furigana` = VALUES(`furigana`),
         `pronunciation_id` = VALUES(`pronunciation_id`),
         `children_type_id` = VALUES(`children_type_id`),
-        `notes` = VALUES(`notes`),
-        `notes2` = VALUES(`notes2`),
-        `personal_tmp` = VALUES(`personal_tmp`),
+        `notes` = IF(VALUES(`notes`) IS NULL OR VALUES(`notes`) = '', `children`.`notes`, VALUES(`notes`)),
+        `notes2` = IF(VALUES(`notes2`) IS NULL OR VALUES(`notes2`) = '', `children`.`notes2`, VALUES(`notes2`)),
+        `personal_tmp` = IF(VALUES(`personal_tmp`) IS NULL OR VALUES(`personal_tmp`) = '', `children`.`personal_tmp`, VALUES(`personal_tmp`)),
         `is_delete` = VALUES(`is_delete`),
         `leaving_at` = VALUES(`leaving_at`);
 
@@ -808,7 +804,7 @@ BEGIN
         '$[*]' COLUMNS (children_id INT PATH '$.id')
     ) AS jt
         ON jt.children_id = c.id
-    WHERE c.is_delete = 0;  -- 削除フラグが立っていない児童のみ紐付け
+    WHERE c.is_delete = 0;
 
     SET v_link_inserted = ROW_COUNT();
 
@@ -898,7 +894,7 @@ CREATE TABLE IF NOT EXISTS `staff_facility_roles` (
   KEY `idx_staff_facility_roles_facility_id` (`facility_id`),
   CONSTRAINT `fk_staff_facility_roles_facilitys` FOREIGN KEY (`facility_id`) REFERENCES `facilitys` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_staff_facility_roles_staffs` FOREIGN KEY (`staff_id`) REFERENCES `staffs` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=272 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=298 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- エクスポートするデータが選択されていません
 
