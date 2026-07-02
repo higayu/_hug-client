@@ -2,8 +2,8 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useAppState } from "@/AppStateContext";
 import { useDataBase } from "@/hooks/useDataBase";
-import ProfessionalPlan from "@/components/common/PageRequestGet/ProfessionalPlan.jsx";
-import ProfessionalSupportCheckPanel2 from "@/components/common/ProfessionalSupportCheckPanel2";
+import ProfessionalPlan from "@/components/common/hug_function/PageRequestGet/ProfessionalPlan.jsx";
+import ProfessionalSupportCheckPanel2 from "@/components/common/hug_function/ProfessionalSupportCheckPanel2";
 
 const DBG = 'ProfessionalPrompt1';
 

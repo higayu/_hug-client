@@ -10,13 +10,14 @@ import { setFacilityId, selectFacilityId } from '@/store/slices/appStateSlice'
 import { ArrowRightOnRectangleIcon,TrashIcon,Cog6ToothIcon,AdjustmentsHorizontalIcon } from "@heroicons/react/24/outline";
 import UrlContent from '@/components/common/UrlContent';
 import CloseToggleSwitch from '@/components/common/CloseToggleSwitch';
-import FacilitySelector from '@/components/facility'
-import StaffUpdateButton from '@/components/common/StaffUpdateButton'
+import FacilitySelector from '@/components/facility';
 import ProfessionalSupportListButton from '@/components/Header/ProfessionalSupportListButton'
-import Sql_SynchronizationBtn from "@/components/common/Sql_SynchronizationBtn";
-import ServerConnectButton from "@/components/common/ServerConnectButton";
-import DataBaseButton from "@/components/common/DataBaseButton";
-import ActiveApiStatus from "@/components/common/ActiveApiStatus";
+import Sql_SynchronizationBtn from "@/components/common/Synchronization/Sql_SynchronizationBtn";
+import ServerConnectButton from "@/components/common/Synchronization/ServerConnectButton";
+import DataBaseButton from "@/components/common/Synchronization/DataBaseButton";
+import ActiveApiStatus from "@/components/common/Synchronization/ActiveApiStatus";
+import StaffUpdateButton from '@/components/common/Synchronization/StaffUpdateButton';
+import ChildrenUpdateButton from '@/components/common/Synchronization/ChildrenUpdateButton';
 
 export default function Toolbar() {
   const { showInfoToast } = useToast()
@@ -340,10 +341,13 @@ export default function Toolbar() {
               <StaffUpdateButton />
             </li>
             <li className="m-0 p-0">
+              <ChildrenUpdateButton />
+            </li>
+            <li className="m-0 p-0">
               <button
                 id="Edit-Settings"
                 onClick={handleEditSettings}
-                className="flex w-full items-center gap-2 text-left text-black
+                className="flex w-full items-center justify-center gap-2 text-center text-black
                           border-none bg-transparent px-4 py-2 text-sm cursor-pointer
                           transition-all hover:bg-gray-400"
               >

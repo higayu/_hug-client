@@ -244,6 +244,8 @@ var require_electronApi = __commonJS({
         mariadb_service_record_upsert: (data) => ipcRenderer2.invoke("mariadb:service_record:upsert", data),
         // ---- HUG staffs ----
         syncHugStaffs: (data) => ipcRenderer2.invoke("mariadb:hug_staffs:sync", data),
+        // ---- HUG childrens ----
+        syncHugChildrens: (data) => ipcRenderer2.invoke("mariadb:hug_childrens:sync", data),
         // ---- CRUD API 展開 ----
         ...createTableApis(ipcRenderer2)
       };

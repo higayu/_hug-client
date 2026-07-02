@@ -69,7 +69,11 @@ function FacilitySelector() {
         onChange={handleFacilityChange}
         className="js_c_f_id bg-white text-black border border-[#ddd] px-2 rounded text-sm"
       >
+        <option value="1">あゆむ</option>
+        <option value="2">PD仁保</option>
         <option value="3">PD吉島</option>
+        <option value="4">ハートケア</option>
+        <option value="5">PD五日市</option>
         <option value="6">PD光</option>
         <option value="7">PD横川</option>
         <option value="8">PD五日市駅前</option>

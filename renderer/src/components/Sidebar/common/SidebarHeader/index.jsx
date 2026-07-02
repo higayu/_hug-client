@@ -6,7 +6,7 @@ import { getTodayYmdString } from "@/utils/date/dateYMD";
 import { useToast } from "@/components/common/ToastContext";
 import { useAttendanceFetch } from "@/hooks/useAttendanceFetch";
 
-import TableDataGetButton from "@/components/common/TableDataGetButon";
+import TableDataGetButton from "@/components/common/hug_function/TableDataGetButon";
 import WeekdaySelect from "@/components/common/WeekdaySelect";
 import SelectChildFilter from "./SelectChildFilter";
 

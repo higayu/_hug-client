@@ -1,32 +1,32 @@
-import { useState } from "react";
-import { ArrowPathIcon } from "@heroicons/react/24/outline";
-import { useToast } from "@/components/common/ToastContext.jsx";
+// main/parts/handlers/hug/StaffUpdateButton/fetchStaffData.js
 import { getHugWebviewForCache } from "@/hooks/useHugCache/getHugCache.js";
 
 const HUG_WM_POST_URL =
   "https://www.hug-ayumu.link/hug/wm/staff_master.php";
 const IBOX_SELECTOR = "body > div.contents > div.ibox";
 
-const POST_PARAMS = [
+// 施設IDと施設名のマッピング
+const FACILITY_MAP = {
+  1: "あゆむ",
+  2: "PD仁保",
+  3: "PD吉島",
+  4: "はーとけあ",
+  5: "PD五日市",
+  6: "PD光",
+  7: "PD横川",
+  8: "PD五日市駅前",
+};
+
+// デフォルトのPOSTパラメータ（施設指定なし）
+const BASE_POST_PARAMS = [
   ["mode", "search"],
   ["search", ""],
-
-  // ['f_ary[1]', 'あゆむ'],
-  // ['f_ary[2]', 'PD仁保'],
-  ['f_ary[3]', 'PD吉島'],//とりあえず制限
-  // ['f_ary[4]', 'はーとけあ'],
-  // ['f_ary[5]', 'PD五日市'],
-  // ['f_ary[6]', 'PD光'],
-  // ['f_ary[7]', 'PD横川'],
-  // ['f_ary[8]', 'PD五日市駅前'],
-  // ["f_ary[6]", "PD光"],
-
   ["j_ary[1]", "管理者"],
   ["j_ary[2]", "児童発達支援管理責任者"],
   ["j_ary[40]", "みなし児童発達支援管理責任者"],
   ["j_ary[999]", "OJT研修者として扱う"],
   ["j_ary[3]", "児童指導員"],
-  ["j_ary[30]", "機能訓練担当児童等"],
+  ["j_ary[30]", "機能訓練担当職員等"],
   ["j_ary[19]", "児童指導員(児童指導員として５年以上児童福祉事業に従事)"],
   ["j_ary[4]", "保育士"],
   ["j_ary[20]", "保育士(保育士として５年以上児童福祉事業に従事)"],
@@ -35,8 +35,8 @@ const POST_PARAMS = [
   ["j_ary[7]", "理学療法士"],
   ["j_ary[8]", "作業療法士"],
   ["j_ary[9]", "言語聴覚士"],
-  ["j_ary[37]", "心理指導担当児童等"],
-  ["j_ary[10]", "看護児童"],
+  ["j_ary[37]", "心理指導担当職員等"],
+  ["j_ary[10]", "看護職員"],
   ["j_ary[12]", "訪問支援員"],
   ["j_ary[13]", "公認心理師"],
   ["j_ary[14]", "臨床心理士"],
@@ -52,6 +52,37 @@ const POST_PARAMS = [
   ["s_termination_date", ""],
   ["e_termination_date", ""],
 ];
+
+/**
+ * 施設IDからf_aryパラメータを生成
+ */
+function getFacilityParam(facilityId) {
+  if (!facilityId) return null;
+  
+  const facilityName = FACILITY_MAP[facilityId];
+  if (!facilityName) return null;
+  
+  // 施設IDからf_aryのインデックスを取得（1～8）
+  const index = Number(facilityId);
+  if (index < 1 || index > 8) return null;
+  
+  return [`f_ary[${index}]`, facilityName];
+}
+
+/**
+ * POSTパラメータを動的に生成
+ */
+function buildPostParams(facilityId) {
+  const params = [...BASE_POST_PARAMS];
+  
+  // 指定された施設のパラメータを追加
+  const facilityParam = getFacilityParam(facilityId);
+  if (facilityParam) {
+    params.push(facilityParam);
+  }
+  
+  return params;
+}
 
 function cleanText(value) {
   return (value || "")
@@ -140,7 +171,7 @@ function parseIbox(html) {
     throw new Error(
       isLoginPage
         ? "HUGのログインが切れています。ログイン後に再実行してください。"
-        : "児童一覧を取得できませんでした。HUGの画面状態を確認してください。"
+        : "職員一覧を取得できませんでした。HUGの画面状態を確認してください。"
     );
   }
 
@@ -228,15 +259,21 @@ async function fetchInHugWebview(webview, { url, method = "GET", body }) {
 
   const response = await webview.executeJavaScript(script);
   if (!response.ok) {
-    throw new Error(`HUG児童一覧の取得に失敗しました (HTTP ${response.status})`);
+    throw new Error(`HUG職員一覧の取得に失敗しました (HTTP ${response.status})`);
   }
 
   return response.text;
 }
 
-async function fetchStaffData(onProgress) {
+export async function fetchStaffData(onProgress, facilityId) {
   const webview = await getHugWebviewForCache();
-  const body = new URLSearchParams(POST_PARAMS).toString();
+  
+  // 施設IDに基づいてPOSTパラメータを動的に生成
+  const postParams = buildPostParams(facilityId);
+  const body = new URLSearchParams(postParams).toString();
+  
+  console.log(`[fetchStaffData] 施設ID: ${facilityId}, パラメータ:`, postParams);
+  
   const firstHtml = await fetchInHugWebview(webview, {
     url: HUG_WM_POST_URL,
     method: "POST",
@@ -261,7 +298,7 @@ async function fetchStaffData(onProgress) {
 
   staff = uniqueById(staff);
   if (staff.length === 0) {
-    throw new Error("同期対象の児童データがありません。");
+    throw new Error("同期対象の職員データがありません。");
   }
 
   return {
@@ -269,82 +306,4 @@ async function fetchStaffData(onProgress) {
     fetched_count: staff.length,
     staff,
   };
-}
-
-export default function StaffUpdateButton() {
-  const [isLoading, setIsLoading] = useState(false);
-  const [label, setLabel] = useState("児童更新");
-  const { showInfoToast, showResultToast } = useToast();
-
-  const handleClick = async () => {
-    if (isLoading) return;
-
-    setIsLoading(true);
-    setLabel("児童取得中...");
-    showInfoToast("HUGから児童データを取得しています", 2000);
-
-    try {
-      const result = await fetchStaffData((page, maxPage) => {
-        setLabel(`児童取得 ${page}/${maxPage}`);
-      });
-
-      const shouldSync = window.confirm(
-        `HUG児童データ ${result.fetched_count}件をDBへ保存・更新します。実行しますか？`
-      );
-      if (!shouldSync) return;
-
-      if (!window.electronAPI?.syncHugChildrens) {
-        throw new Error("児童同期APIを利用できません。アプリを再起動してください。");
-      }
-
-      setLabel("DB更新中...");
-      const syncResult = await window.electronAPI.syncHugChildrens(result);
-      const responseSummary =
-        syncResult == null
-          ? ""
-          : typeof syncResult === "string"
-            ? syncResult
-            : JSON.stringify(syncResult, null, 2);
-
-      showResultToast({
-        title: "HUG児童同期 完了",
-        message: `${result.fetched_count}件の児童データを同期しました`,
-        details: [
-          result.total_count != null
-            ? `HUG登録件数: ${result.total_count}件`
-            : "",
-          `取得件数: ${result.fetched_count}件`,
-          responseSummary ? `DB応答:\n${responseSummary}` : "",
-        ],
-        duration: 7000,
-      });
-    } catch (error) {
-      console.error("[HUG WM] 児童同期エラー:", error);
-      showResultToast({
-        title: "HUG児童同期 エラー",
-        message: "児童データを同期できませんでした",
-        details: error.message || String(error),
-        success: false,
-        duration: 7000,
-      });
-    } finally {
-      setIsLoading(false);
-      setLabel("児童更新");
-    }
-  };
-
-  return (
-    <button
-      type="button"
-      onClick={handleClick}
-      disabled={isLoading}
-      className="flex items-center gap-2 w-full px-4 py-2 text-center bg-sky-600 text-sm text-white transition-colors hover:bg-blue-700 disabled:cursor-wait disabled:opacity-60"
-      title="HUGの児童データを取得してDBへ同期"
-    >
-      <ArrowPathIcon
-        className={`h-5 w-5 ${isLoading ? "animate-spin" : ""}`}
-      />
-      <span>{label}</span>
-    </button>
-  );
 }

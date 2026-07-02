@@ -2,7 +2,7 @@ import React, { useEffect } from "react"
 import { useAppState } from "@/AppStateContext";
 import PromptBox from "@/components/common/PromptBox"
 import AccountInfoPanel from "@/components/common/AccountInfoPanel"
-import DeepseekTabButton from "@/components/common/DeepseekTabButton"
+import DeepseekTabButton from "@/components/common/AI/DeepseekTabButton"
 import { AI_PROMPT_COMPONENT_MAP } from "./PromptBox"
 import { sendPromptToDeepSeek } from "./send/sendPromptToDeepSeek";
 

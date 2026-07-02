@@ -2,7 +2,7 @@ import React, { useEffect } from "react"
 import { useAppState } from "@/AppStateContext"
 import PromptBox from "@/components/common/PromptBox"
 import AccountInfoPanel from "@/components/common/AccountInfoPanel"
-import OpenAiTabButton from "@/components/common/OpenAiTabButton"
+import OpenAiTabButton from "@/components/common/AI/OpenAiTabButton"
 import { AI_PROMPT_COMPONENT_MAP } from "./PromptBox"
 import { sendPromptToChatGPT } from "./send/sendPromptToChatGPT";
 

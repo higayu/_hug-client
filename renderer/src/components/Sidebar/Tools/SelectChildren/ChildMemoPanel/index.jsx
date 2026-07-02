@@ -12,8 +12,8 @@ import { useToast } from '@/components/common/ToastContext.jsx'
 import AttendanceActionSection from './AttendanceActionSection.jsx'
 import { isAttendanceDataLoaded } from '@/utils/attendance/helpers/attendanceStatus.js'
 import './attendanceForm.css'
-import PersonalRecordCheckPanel from "@/components/common/PersonalRecordCheckPanel";
-import ProfessionalSupportCheckPanel2 from '@/components/common/ProfessionalSupportCheckPanel2'
+import PersonalRecordCheckPanel from "@/components/common/hug_function/PersonalRecordCheckPanel";
+import ProfessionalSupportCheckPanel2 from '@/components/common/hug_function/ProfessionalSupportCheckPanel2'
 
 export default function ChildMemoPanel() {
   const dispatch = useDispatch()
