@@ -2,8 +2,17 @@
 
 import { createWebview, createTabButton, activateTab, closeTab } from '../common/index.js'
 
-function getWebManagerUrl(iniState, appState) {
+function getWebManagerUrl_kadai(iniState, appState) {
   return `${iniState?.apiSettings?.baseURL}/houday/build-file/yoshijima/childkadai-table?children_id=${appState?.SELECT_CHILD}&record_type_id=1`
+}
+
+function getUrl(path) {
+    return `${path}`
+}
+
+function getWebManagerUrl(iniState, path) {
+
+  return `${iniState?.apiSettings?.baseURL}${path}`
 }
 
 export function addWebManagerAction(appState, iniState) {
@@ -63,13 +72,25 @@ export function addWebManagerAction(appState, iniState) {
   activateTab(newId)
 }
 
-export function addWebManagerAction_OutWindow(appState, iniState) {
+export function addWebManagerAction_OutWindow(appState, iniState, switch_id, path="") {
   if (!appState?.SELECT_CHILD) {
     console.error('WebManager URL の生成に失敗しました: 児童が選択されていません')
     return
   }
 
-  const url = getWebManagerUrl(iniState, appState)
+  let url="";
+
+  switch (switch_id){
+    case 1:
+       url = getUrl(path);
+      break;
+    case 2:
+      url = getWebManagerUrl(iniState, path);
+      break;
+    default:
+      url = getWebManagerUrl_kadai(iniState, appState);
+  }
+
 
   if (!url || url.includes('undefined')) {
     console.error('WebManager URL の生成に失敗しました', {

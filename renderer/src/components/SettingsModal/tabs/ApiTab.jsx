@@ -7,17 +7,7 @@ import {
   selectAutoSynchronization,
   selectAutoSwitching,
 } from '@/store/slices/appStateSlice'
-
-const apiTabLogStyle = {
-  title:
-    'background:#312e81;color:#fff;font-size:14px;font-weight:bold;padding:4px 8px;border-radius:4px;',
-  info:
-    'background:#e0e7ff;color:#312e81;font-weight:bold;padding:2px 6px;border-radius:4px;',
-  success:
-    'background:#dcfce7;color:#166534;font-weight:bold;padding:2px 6px;border-radius:4px;',
-  warn:
-    'background:#fef3c7;color:#92400e;font-weight:bold;padding:2px 6px;border-radius:4px;',
-}
+import BrowserOpenButton from "@/components/common/BrowserOpenButton";
 
 
 function ApiTab({
@@ -364,6 +354,11 @@ function ApiTab({
           >
             <option value="">選択してください</option>
           </select>
+          <BrowserOpenButton
+            switch_id={2}
+            path={"/houday/build-file/yoshijima/staffs"}
+            title= 'スタッフが見つからない場合はこちらから修正してください'
+          />
         </div>
 
         <div className="flex items-center mb-3 py-2">

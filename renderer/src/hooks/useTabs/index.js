@@ -7,7 +7,6 @@ import { addNormalTabAction } from './actions/normal.js'
 import { addPersonalRecordTabAction3 } from './actions/personalRecord.js'
 import { addProfessionalSupportListAction } from './actions/professionalList.js'
 import { addProfessionalSupportNewAction2, addProfessionalSupportCheckAction } from './actions/professionalNew.js'
-import { addWebManagerAction, addWebManagerAction_OutWindow } from './actions/WebManager.js'
 
 // useTabs() は複数コンポーネントから呼ばれるため、初期化はアプリ全体で1回だけ行う
 let tabsSystemInitialized = false
@@ -36,13 +35,6 @@ export function useTabs() {
     addProfessionalSupportNewAction2(appState)
   }, [appState])
 
-  const addWebManagerActionTab = useCallback(() => {
-    addWebManagerAction(appState, iniState)
-  }, [appState, iniState])
-
-  const addWebManagerActionOutWindowTab = useCallback(() => {
-    addWebManagerAction_OutWindow(appState, iniState)
-  }, [appState, iniState])
 
   useEffect(() => {
     const tabsContainer = document.getElementById('tabs')
@@ -129,8 +121,6 @@ export function useTabs() {
     addProfessionalSupportListTab,
     addProfessionalSupportNewTab,
     addProfessionalSupportCheckTab,
-    addWebManagerAction: addWebManagerActionTab,
-    addWebManagerAction_OutWindow: addWebManagerActionOutWindowTab,
     activateTab,
     closeTab,
     clearActiveWebviewCache,
