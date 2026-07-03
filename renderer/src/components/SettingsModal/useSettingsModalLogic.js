@@ -21,6 +21,19 @@ const toIniBooleanString = (value, defaultValue = true) => {
   return String(toBooleanFlag(value, defaultValue))
 }
 
+const apiSelectLogStyle = {
+  title:
+    'background:#111827;color:#fff;font-size:15px;font-weight:bold;padding:4px 8px;border-radius:4px;',
+  info:
+    'background:#dbeafe;color:#1e3a8a;font-weight:bold;padding:2px 6px;border-radius:4px;',
+  success:
+    'background:#dcfce7;color:#166534;font-weight:bold;padding:2px 6px;border-radius:4px;',
+  warn:
+    'background:#fef3c7;color:#92400e;font-weight:bold;padding:2px 6px;border-radius:4px;',
+  error:
+    'background:#fee2e2;color:#991b1b;font-weight:bold;padding:2px 6px;border-radius:4px;',
+}
+
 // 設定モーダルの初期化と設定の保存
 export function useSettingsModalLogic(isOpen) {
   const { showSuccessToast, showErrorToast } = useToast()
@@ -625,8 +638,186 @@ export function useSettingsModalLogic(isOpen) {
 
   // API設定のセレクトボックスを初期化
   const initializeApiSelectBoxes = useCallback(async () => {
+    let groupOpened = false
+
+    const toId = (value) => String(value ?? '').trim()
+
+    const isNotDeleted = (value) => {
+      return Number(value ?? 0) !== 1
+    }
+
+    const getOptionsSnapshot = (select) => {
+      if (!select) return []
+
+      return Array.from(select.options).map((option, index) => ({
+        index,
+        value: option.value,
+        text: option.textContent,
+        selected: option.selected,
+        disabled: option.disabled,
+      }))
+    }
+
+    const clearSelectOptions = (select) => {
+      if (!select) return
+
+      while (select.children.length > 1) {
+        select.removeChild(select.lastChild)
+      }
+    }
+
+    const appendOptions = (select, items, getValue, getText) => {
+      if (!select) return
+
+      items.forEach((item) => {
+        const option = document.createElement('option')
+        option.value = String(getValue(item))
+        option.textContent = getText(item)
+        select.appendChild(option)
+      })
+    }
+
+    const buildFromTables = (tables) => {
+      const staffs = Array.isArray(tables?.staffs) ? tables.staffs : []
+      const facilityStaff = Array.isArray(tables?.facility_staff)
+        ? tables.facility_staff
+        : []
+      const facilitys = Array.isArray(tables?.facilitys) ? tables.facilitys : []
+
+      console.log('%c🧾 データ確認', apiSelectLogStyle.info, {
+        staffs,
+        facilityStaff,
+        facilitys,
+      })
+
+      // 施設セレクトは facilitys マスタをそのまま使う
+      const facilityList = facilitys
+        .filter((facility) => {
+          return (
+            facility?.id != null &&
+            facility?.name &&
+            isNotDeleted(facility?.is_delete)
+          )
+        })
+        .map((facility) => ({
+          id: toId(facility.id),
+          name: facility.name,
+          url: facility.url || '',
+        }))
+
+      const facilityById = new Map(
+        facilityList.map((facility) => [facility.id, facility])
+      )
+
+      // staff ごとに facility_staff から紐づく施設IDを持たせる
+      const allStaffList = staffs
+        .filter((staff) => {
+          return (
+            toId(staff?.id) !== '-1' &&
+            staff?.name &&
+            isNotDeleted(staff?.is_delete)
+          )
+        })
+        .map((staff) => {
+          const facilityIdArray = facilityStaff
+            .filter((fs) => toId(fs?.staff_id) === toId(staff.id))
+            .map((fs) => toId(fs?.facility_id))
+            .filter(Boolean)
+
+          const uniqueFacilityIdArray = Array.from(new Set(facilityIdArray))
+
+          const facilityNames = uniqueFacilityIdArray
+            .map((facilityId) => facilityById.get(facilityId)?.name)
+            .filter(Boolean)
+
+          return {
+            staff_id: toId(staff.id),
+            staff_name: staff.name,
+            notes: staff.notes ?? '',
+            is_delete: staff.is_delete ?? 0,
+            facility_ids: uniqueFacilityIdArray.join(','),
+            facility_names: facilityNames.join(', '),
+            facility_id_array: uniqueFacilityIdArray,
+          }
+        })
+
+      return {
+        source: 'databaseTables',
+        allStaffList,
+        facilityList,
+      }
+    }
+
+    const buildFromJoinedData = (joinedData) => {
+      const allStaffList = joinedData
+        .filter((item) => {
+          return (
+            item?.staff_id != null &&
+            item?.staff_name &&
+            isNotDeleted(item?.is_delete)
+          )
+        })
+        .map((item) => {
+          const facilityIdArray = String(item.facility_ids ?? '')
+            .split(',')
+            .map((id) => id.trim())
+            .filter(Boolean)
+
+          return {
+            staff_id: toId(item.staff_id),
+            staff_name: item.staff_name,
+            notes: item.notes ?? '',
+            is_delete: item.is_delete ?? 0,
+            facility_ids: facilityIdArray.join(','),
+            facility_names: item.facility_names ?? '',
+            facility_id_array: facilityIdArray,
+          }
+        })
+
+      const facilityMap = new Map()
+
+      allStaffList.forEach((staff) => {
+        const facilityNames = String(staff.facility_names ?? '')
+          .split(', ')
+          .map((name) => name.trim())
+
+        staff.facility_id_array.forEach((facilityId, index) => {
+          const name = facilityNames[index] || `施設ID:${facilityId}`
+
+          if (facilityId && !facilityMap.has(facilityId)) {
+            facilityMap.set(facilityId, name)
+          }
+        })
+      })
+
+      const facilityList = Array.from(facilityMap.entries()).map(([id, name]) => ({
+        id: toId(id),
+        name,
+      }))
+
+      return {
+        source: 'reduxJoinedData',
+        allStaffList,
+        facilityList,
+      }
+    }
+
     try {
-      console.group('🧩 [SettingsModal] initializeApiSelectBoxes 開始')
+      console.groupCollapsed(
+        '%c🚀 [API SELECT INIT] initializeApiSelectBoxes START',
+        apiSelectLogStyle.title
+      )
+      groupOpened = true
+
+      console.log(
+        '%c📌 API設定セレクトボックス初期化を開始しました',
+        apiSelectLogStyle.info
+      )
+      console.log(
+        '%c🕒 startedAt:',
+        apiSelectLogStyle.info,
+        new Date().toISOString()
+      )
 
       const staffSelect = document.getElementById('api-staff-id')
       const facilitySelect = document.getElementById('api-facility-id')
@@ -645,156 +836,155 @@ export function useSettingsModalLogic(isOpen) {
 
       const apiToUse = getApiByDatabaseType(selectedDatabaseType)
 
-      console.log('📌 使用DB:', selectedDatabaseType)
+      console.log('%c📌 使用DB', apiSelectLogStyle.info, selectedDatabaseType)
       console.log(
-        '📌 使用API:',
+        '%c📌 使用API',
+        apiSelectLogStyle.info,
         selectedDatabaseType === 'mariadb' ? 'mariadbApi' : 'sqliteApi'
       )
 
-      let data = getJoinedStaffFacilityData()
-      console.log('📊 Reduxストアから取得データ:', data)
+      const joinedData = getJoinedStaffFacilityData()
 
-      if (!data || !Array.isArray(data) || data.length === 0) {
-        console.log(
-          '⚠️ Reduxストアにデータがないため、データベースから直接取得します'
-        )
-
-        try {
-          const tables = await apiToUse.getAllTables()
-          console.log('📊 データベースから取得したテーブル:', tables)
-
-          if (
-            tables &&
-            (tables.staffs || tables.facility_staff || tables.facilitys)
-          ) {
-            const staffs = tables.staffs || []
-            const facilityStaff = tables.facility_staff || []
-            const facilitys = tables.facilitys || []
-
-            console.log('🧾 データ確認:', {
-              staffs,
-              facilityStaff,
-              facilitys,
-            })
-
-            data = staffs
-              .filter((staff) => staff.id !== -1 && staff.is_delete !== 1)
-              .map((staff) => {
-                const relatedFacilityStaff = facilityStaff.filter(
-                  (fs) => fs.staff_id === staff.id
-                )
-
-                const relatedFacilities = relatedFacilityStaff
-                  .map((fs) =>
-                    facilitys.find((facility) => facility.id === fs.facility_id)
-                  )
-                  .filter(Boolean)
-
-                const facility_ids = relatedFacilities
-                  .map((facility) => facility.id)
-                  .join(',')
-
-                const facility_names = relatedFacilities
-                  .map((facility) => facility.name)
-                  .join(', ')
-
-                return {
-                  staff_id: staff.id,
-                  staff_name: staff.name,
-                  notes: staff.notes,
-                  is_delete: staff.is_delete,
-                  facility_ids,
-                  facility_names,
-                }
-              })
-
-            console.log('✅ データベースから結合結果:', data)
-          } else {
-            console.warn('⚠️ テーブルデータが取得できませんでした')
-            console.groupEnd()
-            return
-          }
-        } catch (error) {
-          console.error('❌ データベースからの取得エラー:', error)
-          console.groupEnd()
-          return
-        }
-      }
-
-      if (!data || !Array.isArray(data) || data.length === 0) {
-        console.warn('⚠️ データが取得できませんでした')
-        console.groupEnd()
-        return
-      }
-
-      const staffList = data.map((item) => ({
-        staff_id: item.staff_id,
-        staff_name: item.staff_name,
-      }))
-
-      const facilityMap = new Map()
-
-      data.forEach((item) => {
-        if (item.facility_names && item.facility_ids) {
-          const facilityNames = item.facility_names
-            .split(', ')
-            .map((name) => name.trim())
-
-          const facilityIds = item.facility_ids
-            .split(',')
-            .map((id) => id.trim())
-
-          facilityNames.forEach((name, index) => {
-            if (name && !facilityMap.has(name)) {
-              facilityMap.set(name, facilityIds[index] || '')
-            }
-          })
-        }
-      })
-
-      const facilityList = Array.from(facilityMap.entries()).map(
-        ([name, id]) => ({
-          id: id || '',
-          name,
-        })
+      console.log(
+        '%c📊 Reduxストアから取得データ',
+        apiSelectLogStyle.info,
+        joinedData
       )
 
-      if (staffSelect) {
-        while (staffSelect.children.length > 1) {
-          staffSelect.removeChild(staffSelect.lastChild)
-        }
-
-        staffList.forEach((staff) => {
-          const option = document.createElement('option')
-          option.value = staff.staff_id
-          option.textContent = staff.staff_name
-          staffSelect.appendChild(option)
-        })
-
-        console.log('✅ [SettingsModal] スタッフセレクト初期化完了')
-      } else {
-        console.warn('⚠️ staffSelect 要素が見つかりません')
+      let builtData = {
+        source: '',
+        allStaffList: [],
+        facilityList: [],
       }
 
-      if (facilitySelect) {
-        while (facilitySelect.children.length > 1) {
-          facilitySelect.removeChild(facilitySelect.lastChild)
+      // 重要:
+      // Reduxにデータがあっても、まずDB tablesを優先する
+      // facilitys マスタ8件を使うため
+      try {
+        const tables = await apiToUse.getAllTables()
+
+        console.log(
+          '%c📊 データベースから取得したテーブル',
+          apiSelectLogStyle.info,
+          tables
+        )
+
+        if (
+          tables &&
+          (Array.isArray(tables.staffs) ||
+            Array.isArray(tables.facility_staff) ||
+            Array.isArray(tables.facilitys))
+        ) {
+          builtData = buildFromTables(tables)
         }
-
-        facilityList.forEach((facility) => {
-          const option = document.createElement('option')
-          option.value = facility.id
-          option.textContent = facility.name
-          facilitySelect.appendChild(option)
-        })
-
-        console.log('✅ [SettingsModal] 施設セレクト初期化完了')
-      } else {
-        console.warn('⚠️ facilitySelect 要素が見つかりません')
+      } catch (error) {
+        console.warn(
+          '%c⚠️ DBからの取得に失敗したためReduxデータへフォールバックします',
+          apiSelectLogStyle.warn,
+          error
+        )
       }
 
-      const selectedStaffId = iniState?.apiSettings?.staffId || ''
-      const selectedFacilityId = iniState?.apiSettings?.facilityId || ''
+      // DBから施設・スタッフが作れなかった場合だけ Redux 結合データを使う
+      if (
+        (!builtData.facilityList.length || !builtData.allStaffList.length) &&
+        Array.isArray(joinedData) &&
+        joinedData.length > 0
+      ) {
+        builtData = buildFromJoinedData(joinedData)
+      }
+
+      const { source, allStaffList, facilityList } = builtData
+
+      if (!facilityList.length && !allStaffList.length) {
+        console.warn(
+          '%c⚠️ スタッフ・施設データが取得できませんでした',
+          apiSelectLogStyle.warn
+        )
+
+        return {
+          success: false,
+          reason: 'no-data',
+          source,
+          allStaffList,
+          facilityList,
+        }
+      }
+
+      console.log('%c🧱 初期化用データ source', apiSelectLogStyle.info, source)
+
+      console.log('%c🏢 facilityList 全件', apiSelectLogStyle.success, {
+        count: facilityList.length,
+      })
+      console.table(facilityList)
+
+      console.log('%c👤 allStaffList 全件', apiSelectLogStyle.info, {
+        count: allStaffList.length,
+      })
+      console.table(allStaffList)
+
+      const getFilteredStaffList = (facilityId) => {
+        const targetFacilityId = toId(facilityId)
+
+        // 施設未選択の場合は全スタッフ表示
+        // 空欄時にスタッフも空にしたい場合は、ここを return [] に変更
+        if (!targetFacilityId) {
+          return allStaffList
+        }
+
+        return allStaffList.filter((staff) => {
+          return staff.facility_id_array.includes(targetFacilityId)
+        })
+      }
+
+      const rebuildStaffSelectByFacility = (
+        facilityId,
+        preferredStaffId = ''
+      ) => {
+        if (!staffSelect) return []
+
+        const targetFacilityId = toId(facilityId)
+        const targetStaffId = toId(preferredStaffId)
+        const filteredStaffList = getFilteredStaffList(targetFacilityId)
+
+        clearSelectOptions(staffSelect)
+
+        appendOptions(
+          staffSelect,
+          filteredStaffList,
+          (staff) => staff.staff_id,
+          (staff) => staff.staff_name
+        )
+
+        const canKeepSelectedStaff =
+          targetStaffId &&
+          filteredStaffList.some((staff) => staff.staff_id === targetStaffId)
+
+        staffSelect.value = canKeepSelectedStaff ? targetStaffId : ''
+
+        console.log(
+          '%c🔎 施設に紐づくスタッフへフィルター',
+          apiSelectLogStyle.success,
+          {
+            facilityId: targetFacilityId,
+            preferredStaffId: targetStaffId,
+            filteredStaffCount: filteredStaffList.length,
+            staffSelectValue: staffSelect.value,
+          }
+        )
+        console.table(filteredStaffList)
+
+        console.log(
+          '%c👤 staffSelect options after filter',
+          apiSelectLogStyle.info,
+          getOptionsSnapshot(staffSelect)
+        )
+
+        return filteredStaffList
+      }
+
+      const selectedStaffId = toId(iniState?.apiSettings?.staffId || '')
+      const selectedFacilityId = toId(iniState?.apiSettings?.facilityId || '')
       const selectedAiType =
         iniState?.apiSettings?.useAI || appState?.USE_AI || 'gemini'
       const selectedBaseUrl = iniState?.apiSettings?.baseURL || ''
@@ -807,19 +997,106 @@ export function useSettingsModalLogic(isOpen) {
         true
       )
 
-      console.log('🎯 iniState.apiSettings:', iniState?.apiSettings)
-      console.log('🎯 適用 staffId:', selectedStaffId)
-      console.log('🎯 適用 facilityId:', selectedFacilityId)
-      console.log('🎯 適用 AI種別:', selectedAiType)
-      console.log('🎯 適用 DB種別:', selectedDatabaseType)
-      console.log('🎯 適用 自動同期:', selectedAutoSynchronization)
-      console.log('🎯 適用 自動切替:', selectedAutoSwitching)
+      // 施設セレクトは facilitys マスタ全件を表示
+      if (facilitySelect) {
+        clearSelectOptions(facilitySelect)
 
-      if (staffSelect) staffSelect.value = selectedStaffId
-      if (facilitySelect) facilitySelect.value = selectedFacilityId
-      if (aiSelect) aiSelect.value = selectedAiType
-      if (baseUrlInput) baseUrlInput.value = selectedBaseUrl
-      if (databaseTypeSelect) databaseTypeSelect.value = selectedDatabaseType
+        appendOptions(
+          facilitySelect,
+          facilityList,
+          (facility) => facility.id,
+          (facility) => facility.name
+        )
+
+        facilitySelect.value = selectedFacilityId
+
+        console.log(
+          '%c✅ 施設セレクト初期化完了',
+          apiSelectLogStyle.success,
+          {
+            facilityCount: facilityList.length,
+            optionCount: facilitySelect.options.length,
+            selectedFacilityId,
+            selectedFacilityText:
+              facilitySelect.selectedOptions?.[0]?.textContent ?? '',
+          }
+        )
+        console.table(getOptionsSnapshot(facilitySelect))
+
+        if (
+          selectedFacilityId &&
+          !Array.from(facilitySelect.options).some(
+            (option) => option.value === selectedFacilityId
+          )
+        ) {
+          console.warn(
+            '%c⚠️ iniState の facilityId が施設セレクト候補に存在しません',
+            apiSelectLogStyle.warn,
+            {
+              selectedFacilityId,
+              availableValues: Array.from(facilitySelect.options).map(
+                (option) => option.value
+              ),
+            }
+          )
+        }
+      } else {
+        console.warn(
+          '%c⚠️ facilitySelect 要素が見つかりません',
+          apiSelectLogStyle.warn
+        )
+      }
+
+      // 初期表示時点で、選択中の施設に紐づくスタッフだけ表示
+      const initialFilteredStaffList = rebuildStaffSelectByFacility(
+        selectedFacilityId,
+        selectedStaffId
+      )
+
+      // 施設変更時にスタッフを再フィルター
+      if (facilitySelect) {
+        if (facilitySelect.__apiFacilityChangeHandler) {
+          facilitySelect.removeEventListener(
+            'change',
+            facilitySelect.__apiFacilityChangeHandler
+          )
+        }
+
+        facilitySelect.__apiFacilityChangeHandler = (event) => {
+          const nextFacilityId = event.target.value
+          const currentStaffId = staffSelect?.value || ''
+
+          console.log(
+            '%c🏢 施設変更 → スタッフ再フィルター',
+            apiSelectLogStyle.info,
+            {
+              nextFacilityId,
+              currentStaffId,
+              facilityName:
+                event.target.selectedOptions?.[0]?.textContent ?? '',
+            }
+          )
+
+          rebuildStaffSelectByFacility(nextFacilityId, currentStaffId)
+        }
+
+        facilitySelect.addEventListener(
+          'change',
+          facilitySelect.__apiFacilityChangeHandler
+        )
+      }
+
+      if (aiSelect) {
+        aiSelect.value = selectedAiType
+      }
+
+      if (baseUrlInput) {
+        baseUrlInput.value = selectedBaseUrl
+      }
+
+      if (databaseTypeSelect) {
+        databaseTypeSelect.value = selectedDatabaseType
+      }
 
       if (autoSynchronizationInput) {
         autoSynchronizationInput.checked = selectedAutoSynchronization
@@ -829,10 +1106,62 @@ export function useSettingsModalLogic(isOpen) {
         autoSwitchingInput.checked = selectedAutoSwitching
       }
 
-      console.groupEnd()
+      console.log('%c🎯 適用値', apiSelectLogStyle.info, {
+        selectedStaffId,
+        selectedFacilityId,
+        selectedAiType,
+        selectedBaseUrl,
+        selectedDatabaseType,
+        selectedAutoSynchronization,
+        selectedAutoSwitching,
+        actualStaffSelectValue: staffSelect?.value ?? '',
+        actualFacilitySelectValue: facilitySelect?.value ?? '',
+      })
+
+      console.log(
+        '%c🎉 [API SELECT INIT] initializeApiSelectBoxes END',
+        apiSelectLogStyle.success,
+        {
+          source,
+          allStaffCount: allStaffList.length,
+          facilityCount: facilityList.length,
+          initialFilteredStaffCount: initialFilteredStaffList.length,
+          selectedStaffId,
+          selectedFacilityId,
+          actualStaffSelectValue: staffSelect?.value ?? '',
+          actualFacilitySelectValue: facilitySelect?.value ?? '',
+          selectedDatabaseType,
+        }
+      )
+
+      return {
+        success: true,
+        source,
+        allStaffList,
+        facilityList,
+        initialFilteredStaffList,
+        selectedStaffId,
+        selectedFacilityId,
+        selectedDatabaseType,
+        staffSelectOptions: getOptionsSnapshot(staffSelect),
+        facilitySelectOptions: getOptionsSnapshot(facilitySelect),
+      }
     } catch (error) {
-      console.error('❌ [SettingsModal] APIセレクトボックス初期化エラー:', error)
-      console.groupEnd()
+      console.error(
+        '%c❌ [SettingsModal] APIセレクトボックス初期化エラー',
+        apiSelectLogStyle.error,
+        error
+      )
+
+      return {
+        success: false,
+        reason: 'error',
+        error,
+      }
+    } finally {
+      if (groupOpened) {
+        console.groupEnd()
+      }
     }
   }, [iniState, appState, getApiByDatabaseType])
 

@@ -8,6 +8,18 @@ import {
   selectAutoSwitching,
 } from '@/store/slices/appStateSlice'
 
+const apiTabLogStyle = {
+  title:
+    'background:#312e81;color:#fff;font-size:14px;font-weight:bold;padding:4px 8px;border-radius:4px;',
+  info:
+    'background:#e0e7ff;color:#312e81;font-weight:bold;padding:2px 6px;border-radius:4px;',
+  success:
+    'background:#dcfce7;color:#166534;font-weight:bold;padding:2px 6px;border-radius:4px;',
+  warn:
+    'background:#fef3c7;color:#92400e;font-weight:bold;padding:2px 6px;border-radius:4px;',
+}
+
+
 function ApiTab({
   onSaveApiSettings,
   onReloadApiSettings,
@@ -75,24 +87,157 @@ function ApiTab({
 
   // 初期表示時に select/input を現在の iniState で初期化
   useEffect(() => {
-    console.log('🧩 [ApiTab] mounted')
-    console.log('🗂 [ApiTab] Redux store values', {
-      STAFF_ID,
-      FACILITY_ID,
-      USE_AI,
-      AUTO_SYNCHRONIZATION,
-      AUTO_SWITCHING,
-    })
-    console.log('🧩 [ApiTab] props', {
-      onSaveApiSettings,
-      onReloadApiSettings,
-      onInitializeSelectBoxes,
-    })
+    let cancelled = false
 
-    if (onInitializeSelectBoxes) {
-      onInitializeSelectBoxes()
+    const getSelectSnapshot = (id) => {
+      const select = document.getElementById(id)
+
+      if (!select) {
+        return {
+          id,
+          exists: false,
+          value: '',
+          selectedText: '',
+          optionCount: 0,
+          options: [],
+        }
+      }
+
+      const options = Array.from(select.options).map((option, index) => ({
+        index,
+        value: option.value,
+        text: option.textContent,
+        selected: option.selected,
+        disabled: option.disabled,
+      }))
+
+      return {
+        id,
+        exists: true,
+        value: select.value,
+        selectedText: select.selectedOptions?.[0]?.textContent ?? '',
+        optionCount: options.length,
+        options,
+      }
     }
-  }, [onInitializeSelectBoxes])
+
+    const logSelectSnapshot = (label, extra = {}) => {
+      const staffSelect = getSelectSnapshot('api-staff-id')
+      const facilitySelect = getSelectSnapshot('api-facility-id')
+      const databaseTypeSelect = getSelectSnapshot('api-database-type')
+      const aiTypeSelect = getSelectSnapshot('api-ai-type')
+
+      console.groupCollapsed(`🧪 [ApiTab DOM CHECK] ${label}`)
+
+      console.log('📌 extra:', extra)
+
+      console.log('👤 staffSelect:', {
+        value: staffSelect.value,
+        selectedText: staffSelect.selectedText,
+        optionCount: staffSelect.optionCount,
+      })
+      console.table(staffSelect.options)
+
+      console.log('🏢 facilitySelect:', {
+        value: facilitySelect.value,
+        selectedText: facilitySelect.selectedText,
+        optionCount: facilitySelect.optionCount,
+      })
+      console.table(facilitySelect.options)
+
+      console.log('🗄 databaseTypeSelect:', {
+        value: databaseTypeSelect.value,
+        selectedText: databaseTypeSelect.selectedText,
+        optionCount: databaseTypeSelect.optionCount,
+      })
+      console.table(databaseTypeSelect.options)
+
+      console.log('🤖 aiTypeSelect:', {
+        value: aiTypeSelect.value,
+        selectedText: aiTypeSelect.selectedText,
+        optionCount: aiTypeSelect.optionCount,
+      })
+      console.table(aiTypeSelect.options)
+
+      console.groupEnd()
+    }
+
+    const initialize = async () => {
+      console.groupCollapsed('🧩 [ApiTab] mounted / initialize start')
+
+      console.log('🗂 [ApiTab] Redux store values', {
+        STAFF_ID,
+        FACILITY_ID,
+        USE_AI,
+        AUTO_SYNCHRONIZATION,
+        AUTO_SWITCHING,
+      })
+
+      console.log('🧩 [ApiTab] props', {
+        onSaveApiSettings,
+        onReloadApiSettings,
+        onInitializeSelectBoxes,
+      })
+
+      logSelectSnapshot('before onInitializeSelectBoxes', {
+        redux: {
+          STAFF_ID,
+          FACILITY_ID,
+          USE_AI,
+          AUTO_SYNCHRONIZATION,
+          AUTO_SWITCHING,
+        },
+      })
+
+      if (!onInitializeSelectBoxes) {
+        console.warn('⚠️ [ApiTab] onInitializeSelectBoxes がありません')
+        console.groupEnd()
+        return
+      }
+
+      try {
+        const result = await onInitializeSelectBoxes()
+
+        // DOMのoption追加が反映された後に確認する
+        setTimeout(() => {
+          if (cancelled) return
+
+          console.log('✅ [ApiTab] onInitializeSelectBoxes result:', result)
+
+          logSelectSnapshot('after onInitializeSelectBoxes', {
+            result,
+            redux: {
+              STAFF_ID,
+              FACILITY_ID,
+              USE_AI,
+              AUTO_SYNCHRONIZATION,
+              AUTO_SWITCHING,
+            },
+          })
+
+          console.groupEnd()
+        }, 0)
+      } catch (error) {
+        console.error('❌ [ApiTab] onInitializeSelectBoxes error:', error)
+        console.groupEnd()
+      }
+    }
+
+    initialize()
+
+    return () => {
+      cancelled = true
+    }
+  }, [
+    onInitializeSelectBoxes,
+    onSaveApiSettings,
+    onReloadApiSettings,
+    STAFF_ID,
+    FACILITY_ID,
+    USE_AI,
+    AUTO_SYNCHRONIZATION,
+    AUTO_SWITCHING,
+  ])
 
   // Redux値の変化確認用ログ
   useEffect(() => {
