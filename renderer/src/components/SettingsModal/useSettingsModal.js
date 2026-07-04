@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useAppState } from '@/AppStateContext';
-import { useCustomButtons } from '@/components/common/CustomButtonsContext.jsx'
+import { useCustomButtons } from '@/components/CustomButtonsContext'
 import { loadConfig } from '@/utils/config/configUtils'
 
 export function useSettingsModal(isOpen) {

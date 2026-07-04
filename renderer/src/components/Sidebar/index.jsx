@@ -1,6 +1,6 @@
 import { useRef } from "react"
-import TabsContainer from "./common/TabsContainer"
-import SidebarHeader from "./common/SidebarHeader"
+import TabsContainer from "./TabsContainer"
+import SidebarHeader from "./SidebarHeader"
 
 function Sidebar() {
   const sidebarRef = useRef(null)

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import SettingsModal from '@/components/SettingsModal';
-import CustomButtonsPanel from '@/components/common/CustomButtonsPanel'
+import CustomButtonsPanel from '@/components/ui/CustomButtonsPanel'
 import { useToast } from  '@/components/common/ToastContext'
 import { useAppState } from '@/AppStateContext';
 import { useTabs } from '@/hooks/useTabs'
@@ -8,8 +8,8 @@ import { useHugActions } from '@/hooks/useHugActions'
 import { useDispatch, useSelector } from 'react-redux'
 import { setFacilityId, selectFacilityId } from '@/store/slices/appStateSlice'
 import { ArrowRightOnRectangleIcon,TrashIcon,Cog6ToothIcon,AdjustmentsHorizontalIcon } from "@heroicons/react/24/outline";
-import UrlContent from '@/components/common/UrlContent';
-import CloseToggleSwitch from '@/components/common/CloseToggleSwitch';
+import UrlContent from '@/components/ui/UrlContent';
+import CloseToggleSwitch from '@/components/ui/CloseToggleSwitch';
 import FacilitySelector from '@/components/facility';
 import ProfessionalSupportListButton from '@/components/Header/ProfessionalSupportListButton'
 import Sql_SynchronizationBtn from "@/components/common/Synchronization/Sql_SynchronizationBtn";

@@ -1,7 +1,7 @@
 // renderer/src/hooks/useSettingsModalLogic.js
 import { useEffect, useRef, useCallback } from 'react'
 import { useAppState } from '@/AppStateContext'
-import { useCustomButtons } from '@/components/common/CustomButtonsContext.jsx'
+import { useCustomButtons } from '@/components/CustomButtonsContext'
 import { saveConfig } from '@/utils/config/configUtils'
 import { useToast } from '@/components/common/ToastContext.jsx'
 import { loadAllReload } from '@/utils/config/reloadSettings.js'
@@ -429,6 +429,7 @@ export function useSettingsModalLogic(isOpen) {
           console.error('❌ 全設定リロード中にエラー:', error)
         }
 
+        // 設定更新イベント
         try {
           document.dispatchEvent(
             new CustomEvent('app-settings-updated', {
@@ -437,6 +438,53 @@ export function useSettingsModalLogic(isOpen) {
           )
         } catch {
           // 通知失敗は無視
+        }
+
+        // DB設定変更イベント
+        // DataBaseAutoLoader / useDataBase({ autoLoad: true }) 側で受信して再取得する
+        try {
+          const apiSettings = newState?.apiSettings ?? {}
+
+          const databaseType =
+            apiSettings.databaseType === 'mariadb' ||
+            apiSettings.databaseType === 'sqlite'
+              ? apiSettings.databaseType
+              : 'sqlite'
+
+          const autoSynchronization = toBooleanFlag(
+            apiSettings.autoSynchronization,
+            true
+          )
+
+          const autoSwitching = toBooleanFlag(
+            apiSettings.autoSwitching,
+            true
+          )
+
+          console.log('[SettingsModal/saveSettings] database-type-changed dispatch', {
+            databaseType,
+            autoSynchronization,
+            autoSwitching,
+            apiSettings,
+          })
+
+          window.dispatchEvent(
+            new CustomEvent('database-type-changed', {
+              detail: {
+                databaseType,
+                autoSynchronization,
+                autoSwitching,
+                message: `設定保存により ${databaseType} でデータベースを再取得します`,
+                checkedAt: new Date().toISOString(),
+                source: 'useSettingsModalLogic.saveSettings',
+              },
+            })
+          )
+        } catch (error) {
+          console.warn(
+            '⚠️ [SettingsModal/saveSettings] database-type-changed 発火に失敗:',
+            error
+          )
         }
 
         return true
