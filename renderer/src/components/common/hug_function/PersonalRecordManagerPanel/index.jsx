@@ -28,7 +28,7 @@ export default function PersonalRecordManagerPanel() {
   const [personalRecordTextError, setPersonalRecordTextError] = useState("");
   const [refreshing, setRefreshing] = useState(false);
 
-  const databaseType = DATABASE_TYPE || "sqlite";
+  const databaseType = DATABASE_TYPE || "mariadb";
 
   const getCurrentApi = useCallback(() => {
     return databaseType === "mariadb" ? mariadbApi : sqliteApi;

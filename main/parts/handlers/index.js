@@ -24,7 +24,7 @@ function getDatabaseType() {
     }
 
     const iniData = JSON.parse(fs.readFileSync(iniPath, "utf8"));
-    const dbType = iniData?.apiSettings?.databaseType || "sqlite";
+    const dbType = iniData?.apiSettings?.databaseType || "mariadb";
 
     return dbType.toLowerCase();
   } catch (err) {

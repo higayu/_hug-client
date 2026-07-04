@@ -41,8 +41,8 @@ const initialState = {
   DEBUG_FLG: false,
 
   VITE_API_BASE_URL: "",
-  USE_AI: "gemini",
-  DATABASE_TYPE: "sqlite",
+  USE_AI: "chatGPT",
+  DATABASE_TYPE: "mariadb",
 
   // ini.json apiSettings 自動設定
   AUTO_SYNCHRONIZATION: true,
@@ -239,7 +239,7 @@ const appStateSlice = createSlice({
 
     // DB種別を設定
     setDatabaseType: (state, action) => {
-      state.DATABASE_TYPE = action.payload || "sqlite"
+      state.DATABASE_TYPE = action.payload || "mariadb"
     },
 
     // 自動同期を設定

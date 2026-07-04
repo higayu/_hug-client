@@ -18,7 +18,7 @@ function normalizeDatabaseType(value) {
   }
 
   if (value && typeof value === "object") {
-    return value.type || value.databaseType || value.dbType || "sqlite";
+    return value.type || value.databaseType || value.dbType || "mariadb";
   }
 
   return "sqlite";

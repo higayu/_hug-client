@@ -456,16 +456,24 @@ export function AppStateProvider({ children }) {
       updates.FACILITY_ID = String(apiSettings.facilityId)
     }
 
-    const dbType = apiSettings.databaseType ?? 'sqlite'
+    const rawDbType = apiSettings.databaseType
 
-    if (redux.DATABASE_TYPE !== dbType) {
+    const dbType =
+      rawDbType === 'mariadb' || rawDbType === 'MariaDB'
+        ? 'mariadb'
+        : rawDbType === 'sqlite' || rawDbType === 'SQLite'
+          ? 'sqlite'
+          : null
+    
+    if (dbType && redux.DATABASE_TYPE !== dbType) {
       updates.DATABASE_TYPE = dbType
-
+    
       console.warn(
         '[AppStateContext] DATABASE_TYPE 差分検出。iniState から Redux を更新予定:',
         {
           reduxDatabaseType: redux.DATABASE_TYPE,
           iniDatabaseType: dbType,
+          rawIniDatabaseType: rawDbType,
         }
       )
     }

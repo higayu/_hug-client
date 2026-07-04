@@ -118,7 +118,7 @@ var require_electronApi = __commonJS({
         return value;
       }
       if (value && typeof value === "object") {
-        return value.type || value.databaseType || value.dbType || "sqlite";
+        return value.type || value.databaseType || value.dbType || "mariadb";
       }
       return "sqlite";
     }

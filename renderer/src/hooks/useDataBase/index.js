@@ -39,7 +39,7 @@ export function useDataBase() {
   const attendanceError = useSelector(selectAttendanceError)
   const databaseTypeFromRedux = useSelector(selectDatabaseType)
 
-  const databaseType = databaseTypeFromRedux || "sqlite"
+  const databaseType = databaseTypeFromRedux || "mariadb"
 
   // =============================================================
   // local state（表示用）
@@ -93,7 +93,7 @@ export function useDataBase() {
         const facility_id = facilitySelect ? facilitySelect.value : null
 
         let resolvedDatabaseType =
-          forceDatabaseType || databaseType || "sqlite"
+          forceDatabaseType || databaseType || "mariadb"
 
         let apiToUse = resolveApiByDatabaseType(resolvedDatabaseType)
 
@@ -353,7 +353,7 @@ export function useDataBase() {
     }
 
     const handleDatabaseTypeChanged = async (event) => {
-      const nextDatabaseType = event?.detail?.databaseType || "sqlite"
+      const nextDatabaseType = event?.detail?.databaseType || "mariadb"
 
       console.log("🔁 [useDataBase] database-type-changed 受信", {
         nextDatabaseType,
