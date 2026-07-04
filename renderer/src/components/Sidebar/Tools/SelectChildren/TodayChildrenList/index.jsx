@@ -66,7 +66,11 @@ function timeToMinutes(time) {
  * support_end_time が 12:00 以下なら午前児童
  */
 function isMorningChild(child) {
-  const endMinutes = timeToMinutes(child?.support_end_time)
+  if (!child?.support_start_time || !child?.support_end_time) {
+    return false
+  }
+
+  const endMinutes = timeToMinutes(child.support_end_time)
 
   if (endMinutes == null) {
     return false
