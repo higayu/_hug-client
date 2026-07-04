@@ -21,11 +21,6 @@ export function useWindowBridge({
 
     Object.assign(window, actions)
 
-    console.log('[useWindowBridge] window bridge mounted', {
-      appState: window.AppState,
-      actionKeys: Object.keys(actions),
-    })
-
     return () => {
       delete window.AppState
 

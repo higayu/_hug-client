@@ -19,13 +19,6 @@ function toBooleanFlag(value, defaultValue = true) {
     result = false
   }
 
-  console.log('🔎 [useAppInitialization] toBooleanFlag:', {
-    value,
-    valueType: typeof value,
-    defaultValue,
-    result,
-  })
-
   return result
 }
 
@@ -49,17 +42,11 @@ function normalizeDatabaseType(value) {
 }
 
 async function getCurrentDatabaseType() {
-  console.log('🔍 [useAppInitialization] DATABASE_TYPE 判定開始')
 
   try {
     if (typeof window.electronAPI?.getDatabaseType === 'function') {
       const result = await window.electronAPI.getDatabaseType()
       const normalized = normalizeDatabaseType(result)
-
-      console.log('✅ [useAppInitialization] DATABASE_TYPE from electronAPI:', {
-        raw: result,
-        normalized,
-      })
 
       return normalized
     }
@@ -79,11 +66,6 @@ async function getCurrentDatabaseType() {
   if (iniDatabaseType !== undefined && iniDatabaseType !== null) {
     const normalized = normalizeDatabaseType(iniDatabaseType)
 
-    console.log('✅ [useAppInitialization] DATABASE_TYPE from IniState:', {
-      raw: iniDatabaseType,
-      normalized,
-    })
-
     return normalized
   }
 
@@ -94,11 +76,6 @@ async function getCurrentDatabaseType() {
 
   if (appStateDatabaseType !== undefined && appStateDatabaseType !== null) {
     const normalized = normalizeDatabaseType(appStateDatabaseType)
-
-    console.log('✅ [useAppInitialization] DATABASE_TYPE from AppState:', {
-      raw: appStateDatabaseType,
-      normalized,
-    })
 
     return normalized
   }
@@ -246,8 +223,6 @@ function logCloseSnapshot(label) {
 
 function getAutoSynchronizationEnabled() {
   try {
-    console.log('🔍 [useAppInitialization] autoSynchronization 判定開始')
-
     logCloseSnapshot('autoSynchronization 判定前 snapshot')
 
     // ============================================================
@@ -259,12 +234,6 @@ function getAutoSynchronizationEnabled() {
     if (appStateValue !== undefined && appStateValue !== null) {
       const result = toBooleanFlag(appStateValue, false)
 
-      console.log('✅ [useAppInitialization] autoSynchronization from window.AppState:', {
-        raw: appStateValue,
-        rawType: typeof appStateValue,
-        result,
-      })
-
       return result
     }
 
@@ -275,12 +244,6 @@ function getAutoSynchronizationEnabled() {
     if (typeof window.isAutoSynchronizationEnabled === 'function') {
       const fnResult = window.isAutoSynchronizationEnabled()
       const result = toBooleanFlag(fnResult, false)
-
-      console.log('✅ [useAppInitialization] autoSynchronization from window.isAutoSynchronizationEnabled:', {
-        raw: fnResult,
-        rawType: typeof fnResult,
-        result,
-      })
 
       return result
     }

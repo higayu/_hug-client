@@ -6,7 +6,7 @@ import { getTodayYmdString } from "@/utils/date/dateYMD";
 import { useToast } from "@/components/common/ToastContext";
 import { useAttendanceFetch } from "@/hooks/useAttendanceFetch";
 
-import TableDataGetButton from "@/components/common/hug_function/TableDataGetButon";
+import GetTodayUsersChildren from "@/components/common/hug_function/GetTodayUsersChildren";
 import WeekdaySelect from "@/components/common/WeekdaySelect";
 
 
@@ -22,8 +22,7 @@ function SidebarHeader() {
     DEBUG_FLG,
   } = useAppState()
 
-  const { runFetch, autoFetchEnabled, toggleAutoFetch } =
-    useAttendanceFetch("SidebarHeader")
+  const { runFetch, autoFetchEnabled, toggleAutoFetch } = useAttendanceFetch("SidebarHeader")
 
   // =============================================================
   // 初期化（日付・曜日ID）
@@ -115,7 +114,7 @@ function SidebarHeader() {
         {/* Web Manager（外部ブラウザ） */}
         <div className="flex flex-col gap-2 items-center justify-center">
               
-              <TableDataGetButton
+              <GetTodayUsersChildren
                 onFetch={runFetch}
                 autoFetchEnabled={autoFetchEnabled}
                 onToggleAutoFetch={toggleAutoFetch}

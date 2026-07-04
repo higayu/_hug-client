@@ -434,34 +434,7 @@ export function useDataBase({ autoLoad = false } = {}) {
     })
   }, [autoLoad, isInitialized, STAFF_ID, weekdayId, loadDataBase])
 
-  // =============================================================
-  // 専門的支援 利用日数（useSpeDate）を該当児童だけ更新
-  // =============================================================
-  const patchChildUseSpeDate = useCallback(
-    (childId, useSpeDate) => {
-      const patchList = (list) =>
-        list.map((child) =>
-          String(child.children_id) === String(childId)
-            ? { ...child, useSpeDate }
-            : child
-        )
 
-      const nextWeek = patchList(childrenDataRef.current)
-
-      childrenDataRef.current = nextWeek
-
-      setLocalChildrenData(nextWeek)
-      setChildrenData(nextWeek)
-
-      updateAppState({
-        childrenData: nextWeek,
-      })
-
-      setWaitingChildrenData((prev) => patchList(prev))
-      setExperienceChildrenData((prev) => patchList(prev))
-    },
-    [setChildrenData, updateAppState]
-  )
 
   // =============================================================
   // return
@@ -472,7 +445,6 @@ export function useDataBase({ autoLoad = false } = {}) {
     experienceChildrenData,
 
     loadDataBase,
-    patchChildUseSpeDate,
 
     SELECT_CHILD,
     extractedData,

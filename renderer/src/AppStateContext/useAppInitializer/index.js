@@ -71,10 +71,6 @@ export async function initializeAppState({
       loadPrompt(),
     ]);
 
-    console.log("📄 [initializeAppState] config:", config);
-    console.log("📄 [initializeAppState] ini:", ini);
-    console.log("📄 [initializeAppState] prompts:", prompts);
-
     // =============================================================
     // 2) config.json → Redux 反映用 merged
     // 存在するものだけ反映する
@@ -206,12 +202,7 @@ export async function initializeAppState({
     // =============================================================
     // 4) Redux 反映
     // =============================================================
-    console.log("📤 [initializeAppState] updateAppState:", merged);
-
     dispatch(updateAppState(merged));
-
-    console.log("📤 [initializeAppState] setPrompts:", prompts || {});
-
     dispatch(setPrompts(prompts || {}));
 
     // =============================================================

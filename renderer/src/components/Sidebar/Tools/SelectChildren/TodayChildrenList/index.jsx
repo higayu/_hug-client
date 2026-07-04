@@ -67,17 +67,40 @@ function timeToMinutes(time) {
  * どちらかが null の場合は、とりあえず表示対象にする
  */
 function isMorningChild(child) {
+  console.groupCollapsed(
+    `[isMorningChild] ${child?.children_id} ${child?.children_name}`
+  )
+
+  console.log("child:", child)
+  console.log("support_start_time:", child?.support_start_time)
+  console.log("support_end_time:", child?.support_end_time)
+
   if (!child?.support_start_time || !child?.support_end_time) {
+    console.log("判定結果: false / support_start_time または support_end_time がない")
+    console.groupEnd()
     return false
   }
 
+  const startMinutes = timeToMinutes(child.support_start_time)
   const endMinutes = timeToMinutes(child.support_end_time)
 
+  console.log("startMinutes:", startMinutes)
+  console.log("endMinutes:", endMinutes)
+  console.log("12:00 minutes:", 12 * 60)
+
   if (endMinutes == null) {
+    console.log("判定結果: false / endMinutes が null")
+    console.groupEnd()
     return false
   }
 
-  return endMinutes <= 12 * 60
+  const result = endMinutes <= 12 * 60
+
+  console.log("判定結果 isMorningChild:", result)
+
+  console.groupEnd()
+
+  return result
 }
 
 export default function TodayChildrenList() {

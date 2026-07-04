@@ -26,7 +26,7 @@ function formatLastFetchedAt(extractedAt) {
  *   lastFetchedAt?: string | null,
  * }} props
  */
-export default function TableDataGetButton({
+export default function GetTodayUsersChildren({
   onFetch,
   autoFetchEnabled,
   onToggleAutoFetch,

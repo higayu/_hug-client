@@ -12,7 +12,7 @@ export function CustomButtonsProvider({ children }) {
   // カスタムボタンの読み込み
   const loadCustomButtons = useCallback(async () => {
     try {
-      console.log("🔄 [CUSTOM_BUTTONS] カスタムボタンを読み込み中...")
+
       const result = await window.electronAPI.readCustomButtons()
       
       if (!result.success) {
@@ -21,7 +21,7 @@ export function CustomButtonsProvider({ children }) {
       }
 
       setCustomButtons(result.data.customButtons || [])
-      console.log("✅ [CUSTOM_BUTTONS] カスタムボタン読み込み成功:", result.data.customButtons)
+      
       return true
     } catch (err) {
       console.error("❌ [CUSTOM_BUTTONS] カスタムボタン読み込みエラー:", err)
