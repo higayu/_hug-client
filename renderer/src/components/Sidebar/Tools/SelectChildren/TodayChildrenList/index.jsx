@@ -8,7 +8,6 @@ import {
   getAttendanceItemForChild,
   isChildAbsent,
   isChildExited,
-  shouldHideChildByFilter,
 } from "@/utils/attendance/helpers/attendanceStatus.js"
 import ChildrenListTabs from "./ChildrenListTabs"
 import ChildrenListContent from "./ChildrenListContent"
@@ -31,9 +30,13 @@ function timeToMinutes(time) {
 
   const value = String(time).trim()
 
+  if (!value) {
+    return null
+  }
+
   // "HH:mm" / "HH:mm:ss"
   if (value.includes(":")) {
-    const [hourText, minuteText] = value.split(":")
+    const [hourText, minuteText = "0"] = value.split(":")
     const hour = Number(hourText)
     const minute = Number(minuteText)
 
@@ -63,44 +66,22 @@ function timeToMinutes(time) {
 }
 
 /**
- * support_start_time / support_end_time が両方ある場合のみ午前判定する
- * どちらかが null の場合は、とりあえず表示対象にする
+ * 午前児童判定
+ *
+ * 重要:
+ * - support_start_time / support_end_time が両方ある場合のみ判定する
+ * - support_end_time だけで午前扱いしない
+ * - 開始時刻も終了時刻も午前帯の場合だけ「午前」とする
  */
 function isMorningChild(child) {
-  console.groupCollapsed(
-    `[isMorningChild] ${child?.children_id} ${child?.children_name}`
-  )
+  const startMinutes = timeToMinutes(child?.support_start_time)
+  const endMinutes = timeToMinutes(child?.support_end_time)
 
-  console.log("child:", child)
-  console.log("support_start_time:", child?.support_start_time)
-  console.log("support_end_time:", child?.support_end_time)
-
-  if (!child?.support_start_time || !child?.support_end_time) {
-    console.log("判定結果: false / support_start_time または support_end_time がない")
-    console.groupEnd()
+  if (startMinutes == null || endMinutes == null) {
     return false
   }
 
-  const startMinutes = timeToMinutes(child.support_start_time)
-  const endMinutes = timeToMinutes(child.support_end_time)
-
-  console.log("startMinutes:", startMinutes)
-  console.log("endMinutes:", endMinutes)
-  console.log("12:00 minutes:", 12 * 60)
-
-  if (endMinutes == null) {
-    console.log("判定結果: false / endMinutes が null")
-    console.groupEnd()
-    return false
-  }
-
-  const result = endMinutes <= 12 * 60
-
-  console.log("判定結果 isMorningChild:", result)
-
-  console.groupEnd()
-
-  return result
+  return startMinutes < 12 * 60 && endMinutes <= 12 * 60
 }
 
 export default function TodayChildrenList() {
@@ -109,7 +90,7 @@ export default function TodayChildrenList() {
     SELECT_CHILD_FILTER_MODE,
     attendanceData,
 
-    // loadDataBase() が updateAppState で保存したデータを読む
+    // loadDataBase() が AppState に保存したデータを読む
     childrenData,
     waiting_childrenData,
     Experience_childrenData,
@@ -120,9 +101,11 @@ export default function TodayChildrenList() {
 
   // AppState 側の命名を画面側で扱いやすい名前に寄せる
   const weekChildrenData = Array.isArray(childrenData) ? childrenData : []
+
   const waitingChildrenData = Array.isArray(waiting_childrenData)
     ? waiting_childrenData
     : []
+
   const experienceChildrenData = Array.isArray(Experience_childrenData)
     ? Experience_childrenData
     : []
@@ -150,11 +133,8 @@ export default function TodayChildrenList() {
       const mode = Number(SELECT_CHILD_FILTER_MODE ?? 0)
       const attendanceItem = getAttendanceItem(child.children_id)
 
-      const hiddenByAttendance = shouldHideChildByFilter(
-        attendanceItem,
-        SELECT_CHILD_FILTER_MODE
-      )
-
+      const absent = isChildAbsent(attendanceItem)
+      const exited = isChildExited(attendanceItem)
       const morning = isMorningChild(child)
 
       // 0: 全件表示
@@ -164,19 +144,17 @@ export default function TodayChildrenList() {
 
       // 1: 欠席を除く
       if (mode === 1) {
-        return !hiddenByAttendance
+        return !absent
       }
 
       // 2: 欠席・午前を除く
       if (mode === 2) {
-        return !hiddenByAttendance && !morning
+        return !absent && !morning
       }
 
       // 3: 欠席・午前・退室済みを除く
-      // 欠席・退室済みは shouldHideChildByFilter 側で判定
-      // 午前児童だけここで追加判定
       if (mode === 3) {
-        return !hiddenByAttendance && !morning
+        return !absent && !morning && !exited
       }
 
       return true
@@ -240,14 +218,19 @@ export default function TodayChildrenList() {
       switch (tab) {
         case TABS.NORMAL:
           return normalChildren
+
         case TABS.SOMETIMES:
           return sometimesChildren
+
         case TABS.TEMPORARY:
           return temporaryChildren
+
         case TABS.WAITING:
           return visibleWaitingChildren
+
         case TABS.EXPERIENCE:
           return visibleExperienceChildren
+
         default:
           return []
       }
@@ -277,7 +260,12 @@ export default function TodayChildrenList() {
       window.AppState.SELECT_CHILD_NAME = first.children_name
       window.AppState.SELECT_PC_NAME = first.pc_name || ""
     }
-  }, [normalChildren, SELECT_CHILD, setSelectedChild, setSelectedPcName])
+  }, [
+    normalChildren,
+    SELECT_CHILD,
+    setSelectedChild,
+    setSelectedPcName,
+  ])
 
   // ==============================
   // フィルタ変更時:
