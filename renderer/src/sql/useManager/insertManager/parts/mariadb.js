@@ -1,4 +1,4 @@
-// renderer/src/sql/insertManager/parts/mariadb.js
+// renderer/src/sql/useManager/insertManager/parts/mariadb.js
 
 export async function handleMariaDBInsert(
   child,
@@ -7,7 +7,7 @@ export async function handleMariaDBInsert(
     FACILITY_ID,
     STAFF_ID,
     weekId,
-    priority = 0, // ← 通常対応 = 0
+    priority = 0,
   }
 ) {
   console.log("====== MariaDB: handleMariaDBInsert START ======");
@@ -35,7 +35,9 @@ export async function handleMariaDBInsert(
       };
 
       console.log("📡 mariadb_children_insert:", childPayload);
+
       await window.electronAPI.mariadb_children_insert(childPayload);
+
       console.log("✅ MariaDB: children_insert 完了");
 
       if (FACILITY_ID != null) {
@@ -43,8 +45,13 @@ export async function handleMariaDBInsert(
           children_id: Number(child.children_id),
           facility_id: Number(FACILITY_ID),
         };
+
         console.log("📡 mariadb_facility_children_insert:", facilityPayload);
-        await window.electronAPI.mariadb_facility_children_insert(facilityPayload);
+
+        await window.electronAPI.mariadb_facility_children_insert(
+          facilityPayload
+        );
+
         console.log("✅ MariaDB: facility_children_insert 完了");
       }
     } else {
@@ -57,7 +64,6 @@ export async function handleMariaDBInsert(
     // ----------------------------------
     // ② managers2 レコードを insert
     // ----------------------------------
-
     console.log("weekId:", weekId);
     console.log("STAFF_ID:", STAFF_ID);
     console.log("child.children_id:", child.children_id);
@@ -65,20 +71,28 @@ export async function handleMariaDBInsert(
     const payload = {
       children_id: Number(child.children_id),
       staff_id: Number(STAFF_ID),
-      day_of_week_id: weekId
+      day_of_week_id: Number(weekId),
+
+      // managers2
+      priority: Number(child.priority ?? priority ?? 0),
+
+      // 追加カラム
+      // MariaDB 側は TIME 型想定
+      // "09:00:00" / null を渡す
+      support_start_time: child.support_start_time ?? null,
+      support_end_time: child.support_end_time ?? null,
     };
 
     console.log("📡 mariadb_managers2_insert:", payload);
-      // ✅ ★ここだけ修正
-    await window.electronAPI.mariadb_managers2_insert(payload);
-    
-    console.log("✅ MariaDB: managers2_insert 完了");
-    return true;
 
+    await window.electronAPI.mariadb_managers2_insert(payload);
+
+    console.log("✅ MariaDB: managers2_insert 完了");
+
+    return true;
   } catch (error) {
     console.error("❌ MariaDB: managers2_insert エラー:", error);
     return false;
-
   } finally {
     console.log("====== MariaDB: handleMariaDBInsert END ======");
   }

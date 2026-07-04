@@ -2,11 +2,10 @@
 import React, { useState, useEffect, useMemo } from "react";
 import ConfirmModal from "./ConfirmModal.jsx";
 import { store } from "@/store/store.js";
-import { insertManager } from "@/sql/useManager/insertManager/insertManager.js";
 import { useToast } from "@/components/common/ToastContext.jsx";
 import { useDataBase } from "@/hooks/useDataBase";
 import { useAppState } from "@/AppStateContext";
-
+import { insertManager } from "@/sql/useManager/insertManager";
 /**
  * 出勤データを一覧表示するコンポーネント（managers2 対応）
  */
