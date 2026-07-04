@@ -3,13 +3,78 @@
 import { DAY_OF_WEEK_MASTER } from "@/utils/date/dateUtils.js"
 
 /**
+ * TIME値を表示・判定しやすい文字列に正規化する
+ *
+ * 対応例:
+ * - "09:30:00" → "09:30:00"
+ * - "09:30"    → "09:30:00"
+ * - "930"      → "09:30:00"
+ * - "1200"     → "12:00:00"
+ */
+function normalizeTimeValue(value) {
+  if (value == null || value === "") {
+    return null
+  }
+
+  const text = String(value).trim()
+
+  if (!text) {
+    return null
+  }
+
+  // MariaDB TIME / SQLite TEXT 想定: HH:mm:ss / HH:mm
+  if (text.includes(":")) {
+    const [hourText, minuteText = "0", secondText = "0"] = text.split(":")
+
+    const hour = Number(hourText)
+    const minute = Number(minuteText)
+    const second = Number(secondText)
+
+    if (
+      Number.isNaN(hour) ||
+      Number.isNaN(minute) ||
+      Number.isNaN(second)
+    ) {
+      return null
+    }
+
+    return [
+      String(hour).padStart(2, "0"),
+      String(minute).padStart(2, "0"),
+      String(second).padStart(2, "0"),
+    ].join(":")
+  }
+
+  // 1200 / 0930 / 930 形式にも対応
+  const digits = text.replace(/\D/g, "")
+
+  if (!digits) {
+    return null
+  }
+
+  const normalized = digits.padStart(4, "0")
+  const hour = Number(normalized.slice(0, -2))
+  const minute = Number(normalized.slice(-2))
+
+  if (Number.isNaN(hour) || Number.isNaN(minute)) {
+    return null
+  }
+
+  return [
+    String(hour).padStart(2, "0"),
+    String(minute).padStart(2, "0"),
+    "00",
+  ].join(":")
+}
+
+/**
  * スタッフ・曜日で子ども一覧を取得（managers2 対応）
- * ★ 新仕様：weekdayId が唯一の正
+ * 新仕様：weekdayId が唯一の正
  */
 export async function GetchildrenByStaffAndDay({
   tables,
   staffId,
-  weekdayId, // ← ★ date は廃止
+  weekdayId,
 }) {
   if (!tables) {
     console.error("❌ GetchildrenByStaffAndDay: テーブルデータが未定義です")
@@ -34,37 +99,59 @@ export async function GetchildrenByStaffAndDay({
   console.group("🔗 [GetchildrenByStaffAndDay / managers2] JOIN処理開始")
   console.log("🔍 staffId:", staffId)
   console.log("🔍 weekdayId:", weekdayId)
+  console.log("🔍 managers2 count:", managers2.length)
 
-  const staffIdNum = Number(staffId)
+  const staffIdText = String(staffId)
+  const weekdayIdNum = Number(weekdayId)
 
-  // 表示用（任意）
   const weekdayObj = DAY_OF_WEEK_MASTER.find(
-    (w) => w.id === Number(weekdayId)
+    (w) => Number(w.id) === weekdayIdNum
   )
 
   // ----------------------------------------
-  // 🔥 JOIN処理（managers2 前提）
+  // JOIN処理（managers2 前提）
   // ----------------------------------------
   const joined = managers2
-    // ★ 曜日ID一致のみ（唯一の条件）
-    .filter((m) => Number(m.day_of_week_id) === Number(weekdayId))
+    // 曜日ID一致のみ
+    .filter((m) => Number(m.day_of_week_id) === weekdayIdNum)
     .map((m) => {
-      const child = children.find((c) => c.id === m.children_id)
-      const staff = staffs.find((s) => s.id === m.staff_id)
-      if (!child || !staff) return null
+      const child = children.find(
+        (c) => String(c.id) === String(m.children_id)
+      )
+
+      const staff = staffs.find(
+        (s) => String(s.id) === String(m.staff_id)
+      )
+
+      if (!child || !staff) {
+        console.warn("⚠️ managers2 JOIN失敗:", {
+          manager: m,
+          childFound: Boolean(child),
+          staffFound: Boolean(staff),
+        })
+
+        return null
+      }
 
       // PC JOIN
       const ptc = pc_to_children.find(
-        (p) => p.children_id === child.id
+        (p) => String(p.children_id) === String(child.id)
       )
-      const pcItem = ptc ? pc.find((p) => p.id === ptc.pc_id) : null
+
+      const pcItem = ptc
+        ? pc.find((p) => String(p.id) === String(ptc.pc_id))
+        : null
 
       const pronun = pronunciation.find(
-        (p) => p.id === child.pronunciation_id
+        (p) => String(p.id) === String(child.pronunciation_id)
       )
+
       const ctype = children_type.find(
-        (t) => t.id === child.children_type_id
+        (t) => String(t.id) === String(child.children_type_id)
       )
+
+      const supportStartTime = normalizeTimeValue(m.support_start_time)
+      const supportEndTime = normalizeTimeValue(m.support_end_time)
 
       return {
         children_id: child.id,
@@ -79,16 +166,18 @@ export async function GetchildrenByStaffAndDay({
         staff_id: staff.id,
         staff_name: staff.name,
 
-        // ★ 表示用（ロジックでは使わない）
-        weekday_id: weekdayId,
+        // 表示用
+        weekday_id: weekdayIdNum,
         weekday_name: weekdayObj?.label_jp ?? "",
-
 
         // managers2
         day_of_week_id: m.day_of_week_id,
-        priority: m.priority ?? 0,
-        support_start_time: m.support_start_time ?? null,
-        support_end_time: m.support_end_time ?? null,
+        priority: Number(m.priority ?? 0),
+
+        // 新規追加カラム
+        // MariaDB TIME / SQLite TEXT の差を吸収して HH:mm:ss に寄せる
+        support_start_time: supportStartTime,
+        support_end_time: supportEndTime,
 
         children_type_id: child.children_type_id,
         children_type_name: ctype?.name ?? "",
@@ -106,19 +195,23 @@ export async function GetchildrenByStaffAndDay({
     })
     .filter(Boolean)
     .sort((a, b) =>
-      a.children_name.localeCompare(b.children_name, "ja")
+      String(a.children_name ?? "").localeCompare(
+        String(b.children_name ?? ""),
+        "ja"
+      )
     )
 
   // ----------------------------------------
   // 自分の担当のみ
   // ----------------------------------------
   const myChildren = joined.filter(
-    (c) => Number(c.staff_id) === staffIdNum
+    (c) => String(c.staff_id) === staffIdText
   )
 
   console.log(`✅ 自分の担当: ${myChildren.length} 件`)
   console.log("🔍 抽出結果:", myChildren)
 
   console.groupEnd()
+
   return myChildren
 }

@@ -25,25 +25,35 @@ export default function ChildListItem({
 }) {
   const notesTitle = getTitle?.(child)
 
-  const stateClasses = isAbsent || !isExited
+  // 欠席は色自体は変えず、最後に grayscale / opacity を付ける
+  // 退室済み かつ 欠席ではない場合のみ黄色系にする
+  const shouldUseExitedColor = isExited && !isAbsent
+
+  const stateClasses = shouldUseExitedColor
     ? isSelected
-      ? DEFAULT_CLASSES.selected
-      : DEFAULT_CLASSES.default
-    : isSelected
       ? EXITED_CLASSES.selected
       : EXITED_CLASSES.default
+    : isSelected
+      ? DEFAULT_CLASSES.selected
+      : DEFAULT_CLASSES.default
 
-  const itemClassName = `${DEFAULT_CLASSES.base} ${stateClasses}${
-    isAbsent ? " grayscale opacity-30" : ""
-  }`
+  const absentClasses = isAbsent ? " grayscale opacity-30" : ""
+
+  const itemClassName = `${DEFAULT_CLASSES.base} ${stateClasses}${absentClasses}`
+
+  const handleClick = () => {
+    onSelect?.(
+      child.children_id,
+      child.children_name,
+      child.pc_name
+    )
+  }
 
   return (
     <li
       title={notesTitle}
       className={itemClassName}
-      onClick={() =>
-        onSelect(child.children_id, child.children_name, child.pc_name)
-      }
+      onClick={handleClick}
     >
       <span>
         {child.children_id}: {child.children_name}

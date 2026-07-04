@@ -12,7 +12,8 @@ export default function SelectChildFilter() {
       >
         <option value="0">全件表示</option>
         <option value="1">欠席を除く</option>
-        <option value="2">欠席・退室済みを除く</option>
+        <option value="2">欠席・午前を除く</option>
+        <option value="3">欠席・午前・退室済みを除く</option>
       </select>
     </div>
   )
