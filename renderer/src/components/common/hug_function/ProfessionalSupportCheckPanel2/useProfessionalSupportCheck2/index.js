@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useAppState } from "@/AppStateContext";
-import { useDataBase } from "@/hooks/useDataBase";
+import { usePatchChildUseSpeDate } from "./usePatchChildUseSpeDate";
 import {
   selectCurrentYmd,
   selectFacilityId,
@@ -46,7 +46,7 @@ export function useProfessionalSupportCheck2(
   const currentYmdFromStore = useSelector(selectCurrentYmd);
 
   // 更新関数だけ useDataBase から取得
-  const { patchChildUseSpeDate } = useDataBase();
+  const { patchChildUseSpeDate } = usePatchChildUseSpeDate();
 
   const safeChildrenData = useMemo(() => {
     return Array.isArray(childrenData) ? childrenData : [];
