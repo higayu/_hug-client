@@ -13,7 +13,7 @@ import { isAttendanceDataLoaded } from '@/utils/attendance/helpers/attendanceSta
 import './attendanceForm.css'
 import PersonalRecordCheckPanel from '@/components/common/hug_function/PersonalRecordCheckPanel'
 import ProfessionalSupportCheckPanel2 from '@/components/common/hug_function/ProfessionalSupportCheckPanel2'
-import SelectChildFilter from './SelectChildFilter'
+import SelectChildFilter from '@/components/common/SelectChildFilter'
 
 export default function ChildMemoPanel() {
   const dispatch = useDispatch()
