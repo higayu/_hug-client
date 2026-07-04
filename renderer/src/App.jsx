@@ -14,6 +14,7 @@ import Toolbar from '@/components/Header/Toolbar.jsx'
 import Tabs from '@/components/Header/Tabs.jsx'
 import ContentArea from '@/components/ContentArea.jsx'
 import { useActiveWebviewLogger } from '@/hooks/useTabs/useActiveWebviewLogger'
+import DataBaseAutoLoader from '@/components/common/Synchronization/DataBaseAutoLoader'
 
 // グローバルにエクスポート（デバッグ・開発用）
 window.attendanceTableAPI = {
@@ -43,6 +44,7 @@ function App() {
   return (
     <Provider store={store}>
       <AppStateProvider>
+        <DataBaseAutoLoader />
           <CustomButtonsProvider>
             <ToastProvider>
               <AppContent preloadPath={preloadPath} />

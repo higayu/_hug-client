@@ -1,8 +1,11 @@
 // src/utils/reloadSettings.js
 // config.json と ini.json の両方を再読み込みしてUIに反映
 
-import { loadConfig } from './configUtils.js'
-import { loadIni as loadIniFromUtils, loadPrompt } from './iniUtils.js'
+import {
+  loadConfig,
+  loadIni as loadIniFromUtils,
+  loadPrompt,
+} from "./index";
 import { store } from '@/store/store.js'
 import {
   setPrompts,

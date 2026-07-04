@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSelector } from "react-redux";
 import { useAppState } from "@/AppStateContext";
 import { useDataBase } from "@/hooks/useDataBase";
@@ -17,8 +17,11 @@ import {
 
 const isEmptyRecordObject = (row) => {
   if (!row || typeof row !== "object") return true;
+
   const values = Object.values(row);
+
   if (values.length === 0) return true;
+
   return values.every((v) => String(v ?? "").trim() === "");
 };
 
@@ -26,8 +29,10 @@ const parseTodayProfessionalSupportRegistered = (savedResult) => {
   if (!savedResult?.ok) return null;
 
   const rows = Array.isArray(savedResult.rows) ? savedResult.rows : [];
+
   const hasOnlyEmptyObjects =
     rows.length > 0 && rows.every((row) => isEmptyRecordObject(row));
+
   const shouldTreatAsUnknown =
     hasOnlyEmptyObjects ||
     (typeof savedResult.rowCount === "number" &&
@@ -35,15 +40,30 @@ const parseTodayProfessionalSupportRegistered = (savedResult) => {
       rows.length === 0);
 
   if (shouldTreatAsUnknown) return null;
+
   return savedResult.registered === true;
 };
 
 /**
  * 専門的支援 利用日数チェックの共通ロジック
+ *
+ * 方針:
+ * - childrenData は useDataBase から取らない
+ * - childrenData は AppState / Redux 側の正本を読む
+ * - patchChildUseSpeDate だけ useDataBase から使う
+ *
  * @param {string} [logTag]
  */
 export function useProfessionalSupportCheck(logTag = "ProfessionalSupportCheck") {
-  const { SELECT_CHILD, FACILITY_ID, CURRENT_YMD } = useAppState();
+  const {
+    SELECT_CHILD,
+    FACILITY_ID,
+    CURRENT_YMD,
+
+    // loadDataBase() が AppState に保存したデータを読む
+    childrenData,
+  } = useAppState();
+
   const selectedChildIdFromStore = useSelector(selectSelectedChild);
   const facilityIdFromStore = useSelector(selectFacilityId);
   const currentYmdFromStore = useSelector(selectCurrentYmd);
@@ -51,18 +71,44 @@ export function useProfessionalSupportCheck(logTag = "ProfessionalSupportCheck")
   const effectiveChildId = selectedChildIdFromStore || SELECT_CHILD;
   const effectiveFacilityId = facilityIdFromStore || FACILITY_ID || "3";
   const effectiveCurrentYmd = currentYmdFromStore || CURRENT_YMD;
-  const { childrenData, patchChildUseSpeDate } = useDataBase();
 
-  const selectedChild = childrenData.find(
-    (c) => c.children_id === effectiveChildId
-  );
+  // 更新関数だけ useDataBase から取得
+  const { patchChildUseSpeDate } = useDataBase();
+
+  const safeChildrenData = useMemo(() => {
+    return Array.isArray(childrenData) ? childrenData : [];
+  }, [childrenData]);
+
+  const selectedChild = useMemo(() => {
+    if (!effectiveChildId) return null;
+
+    const selectedId = String(effectiveChildId);
+
+    return (
+      safeChildrenData.find(
+        (c) => String(c.children_id) === selectedId
+      ) || null
+    );
+  }, [safeChildrenData, effectiveChildId]);
+
   const useDays = selectedChild?.useSpeDate ?? null;
-  const [todayProfessionalSupportRegistered, setTodayProfessionalSupportRegistered] =
-    useState(null);
-  const [todayProfessionalSupportRecordCount, setTodayProfessionalSupportRecordCount] =
-    useState(null);
-  /** @type {'adjusted' | 'raw' | null} 利用日数の表示種別（チェック後のみ） */
+
+  const [
+    todayProfessionalSupportRegistered,
+    setTodayProfessionalSupportRegistered,
+  ] = useState(null);
+
+  const [
+    todayProfessionalSupportRecordCount,
+    setTodayProfessionalSupportRecordCount,
+  ] = useState(null);
+
+  /**
+   * @type {'adjusted' | 'raw' | null}
+   * 利用日数の表示種別（チェック後のみ）
+   */
   const [useDaysDisplayKind, setUseDaysDisplayKind] = useState(null);
+
   const [checking, setChecking] = useState(false);
 
   useEffect(() => {
@@ -94,12 +140,15 @@ export function useProfessionalSupportCheck(logTag = "ProfessionalSupportCheck")
           `[${logTag}] 本日の個人記録確認失敗:`,
           contactResult.error
         );
+
         alert(contactResult.error || "本日の個人記録の確認に失敗しました");
         return;
       }
 
-      const { registered: todayPersonalRecordRegistered, recordCount } =
-        parseTodayPersonalRecordStatus(contactResult);
+      const {
+        registered: todayPersonalRecordRegistered,
+        recordCount,
+      } = parseTodayPersonalRecordStatus(contactResult);
 
       console.log(`[HUG WM] 本日の個人記録（${logTag}）`, {
         registered: todayPersonalRecordRegistered,
@@ -122,7 +171,9 @@ export function useProfessionalSupportCheck(logTag = "ProfessionalSupportCheck")
 
       const todayProSupportRegistered =
         parseTodayProfessionalSupportRegistered(savedResult);
+
       setTodayProfessionalSupportRegistered(todayProSupportRegistered);
+
       setTodayProfessionalSupportRecordCount(
         savedResult.ok && typeof savedResult.rowCount === "number"
           ? savedResult.rowCount
@@ -143,7 +194,11 @@ export function useProfessionalSupportCheck(logTag = "ProfessionalSupportCheck")
       }
 
       if (!useDaysResult.ok) {
-        console.error(`[${logTag}] 専門的支援チェック失敗:`, useDaysResult.error);
+        console.error(
+          `[${logTag}] 専門的支援チェック失敗:`,
+          useDaysResult.error
+        );
+
         alert(useDaysResult.error || "利用日数の取得に失敗しました");
         return;
       }
@@ -154,6 +209,7 @@ export function useProfessionalSupportCheck(logTag = "ProfessionalSupportCheck")
       );
 
       patchChildUseSpeDate(effectiveChildId, adjustedDays);
+
       setUseDaysDisplayKind(
         todayPersonalRecordRegistered === true ? "adjusted" : "raw"
       );
@@ -164,6 +220,7 @@ export function useProfessionalSupportCheck(logTag = "ProfessionalSupportCheck")
         adjustedDays,
         todayPersonalRecordRegistered,
       });
+
       console.log("[HUG WM] 表示用の利用日数:", adjustedDays, "日");
     } catch (e) {
       console.error(`[${logTag}] 専門的支援チェック例外:`, e);

@@ -1,11 +1,12 @@
 // renderer/src/components/Sidebar/Tools/InsertManageChildren/ChildrenTableList.jsx
+
 import React, { useState, useEffect, useMemo } from "react";
 import ConfirmModal from "./ConfirmModal.jsx";
 import { store } from "@/store/store.js";
 import { useToast } from "@/components/common/ToastContext.jsx";
-import { useDataBase } from "@/hooks/useDataBase";
 import { useAppState } from "@/AppStateContext";
 import { insertManager } from "@/sql/useManager/insertManager";
+
 /**
  * 出勤データを一覧表示するコンポーネント（managers2 対応）
  */
@@ -21,43 +22,59 @@ function ChildrenTableList({ childrenList = [] }) {
     CURRENT_DAY_OF_WEEK,
     FACILITY_ID,
     appState,
-    activeSidebarTab: activeTab,
+    childrenData,
     setActiveSidebarTab: setActiveTab,
   } = useAppState();
 
   const { showErrorToast, showSuccessToast } = useToast();
 
-  // 当日の対応児童（managers2 構造）
-  const { childrenData } = useDataBase();
+  // AppState から取得済みの当日対応児童を読む
+  const currentManagedChildren = Array.isArray(childrenData)
+    ? childrenData
+    : [];
 
   // =============================================================
   // readonly 対象 children_id を Set 化（children_id 一致のみ）
+  // すでに当日の対応児童に含まれている児童は再登録不可
   // =============================================================
   const readonlyChildrenIdSet = useMemo(() => {
-    if (!childrenData) return new Set();
-
     return new Set(
-      childrenData.map((cd) => Number(cd.children_id))
+      currentManagedChildren.map((cd) => Number(cd.children_id))
     );
-  }, [childrenData]);
+  }, [currentManagedChildren]);
+
+  // =============================================================
+  // 選択済みIDから readonly 化されたものを除外
+  // DB再取得後などに、登録済み児童が選択状態に残る事故を防ぐ
+  // =============================================================
+  useEffect(() => {
+    setSelectedIds((prev) =>
+      prev.filter((id) => !readonlyChildrenIdSet.has(Number(id)))
+    );
+  }, [readonlyChildrenIdSet]);
 
   // =============================================================
   // 初期ログ
   // =============================================================
   useEffect(() => {
-    if (!childrenData) return;
-
     console.log("=== ChildrenTableList 初期化（managers2） ===");
     console.log("▶ props.childrenList:", childrenList);
-    console.log("▶ 対応児童 childrenData:", childrenData);
-    console.log("▶ STAFF_ID:", STAFF_ID, "CURRENT_DAY_OF_WEEK:", CURRENT_DAY_OF_WEEK);
+    console.log("▶ 対応児童 childrenData:", currentManagedChildren);
+    console.log("▶ STAFF_ID:", STAFF_ID);
+    console.log("▶ CURRENT_DAY_OF_WEEK:", CURRENT_DAY_OF_WEEK);
     console.log("▶ readonlyChildrenIdSet:", [...readonlyChildrenIdSet]);
-  }, [childrenData, childrenList, STAFF_ID, CURRENT_DAY_OF_WEEK, readonlyChildrenIdSet]);
+  }, [
+    childrenList,
+    currentManagedChildren,
+    STAFF_ID,
+    CURRENT_DAY_OF_WEEK,
+    readonlyChildrenIdSet,
+  ]);
 
   // =============================================================
   // データなし
   // =============================================================
-  if (!childrenList || childrenList.length === 0) {
+  if (!Array.isArray(childrenList) || childrenList.length === 0) {
     return <p className="text-gray-500 mt-4">データがありません。</p>;
   }
 
@@ -66,6 +83,7 @@ function ChildrenTableList({ childrenList = [] }) {
   // =============================================================
   const handleCheckboxChange = (id) => {
     const numId = Number(id);
+
     setSelectedIds((prev) =>
       prev.includes(numId)
         ? prev.filter((x) => x !== numId)
@@ -112,6 +130,7 @@ function ChildrenTableList({ childrenList = [] }) {
 
       if (result) {
         showSuccessToast("追加完了しました");
+        setSelectedIds([]);
         setActiveTab("tools");
       } else {
         showErrorToast("失敗しました");
@@ -119,7 +138,7 @@ function ChildrenTableList({ childrenList = [] }) {
 
       return result;
     } catch (err) {
-      console.error(err);
+      console.error("❌ ChildrenTableList handleConfirm エラー:", err);
       showErrorToast("失敗しました");
       return false;
     } finally {
@@ -134,6 +153,13 @@ function ChildrenTableList({ childrenList = [] }) {
     selectedIds.includes(Number(child.children_id))
   );
 
+  const selectableCount = childrenList.filter(
+    (child) => !readonlyChildrenIdSet.has(Number(child.children_id))
+  ).length;
+
+  const isAllSelected =
+    selectableCount > 0 && selectedIds.length === selectableCount;
+
   // =============================================================
   // JSX
   // =============================================================
@@ -141,12 +167,14 @@ function ChildrenTableList({ childrenList = [] }) {
     <div className="mt-6">
       {/* 登録ボタン */}
       <button
+        type="button"
         className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
         onClick={() => {
           if (selectedIds.length === 0) {
             alert("児童を選択してください。");
             return;
           }
+
           setShowConfirmModal(true);
         }}
       >
@@ -161,6 +189,8 @@ function ChildrenTableList({ childrenList = [] }) {
               <input
                 id="select-all"
                 type="checkbox"
+                checked={isAllSelected}
+                disabled={selectableCount === 0}
                 onChange={handleSelectAll}
               />
             </th>
@@ -175,6 +205,7 @@ function ChildrenTableList({ childrenList = [] }) {
           {childrenList.map((child) => {
             const cid = Number(child.children_id);
             const isReadonly = readonlyChildrenIdSet.has(cid);
+            const isChecked = selectedIds.includes(cid);
 
             return (
               <tr
@@ -189,10 +220,12 @@ function ChildrenTableList({ childrenList = [] }) {
                   <input
                     className={isReadonly ? "hidden" : ""}
                     type="checkbox"
-                    checked={selectedIds.includes(cid)}
+                    checked={isChecked}
                     disabled={isReadonly}
                     onChange={() => {
-                      if (!isReadonly) handleCheckboxChange(cid);
+                      if (!isReadonly) {
+                        handleCheckboxChange(cid);
+                      }
                     }}
                   />
                 </td>
@@ -204,7 +237,7 @@ function ChildrenTableList({ childrenList = [] }) {
                 </td>
 
                 <td className="border px-2 py-1 font-semibold">
-                  {child.column5}
+                  {child.column5 || "-"}
                 </td>
 
                 <td className="border px-2 py-1 text-blue-700 font-semibold">

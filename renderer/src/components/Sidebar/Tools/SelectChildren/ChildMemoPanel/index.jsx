@@ -1,7 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useDispatch } from 'react-redux'
 import { useAppState } from '@/AppStateContext'
-import { useDataBase } from '@/hooks/useDataBase'
 import { useTabs } from '@/hooks/useTabs'
 import {
   clickEnterButton,
@@ -12,7 +11,7 @@ import { useToast } from '@/components/common/ToastContext.jsx'
 import AttendanceActionSection from './AttendanceActionSection.jsx'
 import { isAttendanceDataLoaded } from '@/utils/attendance/helpers/attendanceStatus.js'
 import './attendanceForm.css'
-import PersonalRecordCheckPanel from "@/components/common/hug_function/PersonalRecordCheckPanel"
+import PersonalRecordCheckPanel from '@/components/common/hug_function/PersonalRecordCheckPanel'
 import ProfessionalSupportCheckPanel2 from '@/components/common/hug_function/ProfessionalSupportCheckPanel2'
 import SelectChildFilter from './SelectChildFilter'
 
@@ -26,6 +25,11 @@ export default function ChildMemoPanel() {
     updateAppState,
     CURRENT_YMD,
     FACILITY_ID,
+
+    // loadDataBase() が AppState に保存したデータを読む
+    childrenData,
+    waiting_childrenData,
+    Experience_childrenData,
   } = useAppState()
 
   const { addProfessionalSupportNewTab } = useTabs()
@@ -36,19 +40,31 @@ export default function ChildMemoPanel() {
   } = useToast()
 
   const isStop = false
-  const selectChild = appState.SELECT_CHILD
+  const selectChild = appState?.SELECT_CHILD
 
-  const {
-    childrenData,
-    waitingChildrenData,
-    experienceChildrenData,
-  } = useDataBase()
+  // =============================================================
+  // AppState のデータを安全に配列化
+  // =============================================================
+  const weekChildrenData = useMemo(() => {
+    return Array.isArray(childrenData) ? childrenData : []
+  }, [childrenData])
+
+  const waitingChildrenData = useMemo(() => {
+    return Array.isArray(waiting_childrenData) ? waiting_childrenData : []
+  }, [waiting_childrenData])
+
+  const experienceChildrenData = useMemo(() => {
+    return Array.isArray(Experience_childrenData) ? Experience_childrenData : []
+  }, [Experience_childrenData])
 
   const [selectedChildData, setSelectedChildData] = useState(null)
   const [attendanceItem, setAttendanceItem] = useState(null)
   const [isUIEnabled, setIsUIEnabled] = useState(false)
   const [loadingAction, setLoadingAction] = useState(null)
 
+  // =============================================================
+  // 選択児童の attendanceData を取得
+  // =============================================================
   useEffect(() => {
     if (!selectChild) {
       setAttendanceItem(null)
@@ -67,6 +83,12 @@ export default function ChildMemoPanel() {
     if (!Array.isArray(list)) {
       setAttendanceItem(null)
       setIsUIEnabled(false)
+      setSelectedChildColumns({
+        column5: null,
+        column5Html: null,
+        column6: null,
+        column6Html: null,
+      })
       return
     }
 
@@ -75,7 +97,7 @@ export default function ChildMemoPanel() {
     )
 
     setAttendanceItem(item || null)
-    setIsUIEnabled(!!item)
+    setIsUIEnabled(Boolean(item))
 
     if (item) {
       setSelectedChildColumns({
@@ -84,9 +106,23 @@ export default function ChildMemoPanel() {
         column6: item.column6 ?? null,
         column6Html: item.column6Html ?? null,
       })
+    } else {
+      setSelectedChildColumns({
+        column5: null,
+        column5Html: null,
+        column6: null,
+        column6Html: null,
+      })
     }
-  }, [selectChild, attendanceData, setSelectedChildColumns])
+  }, [
+    selectChild,
+    attendanceData,
+    setSelectedChildColumns,
+  ])
 
+  // =============================================================
+  // 選択児童の基本情報を AppState の取得済みデータから探す
+  // =============================================================
   useEffect(() => {
     if (!selectChild) {
       setSelectedChildData(null)
@@ -94,20 +130,34 @@ export default function ChildMemoPanel() {
     }
 
     const child =
-      childrenData.find((c) => String(c.children_id) === String(selectChild)) ||
-      waitingChildrenData.find((c) => String(c.children_id) === String(selectChild)) ||
-      experienceChildrenData.find((c) => String(c.children_id) === String(selectChild))
+      weekChildrenData.find(
+        (c) => String(c.children_id) === String(selectChild)
+      ) ||
+      waitingChildrenData.find(
+        (c) => String(c.children_id) === String(selectChild)
+      ) ||
+      experienceChildrenData.find(
+        (c) => String(c.children_id) === String(selectChild)
+      ) ||
+      null
 
-    setSelectedChildData(child || null)
+    setSelectedChildData(child)
   }, [
     selectChild,
-    childrenData,
+    weekChildrenData,
     waitingChildrenData,
     experienceChildrenData,
   ])
 
+  // =============================================================
+  // attendanceData 読み込み状態
+  // =============================================================
   const isAttendanceLoaded = isAttendanceDataLoaded(attendanceData)
 
+  // =============================================================
+  // 共通レイアウト
+  // SelectChildFilter は常に上部表示
+  // =============================================================
   const renderPanelShell = (content) => {
     return (
       <div className="child-memo-panel flex-1 min-h-0 border-l border-gray-300 bg-gray-50 flex flex-col">
@@ -120,6 +170,9 @@ export default function ChildMemoPanel() {
     )
   }
 
+  // =============================================================
+  // 未選択
+  // =============================================================
   if (!selectChild || !selectedChildData) {
     return renderPanelShell(
       <div className="flex-1 min-h-0 overflow-y-auto p-4">
@@ -130,6 +183,9 @@ export default function ChildMemoPanel() {
     )
   }
 
+  // =============================================================
+  // 今日の利用者データ未取得
+  // =============================================================
   if (!isAttendanceLoaded) {
     return renderPanelShell(
       <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
@@ -147,7 +203,8 @@ export default function ChildMemoPanel() {
   const column6 = attendanceItem?.column6 ?? null
   const column6Html = attendanceItem?.column6Html ?? null
 
-  const isTimeFormat = (v) => /^\d{2}:\d{2}$/.test(v || '')
+  const isTimeFormat = (v) =>
+    typeof v === 'string' && /^\d{2}:\d{2}$/.test(v.trim())
 
   const isAbsent =
     typeof column5 === 'string' && column5.startsWith('欠席')
@@ -159,6 +216,9 @@ export default function ChildMemoPanel() {
   const dateStr = CURRENT_YMD || appState?.CURRENT_YMD
   const childName = selectedChildData?.children_name || ''
 
+  // =============================================================
+  // 入室
+  // =============================================================
   const runEnter = async () => {
     if (!column5Html) {
       showErrorToast('入室ボタン情報がありません')
@@ -192,6 +252,9 @@ export default function ChildMemoPanel() {
     }
   }
 
+  // =============================================================
+  // 退室
+  // =============================================================
   const runLeave = async () => {
     if (!column6Html) {
       showErrorToast('退室ボタン情報がありません')
@@ -226,6 +289,9 @@ export default function ChildMemoPanel() {
     }
   }
 
+  // =============================================================
+  // 欠席
+  // =============================================================
   const runAbsence = async () => {
     if (!column5Html) {
       showErrorToast('欠席ボタン情報がありません')
@@ -250,6 +316,9 @@ export default function ChildMemoPanel() {
     }
   }
 
+  // =============================================================
+  // JSX
+  // =============================================================
   return renderPanelShell(
     <div className="flex-1 min-h-0 overflow-y-auto p-2">
       <div className="child-memo-attendance-form flex flex-col rounded bg-white border border-gray-300 gap-2 p-2">

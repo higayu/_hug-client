@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useAppState } from "@/AppStateContext";
 import { useDataBase } from "@/hooks/useDataBase";
@@ -16,6 +16,11 @@ import { fetchProfessionalSupportUseDaysViaHugTab } from "./fetchHook1";
 /**
  * 専門的支援実施加算の利用日数チェック
  *
+ * 方針:
+ * - childrenData は useDataBase から取らない
+ * - childrenData は AppState / Redux 側の正本を読む
+ * - patchChildUseSpeDate だけ useDataBase から使う
+ *
  * 新処理:
  * - HUG の record_proceedings.php を POST 検索
  * - 月初〜指定日までの専門的支援実施加算の保存済み件数を取得
@@ -27,11 +32,25 @@ export function useProfessionalSupportCheck2(
 ) {
   const dispatch = useDispatch();
 
-  const { SELECT_CHILD, FACILITY_ID, CURRENT_YMD } = useAppState();
+  const {
+    SELECT_CHILD,
+    FACILITY_ID,
+    CURRENT_YMD,
+
+    // loadDataBase() が AppState に保存したデータを読む
+    childrenData,
+  } = useAppState();
 
   const selectedChildIdFromStore = useSelector(selectSelectedChild);
   const facilityIdFromStore = useSelector(selectFacilityId);
   const currentYmdFromStore = useSelector(selectCurrentYmd);
+
+  // 更新関数だけ useDataBase から取得
+  const { patchChildUseSpeDate } = useDataBase();
+
+  const safeChildrenData = useMemo(() => {
+    return Array.isArray(childrenData) ? childrenData : [];
+  }, [childrenData]);
 
   console.log(`[HUG WM] 当日の日付 store値（${logTag}）`, {
     currentYmdFromStore,
@@ -55,11 +74,17 @@ export function useProfessionalSupportCheck2(
     effectiveCurrentYmdType: typeof effectiveCurrentYmd,
   });
 
-  const { childrenData, patchChildUseSpeDate } = useDataBase();
+  const selectedChild = useMemo(() => {
+    if (!effectiveChildId) return null;
 
-  const selectedChild = childrenData.find(
-    (c) => String(c.children_id) === String(effectiveChildId)
-  );
+    const selectedId = String(effectiveChildId);
+
+    return (
+      safeChildrenData.find(
+        (c) => String(c.children_id) === selectedId
+      ) || null
+    );
+  }, [safeChildrenData, effectiveChildId]);
 
   const useDays = selectedChild?.useSpeDate ?? null;
 
@@ -154,9 +179,7 @@ export function useProfessionalSupportCheck2(
     });
 
     console.log(`[HUG WM] childrenData 検索結果（${logTag}）`, {
-      childrenDataLength: Array.isArray(childrenData)
-        ? childrenData.length
-        : null,
+      childrenDataLength: safeChildrenData.length,
       selectedChild,
       currentUseDays: useDays,
     });
@@ -328,7 +351,9 @@ export function useProfessionalSupportCheck2(
         };
       });
 
-      const todayRowsForDebug = rowsWithDateDebug.filter((item) => item.isToday);
+      const todayRowsForDebug = rowsWithDateDebug.filter((item) => {
+        return item.isToday;
+      });
 
       console.table(
         rowsWithDateDebug.map((item) => ({
@@ -354,7 +379,8 @@ export function useProfessionalSupportCheck2(
 
       console.groupEnd();
 
-      const monthlyRecordCount = rowsForDebug.length > 0 ? rowsForDebug.length : rawDays;
+      const monthlyRecordCount =
+        rowsForDebug.length > 0 ? rowsForDebug.length : rawDays;
 
       const todayRecordCount = Array.isArray(useDaysResult.rows)
         ? todayRowsForDebug.length
@@ -457,7 +483,11 @@ export function useProfessionalSupportCheck2(
 
       console.log("[HUG WM] 表示用の利用日数:", rawDays, "日");
     } catch (e) {
-      console.timeEnd(timerLabel);
+      try {
+        console.timeEnd(timerLabel);
+      } catch {
+        // console.timeEnd が二重実行になる環境対策
+      }
 
       const errorMessage = String(e?.message || e);
 
@@ -508,7 +538,7 @@ export function useProfessionalSupportCheck2(
     effectiveChildId,
     effectiveFacilityId,
     effectiveCurrentYmd,
-    childrenData,
+    safeChildrenData,
     selectedChild,
     useDays,
     todayProfessionalSupportRecordCount,

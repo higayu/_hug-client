@@ -2,7 +2,7 @@
 import { useEffect, useRef, useCallback } from 'react'
 import { useAppState } from '@/AppStateContext'
 import { useCustomButtons } from '@/components/common/CustomButtonsContext.jsx'
-import { saveConfig } from '@/utils/config/configUtils.js'
+import { saveConfig } from '@/utils/config/configUtils'
 import { useToast } from '@/components/common/ToastContext.jsx'
 import { loadAllReload } from '@/utils/config/reloadSettings.js'
 import { updateButtonVisibility } from '@/utils/app/buttonVisibility.js'

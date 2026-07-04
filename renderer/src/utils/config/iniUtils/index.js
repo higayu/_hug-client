@@ -1,4 +1,4 @@
-// src/utils/iniUtils.js
+// src/utils/iniUtils/index.js
 // ini.json の読み書きユーティリティ
 
 /**

@@ -1,4 +1,4 @@
-// src/configUtils.js
+// src/configUtils/index.js
 const fs = require("fs");
 const { getDataPath } = require("./fileUtils");
 

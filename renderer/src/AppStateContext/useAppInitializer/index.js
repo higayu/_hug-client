@@ -1,8 +1,15 @@
-// AppStateContext/useAppInitializer/index.js
+// renderer/src/AppStateContext/useAppInitializer/index.js
 
-import { loadConfig } from '@/utils/config/configUtils'
-import { loadIni, loadPrompt } from '@/utils/config/iniUtils'
-import { updateAppState, setPrompts } from '@/store/slices/appStateSlice'
+import {
+  loadConfig,
+  loadIni,
+  loadPrompt,
+} from "@/utils/config";
+
+import {
+  updateAppState,
+  setPrompts,
+} from "@/store/slices/appStateSlice";
 
 /**
  * boolean / string boolean を吸収する
@@ -13,165 +20,165 @@ import { updateAppState, setPrompts } from '@/store/slices/appStateSlice'
  * の両方が来る可能性があるため、ここで統一する
  */
 const toBooleanFlag = (value, defaultValue = true) => {
-  if (value === true || value === 'true') return true
-  if (value === false || value === 'false') return false
-  return defaultValue
-}
+  if (value === true || value === "true") return true;
+  if (value === false || value === "false") return false;
+  return defaultValue;
+};
 
 /**
  * DATABASE_TYPE の表記を正規化する
  */
 const normalizeDatabaseType = (value) => {
-  if (value === 'mariadb') return 'mariadb'
-  if (value === 'MariaDB') return 'mariadb'
-  if (value === 'sqlite') return 'sqlite'
-  if (value === 'SQLite') return 'sqlite'
+  if (value === "mariadb") return "mariadb";
+  if (value === "MariaDB") return "mariadb";
+  if (value === "sqlite") return "sqlite";
+  if (value === "SQLite") return "sqlite";
 
-  return 'sqlite'
-}
+  return "sqlite";
+};
 
 /**
  * AppState 初期化
  *
  * 方針:
- * - config.json / ini.json / prompt を読み込む
- * - 読み込んだ値はすべて Redux(appStateSlice) に反映する
+ * - config.json / ini.json / prompt をすべて読み込む
+ * - すべて読み込み完了後に Redux(appStateSlice) へ反映する
  * - activeApi は使わない
  * - DATABASE_TYPE を正本にする
  * - AUTO_SYNCHRONIZATION / AUTO_SWITCHING も ini.json から Redux に反映する
+ * - Redux反映後、最後に setIsInitialized(true) を呼ぶ
  *
  * @param {Object} params
  * @param {Function} params.dispatch Redux dispatch
  * @param {Function} params.setIsInitialized 初期化完了フラグ setter
- * @returns {Promise<{ ini: Object | null }>}
+ * @returns {Promise<{ config: Object | null, ini: Object | null, prompts: Object }>}
  */
 export async function initializeAppState({
   dispatch,
   setIsInitialized,
 }) {
-  const merged = {}
+  const merged = {};
 
   try {
-    console.group('🚀 [initializeAppState] 初期化開始')
+    console.group("🚀 [initializeAppState] 初期化開始");
 
     // =============================================================
-    // 1) ファイル読み込み
+    // 1) config / ini / prompt をすべて読み込む
     // =============================================================
-    const config = await loadConfig()
-    const ini = await loadIni()
-    const prompts = await loadPrompt()
+    const [config, ini, prompts] = await Promise.all([
+      loadConfig(),
+      loadIni(),
+      loadPrompt(),
+    ]);
 
-    console.log('📄 [initializeAppState] config:', config)
-    console.log('📄 [initializeAppState] ini:', ini)
-    console.log('📄 [initializeAppState] prompts:', prompts)
+    console.log("📄 [initializeAppState] config:", config);
+    console.log("📄 [initializeAppState] ini:", ini);
+    console.log("📄 [initializeAppState] prompts:", prompts);
 
     // =============================================================
-    // 2) config.json → Redux
+    // 2) config.json → Redux 反映用 merged
     // 存在するものだけ反映する
     // =============================================================
 
     // HUG 認証情報
     if (config?.HUG_USERNAME !== undefined) {
-      merged.HUG_USERNAME = config.HUG_USERNAME
+      merged.HUG_USERNAME = config.HUG_USERNAME;
     }
 
     if (config?.HUG_PASSWORD !== undefined) {
-      merged.HUG_PASSWORD = config.HUG_PASSWORD
+      merged.HUG_PASSWORD = config.HUG_PASSWORD;
     }
 
     // Gemini
     if (config?.GEMINI_API_KEY !== undefined) {
-      merged.GEMINI_API_KEY = config.GEMINI_API_KEY
+      merged.GEMINI_API_KEY = config.GEMINI_API_KEY;
     }
 
     if (config?.GEMINI_MODEL !== undefined) {
-      merged.GEMINI_MODEL = config.GEMINI_MODEL
+      merged.GEMINI_MODEL = config.GEMINI_MODEL;
     }
 
     // OpenRouter
     if (config?.OPEN_ROUTER_API_KEY !== undefined) {
-      merged.OPEN_ROUTER_API_KEY = config.OPEN_ROUTER_API_KEY
+      merged.OPEN_ROUTER_API_KEY = config.OPEN_ROUTER_API_KEY;
     }
 
     if (config?.OPEN_ROUTER_MODEL !== undefined) {
-      merged.OPEN_ROUTER_MODEL = config.OPEN_ROUTER_MODEL
+      merged.OPEN_ROUTER_MODEL = config.OPEN_ROUTER_MODEL;
     }
 
     // DeepSeek
     if (config?.DEEPSEEK_MAIL !== undefined) {
-      merged.DEEPSEEK_MAIL = config.DEEPSEEK_MAIL
+      merged.DEEPSEEK_MAIL = config.DEEPSEEK_MAIL;
     }
 
     if (config?.DEEPSEEK_PASSWORD !== undefined) {
-      merged.DEEPSEEK_PASSWORD = config.DEEPSEEK_PASSWORD
+      merged.DEEPSEEK_PASSWORD = config.DEEPSEEK_PASSWORD;
     }
 
     // OpenAI
     if (config?.OPENAI_MAIL !== undefined) {
-      merged.OPENAI_MAIL = config.OPENAI_MAIL
+      merged.OPENAI_MAIL = config.OPENAI_MAIL;
     }
 
     if (config?.OPENAI_PASSWORD !== undefined) {
-      merged.OPENAI_PASSWORD = config.OPENAI_PASSWORD
+      merged.OPENAI_PASSWORD = config.OPENAI_PASSWORD;
     }
 
     // Ollama
     if (config?.OLLAMA_URL !== undefined) {
-      merged.OLLAMA_URL = config.OLLAMA_URL
+      merged.OLLAMA_URL = config.OLLAMA_URL;
     }
 
     if (config?.OLLAMA_MODEL !== undefined) {
-      merged.OLLAMA_MODEL = config.OLLAMA_MODEL
+      merged.OLLAMA_MODEL = config.OLLAMA_MODEL;
     }
 
     // 日付情報
     if (config?.CURRENT_DAY_OF_WEEK !== undefined) {
-      merged.CURRENT_DAY_OF_WEEK = config.CURRENT_DAY_OF_WEEK
+      merged.CURRENT_DAY_OF_WEEK = config.CURRENT_DAY_OF_WEEK;
     }
 
     // =============================================================
-    // 3) ini.json → Redux
+    // 3) ini.json → Redux 反映用 merged
     // =============================================================
-    const apiSettings = ini?.apiSettings ?? {}
+    const apiSettings = ini?.apiSettings ?? {};
 
-    const databaseType = normalizeDatabaseType(apiSettings.databaseType)
+    const databaseType = normalizeDatabaseType(apiSettings.databaseType);
 
     const autoSynchronization = toBooleanFlag(
       apiSettings.autoSynchronization,
       true
-    )
+    );
 
     const autoSwitching = toBooleanFlag(
       apiSettings.autoSwitching,
       true
-    )
+    );
 
-    merged.DATABASE_TYPE = databaseType
-    merged.USE_AI = apiSettings.useAI || 'gemini'
+    merged.DATABASE_TYPE = databaseType;
+    merged.USE_AI = apiSettings.useAI || "gemini";
 
-    // 重要:
-    // ini.json の apiSettings.autoSynchronization / autoSwitching を
-    // Redux の AUTO_SYNCHRONIZATION / AUTO_SWITCHING に反映する
-    merged.AUTO_SYNCHRONIZATION = autoSynchronization
-    merged.AUTO_SWITCHING = autoSwitching
+    merged.AUTO_SYNCHRONIZATION = autoSynchronization;
+    merged.AUTO_SWITCHING = autoSwitching;
 
     if (apiSettings.staffId != null) {
-      merged.STAFF_ID = String(apiSettings.staffId)
+      merged.STAFF_ID = String(apiSettings.staffId);
     }
 
     if (apiSettings.facilityId != null) {
-      merged.FACILITY_ID = String(apiSettings.facilityId)
+      merged.FACILITY_ID = String(apiSettings.facilityId);
     }
 
     if (apiSettings.debugFlg != null) {
-      merged.DEBUG_FLG = toBooleanFlag(apiSettings.debugFlg, false)
+      merged.DEBUG_FLG = toBooleanFlag(apiSettings.debugFlg, false);
     }
 
     if (apiSettings.baseURL !== undefined) {
-      merged.VITE_API_BASE_URL = apiSettings.baseURL || ''
+      merged.VITE_API_BASE_URL = apiSettings.baseURL || "";
     }
 
-    console.log('🧾 [initializeAppState] apiSettings normalized:', {
+    console.log("🧾 [initializeAppState] apiSettings normalized:", {
       rawDatabaseType: apiSettings.databaseType,
       databaseType,
 
@@ -192,41 +199,57 @@ export async function initializeAppState({
 
       rawDebugFlg: apiSettings.debugFlg,
       DEBUG_FLG: merged.DEBUG_FLG,
-    })
+
+      CURRENT_DAY_OF_WEEK: merged.CURRENT_DAY_OF_WEEK,
+    });
 
     // =============================================================
     // 4) Redux 反映
     // =============================================================
-    console.log('📤 [initializeAppState] updateAppState:', merged)
+    console.log("📤 [initializeAppState] updateAppState:", merged);
 
-    dispatch(updateAppState(merged))
+    dispatch(updateAppState(merged));
 
-    console.log('📤 [initializeAppState] setPrompts:', prompts || {})
+    console.log("📤 [initializeAppState] setPrompts:", prompts || {});
 
-    dispatch(setPrompts(prompts || {}))
+    dispatch(setPrompts(prompts || {}));
 
     // =============================================================
     // 5) 初期化完了
+    //
+    // ここで true にすることで、
+    // useDataBase({ autoLoad: true }) 側がDB取得を開始できる
     // =============================================================
-    setIsInitialized(true)
+    setIsInitialized(true);
 
-    console.log('✅ [initializeAppState] 初期化完了:', {
+    console.log("✅ [initializeAppState] 初期化完了:", {
       DATABASE_TYPE: merged.DATABASE_TYPE,
+      STAFF_ID: merged.STAFF_ID,
+      FACILITY_ID: merged.FACILITY_ID,
+      CURRENT_DAY_OF_WEEK: merged.CURRENT_DAY_OF_WEEK,
       AUTO_SYNCHRONIZATION: merged.AUTO_SYNCHRONIZATION,
       AUTO_SWITCHING: merged.AUTO_SWITCHING,
-    })
+    });
 
-    console.groupEnd()
+    console.groupEnd();
 
-    return { ini }
+    return {
+      config,
+      ini,
+      prompts: prompts || {},
+    };
   } catch (error) {
-    console.error('❌ [initializeAppState] 初期化エラー:', error)
+    console.error("❌ [initializeAppState] 初期化エラー:", error);
 
     // 初期化に失敗してもアプリを完全停止させない
-    setIsInitialized(true)
+    setIsInitialized(true);
 
-    console.groupEnd()
+    console.groupEnd();
 
-    return { ini: null }
+    return {
+      config: null,
+      ini: null,
+      prompts: {},
+    };
   }
 }

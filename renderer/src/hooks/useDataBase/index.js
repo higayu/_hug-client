@@ -17,7 +17,15 @@ import {
 import { selectDatabaseType } from "@/store/slices/appStateSlice"
 import { checkMariaDbConnection } from "./checkMariaDbConnection"
 
-export function useDataBase() {
+/**
+ * DBデータ取得フック
+ *
+ * 重要:
+ * - autoLoad=false がデフォルト
+ * - useDataBase() を呼ぶだけでは loadDataBase は実行しない
+ * - 初期起動時に1回だけ取得したい場所だけ useDataBase({ autoLoad: true }) を使う
+ */
+export function useDataBase({ autoLoad = false } = {}) {
   // =============================================================
   // AppState（必要なものだけ取り出す）
   // =============================================================
@@ -50,6 +58,8 @@ export function useDataBase() {
 
   const childrenDataRef = useRef(childrenData)
   const loadingRef = useRef(false)
+  const loadSeqRef = useRef(0)
+  const didAutoLoadRef = useRef(false)
 
   useEffect(() => {
     childrenDataRef.current = childrenData
@@ -67,11 +77,33 @@ export function useDataBase() {
   // =============================================================
   const loadDataBase = useCallback(
     async (options = {}) => {
+      const loadId = ++loadSeqRef.current
+      const reason = options.reason || "manual/unknown"
       const forceDatabaseType = options.forceDatabaseType
 
+      console.group(`🧩 [useDataBase] loadDataBase START #${loadId}`)
+      console.log("📌 [useDataBase] call info:", {
+        loadId,
+        reason,
+        forceDatabaseType,
+        autoLoad,
+        isInitialized,
+        STAFF_ID,
+        weekdayId,
+        databaseType,
+        reduxDatabaseType: databaseTypeFromRedux,
+        appStateDatabaseType: window.AppState?.DATABASE_TYPE,
+        iniDatabaseType: window.IniState?.apiSettings?.databaseType,
+        iniAutoSwitching: window.IniState?.apiSettings?.autoSwitching,
+      })
+
       if (loadingRef.current) {
-        console.warn("⏳ [useDataBase] すでにデータ取得中のためスキップします")
-        return
+        console.warn("⏳ [useDataBase] すでにデータ取得中のためスキップします", {
+          loadId,
+          reason,
+        })
+        console.groupEnd()
+        return false
       }
 
       loadingRef.current = true
@@ -79,11 +111,15 @@ export function useDataBase() {
       try {
         if (!isInitialized || !STAFF_ID || !weekdayId) {
           console.warn("⏳ [useDataBase] 前提条件不足", {
+            loadId,
+            reason,
             isInitialized,
             STAFF_ID,
             weekdayId,
           })
-          return
+          console.groupEnd()
+          window.alert("⏳ [useDataBase] 前提条件不足");
+          return false
         }
 
         const facilitySelect = document.getElementById(
@@ -100,9 +136,9 @@ export function useDataBase() {
         let mariaDbConnectionResult = null
         let checkedMariaDbConnection = false
 
-        console.group("🧩 [useDataBase] loadDataBase START")
-
         console.log("🔍 [useDataBase] 初期 resolvedDatabaseType:", {
+          loadId,
+          reason,
           forceDatabaseType,
           databaseType,
           resolvedDatabaseType,
@@ -114,19 +150,6 @@ export function useDataBase() {
 
         // =============================================================
         // DATABASE_TYPE=sqlite の場合
-        //
-        // 重要:
-        // 画面・一時判定では sqlite でも、
-        // window.AppState / Redux 側が mariadb の場合がある。
-        //
-        // その状態で MariaDB 接続失敗した場合、
-        // checkMariaDbConnection 側で正式に
-        // ini.json / Redux / window.AppState を sqlite に切り替える必要がある。
-        //
-        // そのため autoFallbackToSqlite は true にする。
-        //
-        // checkMariaDbConnection 側では currentDatabaseType === "sqlite" の場合、
-        // fallback 切替は省略されるので true にしても問題ない。
         // =============================================================
         if (resolvedDatabaseType === "sqlite") {
           console.log(
@@ -134,16 +157,8 @@ export function useDataBase() {
           )
 
           mariaDbConnectionResult = await checkMariaDbConnection(dispatch, {
-            // 重要:
-            // false だと currentDatabaseType=mariadb でも正式な SQLite fallback が走らない
             autoFallbackToSqlite: true,
-
-            // AUTO_SWITCHING の判定は checkMariaDbConnection.js 側に任せる
-            // ここを true にすると AUTO_SWITCHING=false でも強制切替になるので false
             switchToMariaDbOnSuccess: false,
-
-            // AUTO_SWITCHING=true で MariaDB へ切替、
-            // または MariaDB失敗で SQLite fallback した場合は ini.json に保存する
             persistIni: true,
           })
 
@@ -191,11 +206,6 @@ export function useDataBase() {
 
         // =============================================================
         // DATABASE_TYPE=mariadb の場合
-        //
-        // MariaDB 接続確認を行い、失敗したら SQLite fallback。
-        //
-        // ただし、直前の sqlite 分岐で checkMariaDbConnection 済みかつ
-        // mariadb へ切替済みの場合は、二重チェックせず mariadbApi を使う。
         // =============================================================
         if (resolvedDatabaseType === "mariadb") {
           if (checkedMariaDbConnection) {
@@ -228,7 +238,6 @@ export function useDataBase() {
             )
 
             mariaDbConnectionResult = await checkMariaDbConnection(dispatch, {
-              // mariadb中の接続失敗時は sqlite に正式 fallback
               autoFallbackToSqlite: true,
               switchToMariaDbOnSuccess: false,
               persistIni: true,
@@ -265,6 +274,8 @@ export function useDataBase() {
         }
 
         console.log("🔍 [useDataBase] 最終的に使用するDB/API:", {
+          loadId,
+          reason,
           resolvedDatabaseType,
           apiName:
             apiToUse === mariadbApi
@@ -281,7 +292,7 @@ export function useDataBase() {
         if (!tables) {
           console.error("❌ [useDataBase] テーブル取得失敗")
           console.groupEnd()
-          return
+          return false
         }
 
         console.log("⭐ [useDataBase] テーブルデータ:", tables)
@@ -313,6 +324,8 @@ export function useDataBase() {
         setExperienceChildrenData(experience)
 
         console.log("✅ [useDataBase] loadDataBase 完了:", {
+          loadId,
+          reason,
           resolvedDatabaseType,
           weekChildrenCount: weekChildren.length,
           waitingCount: waiting.length,
@@ -320,14 +333,17 @@ export function useDataBase() {
         })
 
         console.groupEnd()
+        return true
       } catch (error) {
         console.error("❌ [useDataBase] 子どもデータ読み込みエラー:", error)
         console.groupEnd()
+        return false
       } finally {
         loadingRef.current = false
       }
     },
     [
+      autoLoad,
       isInitialized,
       databaseType,
       databaseTypeFromRedux,
@@ -342,14 +358,24 @@ export function useDataBase() {
 
   // =============================================================
   // 曜日変更イベント・DB種別変更イベント（互換用）
+  //
+  // 重要:
+  // - autoLoad=true のインスタンスだけイベントを監視する
+  // - 複数コンポーネントで useDataBase() を呼んでもイベントリスナーが増えないようにする
   // =============================================================
   useEffect(() => {
+    if (!autoLoad) {
+      return undefined
+    }
+
     const handleWeekdayChanged = async () => {
       console.log("📅 [useDataBase] weekday-changed 受信")
 
       setSelectedChild("", "")
 
-      await loadDataBase()
+      await loadDataBase({
+        reason: "event/weekday-changed",
+      })
     }
 
     const handleDatabaseTypeChanged = async (event) => {
@@ -363,6 +389,7 @@ export function useDataBase() {
       setSelectedChild("", "")
 
       await loadDataBase({
+        reason: "event/database-type-changed",
         forceDatabaseType: nextDatabaseType,
       })
     }
@@ -377,14 +404,35 @@ export function useDataBase() {
         handleDatabaseTypeChanged
       )
     }
-  }, [loadDataBase, setSelectedChild])
+  }, [autoLoad, loadDataBase, setSelectedChild])
 
   // =============================================================
-  // 初期化 & 依存変化で再取得
+  // 初期化完了後に1回だけ自動取得
+  //
+  // 重要:
+  // - autoLoad=true のインスタンスだけ実行
+  // - isInitialized / STAFF_ID / weekdayId が揃ってから1回だけ実行
+  // - 依存値が変わっても didAutoLoadRef により多重実行しない
   // =============================================================
   useEffect(() => {
-    loadDataBase()
-  }, [loadDataBase])
+    if (!autoLoad) return
+    if (didAutoLoadRef.current) return
+
+    if (!isInitialized || !STAFF_ID || !weekdayId) {
+      console.log("⏳ [useDataBase] autoLoad 待機中", {
+        isInitialized,
+        STAFF_ID,
+        weekdayId,
+      })
+      return
+    }
+
+    didAutoLoadRef.current = true
+
+    loadDataBase({
+      reason: "autoLoad/after-initialized-once",
+    })
+  }, [autoLoad, isInitialized, STAFF_ID, weekdayId, loadDataBase])
 
   // =============================================================
   // 専門的支援 利用日数（useSpeDate）を該当児童だけ更新

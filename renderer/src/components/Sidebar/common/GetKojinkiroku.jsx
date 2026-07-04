@@ -1,4 +1,5 @@
 // src/components/Sidebar/Tools/TestTool/GetKojinkiroku.jsx
+
 import React, { useEffect } from "react";
 import { useSelector } from "react-redux";
 import {
@@ -6,7 +7,6 @@ import {
   selectAttendanceLoading,
   selectAttendanceError,
 } from "@/store/slices/attendanceSlice.js";
-import { useDataBase } from "@/hooks/useDataBase";
 import { useAppState } from "@/AppStateContext";
 
 import {
@@ -21,34 +21,49 @@ function GetKojinkiroku() {
   /* ===============================
    * Hooks（順序固定）
    * =============================== */
-  const { appState, attendanceData } = useAppState();
-  const { childrenData } = useDataBase();
+  const {
+    appState,
+    attendanceData,
+    childrenData,
+  } = useAppState();
 
   const extractedData = useSelector(selectExtractedData);
   const loading = useSelector(selectAttendanceLoading);
   const error = useSelector(selectAttendanceError);
 
-  const childrenList = extractedData?.data || [];
-  const attendanceList = attendanceData?.data || [];
-
   const {
     showSuccessToast,
     showErrorToast,
-    showWarningToast,
-    showInfoToast,
   } = useToast();
+
+  /* ===============================
+   * 安全な配列化
+   * =============================== */
+  const appChildrenData = Array.isArray(childrenData)
+    ? childrenData
+    : [];
+
+  const childrenList = Array.isArray(extractedData?.data)
+    ? extractedData.data
+    : [];
+
+  const attendanceList = Array.isArray(attendanceData?.data)
+    ? attendanceData.data
+    : [];
 
   /* ===============================
    * 初期ログ
    * =============================== */
   useEffect(() => {
-    if (!childrenData) return;
     console.log("🟢 GetKojinkiroku 初期化", {
-      childrenData,
+      appChildrenData,
+      appChildrenDataLength: appChildrenData.length,
+      childrenList,
+      childrenListLength: childrenList.length,
       appState,
       attendanceData,
     });
-  }, [childrenData, appState, attendanceData]);
+  }, [appChildrenData, childrenList, appState, attendanceData]);
 
   if (loading) return <p>読み込み中...</p>;
   if (error) return <p>エラー: {error}</p>;
@@ -76,13 +91,15 @@ function GetKojinkiroku() {
 
     try {
       console.log("➡ clickEnterButton 実行開始");
+
       const res = await clickEnterButton(column5Html, Number(cid));
+
       console.log("⬅ clickEnterButton 結果:", res);
 
       if (res?.success === true) {
         showSuccessToast("入室　実行完了");
       } else {
-        showErrorToast("入室　失敗");
+        showErrorToast(res?.error || "入室　失敗");
       }
     } catch (e) {
       console.error("💥 入室処理例外:", e);
@@ -109,13 +126,15 @@ function GetKojinkiroku() {
 
     try {
       console.log("➡ clickExitButton 実行開始");
+
       const res = await clickExitButton(column6Html, Number(cid));
+
       console.log("⬅ clickExitButton 結果:", res);
 
       if (res?.success === true) {
         showSuccessToast("退室　実行完了");
       } else {
-        showErrorToast("退室　失敗");
+        showErrorToast(res?.error || "退室　失敗");
       }
     } catch (e) {
       console.error("💥 退室処理例外:", e);
@@ -126,8 +145,8 @@ function GetKojinkiroku() {
   };
 
   /* ===============================
-  * 欠席ボタン
-  * =============================== */
+   * 欠席ボタン
+   * =============================== */
   const kessekiButton = async (column5Html, cid) => {
     console.group("🟨 欠席クリック");
     console.log("cid:", cid);
@@ -142,13 +161,15 @@ function GetKojinkiroku() {
 
     try {
       console.log("➡ clickAbsenceButton 実行開始");
+
       const res = await clickAbsenceButton(column5Html, Number(cid));
+
       console.log("⬅ clickAbsenceButton 結果:", res);
 
       if (res?.success === true) {
         showSuccessToast("欠席　実行完了");
       } else {
-        showErrorToast("欠席　失敗");
+        showErrorToast(res?.error || "欠席　失敗");
       }
     } catch (e) {
       console.error("💥 欠席処理例外:", e);
@@ -157,7 +178,6 @@ function GetKojinkiroku() {
       console.groupEnd();
     }
   };
-
 
   return (
     <div className="mt-6">
@@ -174,80 +194,87 @@ function GetKojinkiroku() {
         </thead>
 
         <tbody>
-          {childrenList.map((child) => {
-            const cid = String(child.children_id);
-            const targetChildrenId = Number(cid);
+          {childrenList.length > 0 ? (
+            childrenList.map((child) => {
+              const cid = String(child.children_id);
 
-            const attendanceItem =
-              attendanceList.find(
-                (i) => String(i.children_id) === cid
-              ) || null;
+              const attendanceItem =
+                attendanceList.find(
+                  (i) => String(i.children_id) === cid
+                ) || null;
 
-            const isUIEnabled = !!attendanceItem;
+              const isUIEnabled = Boolean(attendanceItem);
 
-            const column5 = attendanceItem?.column5 ?? null;
-            const column5Html = attendanceItem?.column5Html ?? null;
-            const column6 = attendanceItem?.column6 ?? null;
-            const column6Html = attendanceItem?.column6Html ?? null;
+              const column5 = attendanceItem?.column5 ?? null;
+              const column5Html = attendanceItem?.column5Html ?? null;
+              const column6 = attendanceItem?.column6 ?? null;
+              const column6Html = attendanceItem?.column6Html ?? null;
 
-            const isAbsent = column5 === "欠席";
-            const hasEntered = isTimeFormat(column5);
-            const hasExited = isTimeFormat(column6);
+              const isAbsent =
+                typeof column5 === "string" &&
+                column5.startsWith("欠席");
 
-            return (
-              <tr key={cid}>
-                <td className="border px-2 py-1">{cid}</td>
-                <td className="border px-2 py-1">
-                  {child.children_name}
-                </td>
+              const hasEntered = isTimeFormat(column5);
+              const hasExited = isTimeFormat(column6);
 
-                <td className="border px-2 py-1">
-                  <div
-                    className="flex flex-col gap-2"
-                    style={{
-                      pointerEvents: isUIEnabled ? "auto" : "none",
-                      opacity: isUIEnabled ? 1 : 0.4,
-                    }}
-                  >
-                    {isAbsent ? (
-                      <div className="text-xs font-bold text-red-600">
-                        欠席
-                      </div>
-                    ) : hasEntered ? (
-                      <>
-                        <div className="text-sm">
-                          入室: {column5}
+              return (
+                <tr key={cid}>
+                  <td className="border px-2 py-1">{cid}</td>
+
+                  <td className="border px-2 py-1">
+                    {child.children_name}
+                  </td>
+
+                  <td className="border px-2 py-1">
+                    <div
+                      className="flex flex-col gap-2"
+                      style={{
+                        pointerEvents: isUIEnabled ? "auto" : "none",
+                        opacity: isUIEnabled ? 1 : 0.4,
+                      }}
+                    >
+                      {isAbsent ? (
+                        <div className="text-xs font-bold text-red-600">
+                          欠席
                         </div>
-
-                        {hasExited ? (
+                      ) : hasEntered ? (
+                        <>
                           <div className="text-sm">
-                            退室: {column6}
+                            入室: {column5}
                           </div>
-                        ) : (
+
+                          {hasExited ? (
+                            <div className="text-sm">
+                              退室: {column6}
+                            </div>
+                          ) : (
+                            <button
+                              type="button"
+                              className="btn-green"
+                              onClick={() =>
+                                taishituButton(column6Html, cid)
+                              }
+                              disabled={!isUIEnabled}
+                            >
+                              退室
+                            </button>
+                          )}
+                        </>
+                      ) : (
+                        <>
                           <button
-                            className="btn-green"
+                            type="button"
+                            className="btn-blue"
                             onClick={() =>
-                              taishituButton(column6Html, cid)
+                              nyushituButton(column5Html, cid)
                             }
                             disabled={!isUIEnabled}
                           >
-                            退室
+                            入室
                           </button>
-                        )}
-                      </>
-                    ) : (
-                      <>
-                        <button
-                          className="btn-blue"
-                          onClick={() =>
-                            nyushituButton(column5Html, cid)
-                          }
-                          disabled={!isUIEnabled}
-                        >
-                          入室
-                        </button>
 
                           <button
+                            type="button"
                             className="btn-red"
                             onClick={() =>
                               kessekiButton(column5Html, cid)
@@ -256,24 +283,35 @@ function GetKojinkiroku() {
                           >
                             欠席
                           </button>
+                        </>
+                      )}
+                    </div>
+                  </td>
 
-                      </>
-                    )}
-                  </div>
-                </td>
+                  <td className="border px-2 py-1 text-blue-700 font-semibold">
+                    {column6 || "-"}
+                  </td>
 
-                <td className="border px-2 py-1 text-blue-700 font-semibold">
-                  {column6 || "-"}
-                </td>
-                <td className="border px-2 py-1">
-                  {column5Html}
-                </td>
-                <td className="border px-2 py-1">
-                  {column6Html || "-"}
-                </td>
-              </tr>
-            );
-          })}
+                  <td className="border px-2 py-1">
+                    {column5Html || "-"}
+                  </td>
+
+                  <td className="border px-2 py-1">
+                    {column6Html || "-"}
+                  </td>
+                </tr>
+              );
+            })
+          ) : (
+            <tr>
+              <td
+                colSpan={6}
+                className="border px-2 py-4 text-center text-gray-500"
+              >
+                児童データがありません
+              </td>
+            </tr>
+          )}
         </tbody>
       </table>
     </div>

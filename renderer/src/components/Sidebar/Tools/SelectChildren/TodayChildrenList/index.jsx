@@ -1,7 +1,7 @@
 // src/components/Sidebar/SelectChildrenList/TodayChildrenList/index.jsx
 // 子どもリストを表示するコンポーネント
+
 import { useState, useMemo, useEffect, useCallback } from "react"
-import { useDataBase } from "@/hooks/useDataBase"
 import { useAppState } from "@/AppStateContext"
 import { ELEMENT_IDS } from "@/utils/app/constants.js"
 import {
@@ -63,7 +63,8 @@ function timeToMinutes(time) {
 }
 
 /**
- * support_end_time が 12:00 以下なら午前児童
+ * support_start_time / support_end_time が両方ある場合のみ午前判定する
+ * どちらかが null の場合は、とりあえず表示対象にする
  */
 function isMorningChild(child) {
   if (!child?.support_start_time || !child?.support_end_time) {
@@ -81,18 +82,27 @@ function isMorningChild(child) {
 
 export default function TodayChildrenList() {
   const {
-    childrenData,
-    waitingChildrenData,
-    experienceChildrenData,
-  } = useDataBase()
-
-  const {
     SELECT_CHILD,
     SELECT_CHILD_FILTER_MODE,
     attendanceData,
+
+    // loadDataBase() が updateAppState で保存したデータを読む
+    childrenData,
+    waiting_childrenData,
+    Experience_childrenData,
+
     setSelectedChild,
     setSelectedPcName,
   } = useAppState()
+
+  // AppState 側の命名を画面側で扱いやすい名前に寄せる
+  const weekChildrenData = Array.isArray(childrenData) ? childrenData : []
+  const waitingChildrenData = Array.isArray(waiting_childrenData)
+    ? waiting_childrenData
+    : []
+  const experienceChildrenData = Array.isArray(Experience_childrenData)
+    ? Experience_childrenData
+    : []
 
   const [activeTab, setActiveTab] = useState(TABS.NORMAL)
   const [doneChildIds, setDoneChildIds] = useState([])
@@ -177,20 +187,20 @@ export default function TodayChildrenList() {
     sometimesChildren,
     temporaryChildren,
   } = useMemo(() => {
-    const base = Array.isArray(childrenData) ? childrenData : []
+    const base = Array.isArray(weekChildrenData) ? weekChildrenData : []
 
     return {
       normalChildren: filterVisibleChildren(
-        base.filter((child) => Number(child.priority) === 0)
+        base.filter((child) => Number(child.priority ?? 0) === 0)
       ),
       sometimesChildren: filterVisibleChildren(
-        base.filter((child) => Number(child.priority) === 1)
+        base.filter((child) => Number(child.priority ?? 0) === 1)
       ),
       temporaryChildren: filterVisibleChildren(
-        base.filter((child) => Number(child.priority) === 2)
+        base.filter((child) => Number(child.priority ?? 0) === 2)
       ),
     }
-  }, [childrenData, filterVisibleChildren])
+  }, [weekChildrenData, filterVisibleChildren])
 
   const visibleWaitingChildren = useMemo(
     () => filterVisibleChildren(waitingChildrenData),
