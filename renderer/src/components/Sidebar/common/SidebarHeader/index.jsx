@@ -8,7 +8,7 @@ import { useAttendanceFetch } from "@/hooks/useAttendanceFetch";
 
 import TableDataGetButton from "@/components/common/hug_function/TableDataGetButon";
 import WeekdaySelect from "@/components/common/WeekdaySelect";
-import SelectChildFilter from "./SelectChildFilter";
+
 
 function SidebarHeader() {
   const { showInfoToast } = useToast();
@@ -114,7 +114,7 @@ function SidebarHeader() {
 
         {/* Web Manager（外部ブラウザ） */}
         <div className="flex flex-col gap-2 items-center justify-center">
-              <SelectChildFilter />
+              
               <TableDataGetButton
                 onFetch={runFetch}
                 autoFetchEnabled={autoFetchEnabled}
