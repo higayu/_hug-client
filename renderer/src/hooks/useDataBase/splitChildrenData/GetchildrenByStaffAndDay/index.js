@@ -83,9 +83,12 @@ export async function GetchildrenByStaffAndDay({
         weekday_id: weekdayId,
         weekday_name: weekdayObj?.label_jp ?? "",
 
+
         // managers2
         day_of_week_id: m.day_of_week_id,
         priority: m.priority ?? 0,
+        support_start_time: m.support_start_time ?? null,
+        support_end_time: m.support_end_time ?? null,
 
         children_type_id: child.children_type_id,
         children_type_name: ctype?.name ?? "",

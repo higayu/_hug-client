@@ -270,6 +270,8 @@ CREATE TABLE IF NOT EXISTS "managers2" (
 	"staff_id"	INTEGER NOT NULL,
 	"day_of_week_id"	INTEGER NOT NULL,
 	"priority"	INTEGER NOT NULL DEFAULT 0,
+	"support_start_time"	TEXT DEFAULT NULL,
+	"support_end_time"	TEXT DEFAULT NULL,
 	PRIMARY KEY("children_id","staff_id","day_of_week_id"),
 	CONSTRAINT "FK_managers2_children" FOREIGN KEY("children_id") REFERENCES "children"("id") ON DELETE CASCADE,
 	CONSTRAINT "FK_managers2_staffs" FOREIGN KEY("staff_id") REFERENCES "staffs"("id") ON DELETE CASCADE,
@@ -559,12 +561,15 @@ async function migrateExistingDatabase(db) {
     `"updated_at" DATETIME DEFAULT CURRENT_TIMESTAMP`
   );
 
+
   // managers2
   await ensureColumn(db, "managers2", "children_id", `"children_id" INTEGER`);
   await ensureColumn(db, "managers2", "staff_id", `"staff_id" INTEGER`);
   await ensureColumn(db, "managers2", "day_of_week_id", `"day_of_week_id" INTEGER`);
   await ensureColumn(db, "managers2", "priority", `"priority" INTEGER DEFAULT 0`);
-
+  await ensureColumn(db, "managers2", "support_start_time", `"support_start_time" TEXT DEFAULT NULL`);
+  await ensureColumn(db, "managers2", "support_end_time", `"support_end_time" TEXT DEFAULT NULL`);
+  
   // pc
   await ensureColumn(db, "pc", "facility_id", `"facility_id" INTEGER`);
   await ensureColumn(db, "pc", "pc_id", `"pc_id" INTEGER`);
