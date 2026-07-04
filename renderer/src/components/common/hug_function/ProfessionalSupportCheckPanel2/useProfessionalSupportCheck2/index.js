@@ -19,7 +19,6 @@ import { fetchProfessionalSupportUseDaysViaHugTab } from "./fetchHook1";
  * 方針:
  * - childrenData は useDataBase から取らない
  * - childrenData は AppState / Redux 側の正本を読む
- * - patchChildUseSpeDate だけ useDataBase から使う
  *
  * 新処理:
  * - HUG の record_proceedings.php を POST 検索

@@ -1,6 +1,6 @@
 // renderer/src/hooks/useDataBase/index.js
 
-import { useEffect, useState, useCallback, useRef } from "react"
+import { useEffect, useCallback, useRef } from "react"
 import { useDispatch, useSelector } from "react-redux"
 import { useAppState } from "@/AppStateContext"
 import { ELEMENT_IDS } from "@/utils/app/constants"
@@ -35,7 +35,8 @@ export function useDataBase({ autoLoad = false } = {}) {
     isInitialized,
     setSelectedChild,
     setChildrenData,
-    updateAppState,
+    setWaitingChildrenData,
+    setExperienceChildrenData,
     SELECT_CHILD,
   } = useAppState()
 
@@ -50,20 +51,12 @@ export function useDataBase({ autoLoad = false } = {}) {
   const databaseType = databaseTypeFromRedux || "mariadb"
 
   // =============================================================
-  // local state（表示用）
+  // 取得制御用 ref
   // =============================================================
-  const [childrenData, setLocalChildrenData] = useState([])
-  const [waitingChildrenData, setWaitingChildrenData] = useState([])
-  const [experienceChildrenData, setExperienceChildrenData] = useState([])
 
-  const childrenDataRef = useRef(childrenData)
   const loadingRef = useRef(false)
   const loadSeqRef = useRef(0)
   const didAutoLoadRef = useRef(false)
-
-  useEffect(() => {
-    childrenDataRef.current = childrenData
-  }, [childrenData])
 
   // =============================================================
   // DATABASE_TYPE から API を解決
@@ -311,15 +304,6 @@ export function useDataBase({ autoLoad = false } = {}) {
         const experience = data.Experience_children || []
 
         setChildrenData(weekChildren)
-
-        updateAppState({
-          childrenData: weekChildren,
-          waiting_childrenData: waiting,
-          Experience_childrenData: experience,
-        })
-
-        childrenDataRef.current = weekChildren
-        setLocalChildrenData(weekChildren)
         setWaitingChildrenData(waiting)
         setExperienceChildrenData(experience)
 
@@ -351,7 +335,8 @@ export function useDataBase({ autoLoad = false } = {}) {
       weekdayId,
       dispatch,
       setChildrenData,
-      updateAppState,
+      setWaitingChildrenData,
+      setExperienceChildrenData,
       resolveApiByDatabaseType,
     ]
   )
@@ -440,14 +425,6 @@ export function useDataBase({ autoLoad = false } = {}) {
   // return
   // =============================================================
   return {
-    childrenData,
-    waitingChildrenData,
-    experienceChildrenData,
-
     loadDataBase,
-
-    SELECT_CHILD,
-    extractedData,
-    attendanceError,
   }
 }

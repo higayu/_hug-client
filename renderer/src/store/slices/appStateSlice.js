@@ -11,6 +11,12 @@ const toBooleanFlag = (value, defaultValue = true) => {
   return defaultValue
 }
 
+const normalizeSelectChildFilterMode = (value) => {
+  const mode = Number(value)
+
+  return mode === 1 || mode === 2 || mode === 3 ? mode : 0
+}
+
 // 初期状態
 const initialState = {
   // 認証情報
@@ -208,10 +214,8 @@ const appStateSlice = createSlice({
     },
 
     setSelectChildFilterMode: (state, action) => {
-      const mode = Number(action.payload)
-
       state.SELECT_CHILD_FILTER_MODE =
-        mode === 1 || mode === 2 ? mode : 0
+        normalizeSelectChildFilterMode(action.payload)
     },
 
     // マスターデータを設定
@@ -480,10 +484,8 @@ const appStateSlice = createSlice({
       }
 
       if (updates.SELECT_CHILD_FILTER_MODE !== undefined) {
-        const mode = Number(updates.SELECT_CHILD_FILTER_MODE)
-
         state.SELECT_CHILD_FILTER_MODE =
-          mode === 1 || mode === 2 ? mode : 0
+          normalizeSelectChildFilterMode(updates.SELECT_CHILD_FILTER_MODE)
       }
 
       // マスターデータ
