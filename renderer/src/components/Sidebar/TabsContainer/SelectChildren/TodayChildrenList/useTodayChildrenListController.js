@@ -78,6 +78,10 @@ export function useTodayChildrenListController({
 
   const isChildVisible = useCallback(
     (child) => {
+      if (!child) {
+        return false
+      }
+
       const mode = Number(SELECT_CHILD_FILTER_MODE ?? 0)
       const attendanceItem = getAttendanceItem(child.children_id)
 
@@ -128,6 +132,10 @@ export function useTodayChildrenListController({
 
   const getChildAbsent = useCallback(
     (child) => {
+      if (!child) {
+        return false
+      }
+
       const result = isChildAbsent(getAttendanceItem(child.children_id))
 
       debugLog("欠席判定", {
@@ -143,6 +151,10 @@ export function useTodayChildrenListController({
 
   const getChildExited = useCallback(
     (child) => {
+      if (!child) {
+        return false
+      }
+
       const result = isChildExited(getAttendanceItem(child.children_id))
 
       debugLog("退室済み判定", {
@@ -338,13 +350,27 @@ export function useTodayChildrenListController({
   )
 
   // ==============================
-  // 初期選択: 通常タブの最初の児童
+  // 初期選択
+  // 重要:
+  // - 通常タブ表示中だけ自動選択する
+  // - 空のキャンセル/体験タブで SELECT_CHILD を空にした直後に、
+  //   通常児童を勝手に再選択すると無限ループになるため
   // ==============================
   useEffect(() => {
     debugLog("初期選択 useEffect 実行", {
       SELECT_CHILD,
+      activeTab,
       normalChildrenCount: normalChildren.length,
     })
+
+    if (activeTab !== TABS.NORMAL) {
+      debugLog("初期選択をスキップ", {
+        reason: "通常タブではない",
+        activeTab,
+      })
+
+      return
+    }
 
     if (SELECT_CHILD || normalChildren.length === 0) {
       debugLog("初期選択をスキップ", {
@@ -380,6 +406,7 @@ export function useTodayChildrenListController({
       })
     }
   }, [
+    activeTab,
     normalChildren,
     SELECT_CHILD,
     setSelectedChild,
@@ -388,7 +415,11 @@ export function useTodayChildrenListController({
 
   // ==============================
   // フィルタ変更時:
-  // 欠席・午前・退室済みなどで非表示になった児童の選択を解除
+  // 欠席・午前・退室済みなどで非表示になった児童の選択を変更
+  //
+  // 重要:
+  // - 現在タブに表示児童が0件の場合、SELECT_CHILDを解除しない
+  // - 解除すると「通常タブの初期選択」と衝突して無限ループになる
   // ==============================
   useEffect(() => {
     debugLog("選択児童の表示状態チェック useEffect 実行", {
@@ -407,6 +438,15 @@ export function useTodayChildrenListController({
 
     const visibleChildren = getVisibleChildrenForTab(activeTab)
 
+    if (visibleChildren.length === 0) {
+      debugLog("現在タブに表示児童がいないため選択状態は変更しない", {
+        activeTab,
+        SELECT_CHILD,
+      })
+
+      return
+    }
+
     const selectedStillVisible = visibleChildren.some(
       (child) => String(child.children_id) === String(SELECT_CHILD)
     )
@@ -422,30 +462,6 @@ export function useTodayChildrenListController({
     }
 
     const first = visibleChildren[0]
-
-    if (!first) {
-      debugLog("表示できる児童がいないため選択解除", {
-        activeTab,
-        SELECT_CHILD,
-      })
-
-      setSelectedChild("", "")
-      setSelectedPcName("")
-
-      if (window.AppState) {
-        window.AppState.SELECT_CHILD = ""
-        window.AppState.SELECT_CHILD_NAME = ""
-        window.AppState.SELECT_PC_NAME = ""
-
-        debugLog("window.AppState 選択解除反映", {
-          SELECT_CHILD: window.AppState.SELECT_CHILD,
-          SELECT_CHILD_NAME: window.AppState.SELECT_CHILD_NAME,
-          SELECT_PC_NAME: window.AppState.SELECT_PC_NAME,
-        })
-      }
-
-      return
-    }
 
     debugLog("非表示になった児童から先頭の表示児童へ選択変更", {
       previousSelectedChild: SELECT_CHILD,

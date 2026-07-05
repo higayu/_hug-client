@@ -5,11 +5,11 @@ import { TABS } from "../constants"
 
 export default function ChildrenListContent({
   activeTab,
-  normalChildren,
-  sometimesChildren,
-  temporaryChildren,
-  waitingChildrenData,
-  experienceChildrenData,
+  normalChildren = [],
+  sometimesChildren = [],
+  temporaryChildren = [],
+  waitingChildrenData = [],
+  experienceChildrenData = [],
   selectedChildId,
   onSelectChild,
   getChildNotesTitle,
@@ -18,52 +18,73 @@ export default function ChildrenListContent({
   getChildAbsent,
   getChildExited,
 }) {
+  const noChildrenMessage =
+    MESSAGES?.INFO?.NO_CHILDREN ?? "表示できる児童はいません"
+
+  const noWaitingMessage =
+    MESSAGES?.INFO?.NO_WAITING ?? "キャンセルの児童はいません"
+
+  const noExperienceMessage =
+    MESSAGES?.INFO?.NO_EXPERIENCE ?? "体験の児童はいません"
+
   const isChildDone = (child) => {
     return doneChildIds.includes(child.children_id)
   }
 
-  const renderChildItem = (child, showPcName = true) => (
-    <ChildListItem
-      key={child.children_id}
-      child={child}
-      isSelected={selectedChildId === child.children_id}
-      onSelect={onSelectChild}
-      getTitle={getChildNotesTitle}
-      showPcName={showPcName}
-      isDone={isChildDone(child)}
-      onToggleDone={onToggleDone}
-      isAbsent={getChildAbsent?.(child) ?? false}
-      isExited={getChildExited?.(child) ?? false}
-    />
+  const renderEmpty = (message) => (
+    <li className="px-3 py-2 text-sm text-gray-500">
+      {message}
+    </li>
   )
+
+  const renderChildItem = (child, showPcName = true) => {
+    if (!child) {
+      return null
+    }
+
+    return (
+      <ChildListItem
+        key={child.children_id}
+        child={child}
+        isSelected={String(selectedChildId) === String(child.children_id)}
+        onSelect={onSelectChild}
+        getTitle={getChildNotesTitle}
+        showPcName={showPcName}
+        isDone={isChildDone(child)}
+        onToggleDone={onToggleDone}
+        isAbsent={getChildAbsent?.(child) ?? false}
+        isExited={getChildExited?.(child) ?? false}
+      />
+    )
+  }
 
   switch (activeTab) {
     case TABS.NORMAL:
       return normalChildren.length
         ? normalChildren.map((child) => renderChildItem(child))
-        : <li>{MESSAGES.INFO.NO_CHILDREN}</li>
+        : renderEmpty(noChildrenMessage)
 
     case TABS.SOMETIMES:
       return sometimesChildren.length
         ? sometimesChildren.map((child) => renderChildItem(child))
-        : <li>時折対応の児童はいません</li>
+        : renderEmpty("時折対応の児童はいません")
 
     case TABS.TEMPORARY:
       return temporaryChildren.length
         ? temporaryChildren.map((child) => renderChildItem(child))
-        : <li>一時対応の児童はいません</li>
+        : renderEmpty("一時対応の児童はいません")
 
     case TABS.WAITING:
-      return waitingChildrenData?.length
+      return waitingChildrenData.length
         ? waitingChildrenData.map((child) => renderChildItem(child, false))
-        : <li>{MESSAGES.INFO.NO_WAITING}</li>
+        : renderEmpty(noWaitingMessage)
 
     case TABS.EXPERIENCE:
-      return experienceChildrenData?.length
+      return experienceChildrenData.length
         ? experienceChildrenData.map((child) => renderChildItem(child, false))
-        : <li>{MESSAGES.INFO.NO_EXPERIENCE}</li>
+        : renderEmpty(noExperienceMessage)
 
     default:
-      return null
+      return renderEmpty("表示できるタブがありません")
   }
 }
