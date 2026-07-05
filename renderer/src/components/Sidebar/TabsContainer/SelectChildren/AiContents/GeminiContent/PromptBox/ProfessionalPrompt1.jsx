@@ -1,8 +1,7 @@
-// renderer/src/components/Sidebar/Tools/SelectChildren/AiContents/Gemini/common/ProfessionalPrompt1.jsx
+// renderer/src/components/Sidebar/TabsContainer/SelectChildren/AiContents/GeminiContent/PromptBox/ProfessionalPrompt1.jsx
 
 import React, { useState, useEffect } from "react";
 import { useAppState } from "@/AppStateContext";
-import { useDataBase } from "@/hooks/useDataBase";
 import ProfessionalPlan from "@/components/common/hug_function/ProfessionalPlan";
 import ProfessionalSupportCheckPanel2 from "@/components/common/hug_function/ProfessionalSupportCheckPanel2";
 
@@ -12,10 +11,11 @@ export default function ProfessionalPrompt1({
   sendPrompt,
   aiName = "Gemini",
   promptKey = "professional1",
-  renderGeminiResultArea,
+  renderOpenRouterResultArea,
 }) {
+  const appState = useAppState();
+
   const {
-    appState,
     PROMPTS,
     SELECT_CHILD,
 
@@ -23,15 +23,22 @@ export default function ProfessionalPrompt1({
     childrenData,
     waiting_childrenData,
     Experience_childrenData,
-  } = useAppState();
-
-  // 再取得関数だけ useDataBase から取得
-  // autoLoad は付けないので、このコンポーネント表示時に自動取得は走らない
-  const { loadDataBase } = useDataBase();
+  } = appState;
 
   const [text1, setText1] = useState("");
   const [aiText, setAiText] = useState("");
   const [dbNote, setDbNote] = useState("");
+
+  // =============================================================
+  // appState.SELECT_CHILD 監視用
+  // =============================================================
+  useEffect(() => {
+    console.log(`[${DBG}:appState.SELECT_CHILD] 変更検知`, {
+      SELECT_CHILD: appState.SELECT_CHILD,
+      type: typeof appState.SELECT_CHILD,
+      appState,
+    });
+  }, [appState.SELECT_CHILD]);
 
   // =============================================================
   // AppState のデータを安全に配列化
@@ -51,6 +58,7 @@ export default function ProfessionalPrompt1({
   const logDbg = (field, msg, extra = {}) => {
     console.log(`[${DBG}:${field}]`, msg, {
       SELECT_CHILD,
+      appState_SELECT_CHILD: appState.SELECT_CHILD,
       aiName,
       promptKey,
       aiTextLen: aiText.length,
@@ -69,6 +77,8 @@ export default function ProfessionalPrompt1({
       return;
     }
 
+    console.log(`[${DBG}:useEffect] SELECT_CHILD: ${SELECT_CHILD}`);
+    
     const selectedId = String(SELECT_CHILD);
 
     const child =
@@ -137,6 +147,14 @@ export default function ProfessionalPrompt1({
 
   return (
     <div className="flex flex-col gap-4 p-3 w-full">
+      {/* --- SELECT_CHILD 監視表示 --- */}
+      <div className="text-xs bg-yellow-100 text-yellow-900 border border-yellow-300 rounded p-2">
+        appState.SELECT_CHILD:{" "}
+        <span className="font-bold">
+          {appState.SELECT_CHILD ?? "未選択"}
+        </span>
+      </div>
+
       {/* --- DB保存済みメモ --- */}
       <div className="mt-4">
         <div className="flex flex-row justify-between items-center">
@@ -144,14 +162,7 @@ export default function ProfessionalPrompt1({
             保存済みメモ（専門支援内容 / DB）
           </h4>
 
-          <ProfessionalPlan
-            onFetched={setDbNote}
-            reloadDataBase={() =>
-              loadDataBase({
-                reason: `manual/ProfessionalPrompt1/${aiName}`,
-              })
-            }
-          />
+          <ProfessionalPlan />
         </div>
 
         <div className="text-xs bg-gray-700 text-white p-2 rounded whitespace-pre-wrap">
@@ -260,8 +271,10 @@ export default function ProfessionalPrompt1({
           </div>
         </div>
 
-        {(aiName === "Gemini" || aiName === "Ollama") &&
-          renderGeminiResultArea?.({
+        {(aiName === "OpenRouter" ||
+          aiName === "Ollama" ||
+          aiName === "Gemini") &&
+          renderOpenRouterResultArea?.({
             promptKey,
             label: `${aiName} API 返却値（専門1）`,
           })}

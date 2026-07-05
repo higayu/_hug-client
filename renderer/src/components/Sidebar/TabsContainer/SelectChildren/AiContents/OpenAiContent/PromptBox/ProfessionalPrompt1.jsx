@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from "react";
 import { useAppState } from "@/AppStateContext";
-import { useDataBase } from "@/hooks/useDataBase";
 import ProfessionalPlan from "@/components/common/hug_function/ProfessionalPlan";
 import ProfessionalSupportCheckPanel2 from "@/components/common/hug_function/ProfessionalSupportCheckPanel2";
 
@@ -14,27 +13,41 @@ export default function ProfessionalPrompt1({
   promptKey = "professional1",
   renderGeminiResultArea,
 }) {
+  const appState = useAppState();
+
   const {
-    appState,
     PROMPTS,
     SELECT_CHILD,
 
-    // loadDataBase() が AppState に保存したデータを読む
+    // 既存AppState側データ
     childrenData,
     waiting_childrenData,
     Experience_childrenData,
-  } = useAppState();
-
-  // 再取得関数だけ useDataBase から取得
-  // autoLoad は付けないので、このコンポーネント表示時に自動取得は走らない
-  const { loadDataBase } = useDataBase();
+  } = appState;
 
   const [text1, setText1] = useState("");
   const [aiText, setAiText] = useState("");
   const [dbNote, setDbNote] = useState("");
 
   // =============================================================
-  // AppState のデータを安全に配列化
+  // appState.SELECT_CHILD 監視用
+  // =============================================================
+  useEffect(() => {
+    console.log(`[${DBG}:appState.SELECT_CHILD] 児童ID変更検知`, {
+      SELECT_CHILD: appState.SELECT_CHILD,
+      type: typeof appState.SELECT_CHILD,
+    });
+  }, [appState.SELECT_CHILD]);
+
+  // =============================================================
+  // appState.databaseState.children を安全に取得
+  // =============================================================
+  const databaseChildren = Array.isArray(appState?.databaseState?.children)
+    ? appState.databaseState.children
+    : [];
+
+  // =============================================================
+  // 既存AppState のデータも安全に配列化
   // =============================================================
   const weekChildrenData = Array.isArray(childrenData)
     ? childrenData
@@ -51,6 +64,7 @@ export default function ProfessionalPrompt1({
   const logDbg = (field, msg, extra = {}) => {
     console.log(`[${DBG}:${field}]`, msg, {
       SELECT_CHILD,
+      appState_SELECT_CHILD: appState.SELECT_CHILD,
       aiName,
       promptKey,
       aiTextLen: aiText.length,
@@ -60,43 +74,65 @@ export default function ProfessionalPrompt1({
   };
 
   // =============================================================
-  // SELECT_CHILD 変更 → DBメモ読み込み
+  // SELECT_CHILD 変更 → databaseState.children の id と照合して notes を dbNote にセット
   // =============================================================
   useEffect(() => {
     if (!SELECT_CHILD) {
-      logDbg("dbNote", "useEffect: SELECT_CHILD なし → dbNote クリア");
+      logDbg("dbNote", "SELECT_CHILD なし → dbNote クリア");
       setDbNote("");
       return;
     }
 
     const selectedId = String(SELECT_CHILD);
 
-    const child =
+    console.log(`[${DBG}:児童データ] databaseState.children`, {
+      selectedId,
+      count: databaseChildren.length,
+      databaseChildren,
+    });
+
+    const childFromDatabase = databaseChildren.find(
+      (child) => String(child.id) === selectedId
+    );
+
+    // fallback: 既存の childrenData 系も一応見る
+    const childFromOldState =
       weekChildrenData.find(
-        (c) => String(c.children_id) === selectedId
+        (child) =>
+          String(child.id ?? child.children_id) === selectedId
       ) ||
       waitingChildrenData.find(
-        (c) => String(c.children_id) === selectedId
+        (child) =>
+          String(child.id ?? child.children_id) === selectedId
       ) ||
       experienceChildrenData.find(
-        (c) => String(c.children_id) === selectedId
+        (child) =>
+          String(child.id ?? child.children_id) === selectedId
       ) ||
       null;
 
-    const next = child?.notes || "";
+    const child = childFromDatabase || childFromOldState || null;
 
-    logDbg("dbNote", "useEffect: 一覧からメモ反映", {
-      found: Boolean(child),
+    const next = child?.notes ?? "";
+
+    console.log(`[${DBG}:dbNote] SELECT_CHILD一致児童`, {
       selectedId,
-      nextLength: next.length,
-      weekChildrenCount: weekChildrenData.length,
-      waitingChildrenCount: waitingChildrenData.length,
-      experienceChildrenCount: experienceChildrenData.length,
+      found: Boolean(child),
+      source: childFromDatabase
+        ? "databaseState.children"
+        : childFromOldState
+          ? "childrenData/waiting/experience"
+          : "not_found",
+      childId: child?.id ?? child?.children_id ?? null,
+      childName: child?.name ?? null,
+      notesLength: typeof next === "string" ? next.length : 0,
+      notes: next,
     });
 
     setDbNote(next);
   }, [
     SELECT_CHILD,
+    databaseChildren,
     weekChildrenData,
     waitingChildrenData,
     experienceChildrenData,
@@ -137,6 +173,14 @@ export default function ProfessionalPrompt1({
 
   return (
     <div className="flex flex-col gap-4 p-3 w-full">
+      {/* --- SELECT_CHILD 監視表示 --- */}
+      <div className="text-xs bg-yellow-100 text-yellow-900 border border-yellow-300 rounded p-2">
+        appState.SELECT_CHILD:{" "}
+        <span className="font-bold">
+          {appState.SELECT_CHILD ?? "未選択"}
+        </span>
+      </div>
+
       {/* --- DB保存済みメモ --- */}
       <div className="mt-4">
         <div className="flex flex-row justify-between items-center">
@@ -144,14 +188,7 @@ export default function ProfessionalPrompt1({
             保存済みメモ（専門支援内容 / DB）
           </h4>
 
-          <ProfessionalPlan
-            onFetched={setDbNote}
-            reloadDataBase={() =>
-              loadDataBase({
-                reason: `manual/ProfessionalPrompt1/${aiName}`,
-              })
-            }
-          />
+          <ProfessionalPlan />
         </div>
 
         <div className="text-xs bg-gray-700 text-white p-2 rounded whitespace-pre-wrap">

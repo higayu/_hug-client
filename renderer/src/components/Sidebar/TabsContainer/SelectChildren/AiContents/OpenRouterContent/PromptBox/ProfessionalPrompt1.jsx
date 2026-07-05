@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from "react";
 import { useAppState } from "@/AppStateContext";
-import { useDataBase } from "@/hooks/useDataBase";
 import ProfessionalPlan from "@/components/common/hug_function/ProfessionalPlan";
 import ProfessionalSupportCheckPanel2 from "@/components/common/hug_function/ProfessionalSupportCheckPanel2";
 
@@ -15,7 +14,6 @@ export default function ProfessionalPrompt1({
   renderOpenRouterResultArea,
 }) {
   const {
-    appState,
     PROMPTS,
     SELECT_CHILD,
 
@@ -24,10 +22,6 @@ export default function ProfessionalPrompt1({
     waiting_childrenData,
     Experience_childrenData,
   } = useAppState();
-
-  // 再取得関数だけ useDataBase から取得
-  // autoLoad は付けないので、このコンポーネント表示時に自動取得は走らない
-  const { loadDataBase } = useDataBase();
 
   const [text1, setText1] = useState("");
   const [aiText, setAiText] = useState("");
@@ -144,14 +138,7 @@ export default function ProfessionalPrompt1({
             保存済みメモ（専門支援内容 / DB）
           </h4>
 
-          <ProfessionalPlan
-            onFetched={setDbNote}
-            reloadDataBase={() =>
-              loadDataBase({
-                reason: `manual/ProfessionalPrompt1/${aiName}`,
-              })
-            }
-          />
+          <ProfessionalPlan />
         </div>
 
         <div className="text-xs bg-gray-700 text-white p-2 rounded whitespace-pre-wrap">

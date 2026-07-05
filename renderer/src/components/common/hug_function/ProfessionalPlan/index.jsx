@@ -1,6 +1,7 @@
 // renderer/src/components/common/ProfessionalPlan
 import React from "react";
 import { useAppState } from "@/AppStateContext";
+import { useDataBase } from "@/hooks/useDataBase";
 import { getActiveWebview } from "@/utils/webview/webviewState.js";
 import { ArrowPathIcon } from "@heroicons/react/24/solid";
 /**
@@ -26,8 +27,9 @@ async function fetchHtmlInWebview(webview, url) {
   return webview.executeJavaScript(script);
 }
 
-export default function ProfessionalPlan({ onFetched, reloadDataBase }) {
+export default function ProfessionalPlan() {
   const { SELECT_CHILD } = useAppState();
+  const { loadDataBase } = useDataBase();
 
   const handleGetProfessionalPlan = async () => {
     const listUrl =
@@ -303,10 +305,9 @@ export default function ProfessionalPlan({ onFetched, reloadDataBase }) {
         data: { notes: markdown },
       });
 
-      onFetched?.(markdown);
-      if (typeof reloadDataBase === "function") {
-        await reloadDataBase();
-      }
+      await loadDataBase({
+        reason: "manual/ProfessionalPlan",
+      });
 
       if (window.showInfoToast) {
         window.showInfoToast("専門支援計画を取得し、メモ（notes）を保存しました", 2500);
