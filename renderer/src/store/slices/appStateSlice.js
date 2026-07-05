@@ -80,11 +80,6 @@ const initialState = {
   SELECTED_CHILD_COLUMN6: null,
   SELECTED_CHILD_COLUMN6_HTML: null,
 
-  // 子どもデータ
-  childrenData: [],
-  waiting_childrenData: [],
-  Experience_childrenData: [],
-
   // UI状態
   closeButtonsVisible: true,
   SELECT_CHILD_FILTER_MODE: 0,
@@ -192,19 +187,6 @@ const appStateSlice = createSlice({
     // PC名を設定
     setSelectedPcName: (state, action) => {
       state.SELECT_PC_NAME = action.payload || ""
-    },
-
-    // 子どもデータを設定
-    setChildrenData: (state, action) => {
-      state.childrenData = action.payload || []
-    },
-
-    setWaitingChildrenData: (state, action) => {
-      state.waiting_childrenData = action.payload || []
-    },
-
-    setExperienceChildrenData: (state, action) => {
-      state.Experience_childrenData = action.payload || []
     },
 
     // UI状態を設定
@@ -465,19 +447,6 @@ const appStateSlice = createSlice({
           updates.SELECTED_CHILD_COLUMN6_HTML
       }
 
-      // 子どもデータ
-      if (updates.childrenData !== undefined) {
-        state.childrenData = updates.childrenData
-      }
-
-      if (updates.waiting_childrenData !== undefined) {
-        state.waiting_childrenData = updates.waiting_childrenData
-      }
-
-      if (updates.Experience_childrenData !== undefined) {
-        state.Experience_childrenData = updates.Experience_childrenData
-      }
-
       // UI状態
       if (updates.closeButtonsVisible !== undefined) {
         state.closeButtonsVisible = updates.closeButtonsVisible
@@ -598,9 +567,6 @@ export const {
   setCurrentYmd,
   setSelectedChild,
   setSelectedPcName,
-  setChildrenData,
-  setWaitingChildrenData,
-  setExperienceChildrenData,
   setCloseButtonsVisible,
   setSelectChildFilterMode,
   setStaffData,
@@ -714,15 +680,6 @@ export const selectSelectedChildColumn6 = (state) =>
 
 export const selectSelectedChildColumn6Html = (state) =>
   state.appState.SELECTED_CHILD_COLUMN6_HTML
-
-export const selectChildrenData = (state) =>
-  state.appState.childrenData
-
-export const selectWaitingChildrenData = (state) =>
-  state.appState.waiting_childrenData
-
-export const selectExperienceChildrenData = (state) =>
-  state.appState.Experience_childrenData
 
 export const selectCloseButtonsVisible = (state) =>
   state.appState.closeButtonsVisible

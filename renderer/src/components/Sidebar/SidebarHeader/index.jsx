@@ -4,11 +4,9 @@ import { useAppState } from "@/AppStateContext";
 import { getWeekdayIdFromDate } from "@/utils/date/dateUtils";
 import { getTodayYmdString } from "@/utils/date/dateYMD";
 import { useToast } from "@/components/common/ToastContext";
-import { useAttendanceFetch } from "@/hooks/useAttendanceFetch";
 
 import GetTodayUsersChildren from "@/components/common/hug_function/GetTodayUsersChildren";
 import WeekdaySelect from "@/components/ui/WeekdaySelect";
-
 
 function SidebarHeader() {
   const { showInfoToast } = useToast();
@@ -16,55 +14,56 @@ function SidebarHeader() {
   const {
     CURRENT_DAY_OF_WEEK,
     CURRENT_YMD,
-    attendanceData,
     setCurrentDate,
     setCurrentYmd,
-    DEBUG_FLG,
-  } = useAppState()
-
-  const { runFetch, autoFetchEnabled, toggleAutoFetch } = useAttendanceFetch("SidebarHeader")
+  } = useAppState();
 
   // =============================================================
   // 初期化（日付・曜日ID）
   // =============================================================
   useEffect(() => {
     if (!CURRENT_YMD) {
-      const today = getTodayYmdString()
-      const weekdayId = getWeekdayIdFromDate(today)
+      const today = getTodayYmdString();
+      const weekdayId = getWeekdayIdFromDate(today);
 
-      console.log("[INIT] CURRENT_YMD が未設定のため今日をセット:", today)
-      console.log("[INIT] 今日の日付から weekdayId を算出:", weekdayId)
+      console.log("[INIT] CURRENT_YMD が未設定のため今日をセット:", today);
+      console.log("[INIT] 今日の日付から weekdayId を算出:", weekdayId);
 
-      setCurrentYmd(today)
-      setCurrentDate({ weekdayId })
-      return
+      setCurrentYmd(today);
+      setCurrentDate({ weekdayId });
+      return;
     }
 
     if (CURRENT_YMD && CURRENT_DAY_OF_WEEK.weekdayId == null) {
-      const weekdayId = getWeekdayIdFromDate(CURRENT_YMD)
+      const weekdayId = getWeekdayIdFromDate(CURRENT_YMD);
 
-      console.log(
-        "[INIT] CURRENT_YMD はあるが weekdayId が未設定。再計算:",
-        { CURRENT_YMD, weekdayId }
-      )
+      console.log("[INIT] CURRENT_YMD はあるが weekdayId が未設定。再計算:", {
+        CURRENT_YMD,
+        weekdayId,
+      });
 
-      setCurrentDate({ weekdayId })
+      setCurrentDate({ weekdayId });
     }
-  }, [CURRENT_YMD, CURRENT_DAY_OF_WEEK.weekdayId, setCurrentDate, setCurrentYmd])
+  }, [
+    CURRENT_YMD,
+    CURRENT_DAY_OF_WEEK.weekdayId,
+    setCurrentDate,
+    setCurrentYmd,
+  ]);
 
   // =============================================================
   // 日付変更
   // =============================================================
   const handleDateChange = (e) => {
-    const selectedDate = e.target.value
+    const selectedDate = e.target.value;
 
-    if (!selectedDate) return
+    if (!selectedDate) return;
 
-    console.log("[DATE CHANGE] ユーザーが日付を変更:", selectedDate)
+    console.log("[DATE CHANGE] ユーザーが日付を変更:", selectedDate);
 
-    setCurrentYmd(selectedDate)
-    showInfoToast(`📅 日付を ${selectedDate} に設定しました`)
-  }
+    setCurrentYmd(selectedDate);
+    showInfoToast(`📅 日付を ${selectedDate} に設定しました`);
+  };
 
   return (
     <div
@@ -111,22 +110,13 @@ function SidebarHeader() {
           <WeekdaySelect />
         </div>
 
-        {/* Web Manager（外部ブラウザ） */}
+        {/* 今日の利用者データ取得 */}
         <div className="flex flex-col gap-2 items-center justify-center">
-              
-              <GetTodayUsersChildren
-                onFetch={runFetch}
-                autoFetchEnabled={autoFetchEnabled}
-                onToggleAutoFetch={toggleAutoFetch}
-                lastFetchedAt={attendanceData?.extractedAt}
-              />
-
+          <GetTodayUsersChildren />
         </div>
-
-
       </div>
     </div>
-  )
+  );
 }
 
-export default SidebarHeader
+export default SidebarHeader;

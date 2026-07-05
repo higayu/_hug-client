@@ -1,4 +1,4 @@
-// renderer/src/utils/ToDayChildrenList/attendanceTable.js
+// renderer/src/commponents/hug_function/GetTodayUsersChildren/attendanceTable.js
 // 出勤データテーブルのパース・列抽出
 
 export {

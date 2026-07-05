@@ -1,8 +1,3 @@
-import { 
-  fetchAttendanceTableData, 
-  fetchAttendanceData, 
-  parseAttendanceTable 
-} from '@/utils/ToDayChildrenList/attendanceTable.js'
 import { usePreloadPath } from '@/hooks/usePreloadPath'
 import { useAppInitialization } from '@/AppStateContext/useAppInitializer/useAppInitialization.js'
 import { Provider } from 'react-redux'
@@ -15,13 +10,6 @@ import Tabs from '@/components/Header/Tabs.jsx'
 import ContentArea from '@/components/ContentArea.jsx'
 import { useActiveWebviewLogger } from '@/hooks/useTabs/useActiveWebviewLogger'
 import DataBaseAutoLoader from '@/components/common/Synchronization/DataBaseAutoLoader'
-
-// グローバルにエクスポート（デバッグ・開発用）
-window.attendanceTableAPI = {
-  fetchAttendanceTableData,
-  fetchAttendanceData,
-  parseAttendanceTable
-}
 
 // Provider内で初期化を実行する内部コンポーネント
 function AppContent({ preloadPath }) {
@@ -45,11 +33,11 @@ function App() {
     <Provider store={store}>
       <AppStateProvider>
         <DataBaseAutoLoader />
-          <CustomButtonsProvider>
-            <ToastProvider>
-              <AppContent preloadPath={preloadPath} />
-            </ToastProvider>
-          </CustomButtonsProvider>
+        <CustomButtonsProvider>
+          <ToastProvider>
+            <AppContent preloadPath={preloadPath} />
+          </ToastProvider>
+        </CustomButtonsProvider>
       </AppStateProvider>
     </Provider>
   )

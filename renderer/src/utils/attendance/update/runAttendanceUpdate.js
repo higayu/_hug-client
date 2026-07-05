@@ -2,8 +2,8 @@
  * 拡張 timer.js runAttendanceUpdate 相当（利用者一覧の再取得）
  */
 
-import { fetchAttendanceViaHugTab } from "../fetch/fetchAttendanceViaHugTab.js";
-import { extractColumnData } from "@/utils/ToDayChildrenList/attendanceTable.js";
+import { fetchAttendanceViaHugTab } from "@/components/common/hug_function/GetTodayUsersChildren/fetchAttendanceViaHugTab.js";
+import { extractColumnData } from "@/components/common/hug_function/GetTodayUsersChildren/attendanceTable.js";
 import {
   setExtractedData,
   setTableData,

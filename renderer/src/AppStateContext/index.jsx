@@ -17,9 +17,6 @@ import {
   setCurrentDate as setCurrentDateRedux,
   setSelectedChild,
   setSelectedPcName,
-  setChildrenData as setChildrenDataRedux,
-  setWaitingChildrenData as setWaitingChildrenDataRedux,
-  setExperienceChildrenData as setExperienceChildrenDataRedux,
   setAttendanceData as setAttendanceDataRedux,
   setSelectedChildColumns,
   updateAppState as updateAppStateRedux,
@@ -464,10 +461,10 @@ export function AppStateProvider({ children }) {
         : rawDbType === 'sqlite' || rawDbType === 'SQLite'
           ? 'sqlite'
           : null
-    
+
     if (dbType && redux.DATABASE_TYPE !== dbType) {
       updates.DATABASE_TYPE = dbType
-    
+
       console.warn(
         '[AppStateContext] DATABASE_TYPE 差分検出。iniState から Redux を更新予定:',
         {
@@ -625,30 +622,6 @@ export function AppStateProvider({ children }) {
     [dispatch]
   )
 
-  const setChildrenData = useCallback(
-    (data) => {
-      console.log('[AppStateContext/setChildrenData wrapper]', data)
-      dispatch(setChildrenDataRedux(data))
-    },
-    [dispatch]
-  )
-
-  const setWaitingChildrenData = useCallback(
-    (data) => {
-      console.log('[AppStateContext/setWaitingChildrenData wrapper]', data)
-      dispatch(setWaitingChildrenDataRedux(data))
-    },
-    [dispatch]
-  )
-
-  const setExperienceChildrenData = useCallback(
-    (data) => {
-      console.log('[AppStateContext/setExperienceChildrenData wrapper]', data)
-      dispatch(setExperienceChildrenDataRedux(data))
-    },
-    [dispatch]
-  )
-
   const setSelectedPcNameCallback = useCallback(
     (pcName) => {
       console.log('[AppStateContext/setSelectedPcName wrapper]', pcName)
@@ -721,9 +694,6 @@ export function AppStateProvider({ children }) {
       setCurrentDate,
       setCurrentYmd,
       setSelectedChild: setSelectedChildCallback,
-      setChildrenData,
-      setWaitingChildrenData,
-      setExperienceChildrenData,
       setSelectedPcName: setSelectedPcNameCallback,
       setAttendanceData,
       setActiveSidebarTab,
@@ -784,9 +754,6 @@ export function AppStateProvider({ children }) {
         setCurrentDate,
         setCurrentYmd,
         setSelectedChild: setSelectedChildCallback,
-        setChildrenData,
-        setWaitingChildrenData,
-        setExperienceChildrenData,
         setSelectedPcName: setSelectedPcNameCallback,
         setAttendanceData,
         setSelectedChildColumns: setSelectedChildColumnsCallback,

@@ -1,5 +1,5 @@
-// renderer/src/hooks/useDataBase/splitChildrenData/index.js
-// ⚠️ sqliteApiとmariadbApiのimportを削除（使用していないため）
+// renderer/src/AppStateContent/splitChildrenData/index.js
+// 
 import { GetchildrenByStaffAndDay } from "./GetchildrenByStaffAndDay";
 import { Get_waiting_children_pc } from "./Get_waiting_children_pc";
 import { Experience_children_v } from "./Experience_children_v";

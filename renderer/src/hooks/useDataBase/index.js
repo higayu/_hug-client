@@ -3,57 +3,40 @@
 import { useEffect, useCallback, useRef } from "react"
 import { useDispatch, useSelector } from "react-redux"
 import { useAppState } from "@/AppStateContext"
-import { ELEMENT_IDS } from "@/utils/app/constants"
 
 import { mariadbApi } from "@/sql/mariadbApi"
 import { sqliteApi } from "@/sql/sqliteApi"
-import { splitChildrenData } from "./splitChildrenData"
-import { fetchAllTables } from "@/store/slices/databaseSlice"
-import {
-  selectExtractedData,
-  selectAttendanceError,
-} from "@/store/slices/attendanceSlice"
 
+import { fetchAllTables } from "@/store/slices/databaseSlice"
 import { selectDatabaseType } from "@/store/slices/appStateSlice"
 import { checkMariaDbConnection } from "./checkMariaDbConnection"
 
 /**
  * DBデータ取得フック
  *
+ * 役割:
+ * - DBから全テーブルを取得する
+ * - 取得した全テーブルを databaseSlice に保存する
+ *
  * 重要:
- * - autoLoad=false がデフォルト
- * - useDataBase() を呼ぶだけでは loadDataBase は実行しない
- * - 初期起動時に1回だけ取得したい場所だけ useDataBase({ autoLoad: true }) を使う
+ * - 子どもデータの抽出はここでは行わない
+ * - childrenData / waiting_childrenData / Experience_childrenData への保存もしない
+ * - 曜日変更時の再抽出は AppStateContext 側の getChildrenDataByDay() で行う
  */
 export function useDataBase({ autoLoad = false } = {}) {
-  // =============================================================
-  // AppState（必要なものだけ取り出す）
-  // =============================================================
   const {
-    STAFF_ID,
-    CURRENT_DAY_OF_WEEK,
     isInitialized,
     setSelectedChild,
-    setChildrenData,
-    setWaitingChildrenData,
-    setExperienceChildrenData,
-    SELECT_CHILD,
   } = useAppState()
-
-  const weekdayId = CURRENT_DAY_OF_WEEK?.weekdayId
 
   const dispatch = useDispatch()
 
-  const extractedData = useSelector(selectExtractedData)
-  const attendanceError = useSelector(selectAttendanceError)
   const databaseTypeFromRedux = useSelector(selectDatabaseType)
-
   const databaseType = databaseTypeFromRedux || "mariadb"
 
   // =============================================================
   // 取得制御用 ref
   // =============================================================
-
   const loadingRef = useRef(false)
   const loadSeqRef = useRef(0)
   const didAutoLoadRef = useRef(false)
@@ -66,7 +49,7 @@ export function useDataBase({ autoLoad = false } = {}) {
   }, [])
 
   // =============================================================
-  // 子どもデータ取得
+  // DB全テーブル取得
   // =============================================================
   const loadDataBase = useCallback(
     async (options = {}) => {
@@ -81,8 +64,6 @@ export function useDataBase({ autoLoad = false } = {}) {
         forceDatabaseType,
         autoLoad,
         isInitialized,
-        STAFF_ID,
-        weekdayId,
         databaseType,
         reduxDatabaseType: databaseTypeFromRedux,
         appStateDatabaseType: window.AppState?.DATABASE_TYPE,
@@ -102,24 +83,15 @@ export function useDataBase({ autoLoad = false } = {}) {
       loadingRef.current = true
 
       try {
-        if (!isInitialized || !STAFF_ID || !weekdayId) {
-          console.warn("⏳ [useDataBase] 前提条件不足", {
+        if (!isInitialized) {
+          console.warn("⏳ [useDataBase] 初期化前のため取得をスキップします", {
             loadId,
             reason,
             isInitialized,
-            STAFF_ID,
-            weekdayId,
           })
           console.groupEnd()
-          window.alert("⏳ [useDataBase] 前提条件不足");
           return false
         }
-
-        const facilitySelect = document.getElementById(
-          ELEMENT_IDS.FACILITY_SELECT
-        )
-
-        const facility_id = facilitySelect ? facilitySelect.value : null
 
         let resolvedDatabaseType =
           forceDatabaseType || databaseType || "mariadb"
@@ -288,38 +260,31 @@ export function useDataBase({ autoLoad = false } = {}) {
           return false
         }
 
-        console.log("⭐ [useDataBase] テーブルデータ:", tables)
+        console.log("⭐ [useDataBase] 取得した全テーブル:", tables)
 
+        // =============================================================
+        // databaseSlice に全テーブルを保存
+        // ここでは抽出しない
+        // =============================================================
         await dispatch(fetchAllTables(tables))
 
-        const data = await splitChildrenData({
-          tables,
-          staffId: STAFF_ID,
-          weekdayId,
-          ...(facility_id && { facility_id }),
-        })
-
-        const weekChildren = data.week_children || []
-        const waiting = data.waiting_children || []
-        const experience = data.Experience_children || []
-
-        setChildrenData(weekChildren)
-        setWaitingChildrenData(waiting)
-        setExperienceChildrenData(experience)
-
-        console.log("✅ [useDataBase] loadDataBase 完了:", {
+        console.log("✅ [useDataBase] databaseSlice 保存完了:", {
           loadId,
           reason,
           resolvedDatabaseType,
-          weekChildrenCount: weekChildren.length,
-          waitingCount: waiting.length,
-          experienceCount: experience.length,
+          tableKeys: Object.keys(tables),
+          counts: Object.fromEntries(
+            Object.entries(tables).map(([key, value]) => [
+              key,
+              Array.isArray(value) ? value.length : "not array",
+            ])
+          ),
         })
 
         console.groupEnd()
         return true
       } catch (error) {
-        console.error("❌ [useDataBase] 子どもデータ読み込みエラー:", error)
+        console.error("❌ [useDataBase] DBテーブル読み込みエラー:", error)
         console.groupEnd()
         return false
       } finally {
@@ -331,36 +296,22 @@ export function useDataBase({ autoLoad = false } = {}) {
       isInitialized,
       databaseType,
       databaseTypeFromRedux,
-      STAFF_ID,
-      weekdayId,
       dispatch,
-      setChildrenData,
-      setWaitingChildrenData,
-      setExperienceChildrenData,
       resolveApiByDatabaseType,
     ]
   )
 
   // =============================================================
-  // 曜日変更イベント・DB種別変更イベント（互換用）
+  // DB種別変更イベント
   //
   // 重要:
-  // - autoLoad=true のインスタンスだけイベントを監視する
-  // - 複数コンポーネントで useDataBase() を呼んでもイベントリスナーが増えないようにする
+  // - database-type-changed はDB取得元が変わるので再取得する
+  // - weekday-changed では再取得しない
+  // - 曜日変更時は databaseSlice から再抽出するだけ
   // =============================================================
   useEffect(() => {
     if (!autoLoad) {
       return undefined
-    }
-
-    const handleWeekdayChanged = async () => {
-      console.log("📅 [useDataBase] weekday-changed 受信")
-
-      setSelectedChild("", "")
-
-      await loadDataBase({
-        reason: "event/weekday-changed",
-      })
     }
 
     const handleDatabaseTypeChanged = async (event) => {
@@ -379,11 +330,9 @@ export function useDataBase({ autoLoad = false } = {}) {
       })
     }
 
-    window.addEventListener("weekday-changed", handleWeekdayChanged)
     window.addEventListener("database-type-changed", handleDatabaseTypeChanged)
 
     return () => {
-      window.removeEventListener("weekday-changed", handleWeekdayChanged)
       window.removeEventListener(
         "database-type-changed",
         handleDatabaseTypeChanged
@@ -396,18 +345,16 @@ export function useDataBase({ autoLoad = false } = {}) {
   //
   // 重要:
   // - autoLoad=true のインスタンスだけ実行
-  // - isInitialized / STAFF_ID / weekdayId が揃ってから1回だけ実行
-  // - 依存値が変わっても didAutoLoadRef により多重実行しない
+  // - isInitialized が true になったら1回だけ全テーブル取得
+  // - STAFF_ID / weekdayId は不要
   // =============================================================
   useEffect(() => {
     if (!autoLoad) return
     if (didAutoLoadRef.current) return
 
-    if (!isInitialized || !STAFF_ID || !weekdayId) {
+    if (!isInitialized) {
       console.log("⏳ [useDataBase] autoLoad 待機中", {
         isInitialized,
-        STAFF_ID,
-        weekdayId,
       })
       return
     }
@@ -417,9 +364,7 @@ export function useDataBase({ autoLoad = false } = {}) {
     loadDataBase({
       reason: "autoLoad/after-initialized-once",
     })
-  }, [autoLoad, isInitialized, STAFF_ID, weekdayId, loadDataBase])
-
-
+  }, [autoLoad, isInitialized, loadDataBase])
 
   // =============================================================
   // return

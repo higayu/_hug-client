@@ -1,102 +1,105 @@
-// renderer\src\components\common\hug_function\ProfessionalSupportCheckPanel2\useProfessionalSupportCheck2\usePatchChildUseSpeDate.js
+// renderer/src/components/common/SelectChildFilter/usePatchChildUseSpeDate.js
 
-import { useCallback } from "react";
-import { useAppState } from "@/AppStateContext";
+import { useCallback } from "react"
 
 /**
- * AppState 上の childrenData / waiting_childrenData / Experience_childrenData の
+ * TodayChildrenList などで保持している抽出済み児童データの
  * useSpeDate を安全に更新する専用 hook。
  *
- * 注意:
- * - useDataBase のローカル state / ref は使わない
- * - AppState の現在値を元に patch する
- * - childrenList が空配列で上書きされる事故を防ぐ
+ * 方針:
+ * - AppState の childrenData / waiting_childrenData / Experience_childrenData は使わない
+ * - databaseSlice も直接書き換えない
+ * - 表示用に抽出したローカルStateだけを patch する
+ *
+ * 想定する state 形:
+ * {
+ *   week_children: [],
+ *   waiting_children: [],
+ *   Experience_children: [],
+ * }
  */
-export function usePatchChildUseSpeDate() {
-  const {
-    childrenData,
-    waiting_childrenData,
-    Experience_childrenData,
-
-    setChildrenData,
-    setWaitingChildrenData,
-    setExperienceChildrenData,
-    updateAppState,
-  } = useAppState();
-
+export function usePatchChildUseSpeDate({ setSplitChildren } = {}) {
   const patchChildUseSpeDate = useCallback(
     (childId, useSpeDate) => {
       if (!childId) {
-        console.warn("[usePatchChildUseSpeDate] childId が空です");
-        return;
+        console.warn("[usePatchChildUseSpeDate] childId が空です")
+        return
       }
 
-      const targetId = String(childId);
+      if (typeof setSplitChildren !== "function") {
+        console.warn(
+          "[usePatchChildUseSpeDate] setSplitChildren が関数ではありません"
+        )
+        return
+      }
+
+      const targetId = String(childId)
 
       const patchList = (list) => {
         if (!Array.isArray(list)) {
-          return [];
+          return []
         }
 
         return list.map((child) => {
           if (String(child?.children_id) !== targetId) {
-            return child;
+            return child
           }
 
           return {
             ...child,
             useSpeDate,
-          };
-        });
-      };
+          }
+        })
+      }
 
-      const nextChildrenData = patchList(childrenData);
-      const nextWaitingChildrenData = patchList(waiting_childrenData);
-      const nextExperienceChildrenData = patchList(Experience_childrenData);
+      setSplitChildren((prev) => {
+        const safePrev = prev || {}
 
-      console.log("[usePatchChildUseSpeDate] useSpeDate patch", {
-        childId: targetId,
-        useSpeDate,
-        before: {
-          childrenDataLength: Array.isArray(childrenData)
-            ? childrenData.length
-            : null,
-          waitingChildrenDataLength: Array.isArray(waiting_childrenData)
-            ? waiting_childrenData.length
-            : null,
-          experienceChildrenDataLength: Array.isArray(Experience_childrenData)
-            ? Experience_childrenData.length
-            : null,
-        },
-        after: {
-          childrenDataLength: nextChildrenData.length,
-          waitingChildrenDataLength: nextWaitingChildrenData.length,
-          experienceChildrenDataLength: nextExperienceChildrenData.length,
-        },
-      });
+        const prevWeekChildren = Array.isArray(safePrev.week_children)
+          ? safePrev.week_children
+          : []
 
-      setChildrenData(nextChildrenData);
-      setWaitingChildrenData(nextWaitingChildrenData);
-      setExperienceChildrenData(nextExperienceChildrenData);
+        const prevWaitingChildren = Array.isArray(safePrev.waiting_children)
+          ? safePrev.waiting_children
+          : []
 
-      updateAppState({
-        childrenData: nextChildrenData,
-        waiting_childrenData: nextWaitingChildrenData,
-        Experience_childrenData: nextExperienceChildrenData,
-      });
+        const prevExperienceChildren = Array.isArray(
+          safePrev.Experience_children
+        )
+          ? safePrev.Experience_children
+          : []
+
+        const nextWeekChildren = patchList(prevWeekChildren)
+        const nextWaitingChildren = patchList(prevWaitingChildren)
+        const nextExperienceChildren = patchList(prevExperienceChildren)
+
+        console.log("[usePatchChildUseSpeDate] useSpeDate patch", {
+          childId: targetId,
+          useSpeDate,
+          before: {
+            weekChildrenLength: prevWeekChildren.length,
+            waitingChildrenLength: prevWaitingChildren.length,
+            experienceChildrenLength: prevExperienceChildren.length,
+          },
+          after: {
+            weekChildrenLength: nextWeekChildren.length,
+            waitingChildrenLength: nextWaitingChildren.length,
+            experienceChildrenLength: nextExperienceChildren.length,
+          },
+        })
+
+        return {
+          ...safePrev,
+          week_children: nextWeekChildren,
+          waiting_children: nextWaitingChildren,
+          Experience_children: nextExperienceChildren,
+        }
+      })
     },
-    [
-      childrenData,
-      waiting_childrenData,
-      Experience_childrenData,
-      setChildrenData,
-      setWaitingChildrenData,
-      setExperienceChildrenData,
-      updateAppState,
-    ]
-  );
+    [setSplitChildren]
+  )
 
   return {
     patchChildUseSpeDate,
-  };
+  }
 }

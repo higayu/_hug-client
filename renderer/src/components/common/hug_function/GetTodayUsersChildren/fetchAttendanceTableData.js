@@ -4,7 +4,7 @@
  */
 
 import { getHugWebviewForCache } from "@/hooks/useHugCache/getHugCache.js";
-import { fetchAttendanceTableInWebview } from "@/utils/ToDayChildrenList/fetchAttendanceTableInWebview.js";
+import { fetchAttendanceTableInWebview } from "./fetchAttendanceTableInWebview.js";
 
 /**
  * @param {string} facility_id

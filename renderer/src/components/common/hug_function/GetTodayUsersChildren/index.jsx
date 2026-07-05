@@ -1,6 +1,9 @@
 import React, { useState } from "react";
 import { FaTable } from "react-icons/fa";
 
+import { useAppState } from "@/AppStateContext";
+import { useAttendanceFetch } from "./useAttendanceFetch";
+
 function formatLastFetchedAt(extractedAt) {
   if (!extractedAt) return "未取得";
 
@@ -18,44 +21,39 @@ function formatLastFetchedAt(extractedAt) {
 }
 
 /**
- * 利用者データ取得 UI（自動取得トグル + 手動取得）
- * @param {{
- *   onFetch?: () => void | Promise<void>,
- *   autoFetchEnabled?: boolean,
- *   onToggleAutoFetch?: () => void,
- *   lastFetchedAt?: string | null,
- * }} props
+ * 利用者データ取得 UI
+ *
+ * - 自動取得トグル
+ * - 手動取得ボタン
+ * - 最終取得日時表示
+ *
+ * 取得処理はこのコンポーネント内部で実行する
  */
-export default function GetTodayUsersChildren({
-  onFetch,
-  autoFetchEnabled,
-  onToggleAutoFetch,
-  lastFetchedAt,
-}) {
+export default function GetTodayUsersChildren() {
   const [open, setOpen] = useState(false);
 
-  if (!onFetch) {
-    console.warn("[TableDataGetButton] onFetch が未指定です");
-  }
+  const { attendanceData } = useAppState();
 
+  const { runFetch, autoFetchEnabled, toggleAutoFetch } =
+    useAttendanceFetch("GetTodayUsersChildren");
+
+  const lastFetchedAt = attendanceData?.extractedAt ?? null;
   const fetchedAtLabel = formatLastFetchedAt(lastFetchedAt);
 
   return (
     <div className="flex flex-col gap-2 items-center justify-center">
       <div className="flex flex-row gap-2 items-center justify-center">
-        {onToggleAutoFetch != null && (
-          <button
-            type="button"
-            className={
-              autoFetchEnabled
-                ? "btn-purple hover:bg-purple-600 p-2 rounded text-white text-xs shrink-0"
-                : "bg-gray-400 hover:bg-gray-500 p-2 rounded text-white text-xs shrink-0"
-            }
-            onClick={onToggleAutoFetch}
-          >
-            自動: {autoFetchEnabled ? "ON" : "OFF"}
-          </button>
-        )}
+        <button
+          type="button"
+          className={
+            autoFetchEnabled
+              ? "btn-purple hover:bg-purple-600 p-2 rounded text-white text-xs shrink-0"
+              : "bg-gray-400 hover:bg-gray-500 p-2 rounded text-white text-xs shrink-0"
+          }
+          onClick={toggleAutoFetch}
+        >
+          自動: {autoFetchEnabled ? "ON" : "OFF"}
+        </button>
 
         <div className="flex items-center justify-center">
           <div
@@ -88,7 +86,7 @@ export default function GetTodayUsersChildren({
 
             <button
               type="button"
-              onClick={() => onFetch?.()}
+              onClick={() => runFetch()}
               className="flex items-center justify-center px-7 py-2 gap-2 bg-green-600 hover:bg-green-700 text-white rounded-xl shadow-md"
             >
               <FaTable size={16} />
