@@ -1,4 +1,4 @@
-// renderer/src/components/common/PageRequestGet/ProfessionalPlan.jsx
+// renderer/src/components/common/ProfessionalPlan
 import React from "react";
 import { useAppState } from "@/AppStateContext";
 import { getActiveWebview } from "@/utils/webview/webviewState.js";

@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useAppState } from "@/AppStateContext";
 import { useDataBase } from "@/hooks/useDataBase";
-import ProfessionalPlan from "@/components/common/hug_function/PageRequestGet/ProfessionalPlan.jsx";
+import ProfessionalPlan from "@/components/common/hug_function/ProfessionalPlan";
 import ProfessionalSupportCheckPanel2 from "@/components/common/hug_function/ProfessionalSupportCheckPanel2";
 
 const DBG = "ProfessionalPrompt1";
