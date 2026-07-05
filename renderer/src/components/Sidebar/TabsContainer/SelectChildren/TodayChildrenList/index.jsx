@@ -7,7 +7,7 @@ import { ELEMENT_IDS } from "@/utils/app/constants.js"
 import ChildrenListTabs from "./ChildrenListTabs"
 import ChildrenListContent from "./ChildrenListContent"
 import { TABS } from "./constants"
-import { useTodayChildrenListDebug } from "./useTodayChildrenListDebug"
+import { useTodayChildrenListDebug } from "./debug"
 import { useTodayChildrenListController } from "./useTodayChildrenListController"
 
 export default function TodayChildrenList() {
