@@ -1,7 +1,8 @@
-// src/components/Sidebar/SelectChildrenList/TodayChildrenList/useTodayChildrenListDebug.js
+// src/components/Sidebar/TabsContainer/SelectChildren/TodayChildrenList/debug/useTodayChildrenListDebug.js
 
 import { useEffect, useRef } from "react"
 import { DEBUG_TODAY_CHILDREN_LIST, debugLog, debugTable } from "./debug"
+import { splitChildrenData } from "@/AppStateContext/splitChildrenData"
 
 export function useTodayChildrenListDebug({
   appState,
@@ -42,43 +43,111 @@ export function useTodayChildrenListDebug({
       return
     }
 
-    console.groupCollapsed(
-      `[TodayChildrenList] 曜日変更検知: ${previousDayOfWeek} → ${CURRENT_DAY_OF_WEEK}`
-    )
+    let cancelled = false
 
-    console.log("useAppState 全体:", appState)
+    async function logDayOfWeekChange() {
+      console.groupCollapsed(
+        `[TodayChildrenList] 曜日変更検知: ${previousDayOfWeek} → ${CURRENT_DAY_OF_WEEK}`
+      )
 
-    console.log("曜日変更時の主要値:", {
-      previousDayOfWeek,
-      CURRENT_DAY_OF_WEEK,
-      SELECT_CHILD,
-      SELECT_CHILD_FILTER_MODE,
-      childrenDataCount: Array.isArray(childrenData)
-        ? childrenData.length
-        : "not array",
-      waitingChildrenDataCount: Array.isArray(waiting_childrenData)
-        ? waiting_childrenData.length
-        : "not array",
-      experienceChildrenDataCount: Array.isArray(Experience_childrenData)
-        ? Experience_childrenData.length
-        : "not array",
-      attendanceDataCount: Array.isArray(attendanceData)
-        ? attendanceData.length
-        : "not array",
-      dbDayOfWeekCount: Array.isArray(dbDayOfWeek)
-        ? dbDayOfWeek.length
-        : "not array",
-    })
+      try {
+        console.log("useAppState 全体:", appState)
 
-    console.log("childrenData:", childrenData)
-    console.log("waiting_childrenData:", waiting_childrenData)
-    console.log("Experience_childrenData:", Experience_childrenData)
-    console.log("attendanceData:", attendanceData)
-    console.log("dbDayOfWeek:", dbDayOfWeek)
+        const weekdayId = CURRENT_DAY_OF_WEEK?.weekdayId
+        const staffId = appState?.STAFF_ID
+        const facilityId = appState?.FACILITY_ID
+        const tables = appState?.databaseState
 
-    console.groupEnd()
+        console.log("曜日データ CURRENT_DAY_OF_WEEK:", CURRENT_DAY_OF_WEEK)
+        console.log("曜日データ weekdayId:", weekdayId)
+        console.log("スタッフID:", staffId)
+        console.log("施設ID:", facilityId)
+        console.log("databaseState:", tables)
+        console.log("manager2テーブル:", tables?.managers2)
+
+        if (!tables) {
+          console.warn("[TodayChildrenList] databaseState が空のため splitChildrenData をスキップ")
+        } else if (weekdayId == null) {
+          console.warn("[TodayChildrenList] weekdayId が空のため splitChildrenData をスキップ")
+        } else {
+          const result = await splitChildrenData({
+            tables,
+            staffId,
+            weekdayId,
+            facility_id: facilityId,
+          })
+
+          if (!cancelled) {
+            console.log("今の曜日の児童 splitChildrenData result:", result)
+
+            console.log("splitChildrenData 件数:", {
+              childrenData: Array.isArray(result?.childrenData)
+                ? result.childrenData.length
+                : "not array",
+              waiting_childrenData: Array.isArray(result?.waiting_childrenData)
+                ? result.waiting_childrenData.length
+                : "not array",
+              Experience_childrenData: Array.isArray(result?.Experience_childrenData)
+                ? result.Experience_childrenData.length
+                : "not array",
+            })
+
+            if (Array.isArray(result?.childrenData)) {
+              console.table(
+                result.childrenData.map((child) => ({
+                  children_id: child?.children_id,
+                  children_name: child?.children_name,
+                  priority: child?.priority,
+                  pc_name: child?.pc_name,
+                  support_start_time: child?.support_start_time,
+                  support_end_time: child?.support_end_time,
+                }))
+              )
+            }
+          }
+        }
+
+        console.log("曜日変更時の主要値:", {
+          previousDayOfWeek,
+          CURRENT_DAY_OF_WEEK,
+          SELECT_CHILD,
+          SELECT_CHILD_FILTER_MODE,
+          childrenDataCount: Array.isArray(childrenData)
+            ? childrenData.length
+            : "not array",
+          waitingChildrenDataCount: Array.isArray(waiting_childrenData)
+            ? waiting_childrenData.length
+            : "not array",
+          experienceChildrenDataCount: Array.isArray(Experience_childrenData)
+            ? Experience_childrenData.length
+            : "not array",
+          attendanceDataCount: Array.isArray(attendanceData)
+            ? attendanceData.length
+            : "not array",
+          dbDayOfWeekCount: Array.isArray(dbDayOfWeek)
+            ? dbDayOfWeek.length
+            : "not array",
+        })
+
+        console.log("AppState childrenData:", childrenData)
+        console.log("AppState waiting_childrenData:", waiting_childrenData)
+        console.log("AppState Experience_childrenData:", Experience_childrenData)
+        console.log("AppState attendanceData:", attendanceData)
+        console.log("AppState dbDayOfWeek:", dbDayOfWeek)
+      } catch (error) {
+        console.error("[TodayChildrenList] 曜日変更ログ出力中にエラー:", error)
+      } finally {
+        console.groupEnd()
+      }
+    }
+
+    logDayOfWeekChange()
 
     previousDayOfWeekRef.current = CURRENT_DAY_OF_WEEK
+
+    return () => {
+      cancelled = true
+    }
   }, [
     CURRENT_DAY_OF_WEEK,
     appState,
