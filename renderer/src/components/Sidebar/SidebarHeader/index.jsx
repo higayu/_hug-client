@@ -7,7 +7,7 @@ import { useToast } from "@/components/common/ToastContext";
 import { useAttendanceFetch } from "@/hooks/useAttendanceFetch";
 
 import GetTodayUsersChildren from "@/components/common/hug_function/GetTodayUsersChildren";
-import WeekdaySelect from "@/components/common/WeekdaySelect";
+import WeekdaySelect from "@/components/ui/WeekdaySelect";
 
 
 function SidebarHeader() {

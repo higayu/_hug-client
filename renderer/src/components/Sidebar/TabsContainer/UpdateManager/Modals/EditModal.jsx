@@ -1,7 +1,7 @@
 // renderer\src\components\Sidebar\Tools\UpdateManager\Modals\EditModal.jsx
 import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
-import SelectableWeekDayButton from "@/components/common/SelectableWeekDayButton.jsx";
+import SelectableWeekDayButton from "@/components/ui/SelectableWeekDayButton.jsx";
 
 export default function EditModal({ open, onClose, manager, onConfirm }) {
   const [childrenId, setChildrenId] = useState("");

@@ -11,7 +11,7 @@ import {
   sendError
 } from '@/store/slices/sendTextSlice'
 import MemoInputBox from './MemoInputBox';
-import TwoTabPanel from '@/components/Sidebar/ui/TwoTabPanel';
+import TwoTabPanel from '@/components/ui/TwoTabPanel';
 import PersonalRecordManagerPanel from '@/components/common/hug_function/PersonalRecordManagerPanel';
 
 const DBG = 'PersonalRecordPrompt';

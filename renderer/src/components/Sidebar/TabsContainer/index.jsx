@@ -3,7 +3,7 @@ import { useMemo } from 'react'
 import ToolContent from './SelectChildren'
 import ChildrenTable from './InsertManageChildren'
 import UpdateManager from './UpdateManager'
-import GetKojinkiroku from '@/components/Sidebar/common/GetKojinkiroku'
+import GetKojinkiroku from '@/components/common/GetKojinkiroku'
 import { useAppState } from '@/AppStateContext';
 import SpeechToText from '@/components/common/SpeechToText';
 

@@ -1,4 +1,4 @@
-// renderer/src/components/common/SelectableWeekDayButton.jsx
+// renderer/src/components/ui/SelectableWeekDayButton.jsx
 
 export default function SelectableWeekDayButton({
   dayId,

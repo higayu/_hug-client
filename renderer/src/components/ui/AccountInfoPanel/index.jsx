@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
-import ToggleSecretText from "@/components/common/ToggleSecretText.jsx";
-import CopyButton from "@/components/common/CopyButton.jsx";
+import ToggleSecretText from "@/components/ui/ToggleSecretText";
+import CopyButton from "@/components/ui/CopyButton";
 
 export default function AccountInfoPanel({ title, items }) {
   const [open, setOpen] = useState(true);

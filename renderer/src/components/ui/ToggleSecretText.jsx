@@ -1,4 +1,4 @@
-// @/components/common/ToggleSecretText.jsx
+// @/components/ui/ToggleSecretText.jsx
 import React, { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 
