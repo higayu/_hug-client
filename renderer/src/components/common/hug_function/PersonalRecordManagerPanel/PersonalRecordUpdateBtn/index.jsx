@@ -3,6 +3,7 @@ import { useAppState } from "@/AppStateContext";
 import { useToast } from "@/components/common/ToastContext.jsx";
 import { fetchPersonalRecord } from "./fetchPersonalRecord";
 import { postServiceRecordsToLocalApi } from "@/utils/personalRecord/postServiceRecordsToLocalApi.js";
+import { useDataBase } from "@/hooks/useDataBase";
 
 const LOG_TAG = "PersonalRecordGet";
 
@@ -27,6 +28,7 @@ export default function PersonalRecordUpdateBtn({ dateStr }) {
   const { showSuccessToast, showErrorToast } = useToast();
   const [fetching, setFetching] = useState(false);
   const isFetchingRef = useRef(false);
+  const { loadDataBase } = useDataBase();
 
   const runFetch = useCallback(async () => {
     if (!SELECT_CHILD) {
@@ -100,6 +102,10 @@ export default function PersonalRecordUpdateBtn({ dateStr }) {
         } else {
           console.error(`[${LOG_TAG}] Upsert失敗 ${row.date}:`, row.error);
         }
+      });
+
+      await loadDataBase({
+        reason: "manual/ProfessionalPlan",
       });
     } catch (e) {
       console.error(`[${LOG_TAG}] 例外:`, e);
