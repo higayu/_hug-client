@@ -1,7 +1,7 @@
 import { useCallback, useRef, useState } from "react";
 import { useAppState } from "@/AppStateContext";
 import { useToast } from "@/components/common/ToastContext.jsx";
-import { fetchContactBookViaHugTab } from "@/utils/personalRecord/fetchContactBookViaHugTab.js";
+import { fetchPersonalRecord } from "./fetchPersonalRecord";
 import { postServiceRecordsToLocalApi } from "@/utils/personalRecord/postServiceRecordsToLocalApi.js";
 
 const LOG_TAG = "PersonalRecordGet";
@@ -53,7 +53,7 @@ export default function PersonalRecordUpdateBtn({ dateStr }) {
     });
 
     try {
-      const result = await fetchContactBookViaHugTab({
+      const result = await fetchPersonalRecord({
         childId: SELECT_CHILD,
         facilityId,
         currentYmd,

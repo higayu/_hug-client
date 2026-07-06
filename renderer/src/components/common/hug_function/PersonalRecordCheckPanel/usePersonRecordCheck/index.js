@@ -10,8 +10,8 @@ import {
   setPersonalRecordStatus,
   setRecordStatusError,
 } from "@/store/slices/recordStatusSlice.js";
-import { fetchContactBookViaHugTab } from "@/utils/personalRecord/fetchContactBookViaHugTab.js";
-import { parseTodayPersonalRecordStatus } from "@/utils/personalRecord/parseTodayPersonalRecordStatus.js";
+import { fetchPersonalRecord } from "@/components/common/hug_function/PersonalRecordManagerPanel/PersonalRecordUpdateBtn/fetchPersonalRecord";
+import { parseTodayPersonalRecordStatus } from "./parseTodayPersonalRecordStatus";
 
 /**
  * 個人記録 本日登録チェック
@@ -52,7 +52,7 @@ export function usePersonRecordCheck(logTag = "PersonalRecordCheck") {
     setTodayPersonalRecordCount(null);
 
     try {
-      const contactResult = await fetchContactBookViaHugTab({
+      const contactResult = await fetchPersonalRecord({
         childId: effectiveChildId,
         facilityId: effectiveFacilityId,
         currentYmd: effectiveCurrentYmd,

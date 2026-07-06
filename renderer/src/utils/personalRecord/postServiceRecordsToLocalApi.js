@@ -41,7 +41,7 @@ export function resolveRecordDate(dateText, editPath) {
 /**
  * HUG 取得レコード 1 件 → service_record POST 用 payload
  *
- * @param {object} record fetchContactBookRecordsInWebview の records 要素
+ * @param {object} record fetchPersonalRecordList の records 要素
  * @param {{ childrenId: string|number, facilityId: string|number, staffId?: string|number }} ctx
  */
 export function buildServiceRecordPayload(record, { childrenId, facilityId, staffId }) {

@@ -32,7 +32,7 @@
  *   | { ok: false; error: string }
  * >}
  */
-export async function fetchContactBookRecordsInWebview(webview, opts) {
+export async function fetchPersonalRecordList(webview, opts) {
   const {
     childId,
     facilityId = "3",

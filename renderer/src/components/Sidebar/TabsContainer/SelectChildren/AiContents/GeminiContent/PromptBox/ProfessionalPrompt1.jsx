@@ -1,6 +1,6 @@
 // renderer/src/components/Sidebar/TabsContainer/SelectChildren/AiContents/GeminiContent/PromptBox/ProfessionalPrompt1.jsx
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useAppState } from "@/AppStateContext";
 import ProfessionalPlan from "@/components/common/hug_function/ProfessionalPlan";
 import ProfessionalSupportCheckPanel2 from "@/components/common/hug_function/ProfessionalSupportCheckPanel2";
@@ -41,19 +41,39 @@ export default function ProfessionalPrompt1({
   }, [appState.SELECT_CHILD]);
 
   // =============================================================
-  // AppState のデータを安全に配列化
+  // appState.databaseState.children を安全に取得
   // =============================================================
-  const weekChildrenData = Array.isArray(childrenData)
-    ? childrenData
-    : [];
+  const databaseChildren = useMemo(
+    () =>
+      Array.isArray(appState?.databaseState?.children)
+        ? appState.databaseState.children
+        : [],
+    [appState?.databaseState?.children]
+  );
 
-  const waitingChildrenData = Array.isArray(waiting_childrenData)
-    ? waiting_childrenData
-    : [];
+  // =============================================================
+  // 既存AppState のデータも安全に配列化
+  // =============================================================
+  const weekChildrenData = useMemo(
+    () => (Array.isArray(childrenData) ? childrenData : []),
+    [childrenData]
+  );
 
-  const experienceChildrenData = Array.isArray(Experience_childrenData)
-    ? Experience_childrenData
-    : [];
+  const waitingChildrenData = useMemo(
+    () =>
+      Array.isArray(waiting_childrenData)
+        ? waiting_childrenData
+        : [],
+    [waiting_childrenData]
+  );
+
+  const experienceChildrenData = useMemo(
+    () =>
+      Array.isArray(Experience_childrenData)
+        ? Experience_childrenData
+        : [],
+    [Experience_childrenData]
+  );
 
   const logDbg = (field, msg, extra = {}) => {
     console.log(`[${DBG}:${field}]`, msg, {
@@ -68,37 +88,59 @@ export default function ProfessionalPrompt1({
   };
 
   // =============================================================
-  // SELECT_CHILD 変更 → DBメモ読み込み
+  // SELECT_CHILD 変更 → databaseState.children の id と照合して notes を dbNote にセット
   // =============================================================
   useEffect(() => {
     if (!SELECT_CHILD) {
-      logDbg("dbNote", "useEffect: SELECT_CHILD なし → dbNote クリア");
+      logDbg("dbNote", "SELECT_CHILD なし → dbNote クリア");
       setDbNote("");
       return;
     }
 
-    console.log(`[${DBG}:useEffect] SELECT_CHILD: ${SELECT_CHILD}`);
-    
     const selectedId = String(SELECT_CHILD);
 
-    const child =
+    console.log(`[${DBG}:児童データ] databaseState.children`, {
+      selectedId,
+      count: databaseChildren.length,
+      databaseChildren,
+    });
+
+    const childFromDatabase = databaseChildren.find(
+      (child) => String(child.id ?? child.children_id) === selectedId
+    );
+
+    // fallback: 既存の childrenData 系も一応見る
+    const childFromOldState =
       weekChildrenData.find(
-        (c) => String(c.children_id) === selectedId
+        (child) =>
+          String(child.id ?? child.children_id) === selectedId
       ) ||
       waitingChildrenData.find(
-        (c) => String(c.children_id) === selectedId
+        (child) =>
+          String(child.id ?? child.children_id) === selectedId
       ) ||
       experienceChildrenData.find(
-        (c) => String(c.children_id) === selectedId
+        (child) =>
+          String(child.id ?? child.children_id) === selectedId
       ) ||
       null;
 
-    const next = child?.notes || "";
+    const child = childFromDatabase || childFromOldState || null;
+    const next = child?.notes ?? "";
 
-    logDbg("dbNote", "useEffect: 一覧からメモ反映", {
-      found: Boolean(child),
+    console.log(`[${DBG}:dbNote] SELECT_CHILD一致児童`, {
       selectedId,
-      nextLength: next.length,
+      found: Boolean(child),
+      source: childFromDatabase
+        ? "databaseState.children"
+        : childFromOldState
+          ? "childrenData/waiting/experience"
+          : "not_found",
+      childId: child?.id ?? child?.children_id ?? null,
+      childName: child?.name ?? null,
+      notesLength: typeof next === "string" ? next.length : 0,
+      notes: next,
+      databaseChildrenCount: databaseChildren.length,
       weekChildrenCount: weekChildrenData.length,
       waitingChildrenCount: waitingChildrenData.length,
       experienceChildrenCount: experienceChildrenData.length,
@@ -107,6 +149,7 @@ export default function ProfessionalPrompt1({
     setDbNote(next);
   }, [
     SELECT_CHILD,
+    databaseChildren,
     weekChildrenData,
     waitingChildrenData,
     experienceChildrenData,

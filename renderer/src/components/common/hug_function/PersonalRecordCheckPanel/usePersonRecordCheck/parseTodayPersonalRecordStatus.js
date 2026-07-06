@@ -1,5 +1,5 @@
 /**
- * fetchContactBookViaHugTab の結果から、本日の個人記録（活動内容 note）登録済みかを判定
+ * fetchPersonalRecord の結果から、本日の個人記録（活動内容 note）登録済みかを判定
  *
  * @param {{ ok?: boolean, records?: Array<{ note?: string | null }> }} contactBookResult
  * @returns {{ registered: boolean | null, recordCount: number | null }}

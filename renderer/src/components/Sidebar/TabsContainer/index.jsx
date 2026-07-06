@@ -3,7 +3,7 @@ import { useMemo } from 'react'
 import ToolContent from './SelectChildren'
 import ChildrenTable from './InsertManageChildren'
 import UpdateManager from './UpdateManager'
-import GetKojinkiroku from '@/components/common/GetKojinkiroku'
+import TestContent from './TestContent';
 import { useAppState } from '@/AppStateContext';
 import SpeechToText from '@/components/common/SpeechToText';
 
@@ -24,8 +24,7 @@ function TabsContainer() {
 
     if (DEBUG_FLG) {
       baseTabs.push(
-        { id: 'GetKojinkiroku', label: '入退室テスト' },
-        { id: 'SQLManager', label: 'テーブル' },
+        { id: 'TestContent', label: 'テストコンテンツ' },
       )
     }
 
@@ -78,9 +77,9 @@ function TabsContainer() {
           </div>
         )}
 
-        {DEBUG_FLG && activeTab === 'GetKojinkiroku' && (
+        {DEBUG_FLG && activeTab === 'TestContent' && (
           <div className="h-full flex flex-col">
-            <GetKojinkiroku />
+            <TestContent />
           </div>
         )}
 

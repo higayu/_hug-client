@@ -1,5 +1,5 @@
 import { getHugWebviewForCache } from "@/hooks/useHugCache/getHugCache.js";
-import { fetchContactBookRecordsInWebview } from "@/utils/personalRecord/fetchContactBookRecordsInWebview.js";
+import { fetchPersonalRecordList } from "./fetchPersonalRecordList";
 
 /**
  * hugview の Cookie だけ使い、ページ遷移なしで
@@ -15,7 +15,7 @@ import { fetchContactBookRecordsInWebview } from "@/utils/personalRecord/fetchCo
  * }} opts
  *   dateStart / dateEnd 未指定時は currentYmd を開始・終了の両方に使う
  */
-export async function fetchContactBookViaHugTab({
+export async function fetchPersonalRecord({
   childId,
   facilityId = "3",
   dateStart,
@@ -38,7 +38,7 @@ export async function fetchContactBookViaHugTab({
     };
   }
 
-  return fetchContactBookRecordsInWebview(webview, {
+  return fetchPersonalRecordList(webview, {
     childId: String(childId),
     facilityId: String(facilityId),
     dateStart: String(resolvedStart),
