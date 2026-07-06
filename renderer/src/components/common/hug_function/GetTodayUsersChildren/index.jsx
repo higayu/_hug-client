@@ -3,22 +3,40 @@ import {FaRobot, FaPowerOff, FaSyncAlt, FaBolt, FaChild, FaBaby, FaBabyCarriage,
 
 import { useAppState } from "@/AppStateContext";
 import { useAttendanceFetch } from "./useAttendanceFetch";
-import SelectChildFilter from '@/components/common/SelectChildFilter';
+import SelectChildFilter from './SelectChildFilter';
 
 function formatLastFetchedAt(extractedAt) {
-  if (!extractedAt) return "未取得";
+  if (!extractedAt) {
+    return {
+      dateTime: "未取得",
+      time: "未取得",
+    };
+  }
 
   const date = new Date(extractedAt);
-  if (Number.isNaN(date.getTime())) return "未取得";
 
-  return date.toLocaleString("ja-JP", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-  });
+  if (Number.isNaN(date.getTime())) {
+    return {
+      dateTime: "未取得",
+      time: "未取得",
+    };
+  }
+
+  return {
+    dateTime: date.toLocaleString("ja-JP", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    }),
+    time: date.toLocaleTimeString("ja-JP", {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    }),
+  };
 }
 
 /**
@@ -100,7 +118,10 @@ export default function GetTodayUsersChildren() {
         </div>
       </div>
 
-      <div className="flex flex-col gap-2 items-center justify-center">
+      <div 
+       className="flex flex-col gap-2 items-center justify-center"
+       title={fetchedAtLabel.dateTime}
+       >
         <div className="border border-gray-300 rounded-md bg-white py-1 px-2 flex flex-row gap-2 items-center text-center">
           <span className="text-sm font-bold text-gray-900">取得：</span>
           <span
@@ -108,7 +129,7 @@ export default function GetTodayUsersChildren() {
               lastFetchedAt ? "text-green-800" : "text-amber-700"
             }`}
           >
-            {fetchedAtLabel}
+            {fetchedAtLabel.time}
           </span>
         </div>
         <SelectChildFilter />
