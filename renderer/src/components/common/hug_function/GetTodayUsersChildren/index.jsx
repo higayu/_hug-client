@@ -1,8 +1,9 @@
 import React, { useState } from "react";
-import { FaTable } from "react-icons/fa";
+import {FaRobot, FaPowerOff, FaSyncAlt, FaBolt, FaChild, FaBaby, FaBabyCarriage, FaSchool } from "react-icons/fa";
 
 import { useAppState } from "@/AppStateContext";
 import { useAttendanceFetch } from "./useAttendanceFetch";
+import SelectChildFilter from '@/components/common/SelectChildFilter';
 
 function formatLastFetchedAt(extractedAt) {
   if (!extractedAt) return "未取得";
@@ -41,18 +42,21 @@ export default function GetTodayUsersChildren() {
   const fetchedAtLabel = formatLastFetchedAt(lastFetchedAt);
 
   return (
-    <div className="flex flex-col gap-2 items-center justify-center">
-      <div className="flex flex-row gap-2 items-center justify-center">
+    <div className="flex flex-row gap-2 items-center justify-center">
+
+      <div className="flex flex-col gap-2 items-center justify-center">
         <button
           type="button"
+          title="自動取得"
           className={
             autoFetchEnabled
-              ? "btn-purple hover:bg-purple-600 p-2 rounded text-white text-xs shrink-0"
-              : "bg-gray-400 hover:bg-gray-500 p-2 rounded text-white text-xs shrink-0"
+              ? "btn-purple hover:bg-purple-600 p-2 rounded text-white text-xs shrink-0 flex items-center gap-1"
+              : "bg-gray-400 hover:bg-gray-500 p-2 rounded text-white text-xs shrink-0 flex items-center gap-1"
           }
           onClick={toggleAutoFetch}
         >
-          自動: {autoFetchEnabled ? "ON" : "OFF"}
+          {autoFetchEnabled ? <FaRobot size={14} /> : <FaPowerOff size={14} />}
+          Auto
         </button>
 
         <div className="flex items-center justify-center">
@@ -87,24 +91,29 @@ export default function GetTodayUsersChildren() {
             <button
               type="button"
               onClick={() => runFetch()}
+              title="今日の利用者のデータ取得"
               className="flex items-center justify-center px-7 py-2 gap-2 bg-green-600 hover:bg-green-700 text-white rounded-xl shadow-md"
             >
-              <FaTable size={16} />
+              <FaChild size={16} />
             </button>
           </div>
         </div>
       </div>
 
-      <div className="border border-gray-300 rounded-md bg-white py-1 px-2 flex flex-row gap-2 items-center text-center">
-        <span className="text-sm font-bold text-gray-900">取得：</span>
-        <span
-          className={`text-sm font-extrabold ${
-            lastFetchedAt ? "text-green-800" : "text-amber-700"
-          }`}
-        >
-          {fetchedAtLabel}
-        </span>
+      <div className="flex flex-col gap-2 items-center justify-center">
+        <div className="border border-gray-300 rounded-md bg-white py-1 px-2 flex flex-row gap-2 items-center text-center">
+          <span className="text-sm font-bold text-gray-900">取得：</span>
+          <span
+            className={`text-sm font-extrabold ${
+              lastFetchedAt ? "text-green-800" : "text-amber-700"
+            }`}
+          >
+            {fetchedAtLabel}
+          </span>
+        </div>
+        <SelectChildFilter />
       </div>
+
     </div>
   );
 }

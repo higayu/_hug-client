@@ -5,7 +5,6 @@ import { getWeekdayIdFromDate } from "@/utils/date/dateUtils";
 import { getTodayYmdString } from "@/utils/date/dateYMD";
 import { useToast } from "@/components/common/ToastContext";
 
-import GetTodayUsersChildren from "@/components/common/hug_function/GetTodayUsersChildren";
 import WeekdaySelect from "@/components/ui/WeekdaySelect";
 
 function SidebarHeader() {
@@ -69,20 +68,17 @@ function SidebarHeader() {
     <div
       className="
         sidebar-header
-        flex-shrink-0
-        p-2
-        border border-gray-200
         flex items-start
         max-h-none overflow-visible
-        rounded
-        justify-center
+        w-full
       "
     >
-      <div className="flex gap-6 bg-gray-200 w-full justify-center">
-        {/* 日付入力 */}
-        <div className="flex flex-col items-center justify-center">
-          <label className="font-bold text-sm text-black mb-1.5">
-            日付:（個人記録）
+      <div className="flex w-full">
+        {/* 日付入力：60% */}
+        <div className="flex flex-row rounded-lg bg-slate-200 p-2 items-center gap-2 basis-3/5 min-w-0">
+          <label className="items-center flex flex-col font-bold text-sm text-black shrink-0">
+            <span className="text-sm text-black">日付:</span>
+            <span className="text-sm text-black">（個人記録）</span>
           </label>
 
           <input
@@ -90,7 +86,8 @@ function SidebarHeader() {
             value={CURRENT_YMD ?? ""}
             onChange={handleDateChange}
             className="
-              w-full max-w-[200px]
+              flex-1
+              min-w-0
               p-2
               border border-gray-300
               rounded
@@ -101,20 +98,19 @@ function SidebarHeader() {
           />
         </div>
 
-        {/* 曜日 */}
-        <div className="flex flex-col items-center justify-center">
-          <label className="font-bold text-sm text-black mb-1.5">
-            曜日別：（対応児童）
+        {/* 曜日：40% */}
+        <div className="flex flex-row rounded-lg bg-slate-200 p-2 items-center basis-2/5 min-w-0">
+          <label className="flex flex-col items-center font-bold text-sm shrink-0">
+            <span className="text-sm text-black">曜日別：</span>
+            <span className="text-sm text-black">（対応児童）</span>
           </label>
 
-          <WeekdaySelect />
-        </div>
-
-        {/* 今日の利用者データ取得 */}
-        <div className="flex flex-col gap-2 items-center justify-center">
-          <GetTodayUsersChildren />
+          <div className="flex-1 min-w-0">
+            <WeekdaySelect />
+          </div>
         </div>
       </div>
+
     </div>
   );
 }

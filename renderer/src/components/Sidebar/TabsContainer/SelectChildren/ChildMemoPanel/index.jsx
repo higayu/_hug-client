@@ -7,16 +7,35 @@ import {
   clickAbsenceButton,
   clickExitButton,
 } from '@/utils/attendance/index.js'
-import { useToast } from '@/components/common/ToastContext.jsx'
-import AttendanceActionSection from './AttendanceActionSection.jsx'
+import { useToast } from '@/components/common/ToastContext'
+import AttendanceActionSection from './AttendanceActionSection'
 import { isAttendanceDataLoaded } from '@/utils/attendance/helpers/attendanceStatus.js'
 import './attendanceForm.css'
 import PersonalRecordCheckPanel from '@/components/common/hug_function/PersonalRecordCheckPanel'
 import ProfessionalSupportCheckPanel2 from '@/components/common/hug_function/ProfessionalSupportCheckPanel2'
-import SelectChildFilter from '@/components/common/SelectChildFilter'
+import GetTodayUsersChildren from '@/components/common/hug_function/GetTodayUsersChildren'
+
+const pickValue = (...values) => {
+  for (const value of values) {
+    if (value !== null && value !== undefined && value !== '') {
+      return value
+    }
+  }
+
+  return null
+}
+
+const isTimeFormat = (value) => {
+  if (typeof value !== 'string') {
+    return false
+  }
+
+  return /^\d{2}:\d{2}$/.test(value.trim())
+}
 
 export default function ChildMemoPanel() {
   const dispatch = useDispatch()
+  const appStateValue = useAppState()
 
   const {
     appState,
@@ -26,11 +45,19 @@ export default function ChildMemoPanel() {
     CURRENT_YMD,
     FACILITY_ID,
 
-    // loadDataBase() が AppState に保存したデータを読む
+    SELECT_CHILD,
+    SELECT_CHILD_NAME,
+
+    // 新名称
+    week_children,
+    waiting_children,
+    Experience_children,
+
+    // 旧名称との互換用
     childrenData,
     waiting_childrenData,
     Experience_childrenData,
-  } = useAppState()
+  } = appStateValue
 
   const { addProfessionalSupportNewTab } = useTabs()
 
@@ -40,108 +67,108 @@ export default function ChildMemoPanel() {
   } = useToast()
 
   const isStop = false
-  const selectChild = appState?.SELECT_CHILD
 
   // =============================================================
-  // AppState のデータを安全に配列化
+  // 選択中児童ID
+  // =============================================================
+  const selectChild = pickValue(
+    SELECT_CHILD,
+    appState?.SELECT_CHILD,
+    ''
+  )
+
+  // =============================================================
+  // AppState の児童リストを安全に配列化
+  // 新名称を優先し、なければ旧名称を見る
   // =============================================================
   const weekChildrenData = useMemo(() => {
-    return Array.isArray(childrenData) ? childrenData : []
-  }, [childrenData])
+    if (Array.isArray(week_children)) {
+      return week_children
+    }
+
+    if (Array.isArray(childrenData)) {
+      return childrenData
+    }
+
+    return []
+  }, [week_children, childrenData])
 
   const waitingChildrenData = useMemo(() => {
-    return Array.isArray(waiting_childrenData) ? waiting_childrenData : []
-  }, [waiting_childrenData])
+    if (Array.isArray(waiting_children)) {
+      return waiting_children
+    }
+
+    if (Array.isArray(waiting_childrenData)) {
+      return waiting_childrenData
+    }
+
+    return []
+  }, [waiting_children, waiting_childrenData])
 
   const experienceChildrenData = useMemo(() => {
-    return Array.isArray(Experience_childrenData) ? Experience_childrenData : []
-  }, [Experience_childrenData])
+    if (Array.isArray(Experience_children)) {
+      return Experience_children
+    }
 
-  const [selectedChildData, setSelectedChildData] = useState(null)
-  const [attendanceItem, setAttendanceItem] = useState(null)
-  const [isUIEnabled, setIsUIEnabled] = useState(false)
-  const [loadingAction, setLoadingAction] = useState(null)
+    if (Array.isArray(Experience_childrenData)) {
+      return Experience_childrenData
+    }
+
+    return []
+  }, [Experience_children, Experience_childrenData])
 
   // =============================================================
-  // 選択児童の attendanceData を取得
+  // attendanceData を安全に配列化
+  // attendanceData が配列の場合 / { data: [] } の場合の両方に対応
   // =============================================================
-  useEffect(() => {
+  const attendanceList = useMemo(() => {
+    if (Array.isArray(attendanceData)) {
+      return attendanceData
+    }
+
+    if (Array.isArray(attendanceData?.data)) {
+      return attendanceData.data
+    }
+
+    return []
+  }, [attendanceData])
+
+  // =============================================================
+  // 選択児童の attendanceData
+  // =============================================================
+  const attendanceItem = useMemo(() => {
     if (!selectChild) {
-      setAttendanceItem(null)
-      setIsUIEnabled(false)
-      setSelectedChildColumns({
-        column5: null,
-        column5Html: null,
-        column6: null,
-        column6Html: null,
-      })
-      return
+      return null
     }
 
-    const list = attendanceData?.data
-
-    if (!Array.isArray(list)) {
-      setAttendanceItem(null)
-      setIsUIEnabled(false)
-      setSelectedChildColumns({
-        column5: null,
-        column5Html: null,
-        column6: null,
-        column6Html: null,
-      })
-      return
-    }
-
-    const item = list.find(
-      (i) => String(i.children_id) === String(selectChild)
+    return (
+      attendanceList.find(
+        (item) => String(item?.children_id) === String(selectChild)
+      ) || null
     )
-
-    setAttendanceItem(item || null)
-    setIsUIEnabled(Boolean(item))
-
-    if (item) {
-      setSelectedChildColumns({
-        column5: item.column5 ?? null,
-        column5Html: item.column5Html ?? null,
-        column6: item.column6 ?? null,
-        column6Html: item.column6Html ?? null,
-      })
-    } else {
-      setSelectedChildColumns({
-        column5: null,
-        column5Html: null,
-        column6: null,
-        column6Html: null,
-      })
-    }
-  }, [
-    selectChild,
-    attendanceData,
-    setSelectedChildColumns,
-  ])
+  }, [selectChild, attendanceList])
 
   // =============================================================
-  // 選択児童の基本情報を AppState の取得済みデータから探す
+  // 選択児童の基本情報
+  // AppState の児童リストから探す
   // =============================================================
-  useEffect(() => {
+  const selectedChildData = useMemo(() => {
     if (!selectChild) {
-      setSelectedChildData(null)
-      return
+      return null
     }
 
-    const child =
+    return (
       weekChildrenData.find(
-        (c) => String(c.children_id) === String(selectChild)
+        (child) => String(child?.children_id) === String(selectChild)
       ) ||
       waitingChildrenData.find(
-        (c) => String(c.children_id) === String(selectChild)
+        (child) => String(child?.children_id) === String(selectChild)
       ) ||
       experienceChildrenData.find(
-        (c) => String(c.children_id) === String(selectChild)
+        (child) => String(child?.children_id) === String(selectChild)
       ) ||
       null
-
-    setSelectedChildData(child)
+    )
   }, [
     selectChild,
     weekChildrenData,
@@ -150,19 +177,267 @@ export default function ChildMemoPanel() {
   ])
 
   // =============================================================
+  // 表示用の選択児童
+  // 重要:
+  // - selectedChildData が null でも SELECT_CHILD があればパネル表示を続行する
+  // - 左リストの表示用 state には児童がいるが、AppState の児童リストにいない場合があるため
+  // =============================================================
+  const selectedChildForDisplay = useMemo(() => {
+    if (selectedChildData) {
+      return selectedChildData
+    }
+
+    if (!selectChild) {
+      return null
+    }
+
+    return {
+      children_id: selectChild,
+      children_name: pickValue(
+        SELECT_CHILD_NAME,
+        appState?.SELECT_CHILD_NAME,
+        attendanceItem?.children_name,
+        ''
+      ),
+      pc_name: pickValue(
+        attendanceItem?.pc_name,
+        ''
+      ),
+    }
+  }, [
+    selectedChildData,
+    selectChild,
+    SELECT_CHILD_NAME,
+    appState?.SELECT_CHILD_NAME,
+    attendanceItem,
+  ])
+
+  const [isUIEnabled, setIsUIEnabled] = useState(false)
+  const [loadingAction, setLoadingAction] = useState(null)
+
+  // =============================================================
+  // AppState 側の選択児童カラム
+  // =============================================================
+  const selectedColumn5 = pickValue(
+    appStateValue?.SELECTED_CHILD_COLUMN5,
+    appState?.SELECTED_CHILD_COLUMN5
+  )
+
+  const selectedColumn5Html = pickValue(
+    appStateValue?.SELECTED_CHILD_COLUMN5_HTML,
+    appState?.SELECTED_CHILD_COLUMN5_HTML
+  )
+
+  const selectedColumn6 = pickValue(
+    appStateValue?.SELECTED_CHILD_COLUMN6,
+    appState?.SELECTED_CHILD_COLUMN6
+  )
+
+  const selectedColumn6Html = pickValue(
+    appStateValue?.SELECTED_CHILD_COLUMN6_HTML,
+    appState?.SELECTED_CHILD_COLUMN6_HTML
+  )
+
+  // =============================================================
+  // 表示に使う column 値
+  // 重要:
+  // - AppState側が "" の場合は無効扱い
+  // - attendanceItem側の columnHtml にフォールバックする
+  // =============================================================
+  const column5 = pickValue(
+    selectedColumn5,
+    attendanceItem?.column5
+  )
+
+  const column5Html = pickValue(
+    selectedColumn5Html,
+    attendanceItem?.column5Html
+  )
+
+  const column6 = pickValue(
+    selectedColumn6,
+    attendanceItem?.column6
+  )
+
+  const column6Html = pickValue(
+    selectedColumn6Html,
+    attendanceItem?.column6Html
+  )
+
+  // =============================================================
   // attendanceData 読み込み状態
   // =============================================================
   const isAttendanceLoaded = isAttendanceDataLoaded(attendanceData)
 
+  const hasChildAttendance = Boolean(attendanceItem)
+
+  const isAbsent =
+    typeof column5 === 'string' && column5.startsWith('欠席')
+
+  const hasEntered = isTimeFormat(column5)
+  const hasExited = isTimeFormat(column6)
+
+  const facilityId = pickValue(
+    FACILITY_ID,
+    appState?.FACILITY_ID,
+    '1'
+  )
+
+  const dateStr = pickValue(
+    CURRENT_YMD,
+    appState?.CURRENT_YMD
+  )
+
+  const childName = pickValue(
+    selectedChildForDisplay?.children_name,
+    SELECT_CHILD_NAME,
+    appState?.SELECT_CHILD_NAME,
+    attendanceItem?.children_name,
+    ''
+  )
+
+  // =============================================================
+  // 選択児童の attendanceData を AppState に反映
+  // =============================================================
+  useEffect(() => {
+    if (!selectChild || !attendanceItem) {
+      setIsUIEnabled(false)
+
+      setSelectedChildColumns({
+        column5: null,
+        column5Html: null,
+        column6: null,
+        column6Html: null,
+      })
+
+      return
+    }
+
+    setIsUIEnabled(true)
+
+    setSelectedChildColumns({
+      column5: pickValue(attendanceItem.column5),
+      column5Html: pickValue(attendanceItem.column5Html),
+      column6: pickValue(attendanceItem.column6),
+      column6Html: pickValue(attendanceItem.column6Html),
+    })
+  }, [
+    selectChild,
+    attendanceItem,
+    setSelectedChildColumns,
+  ])
+
+  // =============================================================
+  // 入退室ボタン調査ログ
+  // =============================================================
+  useEffect(() => {
+    console.group('[ChildMemoPanel] 入退室ボタン調査')
+
+    console.log('selectChild:', selectChild)
+    console.log('SELECT_CHILD:', SELECT_CHILD)
+    console.log('SELECT_CHILD_NAME:', SELECT_CHILD_NAME)
+    console.log('childName:', childName)
+    console.log('dateStr:', dateStr)
+    console.log('facilityId:', facilityId)
+
+    console.log('attendanceData raw:', attendanceData)
+    console.log('attendanceList count:', attendanceList.length)
+    console.log('attendanceItem:', attendanceItem)
+
+    console.log('selectedChildData:', selectedChildData)
+    console.log('selectedChildForDisplay:', selectedChildForDisplay)
+
+    console.log('children list counts:', {
+      weekChildrenDataCount: weekChildrenData.length,
+      waitingChildrenDataCount: waitingChildrenData.length,
+      experienceChildrenDataCount: experienceChildrenData.length,
+    })
+
+    console.log('AppState selected columns:', {
+      selectedColumn5,
+      selectedColumn5Html,
+      selectedColumn6,
+      selectedColumn6Html,
+    })
+
+    console.log('attendanceItem columns:', {
+      attendanceColumn5: attendanceItem?.column5,
+      attendanceColumn5Html: attendanceItem?.column5Html,
+      attendanceColumn6: attendanceItem?.column6,
+      attendanceColumn6Html: attendanceItem?.column6Html,
+    })
+
+    console.log('final columns:', {
+      column5,
+      column5Html,
+      column6,
+      column6Html,
+    })
+
+    console.log('status flags:', {
+      isAttendanceLoaded,
+      hasChildAttendance,
+      isUIEnabled,
+      isAbsent,
+      hasEntered,
+      hasExited,
+      loadingAction,
+    })
+
+    console.log('button source check:', {
+      hasColumn5Html: Boolean(column5Html),
+      hasColumn6Html: Boolean(column6Html),
+      column5HtmlType: typeof column5Html,
+      column6HtmlType: typeof column6Html,
+      column5HtmlLength:
+        typeof column5Html === 'string' ? column5Html.length : null,
+      column6HtmlLength:
+        typeof column6Html === 'string' ? column6Html.length : null,
+    })
+
+    console.groupEnd()
+  }, [
+    selectChild,
+    SELECT_CHILD,
+    SELECT_CHILD_NAME,
+    childName,
+    dateStr,
+    facilityId,
+    attendanceData,
+    attendanceList,
+    attendanceItem,
+    selectedChildData,
+    selectedChildForDisplay,
+    weekChildrenData,
+    waitingChildrenData,
+    experienceChildrenData,
+    selectedColumn5,
+    selectedColumn5Html,
+    selectedColumn6,
+    selectedColumn6Html,
+    column5,
+    column5Html,
+    column6,
+    column6Html,
+    isAttendanceLoaded,
+    hasChildAttendance,
+    isUIEnabled,
+    isAbsent,
+    hasEntered,
+    hasExited,
+    loadingAction,
+  ])
+
   // =============================================================
   // 共通レイアウト
-  // SelectChildFilter は常に上部表示
   // =============================================================
   const renderPanelShell = (content) => {
     return (
       <div className="child-memo-panel flex-1 min-h-0 border-l border-gray-300 bg-gray-50 flex flex-col">
         <div className="shrink-0 border-b border-gray-200 bg-white p-2">
-          <SelectChildFilter />
+          <div className="flex flex-row gap-2 items-center justify-center">
+            <GetTodayUsersChildren />
+          </div>
         </div>
 
         {content}
@@ -172,8 +447,11 @@ export default function ChildMemoPanel() {
 
   // =============================================================
   // 未選択
+  // 重要:
+  // - selectedChildData が null でも selectChild があれば表示を続行する
+  // - ここで止めると、左リストで選択済みでも Please select a child. になる
   // =============================================================
-  if (!selectChild || !selectedChildData) {
+  if (!selectChild) {
     return renderPanelShell(
       <div className="flex-1 min-h-0 overflow-y-auto p-4">
         <div className="text-sm text-gray-500 text-center mt-8">
@@ -196,31 +474,20 @@ export default function ChildMemoPanel() {
     )
   }
 
-  const hasChildAttendance = Boolean(attendanceItem)
-
-  const column5 = attendanceItem?.column5 ?? null
-  const column5Html = attendanceItem?.column5Html ?? null
-  const column6 = attendanceItem?.column6 ?? null
-  const column6Html = attendanceItem?.column6Html ?? null
-
-  const isTimeFormat = (v) =>
-    typeof v === 'string' && /^\d{2}:\d{2}$/.test(v.trim())
-
-  const isAbsent =
-    typeof column5 === 'string' && column5.startsWith('欠席')
-
-  const hasEntered = isTimeFormat(column5)
-  const hasExited = isTimeFormat(column6)
-
-  const facilityId = FACILITY_ID || appState?.FACILITY_ID || '1'
-  const dateStr = CURRENT_YMD || appState?.CURRENT_YMD
-  const childName = selectedChildData?.children_name || ''
-
   // =============================================================
   // 入室
   // =============================================================
   const runEnter = async () => {
     if (!column5Html) {
+      console.warn('[ChildMemoPanel/runEnter] column5Html が空です', {
+        selectChild,
+        childName,
+        column5,
+        column5Html,
+        attendanceColumn5Html: attendanceItem?.column5Html,
+        selectedColumn5Html,
+      })
+
       showErrorToast('入室ボタン情報がありません')
       return
     }
@@ -228,6 +495,16 @@ export default function ChildMemoPanel() {
     setLoadingAction('enter')
 
     try {
+      console.group('[ChildMemoPanel/runEnter] START')
+      console.log('selectChild:', selectChild)
+      console.log('childName:', childName)
+      console.log('column5:', column5)
+      console.log('column5Html:', column5Html)
+      console.log('column6:', column6)
+      console.log('column6Html:', column6Html)
+      console.log('facilityId:', facilityId)
+      console.log('dateStr:', dateStr)
+
       const res = await clickEnterButton(column5Html, Number(selectChild), {
         children_name: childName,
         column5,
@@ -239,14 +516,27 @@ export default function ChildMemoPanel() {
         updateAppState,
       })
 
+      console.log('clickEnterButton result:', res)
+      console.groupEnd()
+
       if (res?.cancelled) return
 
       if (!res?.success) {
         showErrorToast(res?.error || '入室に失敗しました')
+        return
       }
-    } catch (e) {
-      console.error('Enter action error', e)
-      showErrorToast(String(e?.message || e))
+
+      if (res?.attendanceItem) {
+        setSelectedChildColumns({
+          column5: pickValue(res.attendanceItem.column5),
+          column5Html: pickValue(res.attendanceItem.column5Html),
+          column6: pickValue(res.attendanceItem.column6),
+          column6Html: pickValue(res.attendanceItem.column6Html),
+        })
+      }
+    } catch (error) {
+      console.error('Enter action error', error)
+      showErrorToast(String(error?.message || error))
     } finally {
       setLoadingAction(null)
     }
@@ -257,6 +547,16 @@ export default function ChildMemoPanel() {
   // =============================================================
   const runLeave = async () => {
     if (!column6Html) {
+      console.warn('[ChildMemoPanel/runLeave] column6Html が空です', {
+        selectChild,
+        childName,
+        column5,
+        column6,
+        column6Html,
+        attendanceColumn6Html: attendanceItem?.column6Html,
+        selectedColumn6Html,
+      })
+
       showErrorToast('退室ボタン情報がありません')
       return
     }
@@ -264,6 +564,16 @@ export default function ChildMemoPanel() {
     setLoadingAction('leave')
 
     try {
+      console.group('[ChildMemoPanel/runLeave] START')
+      console.log('selectChild:', selectChild)
+      console.log('childName:', childName)
+      console.log('column5:', column5)
+      console.log('column5Html:', column5Html)
+      console.log('column6:', column6)
+      console.log('column6Html:', column6Html)
+      console.log('facilityId:', facilityId)
+      console.log('dateStr:', dateStr)
+
       const res = await clickExitButton(column6Html, Number(selectChild), {
         enterTime: column5,
         children_name: childName,
@@ -276,14 +586,27 @@ export default function ChildMemoPanel() {
         updateAppState,
       })
 
+      console.log('clickExitButton result:', res)
+      console.groupEnd()
+
       if (res?.cancelled) return
 
       if (!res?.success) {
         showErrorToast(res?.error || '退室に失敗しました')
+        return
       }
-    } catch (e) {
-      console.error('Exit action error', e)
-      showErrorToast(String(e?.message || e))
+
+      if (res?.attendanceItem) {
+        setSelectedChildColumns({
+          column5: pickValue(res.attendanceItem.column5),
+          column5Html: pickValue(res.attendanceItem.column5Html),
+          column6: pickValue(res.attendanceItem.column6),
+          column6Html: pickValue(res.attendanceItem.column6Html),
+        })
+      }
+    } catch (error) {
+      console.error('Exit action error', error)
+      showErrorToast(String(error?.message || error))
     } finally {
       setLoadingAction(null)
     }
@@ -294,6 +617,15 @@ export default function ChildMemoPanel() {
   // =============================================================
   const runAbsence = async () => {
     if (!column5Html) {
+      console.warn('[ChildMemoPanel/runAbsence] column5Html が空です', {
+        selectChild,
+        childName,
+        column5,
+        column5Html,
+        attendanceColumn5Html: attendanceItem?.column5Html,
+        selectedColumn5Html,
+      })
+
       showErrorToast('欠席ボタン情報がありません')
       return
     }
@@ -301,16 +633,25 @@ export default function ChildMemoPanel() {
     setLoadingAction('absence')
 
     try {
+      console.group('[ChildMemoPanel/runAbsence] START')
+      console.log('selectChild:', selectChild)
+      console.log('childName:', childName)
+      console.log('column5:', column5)
+      console.log('column5Html:', column5Html)
+
       const res = await clickAbsenceButton(column5Html, Number(selectChild))
+
+      console.log('clickAbsenceButton result:', res)
+      console.groupEnd()
 
       if (res?.success) {
         showSuccessToast('欠席モーダルを開きました')
       } else {
         showErrorToast(res?.error || '欠席モーダル表示に失敗しました')
       }
-    } catch (e) {
-      console.error('Absence action error', e)
-      showErrorToast(String(e?.message || e))
+    } catch (error) {
+      console.error('Absence action error', error)
+      showErrorToast(String(error?.message || error))
     } finally {
       setLoadingAction(null)
     }

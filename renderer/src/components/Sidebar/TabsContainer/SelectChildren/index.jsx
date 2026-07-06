@@ -16,10 +16,10 @@ function ToolContent() {
     <div className="w-full flex flex-col">
       {/* SidebarContent と ChildMemoPanel を横並びに配置 */}
       <div className="tool-content flex flex-1 min-h-0 overflow-hidden">
-        <div className="flex-[6] min-w-0">
+        <div className="flex-[5] min-w-0">
           <TodayChildrenList />
         </div>
-        <div className="flex-[4] min-w-0">
+        <div className="flex-[5] min-w-0">
           <ChildMemoPanel />
         </div>
       </div>

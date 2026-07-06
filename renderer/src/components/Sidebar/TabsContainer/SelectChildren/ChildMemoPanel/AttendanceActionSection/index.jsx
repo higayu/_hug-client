@@ -1,4 +1,5 @@
-import AttendancePostButton from "./AttendancePostButton.jsx";
+import { useEffect } from "react"
+import AttendancePostButton from "./AttendancePostButton"
 import {
   canPostEnter,
   canPostLeave,
@@ -7,7 +8,7 @@ import {
   buildEnterButtonTitle,
   buildLeaveButtonTitle,
   isAfternoonEnterBlocked,
-} from "@/utils/attendance/helpers/attendanceButtonHelpers.js";
+} from "@/utils/attendance/helpers/attendanceButtonHelpers.js"
 
 /**
  * 拡張入退室フォーム相当の入室・退室・欠席 UI
@@ -31,21 +32,75 @@ export default function AttendanceActionSection({
   onAbsence,
   onProfessionalSupport,
 }) {
-  const disabled = !isUIEnabled || isStop || Boolean(loadingAction);
+  const disabled = !isUIEnabled || isStop || Boolean(loadingAction)
+
   const afternoonBlocked =
-    !hasEntered && isAfternoonEnterBlocked(column5Html, childId, dateStr);
+    !hasEntered && isAfternoonEnterBlocked(column5Html, childId, dateStr)
+
+  const showEnter = canPostEnter(column5Html)
+  const showLeave = !hasExited && canPostLeave(column6Html, column5)
+
+  useEffect(() => {
+    console.group("[AttendanceActionSection] 入退室ボタン表示判定")
+    console.log("childId:", childId)
+    console.log("childName:", childName)
+    console.log("dateStr:", dateStr)
+
+    console.log("column5:", column5)
+    console.log("column5Html:", column5Html)
+    console.log("column6:", column6)
+    console.log("column6Html:", column6Html)
+
+    console.log("isAbsent:", isAbsent)
+    console.log("hasEntered:", hasEntered)
+    console.log("hasExited:", hasExited)
+    console.log("isUIEnabled:", isUIEnabled)
+    console.log("isStop:", isStop)
+    console.log("loadingAction:", loadingAction)
+    console.log("disabled:", disabled)
+
+    console.log("canPostEnter(column5Html):", showEnter)
+    console.log("canPostLeave(column6Html, column5):", showLeave)
+    console.log("afternoonBlocked:", afternoonBlocked)
+
+    console.log("表示結果:", {
+      absenceBadge: isAbsent,
+      enterTimeView: hasEntered,
+      leaveTimeView: hasEntered && hasExited,
+      showEnterButton: !isAbsent && !hasEntered && showEnter,
+      showLeaveButton: !isAbsent && hasEntered && showLeave,
+      showProfessionalSupport: !isAbsent && hasEntered && hasExited,
+    })
+    console.groupEnd()
+  }, [
+    childId,
+    childName,
+    dateStr,
+    column5,
+    column5Html,
+    column6,
+    column6Html,
+    isAbsent,
+    hasEntered,
+    hasExited,
+    isUIEnabled,
+    isStop,
+    loadingAction,
+    disabled,
+    showEnter,
+    showLeave,
+    afternoonBlocked,
+  ])
 
   if (isAbsent) {
     return (
       <span className="hug-absence-badge" title={column5 || "欠席"}>
         {column5 || "欠席"}
       </span>
-    );
+    )
   }
 
   if (hasEntered) {
-    const showLeave = !hasExited && canPostLeave(column6Html, column5);
-
     return (
       <>
         <div className="hug-time-field">
@@ -93,10 +148,8 @@ export default function AttendanceActionSection({
           <span className="hug-enter-cell-dash">退室ボタンなし</span>
         )}
       </>
-    );
+    )
   }
-
-  const showEnter = canPostEnter(column5Html);
 
   return (
     <div className="hug-post-actions">
@@ -129,5 +182,5 @@ export default function AttendanceActionSection({
         </p>
       ) : null}
     </div>
-  );
+  )
 }
