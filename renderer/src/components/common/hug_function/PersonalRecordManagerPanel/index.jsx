@@ -5,7 +5,7 @@ import {
   fetchAllTables,
   selectServiceRecord,
 } from "@/store/slices/databaseSlice.js";
-import { selectPersonalRecordNote } from "@/utils/personalRecord/selectPersonalRecordNote.js";
+import { selectPersonalRecordNote } from "./selectPersonalRecordNote";
 import PersonalRecordUpdateBtn from "./PersonalRecordUpdateBtn";
 
 import { sqliteApi } from "@/sql/sqliteApi.js";

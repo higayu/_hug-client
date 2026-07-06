@@ -1,4 +1,4 @@
-import { SERVICE_RECORD_ITEM_ID } from "@/utils/personalRecord/postServiceRecordsToLocalApi.js";
+import { SERVICE_RECORD_ITEM_ID } from "../postServiceRecordsToLocalApi";
 
 /**
  * served_date（DATE）から YYYY-MM-DD を取り出す

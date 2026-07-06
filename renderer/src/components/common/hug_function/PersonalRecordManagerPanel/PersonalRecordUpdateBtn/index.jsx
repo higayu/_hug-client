@@ -2,7 +2,7 @@ import { useCallback, useRef, useState } from "react";
 import { useAppState } from "@/AppStateContext";
 import { useToast } from "@/components/common/ToastContext.jsx";
 import { fetchPersonalRecord } from "./fetchPersonalRecord";
-import { postServiceRecordsToLocalApi } from "@/utils/personalRecord/postServiceRecordsToLocalApi.js";
+import { postServiceRecordsToLocalApi } from "../postServiceRecordsToLocalApi";
 import { useDataBase } from "@/hooks/useDataBase";
 
 const LOG_TAG = "PersonalRecordGet";
