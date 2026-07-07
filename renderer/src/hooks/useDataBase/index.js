@@ -17,6 +17,13 @@ function toBooleanFlag(value, defaultValue = true) {
   return defaultValue
 }
 
+/**
+ * AUTO_SWITCHING を取得する
+ *
+ * 重要:
+ * この関数は loadDataBase({ useAutoSwitching: true }) の時だけ使う。
+ * つまり、初回自動取得の時だけ AUTO_SWITCHING を参照する。
+ */
 function getAutoSwitchingEnabledForUseDataBase() {
   if (window.AppState?.AUTO_SWITCHING !== undefined) {
     return toBooleanFlag(window.AppState.AUTO_SWITCHING, true)
@@ -29,8 +36,10 @@ function getAutoSwitchingEnabledForUseDataBase() {
   try {
     if (typeof window.getApiSettings === "function") {
       const apiSettings = window.getApiSettings()
-      if (apiSettings?.autoSwitching !== undefined && apiSettings?.autoSwitching !== null) {
-        return toBooleanFlag(apiSettings.autoSwitching, true)
+      const autoSwitching = apiSettings?.autoSwitching
+
+      if (autoSwitching !== undefined && autoSwitching !== null) {
+        return toBooleanFlag(autoSwitching, true)
       }
     }
   } catch (error) {
@@ -83,6 +92,13 @@ export function useDataBase({ autoLoad = false } = {}) {
 
   // =============================================================
   // DB全テーブル取得
+  //
+  // options:
+  // - reason: ログ用
+  // - forceDatabaseType: DB種別を強制する
+  // - useAutoSwitching:
+  //   true の場合だけ、DATABASE_TYPE=sqlite 時に AUTO_SWITCHING を参照する
+  //   初回自動取得以外では基本 false
   // =============================================================
   const loadDataBase = useCallback(
     async (options = {}) => {
@@ -90,16 +106,31 @@ export function useDataBase({ autoLoad = false } = {}) {
       const reason = options.reason || "manual/unknown"
       const forceDatabaseType = options.forceDatabaseType
 
+      /**
+       * 重要:
+       * AUTO_SWITCHING を使うかどうかは呼び出し側で明示する。
+       *
+       * true:
+       * - DATABASE_TYPE=sqlite の場合、AUTO_SWITCHING=true なら MariaDB 接続確認する
+       *
+       * false:
+       * - DATABASE_TYPE=sqlite の場合、MariaDB 接続確認しない
+       * - そのまま sqliteApi を使う
+       */
+      const useAutoSwitching = options.useAutoSwitching === true
+
       console.group(`🧩 [useDataBase] loadDataBase START #${loadId}`)
       console.log("📌 [useDataBase] call info:", {
         loadId,
         reason,
         forceDatabaseType,
+        useAutoSwitching,
         autoLoad,
         isInitialized,
         databaseType,
         reduxDatabaseType: databaseTypeFromRedux,
         appStateDatabaseType: window.AppState?.DATABASE_TYPE,
+        appStateAutoSwitching: window.AppState?.AUTO_SWITCHING,
         iniDatabaseType: window.IniState?.apiSettings?.databaseType,
         iniAutoSwitching: window.IniState?.apiSettings?.autoSwitching,
       })
@@ -138,10 +169,12 @@ export function useDataBase({ autoLoad = false } = {}) {
           loadId,
           reason,
           forceDatabaseType,
+          useAutoSwitching,
           databaseType,
           resolvedDatabaseType,
           reduxDatabaseType: databaseTypeFromRedux,
           appStateDatabaseType: window.AppState?.DATABASE_TYPE,
+          appStateAutoSwitching: window.AppState?.AUTO_SWITCHING,
           iniDatabaseType: window.IniState?.apiSettings?.databaseType,
           iniAutoSwitching: window.IniState?.apiSettings?.autoSwitching,
         })
@@ -150,33 +183,50 @@ export function useDataBase({ autoLoad = false } = {}) {
         // DATABASE_TYPE=sqlite の場合
         //
         // 方針:
-        // - AUTO_SWITCHING=false の場合は MariaDB 接続確認をしない
-        // - そのまま sqliteApi を使う
-        // - AUTO_SWITCHING=true の場合だけ MariaDB 接続確認を行う
-        // - 接続できた場合は checkMariaDbConnection 側で mariadb へ自動切替される
+        // - useAutoSwitching=false の場合
+        //   - AUTO_SWITCHING を見ない
+        //   - MariaDB 接続確認をしない
+        //   - そのまま sqliteApi を使う
+        //
+        // - useAutoSwitching=true の場合
+        //   - AUTO_SWITCHING を見る
+        //   - AUTO_SWITCHING=true なら MariaDB 接続確認する
+        //   - 接続できた場合は checkMariaDbConnection 側で MariaDB へ自動切替
+        //
+        // つまり AUTO_SWITCHING を使うのは初回自動取得時だけ。
         // =============================================================
         if (resolvedDatabaseType === "sqlite") {
-          const autoSwitchingEnabled = getAutoSwitchingEnabledForUseDataBase()
+          const autoSwitchingEnabled = useAutoSwitching
+            ? getAutoSwitchingEnabledForUseDataBase()
+            : false
 
           console.log("🔍 [useDataBase] DATABASE_TYPE=sqlite 判定:", {
             loadId,
             reason,
             resolvedDatabaseType,
+            useAutoSwitching,
             autoSwitchingEnabled,
             rawAppStateAutoSwitching: window.AppState?.AUTO_SWITCHING,
             rawIniAutoSwitching: window.IniState?.apiSettings?.autoSwitching,
           })
 
-          if (!autoSwitchingEnabled) {
+          if (!useAutoSwitching) {
             console.log(
-              "⏭ [useDataBase] DATABASE_TYPE=sqlite かつ AUTO_SWITCHING=false のため MariaDB接続確認をスキップし、sqliteApi を使用します"
+              "⏭ [useDataBase] useAutoSwitching=false のため AUTO_SWITCHING を見ず、MariaDB接続確認をスキップして sqliteApi を使用します"
+            )
+
+            resolvedDatabaseType = "sqlite"
+            apiToUse = sqliteApi
+          } else if (!autoSwitchingEnabled) {
+            console.log(
+              "⏭ [useDataBase] 初期読み込みだが AUTO_SWITCHING=false のため MariaDB接続確認をスキップし、sqliteApi を使用します"
             )
 
             resolvedDatabaseType = "sqlite"
             apiToUse = sqliteApi
           } else {
             console.log(
-              "🔌 [useDataBase] DATABASE_TYPE=sqlite かつ AUTO_SWITCHING=true のため MariaDB接続確認を実行します"
+              "🔌 [useDataBase] 初期読み込みかつ AUTO_SWITCHING=true のため MariaDB接続確認を実行します"
             )
 
             mariaDbConnectionResult = await checkMariaDbConnection(dispatch, {
@@ -230,6 +280,10 @@ export function useDataBase({ autoLoad = false } = {}) {
 
         // =============================================================
         // DATABASE_TYPE=mariadb の場合
+        //
+        // ここは AUTO_SWITCHING とは別。
+        // MariaDB が選択されているなら接続確認し、
+        // 接続失敗時は SQLite fallback する。
         // =============================================================
         if (resolvedDatabaseType === "mariadb") {
           if (checkedMariaDbConnection) {
@@ -300,6 +354,7 @@ export function useDataBase({ autoLoad = false } = {}) {
         console.log("🔍 [useDataBase] 最終的に使用するDB/API:", {
           loadId,
           reason,
+          useAutoSwitching,
           resolvedDatabaseType,
           apiName:
             apiToUse === mariadbApi
@@ -330,6 +385,7 @@ export function useDataBase({ autoLoad = false } = {}) {
         console.log("✅ [useDataBase] databaseSlice 保存完了:", {
           loadId,
           reason,
+          useAutoSwitching,
           resolvedDatabaseType,
           tableKeys: Object.keys(tables),
           counts: Object.fromEntries(
@@ -365,8 +421,8 @@ export function useDataBase({ autoLoad = false } = {}) {
   //
   // 重要:
   // - database-type-changed はDB取得元が変わるので再取得する
-  // - weekday-changed では再取得しない
-  // - 曜日変更時は databaseSlice から再抽出するだけ
+  // - ここでは AUTO_SWITCHING は使わない
+  // - 明示的なDB変更イベントなので、渡されたDB種別を優先する
   // =============================================================
   useEffect(() => {
     if (!autoLoad) {
@@ -386,6 +442,7 @@ export function useDataBase({ autoLoad = false } = {}) {
       await loadDataBase({
         reason: "event/database-type-changed",
         forceDatabaseType: nextDatabaseType,
+        useAutoSwitching: false,
       })
     }
 
@@ -405,7 +462,8 @@ export function useDataBase({ autoLoad = false } = {}) {
   // 重要:
   // - autoLoad=true のインスタンスだけ実行
   // - isInitialized が true になったら1回だけ全テーブル取得
-  // - STAFF_ID / weekdayId は不要
+  // - ここだけ useAutoSwitching=true を渡す
+  // - つまり AUTO_SWITCHING を見るのは初回読み込み時だけ
   // =============================================================
   useEffect(() => {
     if (!autoLoad) return
@@ -422,6 +480,7 @@ export function useDataBase({ autoLoad = false } = {}) {
 
     loadDataBase({
       reason: "autoLoad/after-initialized-once",
+      useAutoSwitching: true,
     })
   }, [autoLoad, isInitialized, loadDataBase])
 
