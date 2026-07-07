@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import SelectableWeekDayButton from "@/components/ui/SelectableWeekDayButton.jsx";
+import { ModalPortal } from "@/components/common/ModalPortal";
 
 export default function EditModal({ open, onClose, manager, onConfirm }) {
   const [childrenId, setChildrenId] = useState("");
@@ -51,7 +52,9 @@ export default function EditModal({ open, onClose, manager, onConfirm }) {
 
   return (
     open && (
-      <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+      <ModalPortal>
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+
         <div className="bg-white p-6 rounded-xl w-96 shadow-xl">
           <h2 className="text-lg font-bold mb-4">編集</h2>
 
@@ -109,7 +112,8 @@ export default function EditModal({ open, onClose, manager, onConfirm }) {
             </button>
           </div>
         </div>
-      </div>
+        </div>
+      </ModalPortal>
     )
   );
 }

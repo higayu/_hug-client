@@ -3,7 +3,7 @@ import { useAppState } from "@/AppStateContext";
 import { store } from "@/store/store.js";
 import { useSelector } from "react-redux";
 import { updateManager, getManagerRecord } from "./managersUtils.js";
-
+import { ModalPortal } from "@/components/common/ModalPortal";
 /**
  * 時間だけを HH:00:00 に変換する
  * 
@@ -195,6 +195,7 @@ function ConfirmModal({ show, message, list = [], onConfirm, onCancel }) {
   };
 
   return (
+    <ModalPortal>
     <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg shadow-lg p-6 w-[720px] max-h-[80vh] overflow-y-auto text-center">
         <p className="text-lg font-medium mb-4">{message}</p>
@@ -352,6 +353,7 @@ function ConfirmModal({ show, message, list = [], onConfirm, onCancel }) {
         </div>
       </div>
     </div>
+    </ModalPortal>
   );
 }
 
