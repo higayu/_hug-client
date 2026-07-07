@@ -5,7 +5,7 @@ import ChildrenTable from './InsertManageChildren'
 import UpdateManager from './UpdateManager'
 import TestContent from './TestContent';
 import { useAppState } from '@/AppStateContext';
-import SpeechToText from '@/components/common/SpeechToText';
+import SpeechToText from './SpeechToText';
 
 function TabsContainer() {
   const {
