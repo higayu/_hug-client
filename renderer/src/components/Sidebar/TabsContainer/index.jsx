@@ -52,7 +52,7 @@ function TabsContainer() {
       </div>
 
       {/* --- コンテンツ切り替え --- */}
-      <div className="flex-1 overflow-auto p-2 bg-white">
+      <div className="flex-1 overflow-auto bg-white">
         {activeTab === 'tools' && (
           <div className="h-full flex flex-col">
             <ToolContent />

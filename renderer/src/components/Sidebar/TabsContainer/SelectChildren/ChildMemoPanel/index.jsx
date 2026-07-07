@@ -433,9 +433,9 @@ export default function ChildMemoPanel() {
   // =============================================================
   const renderPanelShell = (content) => {
     return (
-      <div className="child-memo-panel flex-1 min-h-0 border-l border-gray-300 bg-gray-50 flex flex-col">
-        <div className="shrink-0 border-b border-gray-200 bg-white p-2">
-          <div className="flex flex-row gap-2 items-center justify-center">
+      <div className="child-memo-panel flex-1 border-l border-gray-300 bg-gray-50 flex flex-col">
+        <div className="shrink-0 border-b border-gray-200 bg-white">
+          <div className="flex flex-row items-center justify-center">
             <GetTodayUsersChildren />
           </div>
         </div>
@@ -454,7 +454,7 @@ export default function ChildMemoPanel() {
   if (!selectChild) {
     return renderPanelShell(
       <div className="flex-1 min-h-0 overflow-y-auto p-4">
-        <div className="text-sm text-gray-500 text-center mt-8">
+        <div className="text-sm text-gray-500 text-center">
           Please select a child.
         </div>
       </div>
@@ -466,7 +466,7 @@ export default function ChildMemoPanel() {
   // =============================================================
   if (!isAttendanceLoaded) {
     return renderPanelShell(
-      <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
+      <div className="flex-1 flex flex-col items-center justify-center text-center">
         <p className="text-sm font-bold text-gray-800">
           今日の利用者データを取得してください
         </p>

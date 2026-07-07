@@ -312,7 +312,7 @@ export default function TodayChildrenList() {
   })
 
   return (
-    <div className="sidebar-content flex-1 overflow-y-auto">
+    <div className="sidebar-content py-1 px-2 flex-1 overflow-y-auto">
       <ChildrenListTabs
         activeTab={activeTab}
         onChangeTab={setActiveTab}
