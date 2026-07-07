@@ -1,103 +1,433 @@
-// renderer\src\components\Sidebar\Tools\UpdateManager\Modals\EditModal.jsx
-import { useState, useEffect } from "react";
-import { useSelector } from "react-redux";
+// renderer/src/components/Sidebar/Tools/UpdateManager/Modals/EditModal.jsx
+import { useState, useEffect, useMemo } from "react";
 import SelectableWeekDayButton from "@/components/ui/SelectableWeekDayButton.jsx";
 import { ModalPortal } from "@/components/common/ModalPortal";
+import { useAppState } from "@/AppStateContext";
+
+const PRIORITY_OPTIONS = [
+  {
+    value: 0,
+    label: "通常",
+  },
+  {
+    value: 1,
+    label: "時折（たまに）対応する",
+  },
+  {
+    value: 2,
+    label: "一時的（滅多に無い）に対応する",
+  },
+];
+
+const formatTimeForInput = (value) => {
+  if (!value) return "";
+
+  return String(value).slice(0, 5);
+};
+
+const formatTimeForDb = (value) => {
+  if (!value) return null;
+
+  if (String(value).length === 5) {
+    return `${value}:00`;
+  }
+
+  return value;
+};
+
+const createEmptyDaySetting = () => ({
+  selected: false,
+  originallySelected: false,
+  priority: 0,
+  support_start_time: "",
+  support_end_time: "",
+});
 
 export default function EditModal({ open, onClose, manager, onConfirm }) {
-  const [childrenId, setChildrenId] = useState("");
-  const [childrenName, setChildrenName] = useState("");
-  const [staffName, setStaffName] = useState("");
-  const [days, setDays] = useState([]); // ← ID配列
+  const { databaseState } = useAppState();
 
-  // 🔥 DB の曜日マスタ
-  const dayOfWeekMaster = useSelector(
-    (state) => state.database?.day_of_week ?? []
-  );
+  const [daySettings, setDaySettings] = useState({});
+  const [showUnassignedDays, setShowUnassignedDays] = useState(false);
 
-  useEffect(() => {
-    if (manager) {
-      setChildrenId(manager.children_id || "");
-      setChildrenName(manager.children_name || "");
-      setStaffName(manager.staff_name || "");
+  // ------------------------------------------
+  // 固定表示用
+  // children_id / staff_id / children_name / staff_name は manager から取得
+  // ------------------------------------------
+  const childrenId = manager?.children_id ?? "";
+  const staffId = manager?.staff_id ?? "";
+  const childrenName = manager?.children_name ?? "";
+  const staffName = manager?.staff_name ?? "";
 
-      try {
-        const parsed = JSON.parse(manager.day_of_week);
-        setDays(Array.isArray(parsed.days) ? parsed.days : []);
-      } catch {
-        setDays([]);
-      }
-    }
-  }, [manager]);
+  // ------------------------------------------
+  // DB
+  // ------------------------------------------
+  const database = useMemo(() => {
+    return databaseState ?? {};
+  }, [databaseState]);
 
-  // トグル
-  const toggleDay = (id) => {
-    setDays((prev) =>
-      prev.includes(id) ? prev.filter((d) => d !== id) : [...prev, id]
+  const dayOfWeekMaster = useMemo(() => {
+    return database.day_of_week ?? [];
+  }, [database.day_of_week]);
+
+  const managers2 = useMemo(() => {
+    return database.managers2 ?? [];
+  }, [database.managers2]);
+
+  // ------------------------------------------
+  // managers2 から対象児童・対象スタッフの曜日データを抽出
+  // ------------------------------------------
+  const targetManagerRows = useMemo(() => {
+    if (!manager) return [];
+
+    return managers2.filter(
+      (m) =>
+        Number(m.children_id) === Number(manager.children_id) &&
+        Number(m.staff_id) === Number(manager.staff_id)
     );
+  }, [managers2, manager]);
+
+  // ------------------------------------------
+  // 初期値セット
+  // 担当ありの曜日だけ originallySelected: true
+  // ------------------------------------------
+  useEffect(() => {
+    if (!manager) return;
+
+    const nextDaySettings = {};
+
+    dayOfWeekMaster.forEach((day) => {
+      const dayId = Number(day.id);
+
+      const existingRow = targetManagerRows.find(
+        (row) => Number(row.day_of_week_id) === dayId
+      );
+
+      const hasManager = Boolean(existingRow);
+
+      nextDaySettings[dayId] = {
+        selected: hasManager,
+        originallySelected: hasManager,
+        priority: Number(existingRow?.priority ?? 0),
+        support_start_time: formatTimeForInput(
+          existingRow?.support_start_time
+        ),
+        support_end_time: formatTimeForInput(
+          existingRow?.support_end_time
+        ),
+      };
+    });
+
+    setDaySettings(nextDaySettings);
+
+    // モーダルを開き直したときは、担当なし曜日は非表示に戻す
+    setShowUnassignedDays(false);
+  }, [manager, dayOfWeekMaster, targetManagerRows]);
+
+  // ------------------------------------------
+  // 表示する曜日
+  // 初期状態では担当ありのみ表示
+  // showUnassignedDays が true のときだけ担当なしも表示
+  // originallySelected は削除予定になっても表示を残す
+  // ------------------------------------------
+  const visibleDayOfWeekMaster = useMemo(() => {
+    return [...dayOfWeekMaster]
+      .sort((a, b) => Number(a.sort_order) - Number(b.sort_order))
+      .filter((day) => {
+        const dayId = Number(day.id);
+        const setting = daySettings[dayId] ?? createEmptyDaySetting();
+
+        return (
+          showUnassignedDays ||
+          setting.selected ||
+          setting.originallySelected
+        );
+      });
+  }, [dayOfWeekMaster, daySettings, showUnassignedDays]);
+
+  const hiddenUnassignedCount = useMemo(() => {
+    return dayOfWeekMaster.filter((day) => {
+      const dayId = Number(day.id);
+      const setting = daySettings[dayId] ?? createEmptyDaySetting();
+
+      return !setting.selected && !setting.originallySelected;
+    }).length;
+  }, [dayOfWeekMaster, daySettings]);
+
+  // ------------------------------------------
+  // 曜日トグル
+  // ------------------------------------------
+  const toggleDay = (id) => {
+    const dayId = Number(id);
+
+    setDaySettings((prev) => {
+      const current = prev[dayId] ?? createEmptyDaySetting();
+
+      return {
+        ...prev,
+        [dayId]: {
+          ...current,
+          selected: !current.selected,
+        },
+      };
+    });
   };
 
+  // ------------------------------------------
+  // 曜日ごとの値更新
+  // ------------------------------------------
+  const updateDaySetting = (id, key, value) => {
+    const dayId = Number(id);
+
+    setDaySettings((prev) => {
+      const current = prev[dayId] ?? createEmptyDaySetting();
+
+      return {
+        ...prev,
+        [dayId]: {
+          ...current,
+          [key]: value,
+        },
+      };
+    });
+  };
+
+  // ------------------------------------------
   // 保存
+  // ------------------------------------------
   const handleSubmit = () => {
+    const selectedDayIds = Object.entries(daySettings)
+      .filter(([, setting]) => setting.selected)
+      .map(([dayId]) => Number(dayId))
+      .sort((a, b) => a - b);
+
+    const selectedManagerRows = selectedDayIds.map((dayId) => {
+      const setting = daySettings[dayId] ?? createEmptyDaySetting();
+
+      const existingRow = targetManagerRows.find(
+        (row) => Number(row.day_of_week_id) === Number(dayId)
+      );
+
+      return {
+        ...existingRow,
+        children_id: Number(childrenId),
+        staff_id: Number(staffId),
+        day_of_week_id: Number(dayId),
+        priority: Number(setting.priority ?? 0),
+        support_start_time: formatTimeForDb(setting.support_start_time),
+        support_end_time: formatTimeForDb(setting.support_end_time),
+      };
+    });
+
+    const removedDayOfWeekIds = targetManagerRows
+      .filter(
+        (row) =>
+          !selectedDayIds.some(
+            (dayId) => Number(dayId) === Number(row.day_of_week_id)
+          )
+      )
+      .map((row) => Number(row.day_of_week_id));
+
     const updated = {
       ...manager,
-      children_id: childrenId,
+
+      // 固定値
+      children_id: Number(childrenId),
+      staff_id: Number(staffId),
       children_name: childrenName,
       staff_name: staffName,
-      day_of_week: JSON.stringify({ days }),
+
+      // 選択中の曜日ID
+      day_of_week_ids: selectedDayIds,
+
+      // 保存対象の managers2 行
+      managers2: selectedManagerRows,
+
+      // 削除対象の曜日ID
+      removed_day_of_week_ids: removedDayOfWeekIds,
+
+      // 元の managers2 行
+      original_managers2: targetManagerRows,
     };
 
-   onConfirm(updated, "edit");
+    onConfirm(updated, "edit");
   };
 
-  return (
-    open && (
-      <ModalPortal>
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+  if (!open) return null;
 
-        <div className="bg-white p-6 rounded-xl w-96 shadow-xl">
+  return (
+    <ModalPortal>
+      <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+        <div className="bg-white p-6 rounded-xl w-[520px] max-h-[90vh] overflow-y-auto shadow-xl">
           <h2 className="text-lg font-bold mb-4">編集</h2>
 
           <div className="flex flex-col gap-3 mt-2">
-            <label className="text-sm font-semibold">子どもID</label>
-            <input
-              value={childrenId}
-              onChange={(e) => setChildrenId(e.target.value)}
-              className="border p-2 rounded-md text-sm"
-            />
-
-            <label className="text-sm font-semibold">子ども名</label>
-            <input
-              value={childrenName}
-              onChange={(e) => setChildrenName(e.target.value)}
-              className="border p-2 rounded-md text-sm"
-            />
-
-            <label className="text-sm font-semibold">スタッフ名</label>
-            <input
-              value={staffName}
-              onChange={(e) => setStaffName(e.target.value)}
-              className="border p-2 rounded-md text-sm"
-            />
-
-            <label className="text-sm font-semibold">曜日</label>
-              <div className="flex gap-2 flex-wrap">
-                {[...dayOfWeekMaster]
-                  .sort((a, b) => a.sort_order - b.sort_order)
-                  .map((d) => (
-                    <SelectableWeekDayButton
-                      key={d.id}
-                      dayId={d.id}
-                      label={d.label_jp}
-                      active={days.includes(d.id)} // ← 現在選択状態
-                      onClick={() => toggleDay(d.id)} // ← 切り替え
-                    />
-                  ))}
+            <div className="flex flex-row">
+              <div className="flex flex-col">
+                <label className="text-sm font-semibold">子ども</label>
+                <div className="border p-2 rounded-md text-sm bg-gray-100 text-gray-700">
+                  {childrenId} : {childrenName}
+                </div>
               </div>
+              <div className="flex flex-col">
+                <label className="text-sm font-semibold">スタッフ</label>
+                <div className="border p-2 rounded-md text-sm bg-gray-100 text-gray-700">
+                  {staffId} : {staffName}
+                </div>
+              </div>
+            </div>
+
+
+            <div className="flex items-center justify-between mt-2">
+              <label className="text-sm font-semibold">
+                曜日ごとの担当設定
+              </label>
+
+              {hiddenUnassignedCount > 0 && (
+                <button
+                  type="button"
+                  className="text-xs px-3 py-1 rounded-md border border-gray-300 text-gray-700 bg-gray-50"
+                  onClick={() =>
+                    setShowUnassignedDays((prev) => !prev)
+                  }
+                >
+                  {showUnassignedDays
+                    ? "担当なし曜日を隠す"
+                    : "担当なし曜日も表示"}
+                </button>
+              )}
+            </div>
+
+            {visibleDayOfWeekMaster.length > 0 ? (
+              <div className="flex flex-col gap-3">
+                {visibleDayOfWeekMaster.map((day) => {
+                  const dayId = Number(day.id);
+                  const setting =
+                    daySettings[dayId] ?? createEmptyDaySetting();
+
+                  const isRemovePending =
+                    setting.originallySelected && !setting.selected;
+
+                  return (
+                    <div
+                      key={day.id}
+                      className={`border rounded-lg p-3 ${
+                        setting.selected
+                          ? "bg-blue-50 border-blue-300"
+                          : isRemovePending
+                            ? "bg-red-50 border-red-300"
+                            : "bg-gray-50 border-gray-200"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between gap-3">
+                        <SelectableWeekDayButton
+                          dayId={day.id}
+                          label={day.label_jp}
+                          active={setting.selected}
+                          onClick={() => toggleDay(day.id)}
+                        />
+
+                        <span
+                          className={`text-xs ${
+                            setting.selected
+                              ? "text-blue-600"
+                              : isRemovePending
+                                ? "text-red-500"
+                                : "text-gray-500"
+                          }`}
+                        >
+                          {setting.selected
+                            ? "担当あり"
+                            : isRemovePending
+                              ? "削除予定"
+                              : "担当なし"}
+                        </span>
+                      </div>
+
+                      <div className="mt-3 flex flex-col gap-3">
+                        <div className="flex flex-col gap-1">
+                          <label className="text-xs font-semibold text-gray-600">
+                            優先度
+                          </label>
+
+                          <select
+                            value={setting.priority}
+                            disabled={!setting.selected}
+                            onChange={(e) =>
+                              updateDaySetting(
+                                day.id,
+                                "priority",
+                                Number(e.target.value)
+                              )
+                            }
+                            className="border p-2 rounded-md text-sm disabled:bg-gray-100 disabled:text-gray-400"
+                          >
+                            {PRIORITY_OPTIONS.map((option) => (
+                              <option
+                                key={option.value}
+                                value={option.value}
+                              >
+                                {option.value} : {option.label}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="flex flex-col gap-1">
+                            <label className="text-xs font-semibold text-gray-600">
+                              支援開始時間
+                            </label>
+
+                            <input
+                              type="time"
+                              value={setting.support_start_time}
+                              disabled={!setting.selected}
+                              onChange={(e) =>
+                                updateDaySetting(
+                                  day.id,
+                                  "support_start_time",
+                                  e.target.value
+                                )
+                              }
+                              className="border p-2 rounded-md text-sm disabled:bg-gray-100 disabled:text-gray-400"
+                            />
+                          </div>
+
+                          <div className="flex flex-col gap-1">
+                            <label className="text-xs font-semibold text-gray-600">
+                              支援終了時間
+                            </label>
+
+                            <input
+                              type="time"
+                              value={setting.support_end_time}
+                              disabled={!setting.selected}
+                              onChange={(e) =>
+                                updateDaySetting(
+                                  day.id,
+                                  "support_end_time",
+                                  e.target.value
+                                )
+                              }
+                              className="border p-2 rounded-md text-sm disabled:bg-gray-100 disabled:text-gray-400"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="text-center text-gray-400 py-6 text-sm border rounded-md bg-gray-50">
+                現在担当している曜日はありません
+              </div>
+            )}
           </div>
 
           <div className="mt-6 flex gap-3 justify-end">
             <button
+              type="button"
               className="px-4 py-2 rounded-md text-sm text-gray-700 border border-gray-300"
               onClick={onClose}
             >
@@ -105,6 +435,7 @@ export default function EditModal({ open, onClose, manager, onConfirm }) {
             </button>
 
             <button
+              type="button"
               className="px-4 py-2 rounded-md text-sm text-white bg-blue-500"
               onClick={handleSubmit}
             >
@@ -112,9 +443,7 @@ export default function EditModal({ open, onClose, manager, onConfirm }) {
             </button>
           </div>
         </div>
-        </div>
-      </ModalPortal>
-    )
+      </div>
+    </ModalPortal>
   );
 }
-

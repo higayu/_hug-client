@@ -146,11 +146,93 @@ function registerMariadbHandlers(ipcMain) {
     ipcMain.handle(
       `mariadb:${table}:update`,
       async (_, { pk, values, data }) => {
+        console.log("========================================");
+        console.log(`[mariadb:${table}:update] START`);
+        console.log(`[mariadb:${table}:update] raw input:`, {
+          pk,
+          values,
+          data,
+        });
+
         const params = normalizePkValues(pk, values);
 
-        return apiClient.put(table, data, {
+        console.log(`[mariadb:${table}:update] normalized params:`, params);
+
+        // managers2 のときだけ、SQL風の確認ログを出す
+        if (table === "managers2") {
+          const pkList = Array.isArray(pk)
+            ? pk
+            : String(params.pk).split(",");
+
+          const valueList = Array.isArray(values)
+            ? values
+            : String(params.values).split(",");
+
+          const wherePreview = pkList
+            .map((key, index) => {
+              const value = valueList[index];
+
+              return `${key} = ${
+                value === null || value === undefined
+                  ? "NULL"
+                  : Number.isNaN(Number(value))
+                    ? `'${value}'`
+                    : value
+              }`;
+            })
+            .join(" AND ");
+
+          const setPreview = Object.entries(data ?? {})
+            .map(([key, value]) => {
+              return `${key} = ${
+                value === null || value === undefined || value === ""
+                  ? "NULL"
+                  : Number.isNaN(Number(value))
+                    ? `'${value}'`
+                    : value
+              }`;
+            })
+            .join(",\n          ");
+
+          console.log(
+            "[mariadb:managers2:update] SQL preview:",
+            `
+            UPDATE managers2
+            SET
+              ${setPreview}
+            WHERE
+              ${wherePreview};
+            `
+          );
+        }
+
+        console.log(`[mariadb:${table}:update] API PUT:`, {
+          table,
+          data,
           params,
         });
+
+        try {
+          const result = await apiClient.put(table, data, {
+            params,
+          });
+
+          console.log(`[mariadb:${table}:update] RESULT:`, result);
+          console.log(`[mariadb:${table}:update] END`);
+          console.log("========================================");
+
+          return result;
+        } catch (error) {
+          console.error(`[mariadb:${table}:update] ERROR:`, error);
+          console.error(`[mariadb:${table}:update] FAILED REQUEST:`, {
+            table,
+            data,
+            params,
+          });
+          console.log("========================================");
+
+          throw error;
+        }
       }
     );
 

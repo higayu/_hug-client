@@ -5,7 +5,7 @@ import ConfirmModal from "./ConfirmModal.jsx";
 import { store } from "@/store/store.js";
 import { useToast } from "@/components/common/ToastContext.jsx";
 import { useAppState } from "@/AppStateContext";
-import { insertManager } from "@/sql/useManager/insertManager";
+import { insertManager } from "./insertManager";
 import { useDataBase } from "@/hooks/useDataBase";
 
 /**

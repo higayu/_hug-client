@@ -1,6 +1,8 @@
 // preload/tableApis.js
 const { sqliteTables, mariadbTables } = require("./tables");
 
+//tableApis.js で 「データベース名_テーブル名_sqlコマンド名」で自動生成している （例） mariadb_children_insert
+
 function createTableApis(ipcRenderer) {
   const tableAPIs = {};
 
