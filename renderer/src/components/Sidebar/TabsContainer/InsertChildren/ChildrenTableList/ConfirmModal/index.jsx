@@ -357,7 +357,7 @@ function ConfirmModal({ show, message, list = [], onConfirm, onCancel }) {
 
                       <td className="border px-2 py-1">
                         <select
-                          className="border px-2 py-1 w-full text-black"
+                          className="border bg-slate-50 px-2 py-1 w-full text-black"
                           value={supportStartHourValue}
                           onChange={(e) =>
                             handleSelectChange(
@@ -381,7 +381,7 @@ function ConfirmModal({ show, message, list = [], onConfirm, onCancel }) {
 
                       <td className="border px-2 py-1">
                         <select
-                          className="border px-2 py-1 w-full text-black"
+                          className="border bg-slate-50 px-2 py-1 w-full text-black"
                           value={supportEndHourValue}
                           onChange={(e) =>
                             handleSelectChange(
