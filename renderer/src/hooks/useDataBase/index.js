@@ -11,6 +11,39 @@ import { fetchAllTables } from "@/store/slices/databaseSlice"
 import { selectDatabaseType } from "@/store/slices/appStateSlice"
 import { checkMariaDbConnection } from "./checkMariaDbConnection"
 
+function toBooleanFlag(value, defaultValue = true) {
+  if (value === true || value === "true") return true
+  if (value === false || value === "false") return false
+  return defaultValue
+}
+
+function getAutoSwitchingEnabledForUseDataBase() {
+  if (window.AppState?.AUTO_SWITCHING !== undefined) {
+    return toBooleanFlag(window.AppState.AUTO_SWITCHING, true)
+  }
+
+  if (typeof window.isAutoSwitchingEnabled === "function") {
+    return toBooleanFlag(window.isAutoSwitchingEnabled(), true)
+  }
+
+  try {
+    if (typeof window.getApiSettings === "function") {
+      const apiSettings = window.getApiSettings()
+      if (apiSettings?.autoSwitching !== undefined && apiSettings?.autoSwitching !== null) {
+        return toBooleanFlag(apiSettings.autoSwitching, true)
+      }
+    }
+  } catch (error) {
+    console.warn("⚠️ [useDataBase] AUTO_SWITCHING 取得エラー:", error)
+  }
+
+  if (window.IniState?.apiSettings?.autoSwitching !== undefined) {
+    return toBooleanFlag(window.IniState.apiSettings.autoSwitching, true)
+  }
+
+  return true
+}
+
 /**
  * DBデータ取得フック
  *
@@ -115,57 +148,83 @@ export function useDataBase({ autoLoad = false } = {}) {
 
         // =============================================================
         // DATABASE_TYPE=sqlite の場合
+        //
+        // 方針:
+        // - AUTO_SWITCHING=false の場合は MariaDB 接続確認をしない
+        // - そのまま sqliteApi を使う
+        // - AUTO_SWITCHING=true の場合だけ MariaDB 接続確認を行う
+        // - 接続できた場合は checkMariaDbConnection 側で mariadb へ自動切替される
         // =============================================================
         if (resolvedDatabaseType === "sqlite") {
-          console.log(
-            "🔌 [useDataBase] DATABASE_TYPE=sqlite のため AUTO_SWITCHING / fallback 判定用に MariaDB接続確認を実行します"
-          )
+          const autoSwitchingEnabled = getAutoSwitchingEnabledForUseDataBase()
 
-          mariaDbConnectionResult = await checkMariaDbConnection(dispatch, {
-            autoFallbackToSqlite: true,
-            switchToMariaDbOnSuccess: false,
-            persistIni: true,
+          console.log("🔍 [useDataBase] DATABASE_TYPE=sqlite 判定:", {
+            loadId,
+            reason,
+            resolvedDatabaseType,
+            autoSwitchingEnabled,
+            rawAppStateAutoSwitching: window.AppState?.AUTO_SWITCHING,
+            rawIniAutoSwitching: window.IniState?.apiSettings?.autoSwitching,
           })
 
-          checkedMariaDbConnection = true
-
-          console.log(
-            "🔌 [useDataBase] sqlite時の MariaDB接続確認結果:",
-            mariaDbConnectionResult
-          )
-
-          if (mariaDbConnectionResult?.switchedDatabaseType === "mariadb") {
+          if (!autoSwitchingEnabled) {
             console.log(
-              "✅ [useDataBase] AUTO_SWITCHING により mariadb へ切替済み。今回の取得も mariadbApi を使用します",
-              {
-                connected: mariaDbConnectionResult?.connected,
-                switchedDatabaseType:
-                  mariaDbConnectionResult?.switchedDatabaseType,
-                autoSwitching: mariaDbConnectionResult?.autoSwitching,
-                currentDatabaseType:
-                  mariaDbConnectionResult?.currentDatabaseType,
-              }
-            )
-
-            resolvedDatabaseType = "mariadb"
-            apiToUse = mariadbApi
-          } else {
-            console.log(
-              "⏭ [useDataBase] MariaDBへは切り替えず、sqliteApi を使用します",
-              {
-                connected: mariaDbConnectionResult?.connected,
-                autoSwitching: mariaDbConnectionResult?.autoSwitching,
-                switchedDatabaseType:
-                  mariaDbConnectionResult?.switchedDatabaseType,
-                fallbackToSqlite:
-                  mariaDbConnectionResult?.fallbackToSqlite,
-                currentDatabaseType:
-                  mariaDbConnectionResult?.currentDatabaseType,
-              }
+              "⏭ [useDataBase] DATABASE_TYPE=sqlite かつ AUTO_SWITCHING=false のため MariaDB接続確認をスキップし、sqliteApi を使用します"
             )
 
             resolvedDatabaseType = "sqlite"
             apiToUse = sqliteApi
+          } else {
+            console.log(
+              "🔌 [useDataBase] DATABASE_TYPE=sqlite かつ AUTO_SWITCHING=true のため MariaDB接続確認を実行します"
+            )
+
+            mariaDbConnectionResult = await checkMariaDbConnection(dispatch, {
+              autoFallbackToSqlite: true,
+              switchToMariaDbOnSuccess: false,
+              persistIni: true,
+            })
+
+            checkedMariaDbConnection = true
+
+            console.log(
+              "🔌 [useDataBase] sqlite時の MariaDB接続確認結果:",
+              mariaDbConnectionResult
+            )
+
+            if (mariaDbConnectionResult?.switchedDatabaseType === "mariadb") {
+              console.log(
+                "✅ [useDataBase] AUTO_SWITCHING により mariadb へ切替済み。今回の取得も mariadbApi を使用します",
+                {
+                  connected: mariaDbConnectionResult?.connected,
+                  switchedDatabaseType:
+                    mariaDbConnectionResult?.switchedDatabaseType,
+                  autoSwitching: mariaDbConnectionResult?.autoSwitching,
+                  currentDatabaseType:
+                    mariaDbConnectionResult?.currentDatabaseType,
+                }
+              )
+
+              resolvedDatabaseType = "mariadb"
+              apiToUse = mariadbApi
+            } else {
+              console.log(
+                "⏭ [useDataBase] MariaDBへは切り替えず、sqliteApi を使用します",
+                {
+                  connected: mariaDbConnectionResult?.connected,
+                  autoSwitching: mariaDbConnectionResult?.autoSwitching,
+                  switchedDatabaseType:
+                    mariaDbConnectionResult?.switchedDatabaseType,
+                  fallbackToSqlite:
+                    mariaDbConnectionResult?.fallbackToSqlite,
+                  currentDatabaseType:
+                    mariaDbConnectionResult?.currentDatabaseType,
+                }
+              )
+
+              resolvedDatabaseType = "sqlite"
+              apiToUse = sqliteApi
+            }
           }
         }
 
