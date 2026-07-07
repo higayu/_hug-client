@@ -14,6 +14,20 @@ const MODAL_COMPONENTS = {
   delete: DeleteModal,
 };
 
+const normalizeTimeForDb = (value) => {
+  if (value === "" || value == null) return null;
+
+  if (String(value).length === 5) {
+    return `${value}:00`;
+  }
+
+  return value;
+};
+
+const makeManagerKey = ({ children_id, staff_id, day_of_week_id }) => {
+  return `${Number(children_id)}-${Number(staff_id)}-${Number(day_of_week_id)}`;
+};
+
 export default function UpdateManagerTable() {
   const { showInfoToast, showErrorToast } = useToast();
   const { loadDataBase } = useDataBase();
@@ -31,10 +45,6 @@ export default function UpdateManagerTable() {
   const database = useMemo(() => {
     return databaseState ?? {};
   }, [databaseState]);
-
-  // console.log("[UpdateManagerTable] databaseState:", databaseState);
-  // console.log("[UpdateManagerTable] databaseState.managers2:", databaseState?.managers2);
-  // console.table(databaseState?.managers2 ?? []);
 
   const dayOfWeekMaster = useMemo(() => {
     return database.day_of_week ?? [];
@@ -82,7 +92,7 @@ export default function UpdateManagerTable() {
 
   const formatTimeForDisplay = (value) => {
     if (!value) return "-";
-  
+
     return String(value).slice(0, 5);
   };
 
@@ -91,7 +101,7 @@ export default function UpdateManagerTable() {
   // ------------------------------------------
   const filteredManagers = useMemo(() => {
     if (activeDayId == null) return [];
-  
+
     const result = managers
       .filter(
         (m) =>
@@ -104,7 +114,7 @@ export default function UpdateManagerTable() {
           "ja"
         )
       );
-  
+
     console.log("[UpdateManagerTable] filter debug:", {
       activeDayId,
       STAFF_ID,
@@ -113,7 +123,7 @@ export default function UpdateManagerTable() {
       managersSample: managers[0],
       result,
     });
-  
+
     console.table(
       result.map((m) => ({
         children_id: m.children_id,
@@ -126,7 +136,7 @@ export default function UpdateManagerTable() {
         priority: m.priority,
       }))
     );
-  
+
     return result;
   }, [managers, activeDayId, STAFF_ID]);
 
@@ -153,8 +163,23 @@ export default function UpdateManagerTable() {
 
   const handleConfirm = async (managerOrUpdated, mode) => {
     try {
+      console.log("[UpdateManagerTable] handleConfirm START:", {
+        mode,
+        managerOrUpdated,
+        databaseType: appState?.DATABASE_TYPE,
+      });
+
+      // ------------------------------------------
+      // 削除
+      // ------------------------------------------
       if (mode === "delete") {
         const { children_id, staff_id, day_of_week_id } = managerOrUpdated;
+
+        console.log("[UpdateManagerTable] delete START:", {
+          children_id,
+          staff_id,
+          day_of_week_id,
+        });
 
         const result = await deleteManager(
           {
@@ -165,14 +190,136 @@ export default function UpdateManagerTable() {
           appState.DATABASE_TYPE
         );
 
+        console.log("[UpdateManagerTable] delete result:", result);
+
         if (!result) {
           throw new Error("削除に失敗しました");
         }
       }
 
+      // ------------------------------------------
+      // 編集
+      // EditModal から渡ってくる想定:
+      // updated.managers2
+      // updated.removed_day_of_week_ids
+      // updated.original_managers2
+      // ------------------------------------------
       if (mode === "edit") {
-        // EditModal 側で保存処理をしているならここは空でOK
-        // 親側で保存するなら updateManager(...) をここに追加
+        const updated = managerOrUpdated;
+        const databaseType = String(appState?.DATABASE_TYPE ?? "").toLowerCase();
+        const isMariaDb = databaseType === "mariadb";
+
+        console.log("[UpdateManagerTable] edit START:", {
+          updated,
+          databaseType,
+          isMariaDb,
+        });
+
+        const saveRows = Array.isArray(updated.managers2)
+          ? updated.managers2
+          : [updated];
+
+        const removedDayOfWeekIds = Array.isArray(
+          updated.removed_day_of_week_ids
+        )
+          ? updated.removed_day_of_week_ids
+          : [];
+
+        const originalRows = Array.isArray(updated.original_managers2)
+          ? updated.original_managers2
+          : (database.managers2 ?? []).filter(
+              (row) =>
+                Number(row.children_id) === Number(updated.children_id) &&
+                Number(row.staff_id) === Number(updated.staff_id)
+            );
+
+        const originalKeySet = new Set(
+          originalRows.map((row) => makeManagerKey(row))
+        );
+
+        console.log("[UpdateManagerTable] edit rows:", {
+          saveRows,
+          removedDayOfWeekIds,
+          originalRows,
+          originalKeySet: [...originalKeySet],
+        });
+
+        // ------------------------------------------
+        // 1. チェックを外した曜日を削除
+        // ------------------------------------------
+        for (const dayOfWeekId of removedDayOfWeekIds) {
+          const deletePayload = {
+            children_id: Number(updated.children_id),
+            staff_id: Number(updated.staff_id),
+            day_of_week_id: Number(dayOfWeekId),
+          };
+
+          console.log("[UpdateManagerTable] edit DELETE payload:", deletePayload);
+
+          const deleteResult = await deleteManager(
+            deletePayload,
+            appState.DATABASE_TYPE
+          );
+
+          console.log("[UpdateManagerTable] edit DELETE result:", deleteResult);
+        }
+
+        // ------------------------------------------
+        // 2. 選択されている曜日を更新 or 追加
+        // ------------------------------------------
+        for (const row of saveRows) {
+          const payload = {
+            children_id: Number(row.children_id ?? updated.children_id),
+            staff_id: Number(row.staff_id ?? updated.staff_id),
+            day_of_week_id: Number(row.day_of_week_id),
+            priority: Number(row.priority ?? 0),
+            support_start_time: normalizeTimeForDb(row.support_start_time),
+            support_end_time: normalizeTimeForDb(row.support_end_time),
+          };
+
+          const exists = originalKeySet.has(makeManagerKey(payload));
+
+          console.log("[UpdateManagerTable] edit SAVE payload:", {
+            exists,
+            payload,
+          });
+
+          if (exists) {
+            const updateResult = await updateManager(
+              payload,
+              appState.DATABASE_TYPE
+            );
+
+            console.log("[UpdateManagerTable] edit UPDATE result:", updateResult);
+
+            if (!updateResult) {
+              throw new Error("更新に失敗しました");
+            }
+          } else {
+            console.log("[UpdateManagerTable] edit INSERT start:", {
+              isMariaDb,
+              payload,
+            });
+
+            let insertResult;
+
+            if (isMariaDb) {
+              insertResult =
+                await window.electronAPI.mariadb_managers2_insert(payload);
+            } else {
+              insertResult =
+                await window.electronAPI.sqlite_managers2_insert(payload);
+            }
+
+            console.log("[UpdateManagerTable] edit INSERT result:", insertResult);
+
+            if (!insertResult) {
+              throw new Error("追加に失敗しました");
+            }
+          }
+        }
+
+        console.log("[UpdateManagerTable] edit END");
       }
 
       showInfoToast("更新完了");
@@ -228,13 +375,13 @@ export default function UpdateManagerTable() {
         <table className="w-full border-collapse">
           <thead>
             <tr>
-            <th className="border px-4 text-xs">編集</th>
-            <th className="border px-4 text-xs">削除</th>
-            <th className="border px-4 py-2 text-xs">子どもID</th>
-            <th className="border px-4 py-2 text-xs">子ども名</th>
-            <th className="border px-4 py-2 text-xs">スタッフ名</th>
-            <th className="border px-4 py-2 text-xs">支援開始</th>
-            <th className="border px-4 py-2 text-xs">支援終了</th>
+              <th className="border px-4 text-xs">編集</th>
+              <th className="border px-4 text-xs">削除</th>
+              <th className="border px-4 py-2 text-xs">子どもID</th>
+              <th className="border px-4 py-2 text-xs">子ども名</th>
+              <th className="border px-4 py-2 text-xs">スタッフ名</th>
+              <th className="border px-4 py-2 text-xs">支援開始</th>
+              <th className="border px-4 py-2 text-xs">支援終了</th>
             </tr>
           </thead>
 
@@ -283,13 +430,12 @@ export default function UpdateManagerTable() {
                   <td className="border px-4 py-2 text-xs">
                     {formatTimeForDisplay(m.support_end_time)}
                   </td>
-
                 </tr>
               ))
             ) : (
               <tr>
                 <td
-                  colSpan={5}
+                  colSpan={7}
                   className="text-center text-gray-400 py-6 text-sm"
                 >
                   この曜日の担当はありません
