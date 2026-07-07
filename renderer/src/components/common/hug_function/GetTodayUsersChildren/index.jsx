@@ -48,7 +48,7 @@ function formatLastFetchedAt(extractedAt) {
  *
  * 取得処理はこのコンポーネント内部で実行する
  */
-export default function GetTodayUsersChildren() {
+export default function GetTodayUsersChildren({HideFlg= false}) {
 
   const { attendanceData } = useAppState();
 
@@ -91,22 +91,26 @@ export default function GetTodayUsersChildren() {
         </div>
       </div>
 
-      <div className="flex flex-col gap-2 items-center justify-center">
-        <div
-         className="border border-gray-300 rounded-md bg-white py-1 px-2 flex flex-row gap-2 items-center text-center"
-         title={fetchedAtLabel.dateTime} 
-        >
-          <span className="text-sm font-bold text-gray-900">取得：</span>
-          <span
-            className={`text-sm font-extrabold ${
-              lastFetchedAt ? "text-green-800" : "text-amber-700"
-            }`}
+    
+      {!HideFlg && (
+        <div className="flex flex-col gap-2 items-center justify-center">
+          <div
+            className="border border-gray-300 rounded-md bg-white py-1 px-2 flex flex-row gap-2 items-center text-center"
+            title={fetchedAtLabel.dateTime}
           >
-            {fetchedAtLabel.time}
-          </span>
+            <span className="text-sm font-bold text-gray-900">取得：</span>
+            <span
+              className={`text-sm font-extrabold ${
+                lastFetchedAt ? "text-green-800" : "text-amber-700"
+              }`}
+            >
+              {fetchedAtLabel.time}
+            </span>
+          </div>
+
+          <SelectChildFilter />
         </div>
-        <SelectChildFilter />
-      </div>
+      )}
 
     </div>
   );

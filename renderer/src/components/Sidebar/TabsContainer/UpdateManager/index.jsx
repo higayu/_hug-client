@@ -16,7 +16,7 @@ function UpdateManager() {
 
 
 
-      {/* 👇 ここで ChildrenTable を呼び出す */}
+      {/* 👇 ここで Table を呼び出す */}
       <div className="flex-1 overflow-auto">
         <UpdateManagerTable />
       </div>

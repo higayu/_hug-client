@@ -1,7 +1,7 @@
 // renderer/src/components/Sidebar/TabsContainer.jsx
 import { useMemo } from 'react'
 import ToolContent from './SelectChildren'
-import ChildrenTable from './InsertManageChildren'
+import InsertChildren from './InsertChildren'
 import UpdateManager from './UpdateManager'
 import TestContent from './TestContent';
 import { useAppState } from '@/AppStateContext';
@@ -67,7 +67,7 @@ function TabsContainer() {
 
         {activeTab === 'insertManageChildren' && (
           <div className="h-full flex flex-col">
-            <ChildrenTable />
+            <InsertChildren />
           </div>
         )}
 
