@@ -4,8 +4,8 @@ import { useEffect, useCallback, useRef } from "react"
 import { useDispatch, useSelector } from "react-redux"
 import { useAppState } from "@/AppStateContext"
 
-import { mariadbApi } from "@/sql/mariadbApi"
-import { sqliteApi } from "@/sql/sqliteApi"
+import { mariadbApi } from "./sql/mariadbApi";
+import { sqliteApi } from "./sql/sqliteApi";
 
 import { fetchAllTables } from "@/store/slices/databaseSlice"
 import { selectDatabaseType } from "@/store/slices/appStateSlice"

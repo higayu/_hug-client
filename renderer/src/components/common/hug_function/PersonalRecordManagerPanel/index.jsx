@@ -8,11 +8,11 @@ import {
 import { selectPersonalRecordNote } from "./selectPersonalRecordNote";
 import PersonalRecordUpdateBtn from "./PersonalRecordUpdateBtn";
 
-import { sqliteApi } from "@/sql/sqliteApi.js";
-import { mariadbApi } from "@/sql/mariadbApi.js";
+import { useDataBase } from "@/hooks/useDataBase";
 
 export default function PersonalRecordManagerPanel() {
   const dispatch = useDispatch();
+  const { loadDataBase } = useDataBase();
 
   const {
     SELECT_CHILD,
@@ -30,9 +30,6 @@ export default function PersonalRecordManagerPanel() {
 
   const databaseType = DATABASE_TYPE || "mariadb";
 
-  const getCurrentApi = useCallback(() => {
-    return databaseType === "mariadb" ? mariadbApi : sqliteApi;
-  }, [databaseType]);
 
   useEffect(() => {
     if (CURRENT_YMD) {
@@ -72,33 +69,9 @@ export default function PersonalRecordManagerPanel() {
     setPersonalRecordTextError("");
 
     try {
-      if (!isInitialized) {
-        setPersonalRecordTextError("データベースが初期化されていません。");
-        return;
-      }
-
-      if (!SELECT_CHILD) {
-        setPersonalRecordTextError("児童が選択されていません。");
-        return;
-      }
-
-      const api = getCurrentApi();
-
-      console.log("[PersonalRecordManagerPanel] 個人記録再取得", {
-        databaseType,
-        apiName: databaseType === "mariadb" ? "mariadbApi" : "sqliteApi",
-        SELECT_CHILD,
-        date,
+      await loadDataBase({
+        reason: "manual/ProfessionalPlan",
       });
-
-      const tables = await api.getAllTables();
-
-      if (!tables) {
-        setPersonalRecordTextError("テーブルデータの再取得に失敗しました。");
-        return;
-      }
-
-      await dispatch(fetchAllTables(tables));
     } catch (error) {
       console.error("個人記録の再読み込みに失敗しました:", error);
       setPersonalRecordTextError("テーブルデータの再取得に失敗しました。");
