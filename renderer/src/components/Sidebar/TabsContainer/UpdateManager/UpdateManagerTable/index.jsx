@@ -1,7 +1,8 @@
 // renderer/src/components/Sidebar/Tools/UpdateManager/UpdateManagerTable.jsx
+
 import { useEffect, useState, useMemo } from "react";
-import EditModal from "./Modals/EditModal.js";
-import DeleteModal from "./Modals/DeleteModal.jsx";
+import EditModal from "./Modals/EditModal";
+import DeleteModal from "./Modals/DeleteModal";
 import { deleteManager } from "./function/deleteManager";
 import { updateManager } from "./function/updateManager";
 import { useToast } from "@/components/common/ToastContext.jsx";
@@ -24,8 +25,33 @@ const normalizeTimeForDb = (value) => {
   return value;
 };
 
-const makeManagerKey = ({ children_id, staff_id, day_of_week_id }) => {
-  return `${Number(children_id)}-${Number(staff_id)}-${Number(day_of_week_id)}`;
+const toNumberOrNull = (value) => {
+  const number = Number(value);
+
+  return Number.isFinite(number) ? number : null;
+};
+
+const makeManagerKey = ({
+  facility_id,
+  children_id,
+  staff_id,
+  day_of_week_id,
+}) => {
+  const facilityId = toNumberOrNull(facility_id);
+  const childrenId = toNumberOrNull(children_id);
+  const staffId = toNumberOrNull(staff_id);
+  const dayOfWeekId = toNumberOrNull(day_of_week_id);
+
+  if (
+    facilityId === null ||
+    childrenId === null ||
+    staffId === null ||
+    dayOfWeekId === null
+  ) {
+    return null;
+  }
+
+  return `${facilityId}-${childrenId}-${staffId}-${dayOfWeekId}`;
 };
 
 export default function UpdateManagerTable() {
@@ -34,10 +60,33 @@ export default function UpdateManagerTable() {
 
   const {
     STAFF_ID,
+    FACILITY_ID,
+    DATABASE_TYPE,
     appState,
     CURRENT_DAY_OF_WEEK,
     databaseState,
   } = useAppState();
+
+  const rawDatabaseType =
+    DATABASE_TYPE ??
+    appState?.DATABASE_TYPE ??
+    appState?.appState?.DATABASE_TYPE ??
+    null;
+
+  const rawFacilityId =
+    FACILITY_ID ??
+    appState?.FACILITY_ID ??
+    appState?.appState?.FACILITY_ID ??
+    null;
+
+  const rawStaffId =
+    STAFF_ID ??
+    appState?.STAFF_ID ??
+    appState?.appState?.STAFF_ID ??
+    null;
+
+  const currentFacilityId = Number(rawFacilityId);
+  const currentStaffId = Number(rawStaffId);
 
   // ------------------------------------------
   // DB から取得済みのテーブル
@@ -47,8 +96,8 @@ export default function UpdateManagerTable() {
   }, [databaseState]);
 
   const dayOfWeekMaster = useMemo(() => {
-    return database.day_of_week ?? [];
-  }, [database]);
+    return Array.isArray(database.day_of_week) ? database.day_of_week : [];
+  }, [database.day_of_week]);
 
   const managers = useMemo(() => {
     return selectManagersFull(database);
@@ -97,16 +146,35 @@ export default function UpdateManagerTable() {
   };
 
   // ------------------------------------------
-  // 表示用：曜日で絞り込み
+  // 表示用：施設・曜日・スタッフで絞り込み
   // ------------------------------------------
   const filteredManagers = useMemo(() => {
     if (activeDayId == null) return [];
 
+    if (!Number.isFinite(currentFacilityId)) {
+      console.warn("[UpdateManagerTable] FACILITY_ID が不正です", {
+        rawFacilityId,
+        currentFacilityId,
+      });
+
+      return [];
+    }
+
+    if (!Number.isFinite(currentStaffId)) {
+      console.warn("[UpdateManagerTable] STAFF_ID が不正です", {
+        rawStaffId,
+        currentStaffId,
+      });
+
+      return [];
+    }
+
     const result = managers
       .filter(
         (m) =>
+          Number(m.facility_id) === Number(currentFacilityId) &&
           Number(m.day_of_week_id) === Number(activeDayId) &&
-          Number(m.staff_id) === Number(STAFF_ID)
+          Number(m.staff_id) === Number(currentStaffId)
       )
       .sort((a, b) =>
         String(a.children_name ?? "").localeCompare(
@@ -117,7 +185,10 @@ export default function UpdateManagerTable() {
 
     console.log("[UpdateManagerTable] filter debug:", {
       activeDayId,
-      STAFF_ID,
+      FACILITY_ID: rawFacilityId,
+      STAFF_ID: rawStaffId,
+      currentFacilityId,
+      currentStaffId,
       managersCount: managers.length,
       resultCount: result.length,
       managersSample: managers[0],
@@ -126,6 +197,7 @@ export default function UpdateManagerTable() {
 
     console.table(
       result.map((m) => ({
+        facility_id: m.facility_id,
         children_id: m.children_id,
         children_name: m.children_name,
         staff_id: m.staff_id,
@@ -138,7 +210,14 @@ export default function UpdateManagerTable() {
     );
 
     return result;
-  }, [managers, activeDayId, STAFF_ID]);
+  }, [
+    managers,
+    activeDayId,
+    rawFacilityId,
+    rawStaffId,
+    currentFacilityId,
+    currentStaffId,
+  ]);
 
   // ------------------------------------------
   // 操作系
@@ -166,29 +245,46 @@ export default function UpdateManagerTable() {
       console.log("[UpdateManagerTable] handleConfirm START:", {
         mode,
         managerOrUpdated,
-        databaseType: appState?.DATABASE_TYPE,
+        databaseType: rawDatabaseType,
       });
+
+      const databaseType = String(rawDatabaseType ?? "").toLowerCase();
+      const isMariaDb = databaseType === "mariadb";
+
+      if (!databaseType) {
+        throw new Error("DATABASE_TYPE が取得できません");
+      }
 
       // ------------------------------------------
       // 削除
       // ------------------------------------------
       if (mode === "delete") {
-        const { children_id, staff_id, day_of_week_id } = managerOrUpdated;
-
-        console.log("[UpdateManagerTable] delete START:", {
-          children_id,
-          staff_id,
-          day_of_week_id,
-        });
-
-        const result = await deleteManager(
-          {
-            children_id,
-            staff_id,
-            day_of_week_id,
-          },
-          appState.DATABASE_TYPE
+        const facilityId = toNumberOrNull(
+          managerOrUpdated?.facility_id ?? currentFacilityId
         );
+        const childrenId = toNumberOrNull(managerOrUpdated?.children_id);
+        const staffId = toNumberOrNull(managerOrUpdated?.staff_id);
+        const dayOfWeekId = toNumberOrNull(managerOrUpdated?.day_of_week_id);
+
+        if (
+          facilityId === null ||
+          childrenId === null ||
+          staffId === null ||
+          dayOfWeekId === null
+        ) {
+          throw new Error("削除に必要なIDが不足しています");
+        }
+
+        const deletePayload = {
+          facility_id: facilityId,
+          children_id: childrenId,
+          staff_id: staffId,
+          day_of_week_id: dayOfWeekId,
+        };
+
+        console.log("[UpdateManagerTable] delete START:", deletePayload);
+
+        const result = await deleteManager(deletePayload, rawDatabaseType);
 
         console.log("[UpdateManagerTable] delete result:", result);
 
@@ -202,17 +298,33 @@ export default function UpdateManagerTable() {
       // EditModal から渡ってくる想定:
       // updated.managers2
       // updated.removed_day_of_week_ids
+      // updated.removed_managers2
       // updated.original_managers2
       // ------------------------------------------
       if (mode === "edit") {
         const updated = managerOrUpdated;
-        const databaseType = String(appState?.DATABASE_TYPE ?? "").toLowerCase();
-        const isMariaDb = databaseType === "mariadb";
+
+        const targetFacilityId = toNumberOrNull(
+          updated?.facility_id ?? currentFacilityId
+        );
+        const targetChildrenId = toNumberOrNull(updated?.children_id);
+        const targetStaffId = toNumberOrNull(updated?.staff_id);
+
+        if (
+          targetFacilityId === null ||
+          targetChildrenId === null ||
+          targetStaffId === null
+        ) {
+          throw new Error("編集に必要な facility_id / children_id / staff_id が不足しています");
+        }
 
         console.log("[UpdateManagerTable] edit START:", {
           updated,
           databaseType,
           isMariaDb,
+          targetFacilityId,
+          targetChildrenId,
+          targetStaffId,
         });
 
         const saveRows = Array.isArray(updated.managers2)
@@ -225,21 +337,41 @@ export default function UpdateManagerTable() {
           ? updated.removed_day_of_week_ids
           : [];
 
+        const removedRows = Array.isArray(updated.removed_managers2)
+          ? updated.removed_managers2
+          : removedDayOfWeekIds.map((dayOfWeekId) => ({
+              facility_id: targetFacilityId,
+              children_id: targetChildrenId,
+              staff_id: targetStaffId,
+              day_of_week_id: Number(dayOfWeekId),
+            }));
+
         const originalRows = Array.isArray(updated.original_managers2)
           ? updated.original_managers2
           : (database.managers2 ?? []).filter(
               (row) =>
-                Number(row.children_id) === Number(updated.children_id) &&
-                Number(row.staff_id) === Number(updated.staff_id)
+                Number(row.facility_id) === Number(targetFacilityId) &&
+                Number(row.children_id) === Number(targetChildrenId) &&
+                Number(row.staff_id) === Number(targetStaffId)
             );
 
         const originalKeySet = new Set(
-          originalRows.map((row) => makeManagerKey(row))
+          originalRows
+            .map((row) =>
+              makeManagerKey({
+                ...row,
+                facility_id: row.facility_id ?? targetFacilityId,
+                children_id: row.children_id ?? targetChildrenId,
+                staff_id: row.staff_id ?? targetStaffId,
+              })
+            )
+            .filter(Boolean)
         );
 
         console.log("[UpdateManagerTable] edit rows:", {
           saveRows,
           removedDayOfWeekIds,
+          removedRows,
           originalRows,
           originalKeySet: [...originalKeySet],
         });
@@ -247,21 +379,35 @@ export default function UpdateManagerTable() {
         // ------------------------------------------
         // 1. チェックを外した曜日を削除
         // ------------------------------------------
-        for (const dayOfWeekId of removedDayOfWeekIds) {
+        for (const row of removedRows) {
           const deletePayload = {
-            children_id: Number(updated.children_id),
-            staff_id: Number(updated.staff_id),
-            day_of_week_id: Number(dayOfWeekId),
+            facility_id: Number(row.facility_id ?? targetFacilityId),
+            children_id: Number(row.children_id ?? targetChildrenId),
+            staff_id: Number(row.staff_id ?? targetStaffId),
+            day_of_week_id: Number(row.day_of_week_id),
           };
+
+          if (
+            !Number.isFinite(deletePayload.facility_id) ||
+            !Number.isFinite(deletePayload.children_id) ||
+            !Number.isFinite(deletePayload.staff_id) ||
+            !Number.isFinite(deletePayload.day_of_week_id)
+          ) {
+            throw new Error("削除対象の managers2 ID が不正です");
+          }
 
           console.log("[UpdateManagerTable] edit DELETE payload:", deletePayload);
 
           const deleteResult = await deleteManager(
             deletePayload,
-            appState.DATABASE_TYPE
+            rawDatabaseType
           );
 
           console.log("[UpdateManagerTable] edit DELETE result:", deleteResult);
+
+          if (!deleteResult) {
+            throw new Error("曜日削除に失敗しました");
+          }
         }
 
         // ------------------------------------------
@@ -269,25 +415,37 @@ export default function UpdateManagerTable() {
         // ------------------------------------------
         for (const row of saveRows) {
           const payload = {
-            children_id: Number(row.children_id ?? updated.children_id),
-            staff_id: Number(row.staff_id ?? updated.staff_id),
+            facility_id: Number(row.facility_id ?? targetFacilityId),
+            children_id: Number(row.children_id ?? targetChildrenId),
+            staff_id: Number(row.staff_id ?? targetStaffId),
             day_of_week_id: Number(row.day_of_week_id),
             priority: Number(row.priority ?? 0),
             support_start_time: normalizeTimeForDb(row.support_start_time),
             support_end_time: normalizeTimeForDb(row.support_end_time),
           };
 
-          const exists = originalKeySet.has(makeManagerKey(payload));
+          if (
+            !Number.isFinite(payload.facility_id) ||
+            !Number.isFinite(payload.children_id) ||
+            !Number.isFinite(payload.staff_id) ||
+            !Number.isFinite(payload.day_of_week_id)
+          ) {
+            throw new Error("保存対象の managers2 ID が不正です");
+          }
+
+          const payloadKey = makeManagerKey(payload);
+          const exists = payloadKey ? originalKeySet.has(payloadKey) : false;
 
           console.log("[UpdateManagerTable] edit SAVE payload:", {
             exists,
             payload,
+            payloadKey,
           });
 
           if (exists) {
             const updateResult = await updateManager(
               payload,
-              appState.DATABASE_TYPE
+              rawDatabaseType
             );
 
             console.log("[UpdateManagerTable] edit UPDATE result:", updateResult);
@@ -313,7 +471,15 @@ export default function UpdateManagerTable() {
 
             console.log("[UpdateManagerTable] edit INSERT result:", insertResult);
 
-            if (!insertResult) {
+            if (insertResult === false) {
+              throw new Error("追加に失敗しました");
+            }
+
+            if (
+              insertResult &&
+              typeof insertResult === "object" &&
+              insertResult.success === false
+            ) {
               throw new Error("追加に失敗しました");
             }
           }
@@ -352,6 +518,17 @@ export default function UpdateManagerTable() {
     <div className="p-2 bg-white shadow rounded-xl">
       <h4 className="text-lg font-bold mb-2">児童担当編集</h4>
 
+      <div className="mb-3 text-xs text-gray-500">
+        <div>
+          現在の施設ID:{" "}
+          {Number.isFinite(currentFacilityId) ? currentFacilityId : "-"}
+        </div>
+        <div>
+          現在のスタッフID:{" "}
+          {Number.isFinite(currentStaffId) ? currentStaffId : "-"}
+        </div>
+      </div>
+
       <div className="flex gap-2 mb-3">
         {[...dayOfWeekMaster]
           .sort((a, b) => Number(a.sort_order) - Number(b.sort_order))
@@ -389,7 +566,7 @@ export default function UpdateManagerTable() {
             {filteredManagers.length > 0 ? (
               filteredManagers.map((m) => (
                 <tr
-                  key={`${m.children_id}-${m.staff_id}-${m.day_of_week_id}`}
+                  key={`${m.facility_id}-${m.children_id}-${m.staff_id}-${m.day_of_week_id}`}
                 >
                   <td className="border px-4 py-2">
                     <button

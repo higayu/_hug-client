@@ -1,10 +1,33 @@
-// components/Sidebar/Tools/UpdateManager/selectManagersFull.js
+// renderer/src/components/Sidebar/Tools/UpdateManager/selectManagersFull.js
+
+const toNumberOrNull = (value) => {
+  const number = Number(value);
+
+  return Number.isFinite(number) ? number : null;
+};
 
 export function selectManagersFull(database = {}) {
-  const managers2 = database.managers2 ?? [];
-  const children = database.children ?? [];
-  const staffs = database.staffs ?? [];
-  const dayOfWeek = database.day_of_week ?? [];
+  const managers2 = Array.isArray(database.managers2)
+    ? database.managers2
+    : [];
+
+  const children = Array.isArray(database.children)
+    ? database.children
+    : [];
+
+  const staffs = Array.isArray(database.staffs)
+    ? database.staffs
+    : [];
+
+  const dayOfWeek = Array.isArray(database.day_of_week)
+    ? database.day_of_week
+    : [];
+
+  const facilities = Array.isArray(database.facilities)
+    ? database.facilities
+    : Array.isArray(database.facility)
+      ? database.facility
+      : [];
 
   // ------------------------------------------
   // 検索用 Map を作る（高速）
@@ -23,24 +46,50 @@ export function selectManagersFull(database = {}) {
     dayOfWeek.map((d) => [Number(d.id), d])
   );
 
+  const facilityMap = new Map(
+    facilities.map((f) => [Number(f.id), f])
+  );
+
   // ------------------------------------------
   // managers2 + children + staffs + day_of_week を JOIN
   // SQL の INNER JOIN 相当
+  //
+  // facility_id は managers2 のキー条件に使うため必ず返す
+  // facilities テーブルが database にある場合だけ facility_name も補完する
   // ------------------------------------------
   return managers2
     .map((m) => {
-      const child = childrenMap.get(Number(m.children_id));
-      const staff = staffMap.get(Number(m.staff_id));
-      const day = dayMap.get(Number(m.day_of_week_id));
+      const facilityId = toNumberOrNull(m.facility_id);
+      const childrenId = toNumberOrNull(m.children_id);
+      const staffId = toNumberOrNull(m.staff_id);
+      const dayOfWeekId = toNumberOrNull(m.day_of_week_id);
+
+      if (
+        facilityId === null ||
+        childrenId === null ||
+        staffId === null ||
+        dayOfWeekId === null
+      ) {
+        console.warn("[selectManagersFull] managers2 のIDが不正です:", m);
+        return null;
+      }
+
+      const child = childrenMap.get(childrenId);
+      const staff = staffMap.get(staffId);
+      const day = dayMap.get(dayOfWeekId);
+      const facility = facilityMap.get(facilityId);
 
       // JOIN 失敗は除外
-      if (!child || !staff || !day) return null;
+      if (!child || !staff || !day) {
+        return null;
+      }
 
       return {
         // managers2
-        children_id: m.children_id,
-        staff_id: m.staff_id,
-        day_of_week_id: m.day_of_week_id,
+        facility_id: facilityId,
+        children_id: childrenId,
+        staff_id: staffId,
+        day_of_week_id: dayOfWeekId,
 
         priority: Number(m.priority ?? 0),
         support_start_time: m.support_start_time ?? null,
@@ -51,6 +100,13 @@ export function selectManagersFull(database = {}) {
 
         // staffs
         staff_name: staff.name ?? "",
+
+        // facilities
+        facility_name:
+          facility?.name ??
+          facility?.facility_name ??
+          facility?.label ??
+          "",
 
         // day_of_week
         day_of_week_label: day.label_jp ?? "",

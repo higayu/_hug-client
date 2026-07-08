@@ -1,13 +1,35 @@
-// renderer/src/commponents/Sidebar/TabsContainer/UpdateManager/function/updateManager/parts/mariadb.js
+// renderer/src/sql/useManager/updateManager/parts/mariadb.js
 
 const formatTimeForDb = (value) => {
-  if (value === "" || value == null) return null;
-
-  if (String(value).length === 5) {
-    return `${value}:00`;
+  if (value === "" || value == null) {
+    return null;
   }
 
-  return value;
+  const text = String(value).trim();
+
+  if (!text) {
+    return null;
+  }
+
+  if (/^\d{1,2}:\d{2}$/.test(text)) {
+    const [hour, minute] = text.split(":");
+
+    return `${String(Number(hour)).padStart(2, "0")}:${minute}:00`;
+  }
+
+  if (/^\d{1,2}:\d{2}:\d{2}$/.test(text)) {
+    const [hour, minute, second] = text.split(":");
+
+    return `${String(Number(hour)).padStart(2, "0")}:${minute}:${second}`;
+  }
+
+  return text;
+};
+
+const toNumberOrNull = (value) => {
+  const number = Number(value);
+
+  return Number.isFinite(number) ? number : null;
 };
 
 export async function handleMariaDBUpdate(payload) {
@@ -15,7 +37,15 @@ export async function handleMariaDBUpdate(payload) {
   console.log("[handleMariaDBUpdate] 処理する担当:", payload);
 
   try {
+    if (!payload || typeof payload !== "object") {
+      console.error("[handleMariaDBUpdate] payload が不正です:", payload);
+      return false;
+    }
+
     const {
+      facility_id,
+      facilityId,
+      FACILITY_ID,
       children_id,
       staff_id,
       day_of_week_id,
@@ -24,34 +54,72 @@ export async function handleMariaDBUpdate(payload) {
       support_end_time = null,
     } = payload;
 
+    const resolvedFacilityId = toNumberOrNull(
+      facility_id ?? facilityId ?? FACILITY_ID
+    );
+    const resolvedChildrenId = toNumberOrNull(children_id);
+    const resolvedStaffId = toNumberOrNull(staff_id);
+    const resolvedDayOfWeekId = toNumberOrNull(day_of_week_id);
+
     if (
-      children_id == null ||
-      staff_id == null ||
-      day_of_week_id == null
+      resolvedFacilityId === null ||
+      resolvedChildrenId === null ||
+      resolvedStaffId === null ||
+      resolvedDayOfWeekId === null
     ) {
-      console.error("[handleMariaDBUpdate] update payload 不正:", payload);
+      console.error("[handleMariaDBUpdate] update payload 不正:", {
+        payload,
+        resolvedFacilityId,
+        resolvedChildrenId,
+        resolvedStaffId,
+        resolvedDayOfWeekId,
+      });
+
       return false;
     }
 
-    const pk = ["children_id", "staff_id", "day_of_week_id"];
+    const resolvedPriority = Number.isFinite(Number(priority))
+      ? Number(priority)
+      : 0;
+
+    const resolvedSupportStartTime = formatTimeForDb(support_start_time);
+    const resolvedSupportEndTime = formatTimeForDb(support_end_time);
+
+    const pk = [
+      "facility_id",
+      "children_id",
+      "staff_id",
+      "day_of_week_id",
+    ];
 
     const values = [
-      Number(children_id),
-      Number(staff_id),
-      Number(day_of_week_id),
+      resolvedFacilityId,
+      resolvedChildrenId,
+      resolvedStaffId,
+      resolvedDayOfWeekId,
     ];
 
     const data = {
-      priority: Number(priority ?? 0),
-      support_start_time: formatTimeForDb(support_start_time),
-      support_end_time: formatTimeForDb(support_end_time),
+      priority: resolvedPriority,
+      support_start_time: resolvedSupportStartTime,
+      support_end_time: resolvedSupportEndTime,
     };
 
-    console.log("[handleMariaDBUpdate] UPDATE args:", {
+    const request = {
       pk,
       values,
       data,
-    });
+
+      facility_id: resolvedFacilityId,
+      children_id: resolvedChildrenId,
+      staff_id: resolvedStaffId,
+      day_of_week_id: resolvedDayOfWeekId,
+      priority: resolvedPriority,
+      support_start_time: resolvedSupportStartTime,
+      support_end_time: resolvedSupportEndTime,
+    };
+
+    console.log("[handleMariaDBUpdate] UPDATE args:", request);
 
     console.log(
       "[handleMariaDBUpdate] SQL preview:",
@@ -70,21 +138,36 @@ export async function handleMariaDBUpdate(payload) {
             : `'${data.support_end_time}'`
         }
       WHERE
-        children_id = ${values[0]}
-        AND staff_id = ${values[1]}
-        AND day_of_week_id = ${values[2]};
+        facility_id = ${values[0]}
+        AND children_id = ${values[1]}
+        AND staff_id = ${values[2]}
+        AND day_of_week_id = ${values[3]};
       `
     );
 
-    const result = await window.electronAPI.mariadb_managers2_update({
-      pk,
-      values,
-      data,
-    });
+    if (typeof window.electronAPI?.mariadb_managers2_update !== "function") {
+      console.error(
+        "[handleMariaDBUpdate] window.electronAPI.mariadb_managers2_update が未定義です"
+      );
+
+      return false;
+    }
+
+    const result = await window.electronAPI.mariadb_managers2_update(request);
 
     console.log("[handleMariaDBUpdate] managers2_update result:", result);
-    console.log("✅ MariaDB: managers2_update 成功");
 
+    if (result === false) {
+      console.error("❌ MariaDB: managers2_update が false を返しました");
+      return false;
+    }
+
+    if (result && typeof result === "object" && result.success === false) {
+      console.error("❌ MariaDB: managers2_update 失敗:", result);
+      return false;
+    }
+
+    console.log("✅ MariaDB: managers2_update 成功");
     return true;
   } catch (error) {
     console.error("❌ MariaDB: managers2_update エラー:", error);

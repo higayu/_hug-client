@@ -1,4 +1,5 @@
 // renderer/src/components/Sidebar/Tools/UpdateManager/Modals/EditModal.jsx
+
 import { useState, useEffect, useMemo } from "react";
 import SelectableWeekDayButton from "@/components/ui/SelectableWeekDayButton.jsx";
 import { ModalPortal } from "@/components/common/ModalPortal";
@@ -44,19 +45,33 @@ const createEmptyDaySetting = () => ({
 });
 
 export default function EditModal({ open, onClose, manager, onConfirm }) {
-  const { databaseState } = useAppState();
+  const { databaseState, FACILITY_ID } = useAppState();
 
   const [daySettings, setDaySettings] = useState({});
   const [showUnassignedDays, setShowUnassignedDays] = useState(false);
 
   // ------------------------------------------
   // 固定表示用
-  // children_id / staff_id / children_name / staff_name は manager から取得
+  // facility_id / children_id / staff_id などは manager から取得
+  // manager に facility_id がない場合は AppState の FACILITY_ID を fallback にする
   // ------------------------------------------
+  const facilityId = useMemo(() => {
+    const rawFacilityId =
+      manager?.facility_id ??
+      manager?.facilityId ??
+      manager?.FACILITY_ID ??
+      FACILITY_ID;
+
+    const id = Number(rawFacilityId);
+
+    return Number.isFinite(id) ? id : "";
+  }, [manager, FACILITY_ID]);
+
   const childrenId = manager?.children_id ?? "";
   const staffId = manager?.staff_id ?? "";
   const childrenName = manager?.children_name ?? "";
   const staffName = manager?.staff_name ?? "";
+  const facilityName = manager?.facility_name ?? manager?.facilityName ?? "";
 
   // ------------------------------------------
   // DB
@@ -66,25 +81,47 @@ export default function EditModal({ open, onClose, manager, onConfirm }) {
   }, [databaseState]);
 
   const dayOfWeekMaster = useMemo(() => {
-    return database.day_of_week ?? [];
+    return Array.isArray(database.day_of_week) ? database.day_of_week : [];
   }, [database.day_of_week]);
 
   const managers2 = useMemo(() => {
-    return database.managers2 ?? [];
+    return Array.isArray(database.managers2) ? database.managers2 : [];
   }, [database.managers2]);
 
   // ------------------------------------------
-  // managers2 から対象児童・対象スタッフの曜日データを抽出
+  // managers2 から対象施設・対象児童・対象スタッフの曜日データを抽出
   // ------------------------------------------
   const targetManagerRows = useMemo(() => {
     if (!manager) return [];
 
+    const targetFacilityId = Number(facilityId);
+    const targetChildrenId = Number(manager.children_id);
+    const targetStaffId = Number(manager.staff_id);
+
+    if (
+      !Number.isFinite(targetFacilityId) ||
+      !Number.isFinite(targetChildrenId) ||
+      !Number.isFinite(targetStaffId)
+    ) {
+      console.warn("⚠️ EditModal: targetManagerRows 抽出条件が不正です", {
+        facilityId,
+        targetFacilityId,
+        children_id: manager.children_id,
+        targetChildrenId,
+        staff_id: manager.staff_id,
+        targetStaffId,
+      });
+
+      return [];
+    }
+
     return managers2.filter(
       (m) =>
-        Number(m.children_id) === Number(manager.children_id) &&
-        Number(m.staff_id) === Number(manager.staff_id)
+        Number(m.facility_id) === targetFacilityId &&
+        Number(m.children_id) === targetChildrenId &&
+        Number(m.staff_id) === targetStaffId
     );
-  }, [managers2, manager]);
+  }, [managers2, manager, facilityId]);
 
   // ------------------------------------------
   // 初期値セット
@@ -195,9 +232,27 @@ export default function EditModal({ open, onClose, manager, onConfirm }) {
   // 保存
   // ------------------------------------------
   const handleSubmit = () => {
+    const targetFacilityId = Number(facilityId);
+    const targetChildrenId = Number(childrenId);
+    const targetStaffId = Number(staffId);
+
+    if (
+      !Number.isFinite(targetFacilityId) ||
+      !Number.isFinite(targetChildrenId) ||
+      !Number.isFinite(targetStaffId)
+    ) {
+      console.warn("⚠️ EditModal: 保存に必要なIDが不足しています", {
+        facilityId,
+        childrenId,
+        staffId,
+      });
+      return;
+    }
+
     const selectedDayIds = Object.entries(daySettings)
       .filter(([, setting]) => setting.selected)
       .map(([dayId]) => Number(dayId))
+      .filter((dayId) => Number.isFinite(dayId))
       .sort((a, b) => a - b);
 
     const selectedManagerRows = selectedDayIds.map((dayId) => {
@@ -209,8 +264,9 @@ export default function EditModal({ open, onClose, manager, onConfirm }) {
 
       return {
         ...existingRow,
-        children_id: Number(childrenId),
-        staff_id: Number(staffId),
+        facility_id: targetFacilityId,
+        children_id: targetChildrenId,
+        staff_id: targetStaffId,
         day_of_week_id: Number(dayId),
         priority: Number(setting.priority ?? 0),
         support_start_time: formatTimeForDb(setting.support_start_time),
@@ -218,23 +274,27 @@ export default function EditModal({ open, onClose, manager, onConfirm }) {
       };
     });
 
-    const removedDayOfWeekIds = targetManagerRows
-      .filter(
-        (row) =>
-          !selectedDayIds.some(
-            (dayId) => Number(dayId) === Number(row.day_of_week_id)
-          )
-      )
-      .map((row) => Number(row.day_of_week_id));
+    const removedManagerRows = targetManagerRows.filter(
+      (row) =>
+        !selectedDayIds.some(
+          (dayId) => Number(dayId) === Number(row.day_of_week_id)
+        )
+    );
+
+    const removedDayOfWeekIds = removedManagerRows.map((row) =>
+      Number(row.day_of_week_id)
+    );
 
     const updated = {
       ...manager,
 
       // 固定値
-      children_id: Number(childrenId),
-      staff_id: Number(staffId),
+      facility_id: targetFacilityId,
+      children_id: targetChildrenId,
+      staff_id: targetStaffId,
       children_name: childrenName,
       staff_name: staffName,
+      facility_name: facilityName,
 
       // 選択中の曜日ID
       day_of_week_ids: selectedDayIds,
@@ -243,10 +303,24 @@ export default function EditModal({ open, onClose, manager, onConfirm }) {
       managers2: selectedManagerRows,
 
       // 削除対象の曜日ID
+      // 既存処理との互換用
       removed_day_of_week_ids: removedDayOfWeekIds,
 
+      // 削除対象の managers2 行
+      // facility_id 込みで削除したい場合はこちらを使う
+      removed_managers2: removedManagerRows.map((row) => ({
+        ...row,
+        facility_id: targetFacilityId,
+        children_id: targetChildrenId,
+        staff_id: targetStaffId,
+        day_of_week_id: Number(row.day_of_week_id),
+      })),
+
       // 元の managers2 行
-      original_managers2: targetManagerRows,
+      original_managers2: targetManagerRows.map((row) => ({
+        ...row,
+        facility_id: targetFacilityId,
+      })),
     };
 
     onConfirm(updated, "edit");
@@ -261,21 +335,31 @@ export default function EditModal({ open, onClose, manager, onConfirm }) {
           <h2 className="text-lg font-bold mb-4">編集</h2>
 
           <div className="flex flex-col gap-3 mt-2">
-            <div className="flex flex-row">
+            <div className="grid grid-cols-1 gap-3">
               <div className="flex flex-col">
-                <label className="text-sm font-semibold">子ども</label>
+                <label className="text-sm font-semibold">施設</label>
                 <div className="border p-2 rounded-md text-sm bg-gray-100 text-gray-700">
-                  {childrenId} : {childrenName}
+                  {facilityId || "-"}
+                  {facilityName ? ` : ${facilityName}` : ""}
                 </div>
               </div>
-              <div className="flex flex-col">
-                <label className="text-sm font-semibold">スタッフ</label>
-                <div className="border p-2 rounded-md text-sm bg-gray-100 text-gray-700">
-                  {staffId} : {staffName}
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="flex flex-col">
+                  <label className="text-sm font-semibold">子ども</label>
+                  <div className="border p-2 rounded-md text-sm bg-gray-100 text-gray-700">
+                    {childrenId} : {childrenName}
+                  </div>
+                </div>
+
+                <div className="flex flex-col">
+                  <label className="text-sm font-semibold">スタッフ</label>
+                  <div className="border p-2 rounded-md text-sm bg-gray-100 text-gray-700">
+                    {staffId} : {staffName}
+                  </div>
                 </div>
               </div>
             </div>
-
 
             <div className="flex items-center justify-between mt-2">
               <label className="text-sm font-semibold">

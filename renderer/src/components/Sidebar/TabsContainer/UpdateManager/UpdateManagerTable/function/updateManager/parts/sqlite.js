@@ -1,12 +1,12 @@
-// renderer/src/components/Sidebar/TabsContainer/UpdateManager/function/updateManager/parts/sqlite.js
+// renderer/src/sql/useManager/updateManager/parts/sqlite.js
 
 /**
  * TIME型保存用に値を整形する
  *
  * 例:
- * - ""        -> null
- * - null      -> null
- * - "15:00"   -> "15:00:00"
+ * - ""          -> null
+ * - null        -> null
+ * - "15:00"    -> "15:00:00"
  * - "15:00:00" -> "15:00:00"
  */
 const formatTimeForDb = (value) => {
@@ -50,6 +50,7 @@ const toNumberOrNull = (value) => {
  * SQLite managers2 更新
  *
  * managers2 主キー:
+ * - facility_id
  * - children_id
  * - staff_id
  * - day_of_week_id
@@ -70,6 +71,9 @@ export async function handleSQLiteUpdate(payload) {
     }
 
     const {
+      facility_id,
+      facilityId,
+      FACILITY_ID,
       children_id,
       staff_id,
       day_of_week_id,
@@ -78,17 +82,22 @@ export async function handleSQLiteUpdate(payload) {
       support_end_time = null,
     } = payload;
 
+    const resolvedFacilityId = toNumberOrNull(
+      facility_id ?? facilityId ?? FACILITY_ID
+    );
     const resolvedChildrenId = toNumberOrNull(children_id);
     const resolvedStaffId = toNumberOrNull(staff_id);
     const resolvedDayOfWeekId = toNumberOrNull(day_of_week_id);
 
     if (
+      resolvedFacilityId === null ||
       resolvedChildrenId === null ||
       resolvedStaffId === null ||
       resolvedDayOfWeekId === null
     ) {
       console.error("[handleSQLiteUpdate] update payload 不正:", {
         payload,
+        resolvedFacilityId,
         resolvedChildrenId,
         resolvedStaffId,
         resolvedDayOfWeekId,
@@ -107,9 +116,15 @@ export async function handleSQLiteUpdate(payload) {
     /**
      * MariaDB側と同じ形
      */
-    const pk = ["children_id", "staff_id", "day_of_week_id"];
+    const pk = [
+      "facility_id",
+      "children_id",
+      "staff_id",
+      "day_of_week_id",
+    ];
 
     const values = [
+      resolvedFacilityId,
       resolvedChildrenId,
       resolvedStaffId,
       resolvedDayOfWeekId,
@@ -130,6 +145,7 @@ export async function handleSQLiteUpdate(payload) {
       values,
       data,
 
+      facility_id: resolvedFacilityId,
       children_id: resolvedChildrenId,
       staff_id: resolvedStaffId,
       day_of_week_id: resolvedDayOfWeekId,
@@ -157,9 +173,10 @@ export async function handleSQLiteUpdate(payload) {
             : `'${data.support_end_time}'`
         }
       WHERE
-        children_id = ${values[0]}
-        AND staff_id = ${values[1]}
-        AND day_of_week_id = ${values[2]};
+        facility_id = ${values[0]}
+        AND children_id = ${values[1]}
+        AND staff_id = ${values[2]}
+        AND day_of_week_id = ${values[3]};
       `
     );
 
