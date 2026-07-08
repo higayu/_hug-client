@@ -922,7 +922,7 @@ CREATE TABLE IF NOT EXISTS `staff_facility_roles` (
   KEY `idx_staff_facility_roles_facility_id` (`facility_id`),
   CONSTRAINT `fk_staff_facility_roles_facilitys` FOREIGN KEY (`facility_id`) REFERENCES `facilitys` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_staff_facility_roles_staffs` FOREIGN KEY (`staff_id`) REFERENCES `staffs` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=298 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=305 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- エクスポートするデータが選択されていません
 
