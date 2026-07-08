@@ -72,6 +72,10 @@ async function getColumns(db, tableName) {
   return rows.map((row) => row.name);
 }
 
+async function getTableInfo(db, tableName) {
+  return allSql(db, `PRAGMA table_info(${quoteIdent(tableName)})`);
+}
+
 async function ensureColumn(db, tableName, columnName, columnDefinition) {
   const exists = await tableExists(db, tableName);
   if (!exists) return;
@@ -127,6 +131,169 @@ async function migrateLegacyDayOfWeekIfNeeded(db) {
     db,
     `ALTER TABLE ${quoteIdent("day_of_week")} RENAME TO ${quoteIdent(backupName)}`
   );
+}
+
+/**
+ * managers2 を facility_id 対応スキーマへ移行する
+ *
+ * SQLite は既存テーブルの PRIMARY KEY を ALTER TABLE で変更できないため、
+ * 古い managers2 は backup に退避し、新しい managers2 を作り直す。
+ */
+async function migrateManagers2ToFacilitySchema(db) {
+  const exists = await tableExists(db, "managers2");
+  if (!exists) return;
+
+  const tableInfo = await getTableInfo(db, "managers2");
+  const columns = tableInfo.map((row) => row.name);
+
+  const pkColumns = tableInfo
+    .filter((row) => Number(row.pk) > 0)
+    .sort((a, b) => Number(a.pk) - Number(b.pk))
+    .map((row) => row.name);
+
+  const hasFacilityId = columns.includes("facility_id");
+
+  const isCurrentPk =
+    pkColumns.join(",") ===
+    "children_id,facility_id,staff_id,day_of_week_id";
+
+  if (hasFacilityId && isCurrentPk) {
+    console.log("[initDatabase] managers2 schema is current.", {
+      columns,
+      pkColumns,
+    });
+    return;
+  }
+
+  const backupName = `managers2_backup_${Date.now()}`;
+
+  console.warn("[initDatabase] managers2 old schema detected.", {
+    columns,
+    pkColumns,
+    hasFacilityId,
+    backupName,
+  });
+
+  await execSql(
+    db,
+    `
+      DROP INDEX IF EXISTS "idx_managers2_ids";
+      DROP INDEX IF EXISTS "idx_managers2_staff_id";
+      DROP INDEX IF EXISTS "idx_managers2_day_of_week_id";
+      DROP INDEX IF EXISTS "idx_managers2_facility_id";
+
+      ALTER TABLE "managers2" RENAME TO "${backupName}";
+
+      CREATE TABLE "managers2" (
+        "children_id" INTEGER NOT NULL,
+        "facility_id" INTEGER NOT NULL,
+        "staff_id" INTEGER NOT NULL,
+        "day_of_week_id" INTEGER NOT NULL,
+        "priority" INTEGER NOT NULL DEFAULT 0,
+        "support_start_time" TEXT DEFAULT NULL,
+        "support_end_time" TEXT DEFAULT NULL,
+        PRIMARY KEY (
+          "children_id",
+          "facility_id",
+          "staff_id",
+          "day_of_week_id"
+        ),
+        CONSTRAINT "FK_managers2_children" FOREIGN KEY("children_id") REFERENCES "children"("id") ON DELETE CASCADE,
+        CONSTRAINT "FK_managers2_facilitys" FOREIGN KEY("facility_id") REFERENCES "facilitys"("id") ON DELETE CASCADE,
+        CONSTRAINT "FK_managers2_staffs" FOREIGN KEY("staff_id") REFERENCES "staffs"("id") ON DELETE CASCADE,
+        CONSTRAINT "FK_managers2_day_of_week" FOREIGN KEY("day_of_week_id") REFERENCES "day_of_week"("id") ON DELETE CASCADE
+      );
+    `
+  );
+
+  const backupColumns = await getColumns(db, backupName);
+  const backupHasFacilityId = backupColumns.includes("facility_id");
+  const backupHasSupportStartTime = backupColumns.includes("support_start_time");
+  const backupHasSupportEndTime = backupColumns.includes("support_end_time");
+  const backupHasPriority = backupColumns.includes("priority");
+
+  if (backupHasFacilityId) {
+    await execSql(
+      db,
+      `
+        INSERT OR IGNORE INTO "managers2" (
+          "children_id",
+          "facility_id",
+          "staff_id",
+          "day_of_week_id",
+          "priority",
+          "support_start_time",
+          "support_end_time"
+        )
+        SELECT
+          "children_id",
+          COALESCE("facility_id", 1),
+          "staff_id",
+          "day_of_week_id",
+          ${backupHasPriority ? `COALESCE("priority", 0)` : `0`},
+          ${backupHasSupportStartTime ? `"support_start_time"` : `NULL`},
+          ${backupHasSupportEndTime ? `"support_end_time"` : `NULL`}
+        FROM "${backupName}"
+        WHERE
+          "children_id" IS NOT NULL
+          AND "staff_id" IS NOT NULL
+          AND "day_of_week_id" IS NOT NULL;
+      `
+    );
+  } else {
+    await execSql(
+      db,
+      `
+        INSERT OR IGNORE INTO "managers2" (
+          "children_id",
+          "facility_id",
+          "staff_id",
+          "day_of_week_id",
+          "priority",
+          "support_start_time",
+          "support_end_time"
+        )
+        SELECT
+          m."children_id",
+          COALESCE(
+            (
+              SELECT MIN(fc."facility_id")
+              FROM "facility_children" fc
+              JOIN "facility_staff" fs
+                ON fs."facility_id" = fc."facility_id"
+               AND fs."staff_id" = m."staff_id"
+              WHERE fc."children_id" = m."children_id"
+            ),
+            (
+              SELECT MIN(fc."facility_id")
+              FROM "facility_children" fc
+              WHERE fc."children_id" = m."children_id"
+            ),
+            1
+          ) AS "facility_id",
+          m."staff_id",
+          m."day_of_week_id",
+          ${backupHasPriority ? `COALESCE(m."priority", 0)` : `0`},
+          ${backupHasSupportStartTime ? `m."support_start_time"` : `NULL`},
+          ${backupHasSupportEndTime ? `m."support_end_time"` : `NULL`}
+        FROM "${backupName}" m
+        WHERE
+          m."children_id" IS NOT NULL
+          AND m."staff_id" IS NOT NULL
+          AND m."day_of_week_id" IS NOT NULL;
+      `
+    );
+  }
+
+  const migratedRows = await allSql(
+    db,
+    `SELECT COUNT(*) AS count FROM "managers2"`
+  );
+
+  console.warn("[initDatabase] managers2 migrated.", {
+    backupName,
+    migratedCount: migratedRows?.[0]?.count ?? 0,
+  });
 }
 
 /**
@@ -267,13 +434,15 @@ CREATE TABLE IF NOT EXISTS "staff_facility_roles" (
 );
 CREATE TABLE IF NOT EXISTS "managers2" (
 	"children_id"	INTEGER NOT NULL,
+	"facility_id"	INTEGER NOT NULL,
 	"staff_id"	INTEGER NOT NULL,
 	"day_of_week_id"	INTEGER NOT NULL,
 	"priority"	INTEGER NOT NULL DEFAULT 0,
 	"support_start_time"	TEXT DEFAULT NULL,
 	"support_end_time"	TEXT DEFAULT NULL,
-	PRIMARY KEY("children_id","staff_id","day_of_week_id"),
+	PRIMARY KEY("children_id","facility_id","staff_id","day_of_week_id"),
 	CONSTRAINT "FK_managers2_children" FOREIGN KEY("children_id") REFERENCES "children"("id") ON DELETE CASCADE,
+	CONSTRAINT "FK_managers2_facilitys" FOREIGN KEY("facility_id") REFERENCES "facilitys"("id") ON DELETE CASCADE,
 	CONSTRAINT "FK_managers2_staffs" FOREIGN KEY("staff_id") REFERENCES "staffs"("id") ON DELETE CASCADE,
 	CONSTRAINT "FK_managers2_day_of_week" FOREIGN KEY("day_of_week_id") REFERENCES "day_of_week"("id") ON DELETE CASCADE
 );
@@ -374,113 +543,41 @@ CREATE TABLE IF NOT EXISTS "individual_support" (
 	"updated_at"	DATETIME DEFAULT CURRENT_TIMESTAMP,
 	PRIMARY KEY("children_id")
 );
-CREATE INDEX IF NOT EXISTS "idx_children_pronunciation_id" ON "children" (
-	"pronunciation_id"
-);
-CREATE INDEX IF NOT EXISTS "idx_children_children_type_id" ON "children" (
-	"children_type_id"
-);
-CREATE INDEX IF NOT EXISTS "idx_child_records_children_id" ON "child_records" (
-	"children_id"
-);
-CREATE INDEX IF NOT EXISTS "idx_child_records_record_type_id" ON "child_records" (
-	"record_type_id"
-);
-CREATE INDEX IF NOT EXISTS "idx_child_records_facility_id" ON "child_records" (
-	"facility_id"
-);
-CREATE INDEX IF NOT EXISTS "idx_facility_children_children_id" ON "facility_children" (
-	"children_id"
-);
-CREATE INDEX IF NOT EXISTS "idx_facility_staff_staff_id" ON "facility_staff" (
-	"staff_id"
-);
-CREATE INDEX IF NOT EXISTS "idx_managers2_staff_id" ON "managers2" (
-	"staff_id"
-);
-CREATE INDEX IF NOT EXISTS "idx_managers2_day_of_week_id" ON "managers2" (
-	"day_of_week_id"
-);
-CREATE INDEX IF NOT EXISTS "idx_pc_facility_id" ON "pc" (
-	"facility_id"
-);
-CREATE INDEX IF NOT EXISTS "idx_pc_to_children_children_id" ON "pc_to_children" (
-	"children_id"
-);
-CREATE INDEX IF NOT EXISTS "idx_pc_to_children_pc_id" ON "pc_to_children" (
-	"pc_id"
-);
-CREATE INDEX IF NOT EXISTS "idx_pc_to_children_day_of_week" ON "pc_to_children" (
-	"day_of_week"
-);
-CREATE INDEX IF NOT EXISTS "idx_refresh_tokens_user_id" ON "refresh_tokens" (
-	"user_id"
-);
-CREATE INDEX IF NOT EXISTS "idx_service_record_item_id" ON "service_record" (
-	"item_id"
-);
-CREATE INDEX IF NOT EXISTS "idx_service_record_day_of_week_id" ON "service_record" (
-	"day_of_week_id"
-);
-CREATE INDEX IF NOT EXISTS "idx_service_record_facility_id" ON "service_record" (
-	"facility_id"
-);
-CREATE INDEX IF NOT EXISTS "idx_staff_facility_roles_staff_id" ON "staff_facility_roles" (
-	"staff_id"
-);
-CREATE INDEX IF NOT EXISTS "idx_staff_facility_roles_facility_id" ON "staff_facility_roles" (
-	"facility_id"
-);
-CREATE INDEX IF NOT EXISTS "idx_temp_notes_staff_id" ON "temp_notes" (
-	"staff_id"
-);
-CREATE INDEX IF NOT EXISTS "idx_temp_notes_day_of_week_id" ON "temp_notes" (
-	"day_of_week_id"
-);
-CREATE INDEX IF NOT EXISTS "idx_toolbox_facility_id" ON "toolbox" (
-	"facility_id"
-);
-CREATE INDEX IF NOT EXISTS "idx_temp_notes_children_day_lookup" ON "temp_notes" (
-	"children_id",
-	"day_of_week_id"
-);
-CREATE UNIQUE INDEX IF NOT EXISTS "idx_temp_notes_children_staff_day" ON "temp_notes" (
-	"children_id",
-	"staff_id",
-	"day_of_week_id"
-);
-CREATE UNIQUE INDEX IF NOT EXISTS "idx_facility_children_ids" ON "facility_children" (
-	"facility_id",
-	"children_id"
-);
-CREATE UNIQUE INDEX IF NOT EXISTS "idx_facility_staff_ids" ON "facility_staff" (
-	"facility_id",
-	"staff_id"
-);
-CREATE UNIQUE INDEX IF NOT EXISTS "idx_managers2_ids" ON "managers2" (
-	"children_id",
-	"staff_id",
-	"day_of_week_id"
-);
-CREATE UNIQUE INDEX IF NOT EXISTS "idx_pc_facility_pc_id" ON "pc" (
-	"facility_id",
-	"pc_id"
-);
-CREATE UNIQUE INDEX IF NOT EXISTS "idx_service_record_unique" ON "service_record" (
-	"children_id",
-	"day_of_week_id",
-	"item_id",
-	"served_date"
-);
-CREATE UNIQUE INDEX IF NOT EXISTS "idx_staff_facility_roles_unique" ON "staff_facility_roles" (
-	"staff_id",
-	"facility_id",
-	"job_name",
-	"experience_label"
-);
-CREATE UNIQUE INDEX IF NOT EXISTS "idx_users_email" ON "users" (
-	"email"
-);
+
+CREATE INDEX IF NOT EXISTS "idx_children_pronunciation_id" ON "children" ("pronunciation_id");
+CREATE INDEX IF NOT EXISTS "idx_children_children_type_id" ON "children" ("children_type_id");
+CREATE INDEX IF NOT EXISTS "idx_child_records_children_id" ON "child_records" ("children_id");
+CREATE INDEX IF NOT EXISTS "idx_child_records_record_type_id" ON "child_records" ("record_type_id");
+CREATE INDEX IF NOT EXISTS "idx_child_records_facility_id" ON "child_records" ("facility_id");
+CREATE INDEX IF NOT EXISTS "idx_facility_children_children_id" ON "facility_children" ("children_id");
+CREATE INDEX IF NOT EXISTS "idx_facility_staff_staff_id" ON "facility_staff" ("staff_id");
+CREATE INDEX IF NOT EXISTS "idx_managers2_staff_id" ON "managers2" ("staff_id");
+CREATE INDEX IF NOT EXISTS "idx_managers2_day_of_week_id" ON "managers2" ("day_of_week_id");
+CREATE INDEX IF NOT EXISTS "idx_managers2_facility_id" ON "managers2" ("facility_id");
+CREATE INDEX IF NOT EXISTS "idx_pc_facility_id" ON "pc" ("facility_id");
+CREATE INDEX IF NOT EXISTS "idx_pc_to_children_children_id" ON "pc_to_children" ("children_id");
+CREATE INDEX IF NOT EXISTS "idx_pc_to_children_pc_id" ON "pc_to_children" ("pc_id");
+CREATE INDEX IF NOT EXISTS "idx_pc_to_children_day_of_week" ON "pc_to_children" ("day_of_week");
+CREATE INDEX IF NOT EXISTS "idx_refresh_tokens_user_id" ON "refresh_tokens" ("user_id");
+CREATE INDEX IF NOT EXISTS "idx_service_record_item_id" ON "service_record" ("item_id");
+CREATE INDEX IF NOT EXISTS "idx_service_record_day_of_week_id" ON "service_record" ("day_of_week_id");
+CREATE INDEX IF NOT EXISTS "idx_service_record_facility_id" ON "service_record" ("facility_id");
+CREATE INDEX IF NOT EXISTS "idx_staff_facility_roles_staff_id" ON "staff_facility_roles" ("staff_id");
+CREATE INDEX IF NOT EXISTS "idx_staff_facility_roles_facility_id" ON "staff_facility_roles" ("facility_id");
+CREATE INDEX IF NOT EXISTS "idx_temp_notes_staff_id" ON "temp_notes" ("staff_id");
+CREATE INDEX IF NOT EXISTS "idx_temp_notes_day_of_week_id" ON "temp_notes" ("day_of_week_id");
+CREATE INDEX IF NOT EXISTS "idx_toolbox_facility_id" ON "toolbox" ("facility_id");
+CREATE INDEX IF NOT EXISTS "idx_temp_notes_children_day_lookup" ON "temp_notes" ("children_id","day_of_week_id");
+
+CREATE UNIQUE INDEX IF NOT EXISTS "idx_temp_notes_children_staff_day" ON "temp_notes" ("children_id","staff_id","day_of_week_id");
+CREATE UNIQUE INDEX IF NOT EXISTS "idx_facility_children_ids" ON "facility_children" ("facility_id","children_id");
+CREATE UNIQUE INDEX IF NOT EXISTS "idx_facility_staff_ids" ON "facility_staff" ("facility_id","staff_id");
+CREATE UNIQUE INDEX IF NOT EXISTS "idx_managers2_ids" ON "managers2" ("children_id","facility_id","staff_id","day_of_week_id");
+CREATE UNIQUE INDEX IF NOT EXISTS "idx_pc_facility_pc_id" ON "pc" ("facility_id","pc_id");
+CREATE UNIQUE INDEX IF NOT EXISTS "idx_service_record_unique" ON "service_record" ("children_id","day_of_week_id","item_id","served_date");
+CREATE UNIQUE INDEX IF NOT EXISTS "idx_staff_facility_roles_unique" ON "staff_facility_roles" ("staff_id","facility_id","job_name","experience_label");
+CREATE UNIQUE INDEX IF NOT EXISTS "idx_users_email" ON "users" ("email");
+
 COMMIT;
 `;
 
@@ -494,7 +591,6 @@ COMMIT;
  * 既存DB向け追加カラムは基本的に nullable / default 付きにする。
  */
 async function migrateExistingDatabase(db) {
-
   // children
   await ensureColumn(db, "children", "name", `"name" TEXT`);
   await ensureColumn(db, "children", "furigana", `"furigana" TEXT`);
@@ -548,28 +644,18 @@ async function migrateExistingDatabase(db) {
   await ensureColumn(db, "staff_facility_roles", "experience_label", `"experience_label" TEXT`);
   await ensureColumn(db, "staff_facility_roles", "role_note", `"role_note" TEXT`);
   await ensureColumn(db, "staff_facility_roles", "raw_text", `"raw_text" TEXT`);
-  await ensureColumn(
-    db,
-    "staff_facility_roles",
-    "created_at",
-    `"created_at" DATETIME DEFAULT CURRENT_TIMESTAMP`
-  );
-  await ensureColumn(
-    db,
-    "staff_facility_roles",
-    "updated_at",
-    `"updated_at" DATETIME DEFAULT CURRENT_TIMESTAMP`
-  );
-
+  await ensureColumn(db, "staff_facility_roles", "created_at", `"created_at" DATETIME DEFAULT CURRENT_TIMESTAMP`);
+  await ensureColumn(db, "staff_facility_roles", "updated_at", `"updated_at" DATETIME DEFAULT CURRENT_TIMESTAMP`);
 
   // managers2
   await ensureColumn(db, "managers2", "children_id", `"children_id" INTEGER`);
+  await ensureColumn(db, "managers2", "facility_id", `"facility_id" INTEGER DEFAULT 1`);
   await ensureColumn(db, "managers2", "staff_id", `"staff_id" INTEGER`);
   await ensureColumn(db, "managers2", "day_of_week_id", `"day_of_week_id" INTEGER`);
   await ensureColumn(db, "managers2", "priority", `"priority" INTEGER DEFAULT 0`);
   await ensureColumn(db, "managers2", "support_start_time", `"support_start_time" TEXT DEFAULT NULL`);
   await ensureColumn(db, "managers2", "support_end_time", `"support_end_time" TEXT DEFAULT NULL`);
-  
+
   // pc
   await ensureColumn(db, "pc", "facility_id", `"facility_id" INTEGER`);
   await ensureColumn(db, "pc", "pc_id", `"pc_id" INTEGER`);
@@ -597,18 +683,8 @@ async function migrateExistingDatabase(db) {
   await ensureColumn(db, "child_records", "facility_id", `"facility_id" INTEGER`);
   await ensureColumn(db, "child_records", "memo1", `"memo1" TEXT`);
   await ensureColumn(db, "child_records", "memo2", `"memo2" TEXT`);
-  await ensureColumn(
-    db,
-    "child_records",
-    "created_at",
-    `"created_at" DATETIME DEFAULT CURRENT_TIMESTAMP`
-  );
-  await ensureColumn(
-    db,
-    "child_records",
-    "updated_at",
-    `"updated_at" DATETIME DEFAULT CURRENT_TIMESTAMP`
-  );
+  await ensureColumn(db, "child_records", "created_at", `"created_at" DATETIME DEFAULT CURRENT_TIMESTAMP`);
+  await ensureColumn(db, "child_records", "updated_at", `"updated_at" DATETIME DEFAULT CURRENT_TIMESTAMP`);
 
   // m_service_items
   await ensureColumn(db, "m_service_items", "name", `"name" TEXT`);
@@ -623,19 +699,9 @@ async function migrateExistingDatabase(db) {
   await ensureColumn(db, "service_record", "is_copy", `"is_copy" INTEGER DEFAULT 0`);
   await ensureColumn(db, "service_record", "is_deleted", `"is_deleted" INTEGER DEFAULT 0`);
   await ensureColumn(db, "service_record", "recorded_staff_id", `"recorded_staff_id" INTEGER DEFAULT -1`);
-  await ensureColumn(
-    db,
-    "service_record",
-    "created_at",
-    `"created_at" DATETIME DEFAULT CURRENT_TIMESTAMP`
-  );
+  await ensureColumn(db, "service_record", "created_at", `"created_at" DATETIME DEFAULT CURRENT_TIMESTAMP`);
   await ensureColumn(db, "service_record", "updated_staff_id", `"updated_staff_id" INTEGER DEFAULT -1`);
-  await ensureColumn(
-    db,
-    "service_record",
-    "updated_at",
-    `"updated_at" DATETIME DEFAULT CURRENT_TIMESTAMP`
-  );
+  await ensureColumn(db, "service_record", "updated_at", `"updated_at" DATETIME DEFAULT CURRENT_TIMESTAMP`);
 
   // memo
   await ensureColumn(db, "memo", "title", `"title" TEXT`);
@@ -652,18 +718,8 @@ async function migrateExistingDatabase(db) {
   await ensureColumn(db, "toolbox", "description", `"description" TEXT`);
   await ensureColumn(db, "toolbox", "layout", `"layout" TEXT`);
   await ensureColumn(db, "toolbox", "is_tools", `"is_tools" INTEGER DEFAULT 1`);
-  await ensureColumn(
-    db,
-    "toolbox",
-    "created_at",
-    `"created_at" DATETIME DEFAULT CURRENT_TIMESTAMP`
-  );
-  await ensureColumn(
-    db,
-    "toolbox",
-    "updated_at",
-    `"updated_at" DATETIME DEFAULT CURRENT_TIMESTAMP`
-  );
+  await ensureColumn(db, "toolbox", "created_at", `"created_at" DATETIME DEFAULT CURRENT_TIMESTAMP`);
+  await ensureColumn(db, "toolbox", "updated_at", `"updated_at" DATETIME DEFAULT CURRENT_TIMESTAMP`);
   await ensureColumn(db, "toolbox", "permission", `"permission" INTEGER DEFAULT 0`);
   await ensureColumn(db, "toolbox", "facility_id", `"facility_id" INTEGER`);
 
@@ -671,12 +727,7 @@ async function migrateExistingDatabase(db) {
   await ensureColumn(db, "users", "name", `"name" TEXT`);
   await ensureColumn(db, "users", "email", `"email" TEXT`);
   await ensureColumn(db, "users", "password", `"password" TEXT`);
-  await ensureColumn(
-    db,
-    "users",
-    "created_at",
-    `"created_at" DATETIME DEFAULT CURRENT_TIMESTAMP`
-  );
+  await ensureColumn(db, "users", "created_at", `"created_at" DATETIME DEFAULT CURRENT_TIMESTAMP`);
   await ensureColumn(db, "users", "leaving_at", `"leaving_at" TEXT`);
 
   // refresh_tokens
@@ -684,12 +735,7 @@ async function migrateExistingDatabase(db) {
   await ensureColumn(db, "refresh_tokens", "token", `"token" TEXT`);
   await ensureColumn(db, "refresh_tokens", "revoked", `"revoked" INTEGER DEFAULT 0`);
   await ensureColumn(db, "refresh_tokens", "expires_at", `"expires_at" DATETIME`);
-  await ensureColumn(
-    db,
-    "refresh_tokens",
-    "created_at",
-    `"created_at" DATETIME DEFAULT CURRENT_TIMESTAMP`
-  );
+  await ensureColumn(db, "refresh_tokens", "created_at", `"created_at" DATETIME DEFAULT CURRENT_TIMESTAMP`);
 
   // individual_support
   await ensureColumn(db, "individual_support", "family_intention", `"family_intention" TEXT`);
@@ -697,18 +743,8 @@ async function migrateExistingDatabase(db) {
   await ensureColumn(db, "individual_support", "long_term_goal", `"long_term_goal" TEXT`);
   await ensureColumn(db, "individual_support", "short_term_goal", `"short_term_goal" TEXT`);
   await ensureColumn(db, "individual_support", "support_date", `"support_date" TEXT`);
-  await ensureColumn(
-    db,
-    "individual_support",
-    "created_at",
-    `"created_at" DATETIME DEFAULT CURRENT_TIMESTAMP`
-  );
-  await ensureColumn(
-    db,
-    "individual_support",
-    "updated_at",
-    `"updated_at" DATETIME DEFAULT CURRENT_TIMESTAMP`
-  );
+  await ensureColumn(db, "individual_support", "created_at", `"created_at" DATETIME DEFAULT CURRENT_TIMESTAMP`);
+  await ensureColumn(db, "individual_support", "updated_at", `"updated_at" DATETIME DEFAULT CURRENT_TIMESTAMP`);
 
   // temp_notes
   await ensureColumn(db, "temp_notes", "children_id", `"children_id" INTEGER`);
@@ -716,18 +752,8 @@ async function migrateExistingDatabase(db) {
   await ensureColumn(db, "temp_notes", "day_of_week_id", `"day_of_week_id" INTEGER`);
   await ensureColumn(db, "temp_notes", "memo1", `"memo1" TEXT`);
   await ensureColumn(db, "temp_notes", "memo2", `"memo2" TEXT`);
-  await ensureColumn(
-    db,
-    "temp_notes",
-    "created_at",
-    `"created_at" DATETIME DEFAULT CURRENT_TIMESTAMP`
-  );
-  await ensureColumn(
-    db,
-    "temp_notes",
-    "updated_at",
-    `"updated_at" DATETIME DEFAULT CURRENT_TIMESTAMP`
-  );
+  await ensureColumn(db, "temp_notes", "created_at", `"created_at" DATETIME DEFAULT CURRENT_TIMESTAMP`);
+  await ensureColumn(db, "temp_notes", "updated_at", `"updated_at" DATETIME DEFAULT CURRENT_TIMESTAMP`);
 }
 
 /**
@@ -740,15 +766,7 @@ async function createIndexes(db) {
   // ============================================================
   // temp_notes
   // ============================================================
-  // 旧仕様:
-  // children_id + day_of_week_id だけで UNIQUE にしていた。
-  //
-  // 現仕様:
-  // MariaDB 側と同じく
-  // children_id + staff_id + day_of_week_id を主キー扱いにする。
-  //
-  // 古い UNIQUE INDEX が残っていると、
-  // staff_id が違っても同じ児童・同じ曜日のメモを複数持てなくなるため削除する。
+
   await tryRunSql(
     db,
     `
@@ -757,7 +775,6 @@ async function createIndexes(db) {
     "drop idx_temp_notes_children_day"
   );
 
-  // children_id + day_of_week_id で検索する可能性はあるため、通常INDEXとして作る
   await tryRunSql(
     db,
     `
@@ -767,7 +784,6 @@ async function createIndexes(db) {
     "idx_temp_notes_children_day_lookup"
   );
 
-  // MariaDB 側の PRIMARY KEY(children_id, staff_id, day_of_week_id) に合わせる
   await tryRunSql(
     db,
     `
@@ -796,6 +812,59 @@ async function createIndexes(db) {
   );
 
   // ============================================================
+  // managers2
+  // ============================================================
+
+  await tryRunSql(
+    db,
+    `
+      DROP INDEX IF EXISTS "idx_managers2_ids"
+    `,
+    "drop old idx_managers2_ids"
+  );
+
+  await tryRunSql(
+    db,
+    `
+      CREATE INDEX IF NOT EXISTS "idx_managers2_staff_id"
+      ON "managers2" ("staff_id")
+    `,
+    "idx_managers2_staff_id"
+  );
+
+  await tryRunSql(
+    db,
+    `
+      CREATE INDEX IF NOT EXISTS "idx_managers2_day_of_week_id"
+      ON "managers2" ("day_of_week_id")
+    `,
+    "idx_managers2_day_of_week_id"
+  );
+
+  await tryRunSql(
+    db,
+    `
+      CREATE INDEX IF NOT EXISTS "idx_managers2_facility_id"
+      ON "managers2" ("facility_id")
+    `,
+    "idx_managers2_facility_id"
+  );
+
+  await tryRunSql(
+    db,
+    `
+      CREATE UNIQUE INDEX IF NOT EXISTS "idx_managers2_ids"
+      ON "managers2" (
+        "children_id",
+        "facility_id",
+        "staff_id",
+        "day_of_week_id"
+      )
+    `,
+    "idx_managers2_ids"
+  );
+
+  // ============================================================
   // UNIQUE INDEX
   // ============================================================
 
@@ -815,15 +884,6 @@ async function createIndexes(db) {
       ON "facility_staff" ("facility_id", "staff_id")
     `,
     "idx_facility_staff_ids"
-  );
-
-  await tryRunSql(
-    db,
-    `
-      CREATE UNIQUE INDEX IF NOT EXISTS "idx_managers2_ids"
-      ON "managers2" ("children_id", "staff_id", "day_of_week_id")
-    `,
-    "idx_managers2_ids"
   );
 
   await tryRunSql(
@@ -948,7 +1008,6 @@ async function createIndexes(db) {
   );
 }
 
-
 /**
  * 曜日マスタ初期データ
  *
@@ -1005,6 +1064,7 @@ function initializeDatabase() {
         await migrateLegacyDayOfWeekIfNeeded(db);
         await execSql(db, INIT_SQL);
         await migrateExistingDatabase(db);
+        await migrateManagers2ToFacilitySchema(db);
         await createIndexes(db);
         await seedDayOfWeek(db);
 

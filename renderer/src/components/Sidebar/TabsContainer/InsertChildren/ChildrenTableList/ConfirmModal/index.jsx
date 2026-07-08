@@ -103,10 +103,11 @@ function ConfirmModal({ show, message, list = [], onConfirm, onCancel }) {
   const managersList = database?.managers ?? [];
 
   // 新仕様：CURRENT_DAY_OF_WEEK から weekdayId を直接取得
-  const { STAFF_ID, FACILITY_ID, CURRENT_DAY_OF_WEEK } = useAppState();
+  const { STAFF_ID, FACILITY_ID, CURRENT_DAY_OF_WEEK,appState } = useAppState();
   const weekdayId = CURRENT_DAY_OF_WEEK?.weekdayId;
 
   const [selectedValues, setSelectedValues] = useState({});
+  const Facilitys = appState.facilitys;
 
   // モーダルを開いている間、初期値で選択値を上書きし続けないための ref
   const initializedForOpenRef = useRef(false);
@@ -258,6 +259,7 @@ function ConfirmModal({ show, message, list = [], onConfirm, onCancel }) {
                   <th className="border px-2 py-1 text-black">利用種別</th>
                   <th className="border px-2 py-1 text-black">開始時刻</th>
                   <th className="border px-2 py-1 text-black">終了時刻</th>
+                  <th className="border px-2 py-1 text-black">施設名</th>
                 </tr>
               </thead>
 
