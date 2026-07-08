@@ -112,48 +112,13 @@ function ApiTab({
     }
 
     const logSelectSnapshot = (label, extra = {}) => {
-      const staffSelect = getSelectSnapshot('api-staff-id')
-      const facilitySelect = getSelectSnapshot('api-facility-id')
-      const databaseTypeSelect = getSelectSnapshot('api-database-type')
-      const aiTypeSelect = getSelectSnapshot('api-ai-type')
-
-      console.groupCollapsed(`🧪 [ApiTab DOM CHECK] ${label}`)
-
-      console.log('📌 extra:', extra)
-
-      console.log('👤 staffSelect:', {
-        value: staffSelect.value,
-        selectedText: staffSelect.selectedText,
-        optionCount: staffSelect.optionCount,
-      })
-      console.table(staffSelect.options)
-
-      console.log('🏢 facilitySelect:', {
-        value: facilitySelect.value,
-        selectedText: facilitySelect.selectedText,
-        optionCount: facilitySelect.optionCount,
-      })
-      console.table(facilitySelect.options)
-
-      console.log('🗄 databaseTypeSelect:', {
-        value: databaseTypeSelect.value,
-        selectedText: databaseTypeSelect.selectedText,
-        optionCount: databaseTypeSelect.optionCount,
-      })
-      console.table(databaseTypeSelect.options)
-
-      console.log('🤖 aiTypeSelect:', {
-        value: aiTypeSelect.value,
-        selectedText: aiTypeSelect.selectedText,
-        optionCount: aiTypeSelect.optionCount,
-      })
-      console.table(aiTypeSelect.options)
-
-      console.groupEnd()
+      const staffSelect = getSelectSnapshot('api-staff-id');
+      const facilitySelect = getSelectSnapshot('api-facility-id');
+      const databaseTypeSelect = getSelectSnapshot('api-database-type');
+      const aiTypeSelect = getSelectSnapshot('api-ai-type');
     }
 
     const initialize = async () => {
-      console.groupCollapsed('🧩 [ApiTab] mounted / initialize start')
 
       console.log('🗂 [ApiTab] Redux store values', {
         STAFF_ID,
@@ -181,7 +146,6 @@ function ApiTab({
 
       if (!onInitializeSelectBoxes) {
         console.warn('⚠️ [ApiTab] onInitializeSelectBoxes がありません')
-        console.groupEnd()
         return
       }
 
@@ -191,8 +155,6 @@ function ApiTab({
         // DOMのoption追加が反映された後に確認する
         setTimeout(() => {
           if (cancelled) return
-
-          console.log('✅ [ApiTab] onInitializeSelectBoxes result:', result)
 
           logSelectSnapshot('after onInitializeSelectBoxes', {
             result,
@@ -205,11 +167,9 @@ function ApiTab({
             },
           })
 
-          console.groupEnd()
         }, 0)
       } catch (error) {
         console.error('❌ [ApiTab] onInitializeSelectBoxes error:', error)
-        console.groupEnd()
       }
     }
 

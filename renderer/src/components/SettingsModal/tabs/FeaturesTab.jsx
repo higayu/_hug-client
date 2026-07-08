@@ -9,18 +9,13 @@ function FeaturesTab() {
 
   // URL stateの変更を監視
   useEffect(() => {
-    console.log('📝 [FeaturesTab] currentUrl state updated:', currentUrl)
+    console.log('📝 [FeaturesTab]  state', currentUrl)
   }, [currentUrl])
 
   useEffect(() => {
     let cleanupWebviewListeners = null
 
     const readUrl = async (vw) => {
-      console.log('🔍 [FeaturesTab] readUrl called', { 
-        webview: vw ? vw.id : 'null',
-        webviewElement: vw,
-        hasGetURL: !!vw?.getURL
-      })
       
       if (!vw) {
         console.log('⚠️ [FeaturesTab] webview is null')
@@ -28,18 +23,13 @@ function FeaturesTab() {
         return
       }
       try {
-        console.log('📡 [FeaturesTab] Calling getURL()...')
         const maybe = vw.getURL?.()
-        console.log('📡 [FeaturesTab] getURL() result:', { maybe, type: typeof maybe })
         
         const url = typeof maybe === 'string' ? maybe : await maybe
-        console.log('📡 [FeaturesTab] Resolved URL:', url)
         
         const fallback = vw.getAttribute?.('src') || ''
-        console.log('📡 [FeaturesTab] Fallback src attribute:', fallback)
         
         const finalUrl = url || fallback || ''
-        console.log('✅ [FeaturesTab] Final URL to set:', finalUrl)
         setCurrentUrl(finalUrl)
       } catch (e) {
         console.error('❌ [FeaturesTab] Error reading URL:', e)
@@ -52,7 +42,7 @@ function FeaturesTab() {
         console.log('⚠️ [FeaturesTab] Cannot attach listeners: webview is null')
         return () => {}
       }
-      console.log('🔗 [FeaturesTab] Attaching listeners to webview:', vw.id)
+
       const onNavigate = () => {
         console.log('🔗 [FeaturesTab] Navigation event fired, reading URL...')
         readUrl(vw)
@@ -61,10 +51,10 @@ function FeaturesTab() {
       vw.addEventListener('did-navigate-in-page', onNavigate)
       vw.addEventListener('did-finish-load', onNavigate)
       vw.addEventListener('dom-ready', onNavigate)
-      console.log('✅ [FeaturesTab] Listeners attached to webview:', vw.id)
+
       return () => {
         try {
-          console.log('🧹 [FeaturesTab] Removing listeners from webview:', vw.id)
+
           vw.removeEventListener('did-navigate', onNavigate)
           vw.removeEventListener('did-navigate-in-page', onNavigate)
           vw.removeEventListener('did-finish-load', onNavigate)
@@ -74,31 +64,20 @@ function FeaturesTab() {
     }
 
     // 初期取得
-    console.log('🚀 [FeaturesTab] Initializing URL reading...')
     const initial = getActiveWebview()
-    console.log('🚀 [FeaturesTab] Initial webview:', { 
-      webview: initial ? initial.id : 'null',
-      hasGetURL: !!initial?.getURL 
-    })
+
     readUrl(initial)
     cleanupWebviewListeners = attachWebviewListeners(initial)
-    console.log('🚀 [FeaturesTab] Event listeners attached to initial webview')
 
     // アクティブ変更イベント
     const onActiveChanged = (e) => {
-      console.log('🔄 [FeaturesTab] Active webview changed event:', e?.detail)
       const vw = e?.detail?.webview || getActiveWebview()
-      console.log('🔄 [FeaturesTab] New active webview:', { 
-        webview: vw ? vw.id : 'null',
-        hasGetURL: !!vw?.getURL 
-      })
+
       readUrl(vw)
       if (cleanupWebviewListeners) cleanupWebviewListeners()
       cleanupWebviewListeners = attachWebviewListeners(vw)
-      console.log('🔄 [FeaturesTab] Event listeners attached to new active webview')
     }
     document.addEventListener('active-webview-changed', onActiveChanged)
-    console.log('🚀 [FeaturesTab] Active webview changed event listener registered')
 
     return () => {
       document.removeEventListener('active-webview-changed', onActiveChanged)
@@ -108,7 +87,6 @@ function FeaturesTab() {
 
   const handleCopy = async () => {
     try {
-      console.log('🔍 [FeaturesTab] コピーボタンがクリックされました', { currentUrl })
       if (!currentUrl) return
       await navigator.clipboard.writeText(currentUrl)
       showInfoToast('✅ URLがクリップボードにコピーされました')

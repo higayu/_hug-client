@@ -4,12 +4,13 @@ import { sqliteApi } from '@/hooks/useDataBase/sql/sqliteApi.js'
 import { mariadbApi } from '@/hooks/useDataBase/sql/mariadbApi.js'
 
 import { getJoinedStaffFacilityData } from './staffDispatcher'
-import { apiSelectLogStyle } from './settingsModalLogStyle'
 import {
   toBooleanFlag,
   toId,
   isNotDeleted,
 } from '../settingsModalUtils'
+
+const LOG_PREFIX = '[API SELECT]'
 
 const getApiByDatabaseType = (databaseType) => {
   return databaseType === 'mariadb' ? mariadbApi : sqliteApi
@@ -52,12 +53,6 @@ const buildFromTables = (tables) => {
     ? tables.facility_staff
     : []
   const facilitys = Array.isArray(tables?.facilitys) ? tables.facilitys : []
-
-  console.log('%c🧾 データ確認', apiSelectLogStyle.info, {
-    staffs,
-    facilityStaff,
-    facilitys,
-  })
 
   const facilityList = facilitys
     .filter((facility) => {
@@ -171,24 +166,8 @@ const buildFromJoinedData = (joinedData) => {
 
 export function useApiSelectBoxes({ iniState, appState }) {
   const initializeApiSelectBoxes = useCallback(async () => {
-    let groupOpened = false
-
     try {
-      console.groupCollapsed(
-        '%c🚀 [API SELECT INIT] initializeApiSelectBoxes START',
-        apiSelectLogStyle.title
-      )
-      groupOpened = true
-
-      console.log(
-        '%c📌 API設定セレクトボックス初期化を開始しました',
-        apiSelectLogStyle.info
-      )
-      console.log(
-        '%c🕒 startedAt:',
-        apiSelectLogStyle.info,
-        new Date().toISOString()
-      )
+      console.log(`${LOG_PREFIX} 初期化開始`)
 
       const staffSelect = document.getElementById('api-staff-id')
       const facilitySelect = document.getElementById('api-facility-id')
@@ -207,29 +186,14 @@ export function useApiSelectBoxes({ iniState, appState }) {
 
       const apiToUse = getApiByDatabaseType(selectedDatabaseType)
 
-      console.log('%c📌 使用DB', apiSelectLogStyle.info, selectedDatabaseType)
-      console.log(
-        '%c📌 使用API',
-        apiSelectLogStyle.info,
-        selectedDatabaseType === 'mariadb' ? 'mariadbApi' : 'sqliteApi'
-      )
+      console.log(`${LOG_PREFIX} 使用DB: ${selectedDatabaseType}`)
 
       let joinedData = []
 
       try {
         joinedData = getJoinedStaffFacilityData()
-
-        console.log(
-          '%c📊 Reduxストアから取得データ',
-          apiSelectLogStyle.info,
-          joinedData
-        )
       } catch (error) {
-        console.warn(
-          '%c⚠️ Redux結合データの取得に失敗しました',
-          apiSelectLogStyle.warn,
-          error
-        )
+        console.warn(`${LOG_PREFIX} Redux結合データ取得失敗`, error)
       }
 
       let builtData = {
@@ -245,11 +209,7 @@ export function useApiSelectBoxes({ iniState, appState }) {
 
         const tables = await apiToUse.getAllTables()
 
-        console.log(
-          '%c📊 データベースから取得したテーブル',
-          apiSelectLogStyle.info,
-          tables
-        )
+        console.log('⭐　テーブルデータ',tables);
 
         if (
           tables &&
@@ -261,8 +221,7 @@ export function useApiSelectBoxes({ iniState, appState }) {
         }
       } catch (error) {
         console.warn(
-          '%c⚠️ DBからの取得に失敗したためReduxデータへフォールバックします',
-          apiSelectLogStyle.warn,
+          `${LOG_PREFIX} DB取得失敗。Reduxデータへフォールバックします`,
           error
         )
       }
@@ -278,10 +237,7 @@ export function useApiSelectBoxes({ iniState, appState }) {
       const { source, allStaffList, facilityList } = builtData
 
       if (!facilityList.length && !allStaffList.length) {
-        console.warn(
-          '%c⚠️ スタッフ・施設データが取得できませんでした',
-          apiSelectLogStyle.warn
-        )
+        console.warn(`${LOG_PREFIX} スタッフ・施設データがありません`)
 
         return {
           success: false,
@@ -292,17 +248,9 @@ export function useApiSelectBoxes({ iniState, appState }) {
         }
       }
 
-      console.log('%c🧱 初期化用データ source', apiSelectLogStyle.info, source)
-
-      console.log('%c🏢 facilityList 全件', apiSelectLogStyle.success, {
-        count: facilityList.length,
-      })
-      console.table(facilityList)
-
-      console.log('%c👤 allStaffList 全件', apiSelectLogStyle.info, {
-        count: allStaffList.length,
-      })
-      console.table(allStaffList)
+      console.log(
+        `${LOG_PREFIX} データ読込完了 source=${source}, facilities=${facilityList.length}, staffs=${allStaffList.length}`
+      )
 
       const getFilteredStaffList = (facilityId) => {
         const targetFacilityId = toId(facilityId)
@@ -342,21 +290,7 @@ export function useApiSelectBoxes({ iniState, appState }) {
         staffSelect.value = canKeepSelectedStaff ? targetStaffId : ''
 
         console.log(
-          '%c🔎 施設に紐づくスタッフへフィルター',
-          apiSelectLogStyle.success,
-          {
-            facilityId: targetFacilityId,
-            preferredStaffId: targetStaffId,
-            filteredStaffCount: filteredStaffList.length,
-            staffSelectValue: staffSelect.value,
-          }
-        )
-        console.table(filteredStaffList)
-
-        console.log(
-          '%c👤 staffSelect options after filter',
-          apiSelectLogStyle.info,
-          getOptionsSnapshot(staffSelect)
+          `${LOG_PREFIX} スタッフ絞り込み facilityId=${targetFacilityId || '(未選択)'}, count=${filteredStaffList.length}`
         )
 
         return filteredStaffList
@@ -388,19 +322,6 @@ export function useApiSelectBoxes({ iniState, appState }) {
 
         facilitySelect.value = selectedFacilityId
 
-        console.log(
-          '%c✅ 施設セレクト初期化完了',
-          apiSelectLogStyle.success,
-          {
-            facilityCount: facilityList.length,
-            optionCount: facilitySelect.options.length,
-            selectedFacilityId,
-            selectedFacilityText:
-              facilitySelect.selectedOptions?.[0]?.textContent ?? '',
-          }
-        )
-        console.table(getOptionsSnapshot(facilitySelect))
-
         if (
           selectedFacilityId &&
           !Array.from(facilitySelect.options).some(
@@ -408,21 +329,11 @@ export function useApiSelectBoxes({ iniState, appState }) {
           )
         ) {
           console.warn(
-            '%c⚠️ iniState の facilityId が施設セレクト候補に存在しません',
-            apiSelectLogStyle.warn,
-            {
-              selectedFacilityId,
-              availableValues: Array.from(facilitySelect.options).map(
-                (option) => option.value
-              ),
-            }
+            `${LOG_PREFIX} iniState の facilityId が候補にありません: ${selectedFacilityId}`
           )
         }
       } else {
-        console.warn(
-          '%c⚠️ facilitySelect 要素が見つかりません',
-          apiSelectLogStyle.warn
-        )
+        console.warn(`${LOG_PREFIX} facilitySelect が見つかりません`)
       }
 
       const initialFilteredStaffList = rebuildStaffSelectByFacility(
@@ -441,17 +352,6 @@ export function useApiSelectBoxes({ iniState, appState }) {
         facilitySelect.__apiFacilityChangeHandler = (event) => {
           const nextFacilityId = event.target.value
           const currentStaffId = staffSelect?.value || ''
-
-          console.log(
-            '%c🏢 施設変更 → スタッフ再フィルター',
-            apiSelectLogStyle.info,
-            {
-              nextFacilityId,
-              currentStaffId,
-              facilityName:
-                event.target.selectedOptions?.[0]?.textContent ?? '',
-            }
-          )
 
           rebuildStaffSelectByFacility(nextFacilityId, currentStaffId)
         }
@@ -482,32 +382,8 @@ export function useApiSelectBoxes({ iniState, appState }) {
         autoSwitchingInput.checked = selectedAutoSwitching
       }
 
-      console.log('%c🎯 適用値', apiSelectLogStyle.info, {
-        selectedStaffId,
-        selectedFacilityId,
-        selectedAiType,
-        selectedBaseUrl,
-        selectedDatabaseType,
-        selectedAutoSynchronization,
-        selectedAutoSwitching,
-        actualStaffSelectValue: staffSelect?.value ?? '',
-        actualFacilitySelectValue: facilitySelect?.value ?? '',
-      })
-
       console.log(
-        '%c🎉 [API SELECT INIT] initializeApiSelectBoxes END',
-        apiSelectLogStyle.success,
-        {
-          source,
-          allStaffCount: allStaffList.length,
-          facilityCount: facilityList.length,
-          initialFilteredStaffCount: initialFilteredStaffList.length,
-          selectedStaffId,
-          selectedFacilityId,
-          actualStaffSelectValue: staffSelect?.value ?? '',
-          actualFacilitySelectValue: facilitySelect?.value ?? '',
-          selectedDatabaseType,
-        }
+        `${LOG_PREFIX} 初期化完了 facilityId=${selectedFacilityId || '(未選択)'}, staffId=${staffSelect?.value || '(未選択)'}, ai=${selectedAiType}`
       )
 
       return {
@@ -523,20 +399,12 @@ export function useApiSelectBoxes({ iniState, appState }) {
         facilitySelectOptions: getOptionsSnapshot(facilitySelect),
       }
     } catch (error) {
-      console.error(
-        '%c❌ [SettingsModal] APIセレクトボックス初期化エラー',
-        apiSelectLogStyle.error,
-        error
-      )
+      console.error(`${LOG_PREFIX} 初期化エラー`, error)
 
       return {
         success: false,
         reason: 'error',
         error,
-      }
-    } finally {
-      if (groupOpened) {
-        console.groupEnd()
       }
     }
   }, [iniState, appState])
