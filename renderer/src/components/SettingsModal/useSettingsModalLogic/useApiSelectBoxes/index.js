@@ -1,7 +1,5 @@
 // renderer/src/components/SettingsModal/useSettingsModalLogic/useApiSelectBoxes/index.js
 import { useCallback } from 'react'
-import { sqliteApi } from '@/hooks/useDataBase/sql/sqliteApi.js'
-import { mariadbApi } from '@/hooks/useDataBase/sql/mariadbApi.js'
 
 import { getJoinedStaffFacilityData } from './staffDispatcher'
 import {
@@ -11,10 +9,6 @@ import {
 } from '../settingsModalUtils'
 
 const LOG_PREFIX = '[API SELECT]'
-
-const getApiByDatabaseType = (databaseType) => {
-  return databaseType === 'mariadb' ? mariadbApi : sqliteApi
-}
 
 const getOptionsSnapshot = (select) => {
   if (!select) return []
@@ -104,7 +98,7 @@ const buildFromTables = (tables) => {
     })
 
   return {
-    source: 'databaseTables',
+    source: 'appState.databaseState',
     allStaffList,
     facilityList,
   }
@@ -184,54 +178,33 @@ export function useApiSelectBoxes({ iniState, appState }) {
         appState?.DATABASE_TYPE ||
         'sqlite'
 
-      const apiToUse = getApiByDatabaseType(selectedDatabaseType)
-
-      console.log(`${LOG_PREFIX} 使用DB: ${selectedDatabaseType}`)
-
-      let joinedData = []
-
-      try {
-        joinedData = getJoinedStaffFacilityData()
-      } catch (error) {
-        console.warn(`${LOG_PREFIX} Redux結合データ取得失敗`, error)
-      }
-
       let builtData = {
         source: '',
         allStaffList: [],
         facilityList: [],
       }
 
-      try {
-        if (!apiToUse?.getAllTables) {
-          throw new Error('getAllTables が API に存在しません')
-        }
-
-        const tables = await apiToUse.getAllTables()
-
-        console.log('⭐　テーブルデータ',tables);
-
-        if (
-          tables &&
-          (Array.isArray(tables.staffs) ||
-            Array.isArray(tables.facility_staff) ||
-            Array.isArray(tables.facilitys))
-        ) {
-          builtData = buildFromTables(tables)
-        }
-      } catch (error) {
-        console.warn(
-          `${LOG_PREFIX} DB取得失敗。Reduxデータへフォールバックします`,
-          error
-        )
-      }
+      const tables = appState?.databaseState || null
 
       if (
-        (!builtData.facilityList.length || !builtData.allStaffList.length) &&
-        Array.isArray(joinedData) &&
-        joinedData.length > 0
+        tables &&
+        (Array.isArray(tables.staffs) ||
+          Array.isArray(tables.facility_staff) ||
+          Array.isArray(tables.facilitys))
       ) {
-        builtData = buildFromJoinedData(joinedData)
+        builtData = buildFromTables(tables)
+      }
+
+      if (!builtData.facilityList.length || !builtData.allStaffList.length) {
+        try {
+          const joinedData = getJoinedStaffFacilityData()
+
+          if (Array.isArray(joinedData) && joinedData.length > 0) {
+            builtData = buildFromJoinedData(joinedData)
+          }
+        } catch (error) {
+          console.warn(`${LOG_PREFIX} Redux結合データ取得失敗`, error)
+        }
       }
 
       const { source, allStaffList, facilityList } = builtData
