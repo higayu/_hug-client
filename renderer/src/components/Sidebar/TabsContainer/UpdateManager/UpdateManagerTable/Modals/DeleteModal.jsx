@@ -43,31 +43,31 @@ export default function DeleteModal({ open, onClose, onConfirm, manager }) {
 
   return (
     <ModalPortal>
-      <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-        <div className="bg-white p-6 rounded-xl w-96 shadow-xl">
-          <h2 className="text-lg font-bold mb-4">削除確認</h2>
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+        <div className="w-96 rounded-xl bg-white p-6 text-black shadow-xl">
+          <h2 className="mb-4 text-lg font-bold text-black">削除確認</h2>
 
-          <p className="text-sm">以下の担当データを削除しますか？</p>
+          <p className="text-sm text-black">以下の担当データを削除しますか？</p>
 
-          <div className="mt-3 p-3 border rounded-md bg-gray-50 text-sm">
-            <p>
+          <div className="mt-3 rounded-md border bg-gray-50 p-3 text-sm text-black">
+            <p className="text-black">
               <b>施設ID:</b> {hasFacilityId ? facilityId : "-"}
             </p>
-            <p>
+            <p className="text-black">
               <b>児童ID:</b> {hasChildrenId ? childrenId : "-"}
             </p>
-            <p>
+            <p className="text-black">
               <b>子ども名:</b> {manager?.children_name ?? "-"}
             </p>
-            <p>
+            <p className="text-black">
               <b>スタッフID:</b> {hasStaffId ? staffId : "-"}
             </p>
-            <p>
+            <p className="text-black">
               <b>スタッフ:</b> {manager?.staff_name ?? "-"}
             </p>
 
             {hasDayOfWeekId && (
-              <p>
+              <p className="text-black">
                 <b>曜日ID:</b> {dayOfWeekId}
               </p>
             )}
@@ -79,10 +79,10 @@ export default function DeleteModal({ open, onClose, onConfirm, manager }) {
             </p>
           )}
 
-          <div className="mt-6 flex gap-3 justify-end">
+          <div className="mt-6 flex justify-end gap-3">
             <button
               type="button"
-              className="px-4 py-2 border rounded-md text-sm"
+              className="rounded-md border px-4 py-2 text-sm text-black"
               onClick={onClose}
             >
               キャンセル
@@ -90,10 +90,10 @@ export default function DeleteModal({ open, onClose, onConfirm, manager }) {
 
             <button
               type="button"
-              className={`px-4 py-2 rounded-md text-sm text-white ${
+              className={`rounded-md px-4 py-2 text-sm text-white ${
                 canDelete
                   ? "bg-red-500 hover:bg-red-600"
-                  : "bg-gray-300 cursor-not-allowed"
+                  : "cursor-not-allowed bg-gray-300"
               }`}
               disabled={!canDelete}
               onClick={handleDelete}
