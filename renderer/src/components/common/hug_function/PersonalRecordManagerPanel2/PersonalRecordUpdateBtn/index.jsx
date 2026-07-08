@@ -2,7 +2,7 @@ import { useCallback, useRef, useState } from "react";
 import { useAppState } from "@/AppStateContext";
 import { useToast } from "@/components/common/ToastContext.jsx";
 import { fetchPersonalRecord } from "./fetchPersonalRecord";
-import { postServiceRecordsToLocalApi } from "../postServiceRecordsToLocalApi";
+import { postServiceRecordsToLocalApi } from "./postServiceRecordsToLocalApi";//ローカルサーバに送信
 import { useDataBase } from "@/hooks/useDataBase";
 
 const LOG_TAG = "PersonalRecordGet";
@@ -42,7 +42,7 @@ export default function PersonalRecordUpdateBtn({ dateStr }) {
     }
 
     const facilityId = FACILITY_ID || "3";
-    const currentYmd = dateStr || CURRENT_YMD || new Date().toISOString().slice(0, 10);
+    const currentYm = dateStr || CURRENT_YMD || new Date().toISOString().slice(0, 10);
 
     isFetchingRef.current = true;
     setFetching(true);
@@ -50,14 +50,14 @@ export default function PersonalRecordUpdateBtn({ dateStr }) {
     console.log(`[${LOG_TAG}] 取得開始`, {
       childId: SELECT_CHILD,
       facilityId,
-      currentYmd,
+      currentYm,
     });
 
     try {
       const result = await fetchPersonalRecord({
         childId: SELECT_CHILD,
-        facilityId,
-        currentYmd,
+        facilityId:facilityId,
+        year_month:currentYm,
       });
 
       if (!result.ok) {
