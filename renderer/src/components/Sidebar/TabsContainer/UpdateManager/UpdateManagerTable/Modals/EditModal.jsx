@@ -71,7 +71,6 @@ export default function EditModal({ open, onClose, manager, onConfirm }) {
   const staffId = manager?.staff_id ?? "";
   const childrenName = manager?.children_name ?? "";
   const staffName = manager?.staff_name ?? "";
-  const facilityName = manager?.facility_name ?? manager?.facilityName ?? "";
 
   // ------------------------------------------
   // DB
@@ -87,6 +86,49 @@ export default function EditModal({ open, onClose, manager, onConfirm }) {
   const managers2 = useMemo(() => {
     return Array.isArray(database.managers2) ? database.managers2 : [];
   }, [database.managers2]);
+
+  // ------------------------------------------
+  // facilitys テーブル
+  // databaseState.facilitys から施設名を取得する
+  // ------------------------------------------
+  const facilitys = useMemo(() => {
+    return Array.isArray(database.facilitys) ? database.facilitys : [];
+  }, [database.facilitys]);
+
+  const facilityName = useMemo(() => {
+    const directName =
+      manager?.facility_name ??
+      manager?.facilityName ??
+      manager?.facility?.name ??
+      "";
+
+    if (directName) {
+      return directName;
+    }
+
+    const targetFacilityId = Number(facilityId);
+
+    if (!Number.isFinite(targetFacilityId)) {
+      return "";
+    }
+
+    const facility = facilitys.find((f) => {
+      const id =
+        f?.id ??
+        f?.facility_id ??
+        f?.FACILITY_ID;
+
+      return Number(id) === targetFacilityId;
+    });
+
+    return (
+      facility?.name ??
+      facility?.facility_name ??
+      facility?.facilityName ??
+      facility?.施設名 ??
+      ""
+    );
+  }, [manager, facilityId, facilitys]);
 
   // ------------------------------------------
   // managers2 から対象施設・対象児童・対象スタッフの曜日データを抽出
@@ -340,7 +382,7 @@ export default function EditModal({ open, onClose, manager, onConfirm }) {
                 <label className="text-sm font-semibold">施設</label>
                 <div className="border p-2 rounded-md text-sm bg-gray-100 text-gray-700">
                   {facilityId || "-"}
-                  {facilityName ? ` : ${facilityName}` : ""}
+                  {facilityName ? ` : ${facilityName}` : " : 施設名未取得"}
                 </div>
               </div>
 
