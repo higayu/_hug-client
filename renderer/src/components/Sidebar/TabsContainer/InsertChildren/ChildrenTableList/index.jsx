@@ -7,8 +7,8 @@ import ConfirmModal from "./ConfirmModal";
 import { insertManager } from "./insertManager";
 import { useDataBase } from "@/hooks/useDataBase";
 import {
-  filterManagers2ByStaffAndWeekday,
-} from "./filterManagers2ByStaffAndWeekday.js";
+  filterManagers2ByFacilityStaffAndWeekday,
+} from "./filterManagers2ByStaffAndWeekday";
 
 /**
  * children_id / id の表記揺れを吸収して number にする
@@ -56,15 +56,21 @@ function ChildrenTableList() {
     setActiveSidebarTab: setActiveTab,
   } = appState;
 
-  const currentStaffId = Number(STAFF_ID);
-  const currentWeekdayId = Number(CURRENT_DAY_OF_WEEK?.weekdayId);
-
   const attendanceData =
     appState?.attendanceData ??
     appState?.appState?.attendanceData ??
     (typeof window !== "undefined"
       ? window.AppState?.attendanceData
       : null);
+
+  const currentFacilityId = Number(
+    FACILITY_ID ??
+      attendanceData?.facilityId ??
+      attendanceData?.facility_id
+  );
+
+  const currentStaffId = Number(STAFF_ID);
+  const currentWeekdayId = Number(CURRENT_DAY_OF_WEEK?.weekdayId);
 
   const childrenList = useMemo(() => {
     if (!Array.isArray(attendanceData?.data)) {
@@ -88,28 +94,30 @@ function ChildrenTableList() {
     null;
 
   // =============================================================
-  // managers2 から現在職員・現在曜日の登録済みデータを抽出
+  // managers2 から現在施設・現在職員・現在曜日の登録済みデータを抽出
   // =============================================================
-  const currentStaffTodayManagers = useMemo(() => {
-    return filterManagers2ByStaffAndWeekday(
+  const currentFacilityStaffTodayManagers = useMemo(() => {
+    return filterManagers2ByFacilityStaffAndWeekday(
       managersData,
+      currentFacilityId,
       currentStaffId,
       currentWeekdayId
     );
-  }, [managersData, currentStaffId, currentWeekdayId]);
+  }, [managersData, currentFacilityId, currentStaffId, currentWeekdayId]);
 
   // =============================================================
   // 登録済み children_id Set
   //
   // ここが次の判定の中心
+  // facility_id + staff_id + day_of_week_id で絞った結果から children_id を作る
   // =============================================================
   const registeredChildrenIdSet = useMemo(() => {
     return new Set(
-      currentStaffTodayManagers
+      currentFacilityStaffTodayManagers
         .map((manager) => Number(manager.children_id))
         .filter((id) => Number.isFinite(id))
     );
-  }, [currentStaffTodayManagers]);
+  }, [currentFacilityStaffTodayManagers]);
 
   // =============================================================
   // 登録済みになった児童が selectedIds に残らないようにする
@@ -129,26 +137,33 @@ function ChildrenTableList() {
     console.log("今日の利用者一覧 childrenList:", childrenList);
     console.log("rowCount:", attendanceData?.rowCount);
     console.log("facilityId:", attendanceData?.facilityId);
+    console.log("FACILITY_ID:", FACILITY_ID);
+    console.log("currentFacilityId:", currentFacilityId);
     console.log("dateStr:", attendanceData?.dateStr);
     console.log("extractedAt:", attendanceData?.extractedAt);
-  }, [attendanceData, childrenList]);
+  }, [attendanceData, childrenList, FACILITY_ID, currentFacilityId]);
 
   useEffect(() => {
-    console.log("=== managers2 現在職員・現在曜日 抽出 ===");
+    console.log("=== managers2 現在施設・現在職員・現在曜日 抽出 ===");
+    console.log("現在の施設ID:", currentFacilityId);
     console.log("現在の職員ID:", currentStaffId);
     console.log("現在の曜日ID:", currentWeekdayId);
     console.log("児童と職員の紐づけ managers2:", managersData);
-    console.log("抽出結果 currentStaffTodayManagers:", currentStaffTodayManagers);
+    console.log(
+      "抽出結果 currentFacilityStaffTodayManagers:",
+      currentFacilityStaffTodayManagers
+    );
     console.log(
       "登録済み children_id:",
-      currentStaffTodayManagers.map((manager) => manager.children_id)
+      currentFacilityStaffTodayManagers.map((manager) => manager.children_id)
     );
     console.log("registeredChildrenIdSet:", [...registeredChildrenIdSet]);
   }, [
+    currentFacilityId,
     currentStaffId,
     currentWeekdayId,
     managersData,
-    currentStaffTodayManagers,
+    currentFacilityStaffTodayManagers,
     registeredChildrenIdSet,
   ]);
 
@@ -219,13 +234,31 @@ function ChildrenTableList() {
       return false;
     }
 
+    if (!Number.isFinite(currentFacilityId)) {
+      showErrorToast("施設IDが取得できません");
+      setShowConfirmModal(false);
+      return false;
+    }
+
+    if (!Number.isFinite(currentStaffId)) {
+      showErrorToast("職員IDが取得できません");
+      setShowConfirmModal(false);
+      return false;
+    }
+
+    if (!Number.isFinite(currentWeekdayId)) {
+      showErrorToast("曜日IDが取得できません");
+      setShowConfirmModal(false);
+      return false;
+    }
+
     try {
       const result = await insertManager(selectedChildren, {
         childrenData: childrenTableData,
         managersData,
         databaseType,
-        FACILITY_ID,
-        STAFF_ID,
+        FACILITY_ID: currentFacilityId,
+        STAFF_ID: currentStaffId,
         CURRENT_DAY_OF_WEEK,
       });
 
@@ -284,7 +317,10 @@ function ChildrenTableList() {
     <div className="mt-6">
       <div className="mb-3 text-xs text-gray-500">
         <div>取得日: {attendanceData?.dateStr ?? "-"}</div>
-        <div>施設ID: {attendanceData?.facilityId ?? "-"}</div>
+        <div>
+          施設ID:{" "}
+          {Number.isFinite(currentFacilityId) ? currentFacilityId : "-"}
+        </div>
         <div>取得件数: {attendanceData?.rowCount ?? childrenList.length}</div>
         <div>取得時刻: {attendanceData?.extractedAt ?? "-"}</div>
         <div>
@@ -296,7 +332,8 @@ function ChildrenTableList() {
           {Number.isFinite(currentWeekdayId) ? currentWeekdayId : "-"}
         </div>
         <div>
-          現在職員・曜日の登録数: {currentStaffTodayManagers.length}
+          現在施設・職員・曜日の登録数:{" "}
+          {currentFacilityStaffTodayManagers.length}
         </div>
       </div>
 

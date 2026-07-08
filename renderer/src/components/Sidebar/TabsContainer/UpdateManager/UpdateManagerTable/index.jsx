@@ -1,6 +1,6 @@
 // renderer/src/components/Sidebar/Tools/UpdateManager/UpdateManagerTable.jsx
 import { useEffect, useState, useMemo } from "react";
-import EditModal from "./Modals/EditModal.jsx";
+import EditModal from "./Modals/EditModal.js";
 import DeleteModal from "./Modals/DeleteModal.jsx";
 import { deleteManager } from "./function/deleteManager";
 import { updateManager } from "./function/updateManager";

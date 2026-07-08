@@ -6,6 +6,11 @@ export async function handleMariaDBInsert(
     childrenData,
     FACILITY_ID,
     STAFF_ID,
+
+    // insertManager.js 側で追加した新しい名前にも対応
+    facilityId,
+    staffId,
+
     weekId,
     priority = 0,
   }
@@ -15,15 +20,62 @@ export async function handleMariaDBInsert(
 
   try {
     // -----------------------------------------
+    // ID 正規化
+    // -----------------------------------------
+    const targetFacilityId = Number(facilityId ?? FACILITY_ID);
+    const targetStaffId = Number(staffId ?? STAFF_ID);
+    const targetWeekId = Number(weekId);
+    const targetChildId = Number(child?.children_id);
+
+    console.log("targetFacilityId:", targetFacilityId);
+    console.log("targetStaffId:", targetStaffId);
+    console.log("targetWeekId:", targetWeekId);
+    console.log("targetChildId:", targetChildId);
+
+    if (!Number.isFinite(targetFacilityId)) {
+      console.warn("⚠️ MariaDB: facility_id が不正です", {
+        facilityId,
+        FACILITY_ID,
+        targetFacilityId,
+      });
+      return false;
+    }
+
+    if (!Number.isFinite(targetStaffId)) {
+      console.warn("⚠️ MariaDB: staff_id が不正です", {
+        staffId,
+        STAFF_ID,
+        targetStaffId,
+      });
+      return false;
+    }
+
+    if (!Number.isFinite(targetWeekId)) {
+      console.warn("⚠️ MariaDB: day_of_week_id が不正です", {
+        weekId,
+        targetWeekId,
+      });
+      return false;
+    }
+
+    if (!Number.isFinite(targetChildId)) {
+      console.warn("⚠️ MariaDB: children_id が不正です", {
+        child,
+        targetChildId,
+      });
+      return false;
+    }
+
+    // -----------------------------------------
     // ① children テーブル存在チェック（MariaDB）
     // -----------------------------------------
     const existingChild = childrenData?.find(
-      (c) => String(c.id) === String(child.children_id)
+      (c) => String(c.id) === String(targetChildId)
     );
 
     if (!existingChild) {
       const childPayload = {
-        id: Number(child.children_id),
+        id: targetChildId,
         name: child.children_name || "",
         notes: child.notes ?? null,
         notes2: child.notes2 ?? null,
@@ -40,38 +92,33 @@ export async function handleMariaDBInsert(
 
       console.log("✅ MariaDB: children_insert 完了");
 
-      if (FACILITY_ID != null) {
-        const facilityPayload = {
-          children_id: Number(child.children_id),
-          facility_id: Number(FACILITY_ID),
-        };
+      const facilityPayload = {
+        children_id: targetChildId,
+        facility_id: targetFacilityId,
+      };
 
-        console.log("📡 mariadb_facility_children_insert:", facilityPayload);
+      console.log("📡 mariadb_facility_children_insert:", facilityPayload);
 
-        await window.electronAPI.mariadb_facility_children_insert(
-          facilityPayload
-        );
+      await window.electronAPI.mariadb_facility_children_insert(
+        facilityPayload
+      );
 
-        console.log("✅ MariaDB: facility_children_insert 完了");
-      }
+      console.log("✅ MariaDB: facility_children_insert 完了");
     } else {
       console.log(
         "ℹ️ MariaDB: 児童は既に children テーブルに存在:",
-        child.children_id
+        targetChildId
       );
     }
 
     // ----------------------------------
     // ② managers2 レコードを insert
     // ----------------------------------
-    console.log("weekId:", weekId);
-    console.log("STAFF_ID:", STAFF_ID);
-    console.log("child.children_id:", child.children_id);
-
     const payload = {
-      children_id: Number(child.children_id),
-      staff_id: Number(STAFF_ID),
-      day_of_week_id: Number(weekId),
+      facility_id: targetFacilityId,
+      children_id: targetChildId,
+      staff_id: targetStaffId,
+      day_of_week_id: targetWeekId,
 
       // managers2
       priority: Number(child.priority ?? priority ?? 0),

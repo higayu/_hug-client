@@ -1,5 +1,5 @@
 // renderer/src/components/Sidebar/SQLManager/index.jsx
-import UpdateManagerTable from "./UpdateManagerTable.jsx";
+import UpdateManagerTable from "./UpdateManagerTable";
 import { useTabs } from '@/hooks/useTabs/index.js'
 
 function UpdateManager() {

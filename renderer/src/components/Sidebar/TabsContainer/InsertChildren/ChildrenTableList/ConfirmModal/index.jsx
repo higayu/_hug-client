@@ -84,6 +84,20 @@ function toSelectValue(value) {
 }
 
 /**
+ * 施設IDを取得する
+ */
+function getFacilityId(row) {
+  return row?.id ?? row?.facility_id ?? row?.FacilityID ?? "";
+}
+
+/**
+ * 施設名を取得する
+ */
+function getFacilityName(row) {
+  return row?.name ?? row?.facility_name ?? row?.FacilityName ?? "";
+}
+
+/**
  * 0時〜23時の選択肢
  */
 const HOUR_OPTIONS = Array.from({ length: 24 }, (_, hour) => ({
@@ -102,29 +116,43 @@ function ConfirmModal({ show, message, list = [], onConfirm, onCancel }) {
   const childrenData = database?.children ?? [];
   const managersList = database?.managers ?? [];
 
-  // 新仕様：CURRENT_DAY_OF_WEEK から weekdayId を直接取得
-  const { STAFF_ID, FACILITY_ID, CURRENT_DAY_OF_WEEK,appState } = useAppState();
+  const { STAFF_ID, FACILITY_ID, CURRENT_DAY_OF_WEEK, appState } =
+    useAppState();
+
   const weekdayId = CURRENT_DAY_OF_WEEK?.weekdayId;
 
+  /**
+   * 施設一覧
+   * appState.facilitys 優先。
+   * 念のため Redux database.facilitys にも対応。
+   */
+  const facilityOptions = Array.isArray(appState?.facilitys)
+    ? appState.facilitys
+    : Array.isArray(database?.facilitys)
+      ? database.facilitys
+      : [];
+
   const [selectedValues, setSelectedValues] = useState({});
-  const Facilitys = appState.facilitys;
 
   // モーダルを開いている間、初期値で選択値を上書きし続けないための ref
   const initializedForOpenRef = useRef(false);
 
   useEffect(() => {
     console.log("職員ID", STAFF_ID);
-    console.log("施設ID", FACILITY_ID);
+    console.log("施設ID 初期値 FACILITY_ID", FACILITY_ID);
     console.log("曜日ID", weekdayId);
     console.log("day_of_week マスタ", database?.day_of_week);
+    console.log("facilitys データ", facilityOptions);
     console.log("managers データ", database?.managers);
     console.log("managers2 データ", database?.managers2);
-  }, [database, STAFF_ID, FACILITY_ID, weekdayId]);
+  }, [database, STAFF_ID, FACILITY_ID, weekdayId, facilityOptions]);
 
   /**
-   * モーダルを開いたとき、list の既存値から時刻初期値を作る
+   * モーダルを開いたとき、list の既存値から初期値を作る
    *
    * 重要:
+   * - FACILITY_ID は施設セレクトの初期値としてのみ使う
+   * - セレクト変更後は selectedValues[id].facility_id を優先する
    * - show=false になったら初期化フラグを戻す
    * - show=true 中はユーザーが選択した値を useEffect で上書きしない
    * - selectedValues のキーは String(children_id) に統一
@@ -141,6 +169,7 @@ function ConfirmModal({ show, message, list = [], onConfirm, onCancel }) {
     }
 
     if (!Array.isArray(list) || list.length === 0) {
+      initializedForOpenRef.current = true;
       setSelectedValues({});
       return;
     }
@@ -153,6 +182,10 @@ function ConfirmModal({ show, message, list = [], onConfirm, onCancel }) {
       initialValues[id] = {
         pronunciation_id: toSelectValue(child.pronunciation_id),
         children_type_id: toSelectValue(child.children_type_id),
+
+        // FACILITY_ID は初期値としてのみ使用
+        facility_id: toSelectValue(FACILITY_ID),
+
         support_start_hour: timeToHourValue(child.support_start_time),
         support_end_hour: timeToHourValue(child.support_end_time),
       };
@@ -162,9 +195,8 @@ function ConfirmModal({ show, message, list = [], onConfirm, onCancel }) {
 
     initializedForOpenRef.current = true;
     setSelectedValues(initialValues);
-  }, [show, list]);
+  }, [show, list, FACILITY_ID]);
 
-  // モーダル非表示
   if (!show) return null;
 
   const handleSelectChange = (childrenId, key, value) => {
@@ -186,9 +218,66 @@ function ConfirmModal({ show, message, list = [], onConfirm, onCancel }) {
     }));
   };
 
+  /**
+   * 施設ID取得
+   *
+   * - セレクト変更済みなら selected.facility_id を優先
+   * - 未変更なら初期値 FACILITY_ID
+   * - 空欄を選んだ場合は "" のまま扱う
+   */
+  const resolveSelectedFacilityId = (selected) => {
+    if (selected && Object.prototype.hasOwnProperty.call(selected, "facility_id")) {
+      return toSelectValue(selected.facility_id);
+    }
+
+    return toSelectValue(FACILITY_ID);
+  };
+
+  /**
+   * 新仕様 managers2 用に、
+   * children_id + facility_id + staff_id で既存担当を探す。
+   *
+   * 旧 getManagerRecord との互換のため、見つからない場合は既存関数も使う。
+   */
+  const findManagerRecord = (childrenId, facilityId) => {
+    const foundByNewKey = managersList.find((manager) => {
+      const sameChild = String(manager.children_id) === String(childrenId);
+
+      const sameFacility =
+        manager.facility_id === undefined ||
+        manager.facility_id === null ||
+        String(manager.facility_id) === String(facilityId);
+
+      const sameStaff = String(manager.staff_id) === String(STAFF_ID);
+
+      return sameChild && sameFacility && sameStaff;
+    });
+
+    if (foundByNewKey) {
+      return foundByNewKey;
+    }
+
+    return getManagerRecord(childrenId, STAFF_ID, managersList);
+  };
+
   const handleConfirm = () => {
     if (!weekdayId) {
       console.error("❌ weekdayId が未設定です");
+      window.alert("曜日が未設定です。");
+      return;
+    }
+
+    const missingFacility = list.find((child) => {
+      const id = String(child.children_id);
+      const selected = selectedValues[id] ?? {};
+      const facilityId = resolveSelectedFacilityId(selected);
+
+      return !facilityId;
+    });
+
+    if (missingFacility) {
+      console.error("❌ facility_id が未設定です", missingFacility);
+      window.alert("施設を選択してください。");
       return;
     }
 
@@ -196,18 +285,18 @@ function ConfirmModal({ show, message, list = [], onConfirm, onCancel }) {
       const id = String(child.children_id);
       const selected = selectedValues[id] ?? {};
 
+      // セレクト変更済みならそれを優先、未変更なら FACILITY_ID
+      const selectedFacilityId = resolveSelectedFacilityId(selected);
+
       const existingChild = childrenData.find(
         (c) => String(c.id) === String(child.children_id)
       );
 
-      // ① 既存の manager レコード取得
-      const managerRecord = getManagerRecord(
+      const managerRecord = findManagerRecord(
         child.children_id,
-        STAFF_ID,
-        managersList
+        selectedFacilityId
       );
 
-      // ② weekdayId をそのまま使う
       const updatedDayJson = updateManager(
         managerRecord?.day_of_week,
         weekdayId
@@ -218,6 +307,9 @@ function ConfirmModal({ show, message, list = [], onConfirm, onCancel }) {
 
       return {
         ...child,
+
+        // managers2 新仕様用
+        facility_id: selectedFacilityId,
 
         pronunciation_id:
           existingChild?.pronunciation_id ??
@@ -233,7 +325,6 @@ function ConfirmModal({ show, message, list = [], onConfirm, onCancel }) {
         day_of_week: updatedDayJson,
 
         // managers2 新仕様用
-        // 分・秒は 00 固定
         support_start_time: supportStartTime,
         support_end_time: supportEndTime,
       };
@@ -246,7 +337,7 @@ function ConfirmModal({ show, message, list = [], onConfirm, onCancel }) {
   return (
     <ModalPortal>
       <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-        <div className="bg-white text-black rounded-lg shadow-lg p-6 w-[720px] max-h-[80vh] overflow-y-auto text-center">
+        <div className="bg-white text-black rounded-lg shadow-lg p-6 w-[860px] max-h-[80vh] overflow-y-auto text-center">
           <p className="text-lg font-medium mb-4 text-black">{message}</p>
 
           {list.length > 0 && (
@@ -292,11 +383,11 @@ function ConfirmModal({ show, message, list = [], onConfirm, onCancel }) {
                     selected.support_end_hour
                   );
 
+                  // セレクト変更済みならそれを優先、未変更なら FACILITY_ID
+                  const facilityValue = resolveSelectedFacilityId(selected);
+
                   return (
-                    <tr
-                      key={id}
-                      className="hover:bg-blue-50 text-black"
-                    >
+                    <tr key={id} className="hover:bg-blue-50 text-black">
                       <td className="border px-2 py-1 text-black">
                         {child.children_id}
                       </td>
@@ -371,10 +462,7 @@ function ConfirmModal({ show, message, list = [], onConfirm, onCancel }) {
                         >
                           <option value="">未設定</option>
                           {HOUR_OPTIONS.map((option) => (
-                            <option
-                              key={option.value}
-                              value={option.value}
-                            >
+                            <option key={option.value} value={option.value}>
                               {option.label}
                             </option>
                           ))}
@@ -395,13 +483,39 @@ function ConfirmModal({ show, message, list = [], onConfirm, onCancel }) {
                         >
                           <option value="">未設定</option>
                           {HOUR_OPTIONS.map((option) => (
-                            <option
-                              key={option.value}
-                              value={option.value}
-                            >
+                            <option key={option.value} value={option.value}>
                               {option.label}
                             </option>
                           ))}
+                        </select>
+                      </td>
+
+                      <td className="border px-2 py-1">
+                        <select
+                          className="border bg-slate-50 px-2 py-1 w-full text-black"
+                          value={facilityValue}
+                          onChange={(e) =>
+                            handleSelectChange(
+                              child.children_id,
+                              "facility_id",
+                              e.target.value
+                            )
+                          }
+                        >
+                          <option value="">施設を選択</option>
+                          {facilityOptions.map((facility) => {
+                            const facilityId = getFacilityId(facility);
+                            const facilityName = getFacilityName(facility);
+
+                            return (
+                              <option
+                                key={String(facilityId)}
+                                value={String(facilityId)}
+                              >
+                                {facilityName || `施設ID: ${facilityId}`}
+                              </option>
+                            );
+                          })}
                         </select>
                       </td>
                     </tr>

@@ -4,17 +4,18 @@ import { handleSQLiteInsert } from "./parts/sqlite.js";
 import { handleMariaDBInsert } from "./parts/mariadb.js";
 
 /**
- * 児童の manager 登録処理
+ * 児童の managers2 登録処理
  *
  * 方針:
  * - activeApi は使わない
  * - Redux / AppState の DATABASE_TYPE を呼び出し元から databaseType として受け取る
  * - databaseType に応じて SQLite / MariaDB の処理を分岐する
+ * - managers2 に facility_id が追加されたため、施設IDも必須条件として扱う
  *
  * @param {Object|Object[]} selectedChildren 選択された児童、または児童配列
  * @param {Object} params
  * @param {Array} params.childrenData 子どもデータ
- * @param {Array} params.managersData manager データ
+ * @param {Array} params.managersData managers2 データ
  * @param {string} params.databaseType "sqlite" | "mariadb"
  * @param {string|number} params.FACILITY_ID 施設ID
  * @param {string|number} params.STAFF_ID スタッフID
@@ -37,17 +38,7 @@ export async function insertManager(
 
   try {
     // =============================================================
-    // databaseType 正規化
-    // =============================================================
-    const resolvedDatabaseType =
-      databaseType === "mariadb" ? "mariadb" : "sqlite";
-
-    console.log("databaseType:", databaseType);
-    console.log("resolvedDatabaseType:", resolvedDatabaseType);
-    console.log("FACILITY_ID:", FACILITY_ID, "STAFF_ID:", STAFF_ID);
-
-    // =============================================================
-    // 必須値チェック
+    // databaseType チェック・正規化
     // =============================================================
     if (!databaseType) {
       console.warn("⚠️ databaseType が設定されていません");
@@ -55,21 +46,50 @@ export async function insertManager(
       return false;
     }
 
-    if (!CURRENT_DAY_OF_WEEK?.weekdayId) {
-      console.warn("⚠️ CURRENT_DAY_OF_WEEK.weekdayId が取得できません");
-      console.log("===== insertManager END (error: no weekdayId) =====");
+    const resolvedDatabaseType =
+      databaseType === "mariadb" ? "mariadb" : "sqlite";
+
+    console.log("databaseType:", databaseType);
+    console.log("resolvedDatabaseType:", resolvedDatabaseType);
+
+    // =============================================================
+    // ID 正規化
+    // =============================================================
+    const facilityId = Number(FACILITY_ID);
+    const staffId = Number(STAFF_ID);
+    const weekId = Number(CURRENT_DAY_OF_WEEK?.weekdayId);
+
+    console.log("FACILITY_ID:", FACILITY_ID, "→ facilityId:", facilityId);
+    console.log("STAFF_ID:", STAFF_ID, "→ staffId:", staffId);
+    console.log("weekdayId:", CURRENT_DAY_OF_WEEK?.weekdayId, "→ weekId:", weekId);
+
+    // =============================================================
+    // 必須値チェック
+    // =============================================================
+    if (!Number.isFinite(facilityId)) {
+      console.warn("⚠️ FACILITY_ID が不正です", {
+        FACILITY_ID,
+        facilityId,
+      });
+      console.log("===== insertManager END (error: invalid FACILITY_ID) =====");
       return false;
     }
 
-    if (!STAFF_ID) {
-      console.warn("⚠️ STAFF_ID が設定されていません");
-      console.log("===== insertManager END (error: no STAFF_ID) =====");
+    if (!Number.isFinite(staffId)) {
+      console.warn("⚠️ STAFF_ID が不正です", {
+        STAFF_ID,
+        staffId,
+      });
+      console.log("===== insertManager END (error: invalid STAFF_ID) =====");
       return false;
     }
 
-    if (!FACILITY_ID) {
-      console.warn("⚠️ FACILITY_ID が設定されていません");
-      console.log("===== insertManager END (error: no FACILITY_ID) =====");
+    if (!Number.isFinite(weekId)) {
+      console.warn("⚠️ CURRENT_DAY_OF_WEEK.weekdayId が取得できません", {
+        CURRENT_DAY_OF_WEEK,
+        weekId,
+      });
+      console.log("===== insertManager END (error: invalid weekdayId) =====");
       return false;
     }
 
@@ -90,10 +110,10 @@ export async function insertManager(
       return false;
     }
 
-    const weekId = CURRENT_DAY_OF_WEEK.weekdayId;
-
     console.log("選択された児童数:", childrenList.length);
-    console.log("曜日のID:", weekId);
+    console.log("施設ID:", facilityId);
+    console.log("スタッフID:", staffId);
+    console.log("曜日ID:", weekId);
 
     // =============================================================
     // DB種別ごとの処理関数を決定
@@ -114,8 +134,13 @@ export async function insertManager(
       console.log("▶ 児童処理開始:", child?.children_id, child?.children_name);
       console.log("→ 使用DB:", dbLabel);
 
-      if (!child?.children_id) {
-        console.warn("⚠️ children_id がないため、この児童をスキップします:", child);
+      const childId = Number(child?.children_id);
+
+      if (!Number.isFinite(childId)) {
+        console.warn("⚠️ children_id が不正なため、この児童をスキップします:", {
+          child,
+          childId,
+        });
         console.log("▶ 児童処理スキップ");
         console.log("-------------------------------------------");
         continue;
@@ -124,13 +149,19 @@ export async function insertManager(
       await insertHandler(child, {
         childrenData,
         managersData,
-        FACILITY_ID,
-        STAFF_ID,
+
+        // 新しい推奨名
+        facilityId,
+        staffId,
         weekId,
+
+        // 既存 handler 互換用
+        FACILITY_ID: facilityId,
+        STAFF_ID: staffId,
       });
 
-      console.log(`✔ ${dbLabel} 処理完了:`, child.children_id);
-      console.log("▶ 児童処理終了:", child.children_id);
+      console.log(`✔ ${dbLabel} 処理完了:`, childId);
+      console.log("▶ 児童処理終了:", childId);
       console.log("-------------------------------------------");
     }
 
