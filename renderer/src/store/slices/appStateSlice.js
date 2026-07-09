@@ -82,7 +82,7 @@ const initialState = {
 
   // UI状態
   closeButtonsVisible: true,
-  SELECT_CHILD_FILTER_MODE: 0,
+  SELECT_CHILD_FILTER_MODE: 1,
 
   // マスターデータ
   STAFF_DATA: [],

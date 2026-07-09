@@ -1,14 +1,15 @@
 // src/components/Sidebar/SelectChildrenList/TodayChildrenList/useTodayChildrenListController.js
-
+// 選択児童のフィルタリング処理
 import { useCallback, useEffect, useMemo } from "react"
 import {
   getAttendanceItemForChild,
   isChildAbsent,
   isChildExited,
 } from "@/utils/attendance/helpers/attendanceStatus.js"
-import { TABS } from "./constants"
-import { debugLog, debugTable } from "./debug"
-import { isMorningChild } from "./timeUtils"
+import { TABS } from "../constants"
+import { debugLog, debugTable } from "../debug"
+import { isMorningChild } from "../timeUtils";
+import { useAppState } from '@/AppStateContext';
 
 export function useTodayChildrenListController({
   SELECT_CHILD,
@@ -22,6 +23,8 @@ export function useTodayChildrenListController({
   setSelectedChild,
   setSelectedPcName,
 }) {
+  const { STAFF_ID, FACILITY_ID, CURRENT_DAY_OF_WEEK, appState } = useAppState();
+
   // ==============================
   // AppState 側の命名を画面側で扱いやすい名前に寄せる
   // ==============================
@@ -76,39 +79,64 @@ export function useTodayChildrenListController({
     [attendanceData]
   )
 
+  /**
+   * 施設IDによるフィルタリング判定
+   */
+  const isSameFacility = useCallback((child) => {
+    if (!child) return false
+    
+    const childFacilityId = child.facility_id
+    const currentFacilityId = Number(FACILITY_ID)
+    
+    if (childFacilityId != null && currentFacilityId != null) {
+      return Number(childFacilityId) === currentFacilityId
+    }
+    
+    // facility_id が存在しない場合は表示しない（安全側に倒す）
+    return false
+  }, [FACILITY_ID])
+
   const isChildVisible = useCallback(
     (child) => {
       if (!child) {
         return false
       }
 
-      const mode = Number(SELECT_CHILD_FILTER_MODE ?? 0)
+      const mode = Number(SELECT_CHILD_FILTER_MODE ?? 1) // デフォルトを 1 に変更
       const attendanceItem = getAttendanceItem(child.children_id)
 
       const absent = isChildAbsent(attendanceItem)
       const exited = isChildExited(attendanceItem)
       const morning = isMorningChild(child)
+      
+      // 施設IDによるフィルタリング（全モード共通）
+      const facilityMatch = isSameFacility(child)
 
       let visible = true
 
-      // 0: 全件表示
+      // 0: 全件表示（施設フィルタリングのみ適用）
       if (mode === 0) {
-        visible = true
+        visible = facilityMatch
       }
 
-      // 1: 欠席を除く
+      // 1: 施設で抽出
       else if (mode === 1) {
-        visible = !absent
+        visible = facilityMatch
       }
 
-      // 2: 欠席・午前を除く
+      // 2: 欠席を除く + 施設フィルタリング
       else if (mode === 2) {
-        visible = !absent && !morning
+        visible = facilityMatch && !absent
       }
 
-      // 3: 欠席・午前・退室済みを除く
+      // 3: 欠席・午前を除く + 施設フィルタリング
       else if (mode === 3) {
-        visible = !absent && !morning && !exited
+        visible = facilityMatch && !absent && !morning
+      }
+
+      // 4: 欠席・午前・退室済みを除く + 施設フィルタリング
+      else if (mode === 4) {
+        visible = facilityMatch && !absent && !morning && !exited
       }
 
       debugLog("児童の表示判定", {
@@ -119,6 +147,9 @@ export function useTodayChildrenListController({
         priority: child?.priority,
         support_start_time: child?.support_start_time,
         support_end_time: child?.support_end_time,
+        facility_id: child?.facility_id,
+        currentFacilityId: FACILITY_ID,
+        facilityMatch,
         absent,
         morning,
         exited,
@@ -127,7 +158,7 @@ export function useTodayChildrenListController({
 
       return visible
     },
-    [getAttendanceItem, SELECT_CHILD_FILTER_MODE]
+    [getAttendanceItem, SELECT_CHILD_FILTER_MODE, isSameFacility]
   )
 
   const getChildAbsent = useCallback(
@@ -177,6 +208,7 @@ export function useTodayChildrenListController({
         beforeCount: list.length,
         afterCount: filtered.length,
         SELECT_CHILD_FILTER_MODE,
+        FACILITY_ID,
       })
 
       return filtered
@@ -211,6 +243,7 @@ export function useTodayChildrenListController({
       normalCount: result.normalChildren.length,
       sometimesCount: result.sometimesChildren.length,
       temporaryCount: result.temporaryChildren.length,
+      FACILITY_ID,
     })
 
     debugTable(
@@ -222,6 +255,7 @@ export function useTodayChildrenListController({
         pc_name: child.pc_name,
         support_start_time: child.support_start_time,
         support_end_time: child.support_end_time,
+        facility_id: child.facility_id,
       }))
     )
 
@@ -234,6 +268,7 @@ export function useTodayChildrenListController({
         pc_name: child.pc_name,
         support_start_time: child.support_start_time,
         support_end_time: child.support_end_time,
+        facility_id: child.facility_id,
       }))
     )
 
@@ -246,6 +281,7 @@ export function useTodayChildrenListController({
         pc_name: child.pc_name,
         support_start_time: child.support_start_time,
         support_end_time: child.support_end_time,
+        facility_id: child.facility_id,
       }))
     )
 
@@ -269,6 +305,7 @@ export function useTodayChildrenListController({
         pc_name: child.pc_name,
         support_start_time: child.support_start_time,
         support_end_time: child.support_end_time,
+        facility_id: child.facility_id,
       }))
     )
 
@@ -292,6 +329,7 @@ export function useTodayChildrenListController({
         pc_name: child.pc_name,
         support_start_time: child.support_start_time,
         support_end_time: child.support_end_time,
+        facility_id: child.facility_id,
       }))
     )
 
@@ -335,6 +373,7 @@ export function useTodayChildrenListController({
           children_id: child.children_id,
           children_name: child.children_name,
           pc_name: child.pc_name,
+          facility_id: child.facility_id,
         })),
       })
 
