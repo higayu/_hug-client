@@ -4,12 +4,6 @@ import { DAY_OF_WEEK_MASTER } from "@/utils/date/dateUtils.js"
 
 /**
  * TIME値を表示・判定しやすい文字列に正規化する
- *
- * 対応例:
- * - "09:30:00" → "09:30:00"
- * - "09:30"    → "09:30:00"
- * - "930"      → "09:30:00"
- * - "1200"     → "12:00:00"
  */
 function normalizeTimeValue(value) {
   if (value == null || value === "") {
@@ -22,7 +16,6 @@ function normalizeTimeValue(value) {
     return null
   }
 
-  // MariaDB TIME / SQLite TEXT 想定: HH:mm:ss / HH:mm
   if (text.includes(":")) {
     const [hourText, minuteText = "0", secondText = "0"] = text.split(":")
 
@@ -45,7 +38,6 @@ function normalizeTimeValue(value) {
     ].join(":")
   }
 
-  // 1200 / 0930 / 930 形式にも対応
   const digits = text.replace(/\D/g, "")
 
   if (!digits) {
@@ -69,7 +61,7 @@ function normalizeTimeValue(value) {
 
 /**
  * スタッフ・曜日で子ども一覧を取得（managers2 対応）
- * 新仕様：weekdayId が唯一の正
+ * 新仕様：facility_id が追加され、プライマリキーに含まれる
  */
 export async function GetchildrenByStaffAndDay({
   tables,
@@ -128,8 +120,16 @@ export async function GetchildrenByStaffAndDay({
           manager: m,
           childFound: Boolean(child),
           staffFound: Boolean(staff),
+          children_id: m.children_id,
+          staff_id: m.staff_id,
+          facility_id: m.facility_id,
         })
 
+        return null
+      }
+
+      // 削除済みの子どもは除外
+      if (child.is_delete === 1) {
         return null
       }
 
@@ -154,6 +154,7 @@ export async function GetchildrenByStaffAndDay({
       const supportEndTime = normalizeTimeValue(m.support_end_time)
 
       return {
+        // children テーブル情報
         children_id: child.id,
         children_name: child.name,
         notes: child.notes ?? "",
@@ -163,28 +164,30 @@ export async function GetchildrenByStaffAndDay({
         is_delete: child.is_delete ?? 0,
         leaving_at: child.leaving_at ?? null,
 
+        // staff テーブル情報
         staff_id: staff.id,
         staff_name: staff.name,
+
+        // managers2 テーブル情報（facility_id を追加）
+        facility_id: Number(m.facility_id), // ✅ 追加
+        day_of_week_id: Number(m.day_of_week_id),
+        priority: Number(m.priority ?? 0),
+        support_start_time: supportStartTime,
+        support_end_time: supportEndTime,
 
         // 表示用
         weekday_id: weekdayIdNum,
         weekday_name: weekdayObj?.label_jp ?? "",
 
-        // managers2
-        day_of_week_id: m.day_of_week_id,
-        priority: Number(m.priority ?? 0),
-
-        // 新規追加カラム
-        // MariaDB TIME / SQLite TEXT の差を吸収して HH:mm:ss に寄せる
-        support_start_time: supportStartTime,
-        support_end_time: supportEndTime,
-
+        // children_type テーブル情報
         children_type_id: child.children_type_id,
         children_type_name: ctype?.name ?? "",
 
+        // pronunciation テーブル情報
         children_pronunciation_id: child.pronunciation_id,
         children_pronunciation: pronun?.pronunciation ?? "",
 
+        // pc / pc_to_children テーブル情報
         pc_id: pcItem?.id ?? null,
         pc_name: pcItem?.name ?? "",
         pc_day_of_week: ptc?.day_of_week ?? "",
@@ -208,8 +211,18 @@ export async function GetchildrenByStaffAndDay({
     (c) => String(c.staff_id) === staffIdText
   )
 
-  console.log(`✅ 自分の担当: ${myChildren.length} 件`)
-  console.log("🔍 抽出結果:", myChildren)
+  console.log(`✅ 自分の担当: ${myChildren.length} 件（全 ${joined.length} 件中）`)
+  
+  // facility_id が含まれているか確認
+  if (myChildren.length > 0) {
+    console.log("🔍 戻り値のサンプル（facility_id含む）:", {
+      children_name: myChildren[0].children_name,
+      facility_id: myChildren[0].facility_id,
+      staff_name: myChildren[0].staff_name,
+    })
+  }
+
+  console.log("✅ [GetchildrenByStaffAndDay] 抽出結果:", myChildren)
 
   console.groupEnd()
 
