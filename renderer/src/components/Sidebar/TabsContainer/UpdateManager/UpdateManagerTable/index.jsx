@@ -89,6 +89,21 @@ export default function UpdateManagerTable() {
   const currentStaffId = Number(rawStaffId);
 
   // ------------------------------------------
+  // DB から取得済みの施設テーブル
+  // ------------------------------------------
+  const currentFacility = useMemo(() => {
+    const facilitys = Array.isArray(databaseState?.facilitys)
+      ? databaseState.facilitys
+      : [];
+  
+    return facilitys.find(
+      (facility) => Number(facility.id) === Number(currentFacilityId)
+    );
+  }, [databaseState?.facilitys, currentFacilityId]);
+  
+  const currentFacilityName = currentFacility?.name ?? "-";
+
+  // ------------------------------------------
   // DB から取得済みのテーブル
   // ------------------------------------------
   const database = useMemo(() => {
@@ -519,14 +534,16 @@ export default function UpdateManagerTable() {
       <h4 className="text-lg font-bold mb-2">児童担当編集</h4>
 
       <div className="mb-3 text-xs text-gray-500">
-        <div>
-          現在の施設ID:{" "}
-          {Number.isFinite(currentFacilityId) ? currentFacilityId : "-"}
-        </div>
-        <div>
-          現在のスタッフID:{" "}
-          {Number.isFinite(currentStaffId) ? currentStaffId : "-"}
-        </div>
+          <div>
+            現在の施設:{" "}
+            {Number.isFinite(currentFacilityId)
+              ? `（ID: ${currentFacilityId}）${currentFacilityName}`
+              : "-"}
+          </div>
+          <div>
+            現在のスタッフID:{" "}
+            {Number.isFinite(currentStaffId) ? currentStaffId : "-"}
+          </div>
       </div>
 
       <div className="flex gap-2 mb-3">
