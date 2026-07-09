@@ -37,6 +37,7 @@
   "build": {
     "appId": "com.example.hugclient",
     "productName": "Hug Client",
+    "asar": true,
     "directories": {
       "output": "dist",
       "buildResources": "assets"
@@ -69,11 +70,25 @@
     "extraResources": [
       {
         "from": "main/data",
-        "to": "data/",
+        "to": "data",
         "filter": [
           "**/*",
           "!config.json",
           "!houday.db"
+        ]
+      },
+      {
+        "from": "whisper.cpp/build/bin",
+        "to": "whisper.cpp/build/bin",
+        "filter": [
+          "**/*"
+        ]
+      },
+      {
+        "from": "whisper.cpp/models",
+        "to": "whisper.cpp/models",
+        "filter": [
+          "**/*"
         ]
       }
     ],

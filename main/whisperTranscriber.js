@@ -1,5 +1,5 @@
 // main/whisperTranscriber.js
-const { ipcMain, dialog, BrowserWindow } = require("electron");
+const { app, ipcMain, dialog, BrowserWindow } = require("electron");
 const path = require("path");
 const fs = require("fs");
 const os = require("os");
@@ -22,6 +22,119 @@ const INITIAL_PROMPT = [
  */
 function findExistingPath(candidates) {
   return candidates.find((filePath) => fs.existsSync(filePath));
+}
+
+/**
+ * 開発時 / ビルド後で whisper.cpp の場所を切り替える
+ *
+ * 開発時:
+ *   プロジェクト直下の whisper.cpp を参照
+ *
+ * ビルド後:
+ *   dist/win-unpacked/resources/whisper.cpp を参照
+ */
+function getWhisperDir() {
+  if (app.isPackaged) {
+    return path.join(process.resourcesPath, "whisper.cpp");
+  }
+
+  return path.join(__dirname, "..", "whisper.cpp");
+}
+
+/**
+ * whisper-cli.exe のパスを取得
+ */
+function getWhisperCliPath() {
+  const whisperDir = getWhisperDir();
+
+  const exeCandidates = [
+    // Windows Release build
+    path.join(
+      whisperDir,
+      "build",
+      "bin",
+      "Release",
+      "whisper-cli.exe"
+    ),
+
+    // 念のため Release が無い構成にも対応
+    path.join(
+      whisperDir,
+      "build",
+      "bin",
+      "whisper-cli.exe"
+    ),
+
+    // 古い whisper.cpp では main.exe の場合があるため保険
+    path.join(
+      whisperDir,
+      "build",
+      "bin",
+      "Release",
+      "main.exe"
+    ),
+
+    path.join(
+      whisperDir,
+      "build",
+      "bin",
+      "main.exe"
+    ),
+  ];
+
+  const exePath = findExistingPath(exeCandidates);
+
+  if (!exePath) {
+    throw new Error(
+      [
+        "whisper-cli.exe が見つかりません。",
+        "",
+        "確認した場所:",
+        ...exeCandidates,
+        "",
+        app.isPackaged
+          ? "ビルド後は package.json の build.extraResources で whisper.cpp/build/bin を resources 配下へコピーしてください。"
+          : "開発中は whisper.cpp をビルドして build/bin/Release/whisper-cli.exe を作成してください。",
+      ].join("\n")
+    );
+  }
+
+  return exePath;
+}
+
+/**
+ * whisper.cpp のモデルファイルパスを取得
+ */
+function getWhisperModelPath() {
+  const whisperDir = getWhisperDir();
+
+  const modelCandidates = [
+    path.join(whisperDir, "models", "ggml-small.bin"),
+    path.join(whisperDir, "models", "ggml-base.bin"),
+    path.join(whisperDir, "models", "ggml-medium.bin"),
+    path.join(whisperDir, "ggml-small.bin"),
+    path.join(whisperDir, "ggml-base.bin"),
+    path.join(whisperDir, "ggml-medium.bin"),
+  ];
+
+  const modelPath = findExistingPath(modelCandidates);
+
+  if (!modelPath) {
+    throw new Error(
+      [
+        "モデルファイルが見つかりません。",
+        "",
+        "確認した場所:",
+        ...modelCandidates,
+        "",
+        "例: whisper.cpp/models/ggml-small.bin",
+        "",
+        "ビルド後に使う場合は package.json の build.extraResources で whisper.cpp/models もコピーしてください。",
+      ].join("\n")
+    );
+  }
+
+  return modelPath;
 }
 
 /**
@@ -51,50 +164,49 @@ function toBuffer(audioArrayBuffer) {
   throw new Error("対応していない音声データ形式です。");
 }
 
+/**
+ * 保存ダイアログの初期ファイル名
+ */
 function defaultRecordingWavName() {
   const d = new Date();
   const pad = (n) => String(n).padStart(2, "0");
-  return `recording-${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}.wav`;
+
+  return `recording-${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(
+    d.getDate()
+  )}-${pad(d.getHours())}${pad(d.getMinutes())}${pad(
+    d.getSeconds()
+  )}.wav`;
+}
+
+/**
+ * 一時ファイル削除
+ */
+function cleanupTempFiles(...filePaths) {
+  for (const filePath of filePaths) {
+    try {
+      if (filePath && fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
+    } catch (e) {
+      // 一時ファイル削除失敗は無視
+    }
+  }
 }
 
 /**
  * whisper.cpp を使って wav 音声を文字起こしする
+ *
+ * @param {ArrayBuffer | Uint8Array | Buffer} audioArrayBuffer
  * @param {object} [options]
- * @param {string} [options.wavPath] 入力 wav のパス（未指定時は一時ファイル）
+ * @param {string} [options.wavPath] 入力 wav の保存先パス
  * @param {boolean} [options.deleteWavAfter=true] 文字起こし後に入力 wav を削除するか
+ * @returns {Promise<string>}
  */
 function transcribeWithWhisper(audioArrayBuffer, options = {}) {
   const { wavPath: providedWavPath, deleteWavAfter = true } = options;
-  const whisperDir = path.join(__dirname, "..", "whisper.cpp");
 
-  const exeCandidates = [
-    path.join(whisperDir, "build", "bin", "Release", "whisper-cli.exe"),
-    path.join(whisperDir, "build", "bin", "whisper-cli.exe"),
-  ];
-
-  const modelCandidates = [
-    path.join(whisperDir, "models", "ggml-small.bin"),
-    path.join(whisperDir, "ggml-small.bin"),
-  ];
-
-  const exePath = findExistingPath(exeCandidates);
-  const modelPath = findExistingPath(modelCandidates);
-
-  if (!exePath) {
-    throw new Error(
-      `whisper-cli.exe が見つかりません。\n確認した場所:\n${exeCandidates.join(
-        "\n"
-      )}`
-    );
-  }
-
-  if (!modelPath) {
-    throw new Error(
-      `モデルファイルが見つかりません。\n確認した場所:\n${modelCandidates.join(
-        "\n"
-      )}`
-    );
-  }
+  const exePath = getWhisperCliPath();
+  const modelPath = getWhisperModelPath();
 
   const tempDir = path.join(os.tmpdir(), "hug-whisper");
   fs.mkdirSync(tempDir, { recursive: true });
@@ -104,12 +216,18 @@ function transcribeWithWhisper(audioArrayBuffer, options = {}) {
     .toString("hex")}`;
 
   const baseName = `audio-${uniqueId}`;
+
   const wavPath =
     providedWavPath || path.join(tempDir, `${baseName}.wav`);
+
   const outputBasePath = path.join(tempDir, `${baseName}-result`);
   const outputTxtPath = `${outputBasePath}.txt`;
 
   const audioBuffer = toBuffer(audioArrayBuffer);
+
+  const wavDir = path.dirname(wavPath);
+  fs.mkdirSync(wavDir, { recursive: true });
+
   fs.writeFileSync(wavPath, audioBuffer);
 
   const shouldDeleteWav = !providedWavPath && deleteWavAfter;
@@ -118,6 +236,7 @@ function transcribeWithWhisper(audioArrayBuffer, options = {}) {
     const args = [
       "-m",
       modelPath,
+
       "-f",
       wavPath,
 
@@ -140,6 +259,10 @@ function transcribeWithWhisper(audioArrayBuffer, options = {}) {
 
     const child = spawn(exePath, args, {
       windowsHide: true,
+
+      // 重要:
+      // whisper.dll / ggml.dll などを同じフォルダから読めるようにする
+      cwd: path.dirname(exePath),
     });
 
     let stdout = "";
@@ -158,7 +281,19 @@ function transcribeWithWhisper(audioArrayBuffer, options = {}) {
         shouldDeleteWav ? wavPath : null,
         outputTxtPath
       );
-      reject(err);
+
+      reject(
+        new Error(
+          [
+            "whisper-cli.exe の起動に失敗しました。",
+            "",
+            `exePath: ${exePath}`,
+            `cwd: ${path.dirname(exePath)}`,
+            "",
+            err.message,
+          ].join("\n")
+        )
+      );
     });
 
     child.on("close", (code) => {
@@ -171,9 +306,19 @@ function transcribeWithWhisper(audioArrayBuffer, options = {}) {
 
           reject(
             new Error(
-              stderr ||
-                stdout ||
-                `whisper-cli.exe が異常終了しました。code: ${code}`
+              [
+                `whisper-cli.exe が異常終了しました。code: ${code}`,
+                "",
+                `exePath: ${exePath}`,
+                `modelPath: ${modelPath}`,
+                `wavPath: ${wavPath}`,
+                "",
+                "stdout:",
+                stdout,
+                "",
+                "stderr:",
+                stderr,
+              ].join("\n")
             )
           );
           return;
@@ -189,6 +334,10 @@ function transcribeWithWhisper(audioArrayBuffer, options = {}) {
             new Error(
               [
                 `文字起こし結果ファイルが作成されませんでした: ${outputTxtPath}`,
+                "",
+                `exePath: ${exePath}`,
+                `modelPath: ${modelPath}`,
+                `wavPath: ${wavPath}`,
                 "",
                 "stdout:",
                 stdout,
@@ -214,6 +363,7 @@ function transcribeWithWhisper(audioArrayBuffer, options = {}) {
           shouldDeleteWav ? wavPath : null,
           outputTxtPath
         );
+
         reject(e);
       }
     });
@@ -236,12 +386,18 @@ function registerWhisperTranscriber() {
       }
 
       const parentWindow = BrowserWindow.fromWebContents(event.sender);
+
       const { canceled, filePath } = await dialog.showSaveDialog(
         parentWindow,
         {
           title: "録音音声を保存",
           defaultPath: defaultRecordingWavName(),
-          filters: [{ name: "WAV 音声", extensions: ["wav"] }],
+          filters: [
+            {
+              name: "WAV 音声",
+              extensions: ["wav"],
+            },
+          ],
         }
       );
 
@@ -255,21 +411,6 @@ function registerWhisperTranscriber() {
       });
     }
   );
-}
-
-/**
- * 一時ファイル削除
- */
-function cleanupTempFiles(...filePaths) {
-  for (const filePath of filePaths) {
-    try {
-      if (filePath && fs.existsSync(filePath)) {
-        fs.unlinkSync(filePath);
-      }
-    } catch (e) {
-      // 一時ファイル削除失敗は無視
-    }
-  }
 }
 
 module.exports = {
