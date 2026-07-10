@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useAppState } from "@/AppStateContext";
 import { useSelector } from "react-redux";
 import { updateManager, getManagerRecord } from "./managersUtils.js";
-import { ModalPortal } from "@/components/common/ModalPortal";
+import { ModalPortal } from "@/components/modals/ModalPortal";
 
 /**
  * 時間だけを HH:00:00 に変換する

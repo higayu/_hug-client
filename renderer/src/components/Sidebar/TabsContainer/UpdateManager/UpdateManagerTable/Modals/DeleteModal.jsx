@@ -1,6 +1,6 @@
 // renderer/src/components/Sidebar/TabsContainer/UpdateManager/Modals/DeleteModal.jsx
 
-import { ModalPortal } from "@/components/common/ModalPortal";
+import { ModalPortal } from "@/components/modals/ModalPortal";
 
 export default function DeleteModal({ open, onClose, onConfirm, manager }) {
   if (!open) return null;

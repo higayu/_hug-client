@@ -5,17 +5,17 @@ import {
 
 import './index.css'
 
-import { ModalPortal } from '@/components/common/ModalPortal';
-
 import { useSettingsModal } from './useSettingsModal';
 
-import ApiTab from './tabs/ApiTab'
-import ConfigTab from './tabs/ConfigTab'
-import CustomTab from './tabs/CustomTab'
-import FeaturesTab from './tabs/FeaturesTab'
-import UITab from './tabs/UITab'
-import UpdateTab from './tabs/UpdateTab'
-import WindowTab from './tabs/WindowTab'
+import ApiTab from './tabs/ApiTab';
+import ConfigTab from './tabs/ConfigTab';
+import CustomTab from './tabs/CustomTab';
+import FeaturesTab from './tabs/FeaturesTab';
+import UITab from './tabs/UITab';
+import UpdateTab from './tabs/UpdateTab';
+import WindowTab from './tabs/WindowTab';
+
+import { ModalPortal } from '@/components/modals/ModalPortal';
 
 const DEFAULT_TAB_ID = 'api'
 
@@ -57,7 +57,7 @@ const TABS = [
   },
 ]
 
-function SettingsModal({
+export default function SettingsModal({
   isOpen,
   onClose,
 }) {
@@ -250,5 +250,3 @@ function SettingsModal({
     </ModalPortal>
   )
 }
-
-export default SettingsModal

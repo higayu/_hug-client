@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import SelectableWeekDayButton from "@/components/ui/SelectableWeekDayButton.jsx";
-import { ModalPortal } from "@/components/common/ModalPortal";
+import { ModalPortal } from "@/components/modals/ModalPortal";
 import { useAppState } from "@/AppStateContext";
 
 const PRIORITY_OPTIONS = [

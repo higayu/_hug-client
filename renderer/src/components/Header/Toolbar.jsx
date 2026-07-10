@@ -18,13 +18,14 @@ import DataBaseButton from "@/components/common/Synchronization/DataBaseButton";
 import ActiveApiStatus from "@/components/common/Synchronization/ActiveApiStatus";
 import StaffUpdateButton from '@/components/common/Synchronization/StaffUpdateButton';
 import ChildrenUpdateButton from '@/components/common/Synchronization/ChildrenUpdateButton';
+import SettingsEditButton from '@/components/Header/SettingsEditButton';
 
 export default function Toolbar() {
   const { showInfoToast } = useToast()
   const { appState,DEBUG_FLG } = useAppState()
   const { clearActiveWebviewCache } = useTabs()
-  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false)
-  const [showCloseButton, setShowCloseButton] = useState(true)
+  const [showCloseButton, setShowCloseButton] = useState(true);
+
 
   const dispatch = useDispatch()
   const facilityId = useSelector(selectFacilityId)
@@ -43,12 +44,6 @@ export default function Toolbar() {
       showInfoToast(ok ? "🧹 キャッシュ削除完了！" : "⚠ 削除失敗");
     };
 
-
-
-  // 設定編集ボタンのハンドラー
-  const handleEditSettings = () => {
-    setIsSettingsModalOpen(true)
-  }
 
   useEffect(() => {
     // ドロップダウンの位置を動的に計算する関数
@@ -222,16 +217,6 @@ export default function Toolbar() {
     }
   }, [])
 
-  const handleFacilityChange = (e) => {
-    const nextFacilityId = e.target.value
-  
-    console.log('[facility change]', {
-      before: facilityId,
-      after: nextFacilityId,
-    })
-  
-    dispatch(setFacilityId(nextFacilityId))
-  }
   
 
   return (
@@ -310,7 +295,7 @@ export default function Toolbar() {
                       hover:bg-[#2196f3]"
           >
             <AdjustmentsHorizontalIcon className="h-5 w-5 text-white" />
-            <span>設定</span>
+            <span>ツール</span>
             <span className="text-xs opacity-80">▾</span>
           </button>
         <div 
@@ -344,16 +329,7 @@ export default function Toolbar() {
               <ChildrenUpdateButton />
             </li>
             <li className="m-0 p-0">
-              <button
-                id="Edit-Settings"
-                onClick={handleEditSettings}
-                className="flex w-full items-center justify-center gap-2 text-center text-black
-                          border-none bg-transparent px-4 py-2 text-sm cursor-pointer
-                          transition-all hover:bg-gray-400"
-              >
-                <Cog6ToothIcon className="h-5 w-5 text-gray-600" />
-                <span>設定編集</span>
-              </button>
+              <SettingsEditButton /> 
             </li>
             <li className="m-0 p-0">
                <DataBaseButton
@@ -398,10 +374,7 @@ export default function Toolbar() {
         </div>
       </div>
 
-      <SettingsModal
-        isOpen={isSettingsModalOpen}
-        onClose={() => setIsSettingsModalOpen(false)}
-      />
+
     </div>
   )
 }
