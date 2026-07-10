@@ -1,0 +1,84 @@
+export const toId = (value) => {
+  return String(value ?? '').trim()
+}
+
+export const toBoolean = (value, defaultValue = true) => {
+  if (
+    value === true ||
+    value === 'true' ||
+    value === 1 ||
+    value === '1'
+  ) {
+    return true
+  }
+
+  if (
+    value === false ||
+    value === 'false' ||
+    value === 0 ||
+    value === '0'
+  ) {
+    return false
+  }
+
+  return defaultValue
+}
+
+export const isNotDeleted = (value) => {
+  return Number(value ?? 0) !== 1
+}
+
+export const normalizeDatabaseType = (value) => {
+  const normalized = String(value ?? '').toLowerCase()
+
+  return normalized === 'mariadb'
+    ? 'mariadb'
+    : 'sqlite'
+}
+
+export const createFormState = ({
+  apiSettings,
+  appState,
+}) => {
+  return {
+    baseURL: String(
+      apiSettings?.baseURL ??
+      appState?.BASE_URL ??
+      ''
+    ),
+
+    staffId: toId(
+      apiSettings?.staffId ??
+      appState?.STAFF_ID
+    ),
+
+    facilityId: toId(
+      apiSettings?.facilityId ??
+      appState?.FACILITY_ID
+    ),
+
+    databaseType: normalizeDatabaseType(
+      apiSettings?.databaseType ??
+      appState?.DATABASE_TYPE ??
+      'sqlite'
+    ),
+
+    useAI: String(
+      apiSettings?.useAI ??
+      appState?.USE_AI ??
+      'gemini'
+    ),
+
+    autoSynchronization: toBoolean(
+      apiSettings?.autoSynchronization ??
+      appState?.AUTO_SYNCHRONIZATION,
+      true
+    ),
+
+    autoSwitching: toBoolean(
+      apiSettings?.autoSwitching ??
+      appState?.AUTO_SWITCHING,
+      true
+    ),
+  }
+}
