@@ -26,10 +26,7 @@ export default function SettingsEditButton({
         type="button"
         onClick={handleOpen}
         className={`
-          flex w-full items-center justify-center gap-2
-          border-none bg-transparent px-4 py-2
-          text-center text-sm text-black
-          cursor-pointer transition-all hover:bg-gray-400
+          flex items-center justify-center cursor-pointer
           ${className}
         `}
         aria-label="設定を編集"
