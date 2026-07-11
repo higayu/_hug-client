@@ -212,12 +212,12 @@ export default function PersonalRecordGetMonthBtn({
       disabled={isDisabled}
       className="
         flex items-center justify-center
-        bg-amber-500 text-white
+        bg-green-700 text-gray-50
         px-3 py-2
         rounded-lg font-bold text-xs
         cursor-pointer transition-all whitespace-nowrap
-        hover:bg-amber-600 hover:scale-105
-        active:bg-amber-700 active:scale-[0.97]
+        hover:bg-green-800 hover:scale-105
+        active:bg-green-900 active:scale-[0.97]
         disabled:grayscale disabled:opacity-50
         disabled:cursor-not-allowed
         disabled:hover:scale-100

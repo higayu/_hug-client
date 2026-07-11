@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { useAppState } from "@/AppStateContext";
 
-import SwitchPanel, { PERIOD_TYPES, } from "./SwitchPanel";
+import SwitchPanel, { PERIOD_TYPES, } from "./PersonSwitchPanel";
 import ListBox_Text from "./ListBox_Text";
 
 const toMonthStr = (value) => {
@@ -69,27 +69,30 @@ export default function PersonalRecordManagerPanel2() {
 
   return (
     <div className="w-full space-y-4">
-      <SwitchPanel
-        value={periodType}
-        onChange={setPeriodType}
-        month={month}
-        onMonthChange={setMonth}
-        date={date}
-        onDateChange={setDate}
-        disabled={!SELECT_CHILD}
-      />
+      <div className="bg-gray-200 flex flex-row items-center gap-3">
+        {/* 児童情報 */}
+        <div className="flex shrink-0 items-center justify-center">
+          {SELECT_CHILD ? (
+            <span className="rounded bg-gray-100 px-2 py-1 text-xs text-gray-500">
+              👤 児童ID: {SELECT_CHILD}
+            </span>
+          ) : (
+            <p className="m-0 whitespace-nowrap text-sm text-gray-500">
+              個人記録を取得する児童を選択してください。
+            </p>
+          )}
+        </div>
 
-      {SELECT_CHILD && (
-        <span className="inline-block rounded bg-gray-100 px-2 py-1 text-xs text-gray-500">
-          👤 児童ID: {SELECT_CHILD}
-        </span>
-      )}
-
-      {!SELECT_CHILD && (
-        <p className="text-sm text-gray-500">
-          個人記録を取得する児童を選択してください。
-        </p>
-      )}
+        <SwitchPanel
+          value={periodType}
+          onChange={setPeriodType}
+          month={month}
+          onMonthChange={setMonth}
+          date={date}
+          onDateChange={setDate}
+          disabled={!SELECT_CHILD}
+        />
+      </div>
 
       <ListBox_Text
         monthStr={listTargetMonth}
