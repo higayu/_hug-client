@@ -1,7 +1,7 @@
 // renderer/src/components/Sidebar/Tools/SelectChildren/TodayChildrenList/ChildrenListContent/index.jsx
 import { MESSAGES } from "@/utils/app/constants.js"
 import ChildListItem from "./ChildListItem"
-import { TABS } from "../constants"
+import { TABS } from "@/components/common/constants";
 
 export default function ChildrenListContent({
   activeTab,

@@ -5,10 +5,10 @@ import {
   getAttendanceItemForChild,
   isChildAbsent,
   isChildExited,
-} from "@/utils/attendance/helpers/attendanceStatus.js"
-import { TABS } from "../constants"
-import { debugLog, debugTable } from "../debug"
-import { isMorningChild } from "../timeUtils";
+} from "@/utils/attendance/helpers/attendanceStatus.js";
+import { TABS } from "@/components/common/constants";
+
+import { isMorningChild } from "./timeUtils";
 import { useAppState } from '@/AppStateContext';
 
 export function useTodayChildrenListController({
@@ -42,22 +42,11 @@ export function useTodayChildrenListController({
 
   const handleToggleDone = useCallback(
     (child, checked) => {
-      debugLog("完了チェック変更", {
-        checked,
-        child,
-        childId: child?.children_id,
-        childName: child?.children_name,
-      })
 
       setDoneChildIds((prev) => {
         const next = checked
           ? [...new Set([...prev, child.children_id])]
           : prev.filter((id) => id !== child.children_id)
-
-        debugLog("doneChildIds 更新", {
-          previous: prev,
-          next,
-        })
 
         return next
       })
@@ -68,11 +57,6 @@ export function useTodayChildrenListController({
   const getAttendanceItem = useCallback(
     (childId) => {
       const attendanceItem = getAttendanceItemForChild(attendanceData, childId)
-
-      debugLog("attendanceItem 取得", {
-        childId,
-        attendanceItem,
-      })
 
       return attendanceItem
     },
@@ -139,23 +123,6 @@ export function useTodayChildrenListController({
         visible = facilityMatch && !absent && !morning && !exited
       }
 
-      debugLog("児童の表示判定", {
-        mode,
-        visible,
-        childId: child?.children_id,
-        childName: child?.children_name,
-        priority: child?.priority,
-        support_start_time: child?.support_start_time,
-        support_end_time: child?.support_end_time,
-        facility_id: child?.facility_id,
-        currentFacilityId: FACILITY_ID,
-        facilityMatch,
-        absent,
-        morning,
-        exited,
-        attendanceItem,
-      })
-
       return visible
     },
     [getAttendanceItem, SELECT_CHILD_FILTER_MODE, isSameFacility]
@@ -168,12 +135,6 @@ export function useTodayChildrenListController({
       }
 
       const result = isChildAbsent(getAttendanceItem(child.children_id))
-
-      debugLog("欠席判定", {
-        childId: child?.children_id,
-        childName: child?.children_name,
-        result,
-      })
 
       return result
     },
@@ -188,12 +149,6 @@ export function useTodayChildrenListController({
 
       const result = isChildExited(getAttendanceItem(child.children_id))
 
-      debugLog("退室済み判定", {
-        childId: child?.children_id,
-        childName: child?.children_name,
-        result,
-      })
-
       return result
     },
     [getAttendanceItem]
@@ -203,13 +158,6 @@ export function useTodayChildrenListController({
     (children) => {
       const list = Array.isArray(children) ? children : []
       const filtered = list.filter(isChildVisible)
-
-      debugLog("filterVisibleChildren 実行", {
-        beforeCount: list.length,
-        afterCount: filtered.length,
-        SELECT_CHILD_FILTER_MODE,
-        FACILITY_ID,
-      })
 
       return filtered
     },
@@ -238,100 +186,19 @@ export function useTodayChildrenListController({
       ),
     }
 
-    debugLog("priority別分類結果", {
-      baseCount: base.length,
-      normalCount: result.normalChildren.length,
-      sometimesCount: result.sometimesChildren.length,
-      temporaryCount: result.temporaryChildren.length,
-      FACILITY_ID,
-    })
-
-    debugTable(
-      "通常児童",
-      result.normalChildren.map((child) => ({
-        children_id: child.children_id,
-        children_name: child.children_name,
-        priority: child.priority,
-        pc_name: child.pc_name,
-        support_start_time: child.support_start_time,
-        support_end_time: child.support_end_time,
-        facility_id: child.facility_id,
-      }))
-    )
-
-    debugTable(
-      "時々児童",
-      result.sometimesChildren.map((child) => ({
-        children_id: child.children_id,
-        children_name: child.children_name,
-        priority: child.priority,
-        pc_name: child.pc_name,
-        support_start_time: child.support_start_time,
-        support_end_time: child.support_end_time,
-        facility_id: child.facility_id,
-      }))
-    )
-
-    debugTable(
-      "一時児童",
-      result.temporaryChildren.map((child) => ({
-        children_id: child.children_id,
-        children_name: child.children_name,
-        priority: child.priority,
-        pc_name: child.pc_name,
-        support_start_time: child.support_start_time,
-        support_end_time: child.support_end_time,
-        facility_id: child.facility_id,
-      }))
-    )
-
     return result
   }, [weekChildrenData, filterVisibleChildren])
 
   const visibleWaitingChildren = useMemo(() => {
     const result = filterVisibleChildren(waitingChildrenData)
 
-    debugLog("待機児童フィルタ結果", {
-      beforeCount: waitingChildrenData.length,
-      afterCount: result.length,
-    })
 
-    debugTable(
-      "待機児童",
-      result.map((child) => ({
-        children_id: child.children_id,
-        children_name: child.children_name,
-        priority: child.priority,
-        pc_name: child.pc_name,
-        support_start_time: child.support_start_time,
-        support_end_time: child.support_end_time,
-        facility_id: child.facility_id,
-      }))
-    )
 
     return result
   }, [waitingChildrenData, filterVisibleChildren])
 
   const visibleExperienceChildren = useMemo(() => {
     const result = filterVisibleChildren(experienceChildrenData)
-
-    debugLog("体験児童フィルタ結果", {
-      beforeCount: experienceChildrenData.length,
-      afterCount: result.length,
-    })
-
-    debugTable(
-      "体験児童",
-      result.map((child) => ({
-        children_id: child.children_id,
-        children_name: child.children_name,
-        priority: child.priority,
-        pc_name: child.pc_name,
-        support_start_time: child.support_start_time,
-        support_end_time: child.support_end_time,
-        facility_id: child.facility_id,
-      }))
-    )
 
     return result
   }, [experienceChildrenData, filterVisibleChildren])
@@ -366,17 +233,6 @@ export function useTodayChildrenListController({
           break
       }
 
-      debugLog("現在タブの表示対象児童", {
-        tab,
-        count: result.length,
-        children: result.map((child) => ({
-          children_id: child.children_id,
-          children_name: child.children_name,
-          pc_name: child.pc_name,
-          facility_id: child.facility_id,
-        })),
-      })
-
       return result
     },
     [
@@ -396,39 +252,16 @@ export function useTodayChildrenListController({
   //   通常児童を勝手に再選択すると無限ループになるため
   // ==============================
   useEffect(() => {
-    debugLog("初期選択 useEffect 実行", {
-      SELECT_CHILD,
-      activeTab,
-      normalChildrenCount: normalChildren.length,
-    })
 
     if (activeTab !== TABS.NORMAL) {
-      debugLog("初期選択をスキップ", {
-        reason: "通常タブではない",
-        activeTab,
-      })
-
       return
     }
 
     if (SELECT_CHILD || normalChildren.length === 0) {
-      debugLog("初期選択をスキップ", {
-        reason: SELECT_CHILD
-          ? "すでに SELECT_CHILD が存在する"
-          : "normalChildren が空",
-        SELECT_CHILD,
-      })
-
       return
     }
 
     const first = normalChildren[0]
-
-    debugLog("初期選択を設定", {
-      childId: first.children_id,
-      childName: first.children_name,
-      pcName: first.pc_name || "",
-    })
 
     setSelectedChild(first.children_id, first.children_name)
     setSelectedPcName(first.pc_name || "")
@@ -437,12 +270,6 @@ export function useTodayChildrenListController({
       window.AppState.SELECT_CHILD = first.children_id
       window.AppState.SELECT_CHILD_NAME = first.children_name
       window.AppState.SELECT_PC_NAME = first.pc_name || ""
-
-      debugLog("window.AppState 初期選択反映", {
-        SELECT_CHILD: window.AppState.SELECT_CHILD,
-        SELECT_CHILD_NAME: window.AppState.SELECT_CHILD_NAME,
-        SELECT_PC_NAME: window.AppState.SELECT_PC_NAME,
-      })
     }
   }, [
     activeTab,
@@ -461,28 +288,13 @@ export function useTodayChildrenListController({
   // - 解除すると「通常タブの初期選択」と衝突して無限ループになる
   // ==============================
   useEffect(() => {
-    debugLog("選択児童の表示状態チェック useEffect 実行", {
-      SELECT_CHILD,
-      SELECT_CHILD_FILTER_MODE,
-      activeTab,
-    })
-
     if (!SELECT_CHILD) {
-      debugLog("選択児童チェックをスキップ", {
-        reason: "SELECT_CHILD が空",
-      })
-
       return
     }
 
     const visibleChildren = getVisibleChildrenForTab(activeTab)
 
     if (visibleChildren.length === 0) {
-      debugLog("現在タブに表示児童がいないため選択状態は変更しない", {
-        activeTab,
-        SELECT_CHILD,
-      })
-
       return
     }
 
@@ -490,24 +302,11 @@ export function useTodayChildrenListController({
       (child) => String(child.children_id) === String(SELECT_CHILD)
     )
 
-    debugLog("現在選択中の児童が表示対象に含まれるか", {
-      SELECT_CHILD,
-      selectedStillVisible,
-      visibleChildrenCount: visibleChildren.length,
-    })
-
     if (selectedStillVisible) {
       return
     }
 
     const first = visibleChildren[0]
-
-    debugLog("非表示になった児童から先頭の表示児童へ選択変更", {
-      previousSelectedChild: SELECT_CHILD,
-      nextChildId: first.children_id,
-      nextChildName: first.children_name,
-      nextPcName: first.pc_name || "",
-    })
 
     setSelectedChild(first.children_id, first.children_name)
     setSelectedPcName(first.pc_name || "")
@@ -516,12 +315,6 @@ export function useTodayChildrenListController({
       window.AppState.SELECT_CHILD = first.children_id
       window.AppState.SELECT_CHILD_NAME = first.children_name
       window.AppState.SELECT_PC_NAME = first.pc_name || ""
-
-      debugLog("window.AppState 選択変更反映", {
-        SELECT_CHILD: window.AppState.SELECT_CHILD,
-        SELECT_CHILD_NAME: window.AppState.SELECT_CHILD_NAME,
-        SELECT_PC_NAME: window.AppState.SELECT_PC_NAME,
-      })
     }
   }, [
     SELECT_CHILD,
@@ -537,12 +330,6 @@ export function useTodayChildrenListController({
   // ==============================
   const handleChildSelect = useCallback(
     (childId, childName, pcName = "") => {
-      debugLog("子ども選択", {
-        childId,
-        childName,
-        pcName,
-        previousSelectedChild: SELECT_CHILD,
-      })
 
       setSelectedChild(childId, childName)
       setSelectedPcName(pcName || "")
@@ -552,11 +339,6 @@ export function useTodayChildrenListController({
         window.AppState.SELECT_CHILD_NAME = childName
         window.AppState.SELECT_PC_NAME = pcName || ""
 
-        debugLog("window.AppState 子ども選択反映", {
-          SELECT_CHILD: window.AppState.SELECT_CHILD,
-          SELECT_CHILD_NAME: window.AppState.SELECT_CHILD_NAME,
-          SELECT_PC_NAME: window.AppState.SELECT_PC_NAME,
-        })
       }
     },
     [

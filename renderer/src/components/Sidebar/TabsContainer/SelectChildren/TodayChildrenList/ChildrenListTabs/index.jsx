@@ -1,6 +1,6 @@
 // src/components/Sidebar/SelectChildrenList/TodayChildrenList/ChildrenListTabs.jsx
 
-import { TAB_ITEMS } from "./constants"
+import { TAB_ITEMS } from "@/components/common/constants";
 
 export default function ChildrenListTabs({
   activeTab,

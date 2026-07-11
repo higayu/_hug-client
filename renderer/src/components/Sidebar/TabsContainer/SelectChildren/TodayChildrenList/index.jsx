@@ -1,14 +1,13 @@
 // src/components/Sidebar/SelectChildrenList/TodayChildrenList/index.jsx
 // 子どもリストを表示するコンポーネント
 
-import { useEffect, useMemo, useState } from "react"
-import { useAppState } from "@/AppStateContext"
-import { splitChildrenData } from "@/AppStateContext/splitChildrenData"
-import { ELEMENT_IDS } from "@/utils/app/constants.js"
-import ChildrenListTabs from "./ChildrenListTabs"
-import ChildrenListContent from "./ChildrenListContent"
-import { TABS } from "./constants"
-import { useTodayChildrenListDebug } from "./debug";
+import { useEffect, useMemo, useState } from "react";
+import { useAppState } from "@/AppStateContext";
+import { splitChildrenData } from "@/AppStateContext/splitChildrenData";
+import { ELEMENT_IDS } from "@/utils/app/constants.js";
+import ChildrenListTabs from "./ChildrenListTabs";
+import ChildrenListContent from "./ChildrenListContent";
+import { TABS } from "@/components/common/constants";
 import { useTodayChildrenListController } from "./useTodayChildrenListController";
 
 export default function TodayChildrenList() {
@@ -281,35 +280,6 @@ export default function TodayChildrenList() {
     visibleWaitingChildren,
     visibleExperienceChildren,
   ])
-
-  useTodayChildrenListDebug({
-    appState,
-
-    SELECT_CHILD,
-    SELECT_CHILD_FILTER_MODE,
-    CURRENT_DAY_OF_WEEK,
-
-    // デバッグにも表示用データを渡す
-    // これで画面表示とログの対象が一致する
-    childrenData: displayChildrenData,
-    waiting_childrenData: displayWaitingChildrenData,
-    Experience_childrenData: displayExperienceChildrenData,
-
-    attendanceData,
-
-    databaseState,
-    dbChildren,
-    dbFacilityChildren,
-    dbPc,
-    dbPcToChildren,
-    dbDayOfWeek,
-
-    weekChildrenData,
-    waitingChildrenData,
-    experienceChildrenData,
-
-    activeTab,
-  })
 
   return (
     <div className="sidebar-content py-1 px-2 flex-1 overflow-y-auto">
