@@ -1,5 +1,5 @@
-import { getHugWebviewForCache } from "@/hooks/useHugCache/getHugCache.js";
-import { fetchAttendanceTableInWebview } from "./fetchAttendanceTableInWebview.js";
+import { getHugWebviewForCache } from "@/hooks/useHugCache/getHugCache";
+import { fetchAttendanceTableInWebview } from "./fetchAttendanceTableInWebview";
 
 /**
  * hugview の Cookie だけ使い、ページ遷移なしで利用者テーブルを取得する

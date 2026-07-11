@@ -3,8 +3,8 @@
  * Google拡張「入退室リクエスト」content.js と同様に hugview 内 fetch で HTML を取得する。
  */
 
-import { getHugWebviewForCache } from "@/hooks/useHugCache/getHugCache.js";
-import { fetchAttendanceTableInWebview } from "./fetchAttendanceTableInWebview.js";
+import { getHugWebviewForCache } from "@/hooks/useHugCache/getHugCache";
+import { fetchAttendanceTableInWebview } from "./fetchAttendanceTableInWebview";
 
 /**
  * @param {string} facility_id

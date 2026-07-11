@@ -4,7 +4,7 @@
 export {
   fetchAttendanceTableData,
   fetchAttendanceData,
-} from "./fetchAttendanceTableData.js";
+} from "./fetchAttendanceTableData";
 
 /**
  * テーブルデータをパースして構造化データとして返す

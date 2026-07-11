@@ -3,12 +3,9 @@ import { useDispatch } from "react-redux";
 
 import { useAppState } from "@/AppStateContext";
 import { useToast } from "@/components/common/ToastContext";
-import { fetchAttendanceViaHugTab } from "./fetchAttendanceViaHugTab.js";
-import { extractColumnData } from "./attendanceTable.js";
-import {
-  setExtractedData,
-  setTableData,
-} from "@/store/slices/attendanceSlice.js";
+import { fetchAttendanceViaHugTab } from "@/utils/attendance/fetchAttendanceViaHugTab";
+import { extractColumnData } from "@/utils/attendance/attendanceTable";
+import { setExtractedData, setTableData } from "@/store/slices/attendanceSlice";
 
 const AUTO_FETCH_INTERVAL_MS = 60_000;
 
