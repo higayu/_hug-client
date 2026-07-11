@@ -4,9 +4,9 @@ import { useAppState } from '@/AppStateContext'
 import { setActiveWebview } from '@/utils/webview/webviewState.js'
 import { activateTab, closeTab, clearActiveWebviewCache } from './common/index.js'
 import { addNormalTabAction } from './actions/normal.js'
-import { addPersonalRecordTabAction3 } from './actions/personalRecord.js'
+import { addPersonalRecordTabAction4 } from './actions/personalRecord.js'
 import { addProfessionalSupportListAction } from './actions/professionalList.js'
-import { addProfessionalSupportNewAction2, addProfessionalSupportCheckAction } from './actions/professionalNew.js'
+import { addProfessionalSupportNewAction3, addProfessionalSupportCheckAction } from './actions/professionalNew.js'
 
 // useTabs() は複数コンポーネントから呼ばれるため、初期化はアプリ全体で1回だけ行う
 let tabsSystemInitialized = false
@@ -20,7 +20,7 @@ export function useTabs() {
   }, [appState])
 
   const addPersonalRecordTab = useCallback(() => {
-    addPersonalRecordTabAction3(appState)
+    addPersonalRecordTabAction4(appState)
   }, [appState])
 
   const addProfessionalSupportListTab = useCallback(() => {
@@ -32,7 +32,7 @@ export function useTabs() {
   }, [appState])
 
   const addProfessionalSupportNewTab = useCallback(() => {
-    addProfessionalSupportNewAction2(appState)
+    addProfessionalSupportNewAction3(appState)
   }, [appState])
 
 

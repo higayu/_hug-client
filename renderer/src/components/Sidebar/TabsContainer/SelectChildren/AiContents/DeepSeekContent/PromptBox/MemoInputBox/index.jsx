@@ -3,7 +3,7 @@ import React, { useRef, useState, useEffect, useCallback } from "react";
 import { useToast } from "@/components/common/ToastContext.jsx";
 import { useAppState } from "@/AppStateContext";
 import { useNote } from "@/hooks/useNote.js";
-import { addPersonalRecordTabAction3 } from "@/hooks/useTabs/actions/personalRecord.js";
+import { addPersonalRecordTabAction4 } from "@/hooks/useTabs/actions/personalRecord.js";
 import BrowserOpenButton from "@/components/common/BrowserOpenButton";
 
 export default function MemoInputBox({
@@ -17,7 +17,7 @@ export default function MemoInputBox({
   const { appState, SELECT_CHILD } = useAppState();
   const { saveTemp1, saveTemp2, loadTemp } = useNote();
   const addPersonalRecordTab = useCallback(() => {
-    addPersonalRecordTabAction3(appState);
+    addPersonalRecordTabAction4(appState);
   }, [appState]);
 
   const [value, setValue] = useState("");

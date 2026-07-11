@@ -343,56 +343,490 @@ export function addPersonalRecordTabAction4(appState) {
     }
 
     // ===============================
-    // 🔽 下書き保存ボタン生成（常に実行）
+    // 🔽 content.jsスタイルのボタンを生成（クリップボードエラー修正版）
     // ===============================
     await newWebview.executeJavaScript(`
       (function () {
         try {
-          if (document.getElementById("myAttendanceBtn")) return;
+          // 既存ボタンがあれば削除（重複防止）
+          const existingPasteBtn = document.getElementById("myPasteBtn")
+          if (existingPasteBtn) {
+            existingPasteBtn.remove()
+            console.log("🗑️ 既存の貼り付けボタンを削除しました")
+          }
+          const existingDraftBtn = document.getElementById("myCustomDraftBtn")
+          if (existingDraftBtn) {
+            existingDraftBtn.remove()
+            console.log("🗑️ 既存の下書き保存ボタンを削除しました")
+          }
 
-          const btn = document.createElement("button");
-          btn.id = "myAttendanceBtn";
-          btn.innerText = "下書き保存";
-
-          btn.style.position = "fixed";
-          btn.style.top = "50%";
-          btn.style.left = "50%";
-          btn.style.transform = "translate(-50%, -50%)";
-          btn.style.padding = "12px 18px";
-          btn.style.background = "#007bff";
-          btn.style.color = "#fff";
-          btn.style.border = "none";
-          btn.style.borderRadius = "6px";
-          btn.style.cursor = "pointer";
-          btn.style.fontSize = "14px";
-          btn.style.zIndex = "99999";
-
-          btn.addEventListener("mouseenter", () => {
-            btn.style.background = "#0056b3";
-          });
-          btn.addEventListener("mouseleave", () => {
-            btn.style.background = "#007bff";
-          });
-
-          btn.addEventListener("click", () => {
-            const draftBtn = document.querySelector(
-              'button[data-save-button][value="1"]'
-            );
-            if (!draftBtn) {
-              console.error("❌ 下書き保存ボタンが見つかりません");
-              return;
+          // ============================================
+          // 共通関数: 要素にスクロール移動
+          // ============================================
+          function scrollToElement(element) {
+            if (!element) {
+              console.warn("[スクロール] 要素がありません");
+              return false;
             }
-            draftBtn.click();
-          });
+            
+            try {
+              const rect = element.getBoundingClientRect();
+              const scrollTop = window.pageYOffset || document.documentElement.scrollTop || 0;
+              const targetPosition = rect.top + scrollTop - 150;
+              
+              window.scrollTo({
+                top: targetPosition,
+                behavior: 'smooth'
+              });
+              
+              setTimeout(() => {
+                window.scrollTo(0, targetPosition);
+              }, 100);
+              
+              setTimeout(() => {
+                element.scrollIntoView({
+                  behavior: 'smooth',
+                  block: 'center',
+                  inline: 'nearest'
+                });
+              }, 200);
+              
+              return true;
+            } catch (error) {
+              console.error("[スクロール] エラー:", error);
+              return false;
+            }
+          }
 
-          document.body.appendChild(btn);
-          console.log("✅ 下書き保存ボタン生成完了");
+          // ============================================
+          // 共通関数: 要素をハイライト表示
+          // ============================================
+          function highlightElement(element) {
+            if (!element) return;
+            
+            const originalBackground = element.style.backgroundColor;
+            const originalOutline = element.style.outline;
+            const originalTransition = element.style.transition;
+            
+            element.style.transition = 'all 0.3s ease';
+            element.style.backgroundColor = '#ffff99';
+            element.style.outline = '3px solid #ff6b6b';
+            
+            setTimeout(() => {
+              element.style.backgroundColor = originalBackground || '';
+              element.style.outline = originalOutline || '';
+              setTimeout(() => {
+                element.style.transition = originalTransition || '';
+              }, 300);
+            }, 3000);
+          }
+
+          // ============================================
+          // 改良版: クリップボードからテキストを読み取る関数（webview対応）
+          // ============================================
+          async function getClipboardText() {
+            // 方法1: 標準のクリップボードAPI
+            try {
+              if (navigator.clipboard && navigator.clipboard.readText) {
+                const text = await navigator.clipboard.readText();
+                if (text && text.length > 0) {
+                  console.log("✅ クリップボードAPIで読み取り成功");
+                  return text;
+                }
+              }
+            } catch (apiError) {
+              console.warn("⚠️ クリップボードAPI失敗:", apiError.message);
+            }
+
+            // 方法2: execCommand（webviewで動作することが多い）
+            try {
+              const textarea = document.createElement('textarea');
+              textarea.style.position = 'fixed';
+              textarea.style.opacity = '0';
+              textarea.style.left = '-9999px';
+              textarea.style.top = '-9999px';
+              document.body.appendChild(textarea);
+              
+              // フォーカスを設定
+              const activeElement = document.activeElement;
+              textarea.focus();
+              
+              // execCommandで貼り付けを実行
+              const success = document.execCommand('paste');
+              
+              if (success) {
+                const text = textarea.value;
+                document.body.removeChild(textarea);
+                // 元のフォーカスを復元
+                if (activeElement) activeElement.focus();
+                if (text && text.length > 0) {
+                  console.log("✅ execCommandで読み取り成功");
+                  return text;
+                }
+              }
+              
+              document.body.removeChild(textarea);
+              if (activeElement) activeElement.focus();
+              console.warn("⚠️ execCommandでの貼り付けに失敗");
+            } catch (execError) {
+              console.warn("⚠️ execCommandエラー:", execError.message);
+            }
+
+            // 方法3: 手動入力ダイアログ（最終手段）
+            console.warn("⚠️ 自動読み取りができないため、手動入力を促します");
+            return new Promise((resolve) => {
+              // モーダルダイアログを作成
+              const overlay = document.createElement('div');
+              overlay.style.position = 'fixed';
+              overlay.style.top = '0';
+              overlay.style.left = '0';
+              overlay.style.width = '100%';
+              overlay.style.height = '100%';
+              overlay.style.backgroundColor = 'rgba(0,0,0,0.5)';
+              overlay.style.zIndex = '9999999';
+              overlay.style.display = 'flex';
+              overlay.style.justifyContent = 'center';
+              overlay.style.alignItems = 'center';
+
+              const dialog = document.createElement('div');
+              dialog.style.backgroundColor = 'white';
+              dialog.style.padding = '30px';
+              dialog.style.borderRadius = '10px';
+              dialog.style.maxWidth = '500px';
+              dialog.style.width = '90%';
+              dialog.style.boxShadow = '0 10px 40px rgba(0,0,0,0.3)';
+
+              dialog.innerHTML = \`
+                <h3 style="margin-top: 0; color: #333;">📋 クリップボードの内容を貼り付けてください</h3>
+                <p style="color: #666; font-size: 14px;">自動読み取りに失敗しました。手動で貼り付けてください。</p>
+                <textarea id="manualPasteTextarea" style="
+                  width: 100%;
+                  height: 150px;
+                  padding: 10px;
+                  border: 2px solid #4CAF50;
+                  border-radius: 5px;
+                  font-size: 14px;
+                  font-family: inherit;
+                  box-sizing: border-box;
+                  resize: vertical;
+                " placeholder="ここにテキストを貼り付けてください (Ctrl+V / ⌘V)"></textarea>
+                <div style="margin-top: 15px; display: flex; gap: 10px; justify-content: flex-end;">
+                  <button id="manualPasteCancel" style="
+                    padding: 10px 20px;
+                    border: 1px solid #ccc;
+                    border-radius: 5px;
+                    background: white;
+                    cursor: pointer;
+                    font-size: 14px;
+                  ">キャンセル</button>
+                  <button id="manualPasteConfirm" style="
+                    padding: 10px 20px;
+                    border: none;
+                    border-radius: 5px;
+                    background: #4CAF50;
+                    color: white;
+                    cursor: pointer;
+                    font-size: 14px;
+                    font-weight: bold;
+                  ">✅ 貼り付け</button>
+                </div>
+              \`;
+
+              overlay.appendChild(dialog);
+              document.body.appendChild(overlay);
+
+              const textarea = dialog.querySelector('#manualPasteTextarea');
+              const confirmBtn = dialog.querySelector('#manualPasteConfirm');
+              const cancelBtn = dialog.querySelector('#manualPasteCancel');
+
+              // テキストエリアにフォーカス
+              setTimeout(() => textarea.focus(), 100);
+
+              // 確認ボタン
+              confirmBtn.addEventListener('click', () => {
+                const text = textarea.value;
+                document.body.removeChild(overlay);
+                resolve(text && text.trim().length > 0 ? text : null);
+              });
+
+              // キャンセルボタン
+              cancelBtn.addEventListener('click', () => {
+                document.body.removeChild(overlay);
+                resolve(null);
+              });
+
+              // Ctrl+Enterで確認
+              textarea.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                  confirmBtn.click();
+                }
+              });
+            });
+          }
+
+          // ============================================
+          // 1. 貼り付けボタン（📋）- 改良版
+          // ============================================
+          const pasteBtn = document.createElement("button")
+          pasteBtn.id = "myPasteBtn"
+          pasteBtn.innerText = "📋 貼り付け"
+          
+          // 貼り付けボタンのスタイル
+          pasteBtn.style.position = "fixed"
+          pasteBtn.style.top = "50%"
+          pasteBtn.style.right = "160px"
+          pasteBtn.style.transform = "translateY(-50%)"
+          pasteBtn.style.zIndex = "999999"
+          pasteBtn.style.padding = "15px 25px"
+          pasteBtn.style.color = "white"
+          pasteBtn.style.fontSize = "18px"
+          pasteBtn.style.fontWeight = "bold"
+          pasteBtn.style.border = "none"
+          pasteBtn.style.borderRadius = "10px"
+          pasteBtn.style.cursor = "pointer"
+          pasteBtn.style.boxShadow = "0 4px 15px rgba(0,0,0,0.3)"
+          pasteBtn.style.transition = "all 0.3s ease"
+          pasteBtn.style.letterSpacing = "1px"
+          pasteBtn.style.backgroundColor = "#4CAF50"
+
+          // ホバー効果
+          pasteBtn.addEventListener("mouseenter", () => {
+            pasteBtn.style.transform = "translateY(-50%) scale(1.05)"
+            pasteBtn.style.boxShadow = "0 6px 20px rgba(0,0,0,0.4)"
+          })
+          pasteBtn.addEventListener("mouseleave", () => {
+            pasteBtn.style.transform = "translateY(-50%) scale(1)"
+            pasteBtn.style.boxShadow = "0 4px 15px rgba(0,0,0,0.3)"
+          })
+
+          // 貼り付けボタンのクリック処理（改良版）
+          pasteBtn.addEventListener("click", async function() {
+            console.log("📋 貼り付けボタンがクリックされました")
+            
+            // フィードバック（処理中）
+            this.style.backgroundColor = "#FF9800"
+            this.innerText = "⏳ 貼り付け中..."
+            this.style.transform = "translateY(-50%) scale(0.95)"
+            
+            try {
+              // クリップボードからテキストを読み取り（改良版）
+              const clipboardText = await getClipboardText();
+              
+              if (!clipboardText || clipboardText.trim().length === 0) {
+                console.error("❌ クリップボードが空です")
+                this.style.backgroundColor = "#f44336"
+                this.innerText = "❌ 空です"
+                setTimeout(() => {
+                  this.style.backgroundColor = "#4CAF50"
+                  this.innerText = "📋 貼り付け"
+                  this.style.transform = "translateY(-50%) scale(1)"
+                }, 2000)
+                return
+              }
+
+              // テキストエリアを探す
+              const textarea = document.querySelector('textarea[name="note"][data-field-key="note"]') ||
+                               document.querySelector('textarea[name="note"]')
+              
+              if (!textarea) {
+                console.error("❌ テキストエリアが見つかりません")
+                this.style.backgroundColor = "#f44336"
+                this.innerText = "❌ エラー"
+                setTimeout(() => {
+                  this.style.backgroundColor = "#4CAF50"
+                  this.innerText = "📋 貼り付け"
+                  this.style.transform = "translateY(-50%) scale(1)"
+                }, 2000)
+                return
+              }
+
+              // テキストエリアにスクロール
+              scrollToElement(textarea)
+              
+              // テキストを埋め込み
+              textarea.value = clipboardText
+              textarea.dispatchEvent(new Event('input', { bubbles: true }))
+              textarea.dispatchEvent(new Event('change', { bubbles: true }))
+              
+              // ハイライト表示
+              highlightElement(textarea)
+              textarea.focus()
+              
+              console.log("✅ テキストを貼り付けました")
+              this.style.backgroundColor = "#4CAF50"
+              this.innerText = "✅ 完了！"
+              setTimeout(() => {
+                this.style.backgroundColor = "#4CAF50"
+                this.innerText = "📋 貼り付け"
+                this.style.transform = "translateY(-50%) scale(1)"
+              }, 2000)
+
+            } catch (error) {
+              console.error("❌ 貼り付けエラー:", error)
+              this.style.backgroundColor = "#f44336"
+              this.innerText = "❌ エラー"
+              setTimeout(() => {
+                this.style.backgroundColor = "#4CAF50"
+                this.innerText = "📋 貼り付け"
+                this.style.transform = "translateY(-50%) scale(1)"
+              }, 2000)
+            }
+          })
+
+          document.body.appendChild(pasteBtn)
+          console.log("✅ 貼り付けボタン生成完了（webview対応版）")
+
+          // ============================================
+          // 2. 下書き保存ボタン（💾）- content.jsスタイル
+          // ============================================
+          const draftBtn = document.createElement("button")
+          draftBtn.id = "myCustomDraftBtn"
+          draftBtn.innerText = "💾 下書き保存"
+          
+          // 下書き保存ボタンのスタイル
+          draftBtn.style.position = "fixed"
+          draftBtn.style.top = "50%"
+          draftBtn.style.right = "20px"
+          draftBtn.style.transform = "translateY(-50%)"
+          draftBtn.style.zIndex = "999999"
+          draftBtn.style.padding = "15px 25px"
+          draftBtn.style.color = "white"
+          draftBtn.style.fontSize = "18px"
+          draftBtn.style.fontWeight = "bold"
+          draftBtn.style.border = "none"
+          draftBtn.style.borderRadius = "10px"
+          draftBtn.style.cursor = "pointer"
+          draftBtn.style.boxShadow = "0 4px 15px rgba(0,0,0,0.3)"
+          draftBtn.style.transition = "all 0.3s ease"
+          draftBtn.style.letterSpacing = "1px"
+          draftBtn.style.backgroundColor = "#9C27B0"
+
+          // ホバー効果
+          draftBtn.addEventListener("mouseenter", () => {
+            draftBtn.style.transform = "translateY(-50%) scale(1.05)"
+            draftBtn.style.boxShadow = "0 6px 20px rgba(0,0,0,0.4)"
+          })
+          draftBtn.addEventListener("mouseleave", () => {
+            draftBtn.style.transform = "translateY(-50%) scale(1)"
+            draftBtn.style.boxShadow = "0 4px 15px rgba(0,0,0,0.3)"
+          })
+
+          // 下書き保存ボタンのクリック処理
+          draftBtn.addEventListener("click", function() {
+            console.log("💾 下書き保存ボタンがクリックされました")
+            
+            // フィードバック（処理中）
+            this.style.backgroundColor = "#FF9800"
+            this.innerText = "⏳ 保存中..."
+            this.style.transform = "translateY(-50%) scale(0.95)"
+            
+            try {
+              // 関数4のセレクタを使用（最優先）
+              let saveButton = document.querySelector('button[data-save-button][value="1"]')
+              
+              // フォールバック1: 従来のセレクタ
+              if (!saveButton) {
+                saveButton = document.querySelector('button.btn.btn-sm.draft[data-save-button=""]')
+              }
+              
+              // フォールバック2: テキスト検索
+              if (!saveButton) {
+                const allButtons = document.querySelectorAll('button')
+                for (const btn of allButtons) {
+                  if (btn.textContent.includes('下書き') || 
+                      btn.textContent.includes('draft') ||
+                      (btn.hasAttribute('data-save-button') && btn.getAttribute('value') === '1')) {
+                    saveButton = btn
+                    break
+                  }
+                }
+              }
+              
+              if (!saveButton) {
+                console.error("❌ 下書き保存ボタンが見つかりません")
+                this.style.backgroundColor = "#f44336"
+                this.innerText = "❌ エラー"
+                setTimeout(() => {
+                  this.style.backgroundColor = "#9C27B0"
+                  this.innerText = "💾 下書き保存"
+                  this.style.transform = "translateY(-50%) scale(1)"
+                }, 2000)
+                return
+              }
+
+              console.log("✅ 下書き保存ボタンを発見:", saveButton)
+              
+              // 保存ボタンまでスクロール
+              scrollToElement(saveButton)
+              
+              // ハイライト表示
+              highlightElement(saveButton)
+
+              // クリック実行
+              setTimeout(() => {
+                try {
+                  // 方法1: 標準クリック
+                  saveButton.click()
+                  console.log("✅ 標準クリック実行")
+                } catch (e) {
+                  console.warn("⚠️ 標準クリック失敗:", e)
+                  try {
+                    // 方法2: dispatchEvent
+                    const clickEvent = new MouseEvent('click', {
+                      view: window,
+                      bubbles: true,
+                      cancelable: true
+                    })
+                    saveButton.dispatchEvent(clickEvent)
+                    console.log("✅ dispatchEventクリック実行")
+                  } catch (e2) {
+                    console.error("❌ すべてのクリック方法が失敗:", e2)
+                  }
+                }
+                
+                // 成功フィードバック
+                this.style.backgroundColor = "#4CAF50"
+                this.innerText = "✅ 保存完了！"
+                setTimeout(() => {
+                  this.style.backgroundColor = "#9C27B0"
+                  this.innerText = "💾 下書き保存"
+                  this.style.transform = "translateY(-50%) scale(1)"
+                }, 2500)
+              }, 500)
+
+            } catch (error) {
+              console.error("❌ 下書き保存エラー:", error)
+              this.style.backgroundColor = "#f44336"
+              this.innerText = "❌ エラー"
+              setTimeout(() => {
+                this.style.backgroundColor = "#9C27B0"
+                this.innerText = "💾 下書き保存"
+                this.style.transform = "translateY(-50%) scale(1)"
+              }, 2000)
+            }
+          })
+
+          document.body.appendChild(draftBtn)
+          console.log("✅ 下書き保存ボタン生成完了（content.jsスタイル）")
+
+          // ============================================
+          // 3. デバッグ情報
+          // ============================================
+          console.log("=== ボタン生成完了 ===")
+          console.log("📋 貼り付けボタン: 右から160px")
+          console.log("💾 下書き保存ボタン: 右から20px")
+          console.log("テキストエリアの有無:", 
+            document.querySelector('textarea[name="note"]') ? "あり" : "なし"
+          )
+          console.log("下書き保存ボタンの有無:", 
+            document.querySelector('button[data-save-button][value="1"]') ? "あり" : "なし"
+          )
+
         } catch (e) {
-          console.error("❌ 下書き保存ボタン生成エラー", e);
+          console.error("❌ ボタン生成エラー:", e)
         }
       })();
     `)
-
 
   })
 
