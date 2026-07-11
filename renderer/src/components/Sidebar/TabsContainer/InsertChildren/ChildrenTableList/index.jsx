@@ -172,12 +172,12 @@ function ChildrenTableList() {
   // =============================================================
   if (!Array.isArray(childrenList) || childrenList.length === 0) {
     return (
-      <div className="mt-6">
-        <p className="text-gray-500 mt-4">
+      <div className="border border-orange-500 rounded-2xl px-4 py-2">
+        <p className="text-xl text-red-500 mt-4">
           今日の利用者データがありません。
         </p>
 
-        <p className="text-xs text-gray-400 mt-2">
+        <p className="text-2xl text-red-400 mt-2 font-bold">
           先に HUG から利用者データを取得してください。
         </p>
       </div>

@@ -100,8 +100,8 @@ export default function GetTodayUsersChildren({HideFlg= false}) {
           >
             <span className="text-sm font-bold text-gray-900">取得：</span>
             <span
-              className={`text-sm font-extrabold ${
-                lastFetchedAt ? "text-green-800" : "text-amber-700"
+              className={`text-xl font-extrabold ${
+                lastFetchedAt ? "text-green-800" : "text-red-700"
               }`}
             >
               {fetchedAtLabel.time}
