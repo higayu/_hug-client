@@ -1,7 +1,7 @@
 import { useCallback, useRef, useState } from "react";
 import { useAppState } from "@/AppStateContext";
 import { useToast } from "@/components/common/ToastContext.jsx";
-import { fetchPersonalRecord } from "./fetchPersonalRecord";
+import { fetchPersonalRecord } from "@/utils/fetchPersonalRecord";
 import { postServiceRecordsToLocalApi } from "../postServiceRecordsToLocalApi";
 import { useDataBase } from "@/hooks/useDataBase";
 

@@ -14,7 +14,7 @@ import {
 
 import MemoInputBox from './MemoInputBox';
 import TwoTabPanel from '@/components/ui/TwoTabPanel';
-import PersonalRecordManagerPanel from '@/components/common/hug_function/PersonalRecordManagerPanel';
+import PersonalRecordManagerPanel2 from '@/components/common/hug_function/PersonalRecordManagerPanel2';
 import DeepseekTabButton from "@/components/common/AI/DeepseekTabButton";
 
 const DBG = 'PersonalRecordPrompt';
@@ -194,7 +194,7 @@ export default function PersonalRecordPrompt({
             minHeight={200}
           />
           <div className="flex flex-wrap items-center justify-center gap-2">
-            <PersonalRecordManagerPanel />
+            <PersonalRecordManagerPanel2 />
           </div>
         </TwoTabPanel>
 

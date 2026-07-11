@@ -1,7 +1,7 @@
 // PersonalRecordManagerPanel2/index.jsx
 import React, { useCallback, useEffect, useState } from "react";
 import { useAppState } from "@/AppStateContext";
-import PersonalRecordUpdateBtn from "./PersonalRecordUpdateBtn";
+import PersonalRecordUpdateBtn2 from "./PersonalRecordUpdateBtn2";
 import ListBox_Text from "./ListBox_Text";
 
 const toMonthStr = (value) => {
@@ -47,7 +47,7 @@ export default function PersonalRecordManagerPanel2() {
           />
         </div>
         
-        <PersonalRecordUpdateBtn monthStr={month} />
+        <PersonalRecordUpdateBtn2 monthStr={month} />
         
         {/* 児童情報表示 */}
         {SELECT_CHILD && (

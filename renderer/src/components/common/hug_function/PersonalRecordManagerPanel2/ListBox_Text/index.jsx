@@ -3,8 +3,8 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useSelector } from "react-redux";
 import { useAppState } from "@/AppStateContext";
 import { selectServiceRecord } from "@/store/slices/databaseSlice.js";
-import { selectPersonalRecordNote } from "../selectPersonalRecordNote";
-import { servedDateToDateStr } from "../selectPersonalRecordNote";
+import { selectPersonalRecordNote } from "./selectPersonalRecordNote";
+import { servedDateToDateStr } from "./selectPersonalRecordNote";
 
 /**
  * 指定された月の個人記録一覧を表示し、選択した日付の内容をテキストエリアに表示する

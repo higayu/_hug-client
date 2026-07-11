@@ -10,7 +10,7 @@ import {
   setPersonalRecordStatus,
   setRecordStatusError,
 } from "@/store/slices/recordStatusSlice.js";
-import { fetchPersonalRecord } from "@/components/common/hug_function/PersonalRecordManagerPanel/PersonalRecordUpdateBtn/fetchPersonalRecord";
+import { fetchPersonalRecord } from "@/utils/fetchPersonalRecord";
 import { parseTodayPersonalRecordStatus } from "./parseTodayPersonalRecordStatus";
 
 /**

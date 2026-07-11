@@ -32,7 +32,7 @@ function getMonthRange(yearMonth) {
  * }} opts
  *   指定された年月の月初めから月末までの期間で取得する
  */
-export async function fetchPersonalRecord({
+export async function fetchPersonalRecord2({
   childId,
   facilityId = "3",
   year_month,

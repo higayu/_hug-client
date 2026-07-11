@@ -13,7 +13,7 @@ import {
 } from '@/store/slices/sendTextSlice'
 import MemoInputBox from './MemoInputBox';
 import TwoTabPanel from '@/components/ui/TwoTabPanel';
-import PersonalRecordManagerPanel from '@/components/common/hug_function/PersonalRecordManagerPanel';
+import PersonalRecordManagerPanel2 from '@/components/common/hug_function/PersonalRecordManagerPanel2';
 
 const DBG = 'PersonalRecordPrompt';
 
