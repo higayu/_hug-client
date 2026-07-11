@@ -7,13 +7,17 @@ import './index.css'
 
 import { useSettingsModal } from './useSettingsModal';
 
-import ApiTab from './tabs/ApiTab';
-import ConfigTab from './tabs/ConfigTab';
-import CustomTab from './tabs/CustomTab';
-import FeaturesTab from './tabs/FeaturesTab';
-import UITab from './tabs/UITab';
-import UpdateTab from './tabs/UpdateTab';
-import WindowTab from './tabs/WindowTab';
+import {
+  ApiTab,
+  ConfigTab,
+  CustomTab,
+  FeaturesTab,
+  UITab,
+  WindowTab,
+
+  UpdateTab,
+  
+} from "./tabs";
 
 import { ModalPortal } from '@/components/modals/ModalPortal';
 

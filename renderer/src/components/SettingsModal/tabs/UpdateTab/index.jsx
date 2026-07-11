@@ -9,7 +9,7 @@ import {
   checkForUpdates,
   displayUpdateInfo,
   getUpdateInfo,
-} from '@/utils/app/updateManager.js'
+} from './updateManager.js'
 
 function UpdateTab() {
   const [updateInfo, setUpdateInfo] =
@@ -280,12 +280,12 @@ function UpdateTab() {
 
         <div
           ref={logContainerRef}
-          className="max-h-[200px] overflow-y-auto rounded-md bg-gray-900 p-4 font-mono text-xs leading-snug text-gray-300"
+          className="max-h-[200px] overflow-y-auto rounded-md bg-gray-900 p-4 font-mono text-xs leading-snug text-white"
         >
           {logs.map((log, index) => (
             <div
               key={`${index}-${log}`}
-              className="my-0.5 py-0.5"
+              className="my-0.5 py-0.5 text-white"
             >
               {log}
             </div>
