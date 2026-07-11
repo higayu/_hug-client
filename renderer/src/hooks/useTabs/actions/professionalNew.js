@@ -842,7 +842,7 @@ export function addProfessionalSupportNewAction3(appState) {
 
           const pasteBtn = document.createElement("button");
           pasteBtn.id = "customizePasteBtn";
-          pasteBtn.innerText = "📋 自由項目貼り付け";
+          pasteBtn.innerText = "📋 入力";
           
           // サイズ調整済みスタイル
           pasteBtn.style.position = "fixed";
@@ -904,7 +904,7 @@ export function addProfessionalSupportNewAction3(appState) {
                 this.innerText = "❌ 空です";
                 setTimeout(() => {
                   this.style.backgroundColor = "#4CAF50";
-                  this.innerText = "📋 自由項目貼り付け";
+                  this.innerText = "📋 入力";
                   this.style.transform = "translateY(-50%) scale(1)";
                 }, 2000);
                 return;
@@ -924,7 +924,7 @@ export function addProfessionalSupportNewAction3(appState) {
               this.innerText = "✅ 完了！";
               setTimeout(() => {
                 this.style.backgroundColor = "#4CAF50";
-                this.innerText = "📋 自由項目貼り付け";
+                this.innerText = "📋 入力";
                 this.style.transform = "translateY(-50%) scale(1)";
               }, 2000);
 
@@ -934,7 +934,7 @@ export function addProfessionalSupportNewAction3(appState) {
               this.innerText = "❌ エラー";
               setTimeout(() => {
                 this.style.backgroundColor = "#4CAF50";
-                this.innerText = "📋 自由項目貼り付け";
+                this.innerText = "📋 入力";
                 this.style.transform = "translateY(-50%) scale(1)";
               }, 2000);
             }
@@ -956,7 +956,7 @@ export function addProfessionalSupportNewAction3(appState) {
 
           const draftBtn = document.createElement("button");
           draftBtn.id = "professionalDraftBtn";
-          draftBtn.innerText = "💾 専門的加算保存";
+          draftBtn.innerText = "💾 下書き保存";
           
           // サイズ調整済みスタイル
           draftBtn.style.position = "fixed";

@@ -555,7 +555,7 @@ export function addPersonalRecordTabAction4(appState) {
                     cursor: pointer;
                     font-size: 14px;
                     font-weight: bold;
-                  ">✅ 貼り付け</button>
+                  ">✅ 挿入</button>
                 </div>
               \`;
 
@@ -623,7 +623,7 @@ export function addPersonalRecordTabAction4(appState) {
           // ============================================
           const pasteBtn = document.createElement("button")
           pasteBtn.id = "myPasteBtn"
-          pasteBtn.innerText = "📋 貼り付け"
+          pasteBtn.innerText = "📋 入力"
           
           pasteBtn.style.position = "fixed"
           pasteBtn.style.top = "50%"
@@ -671,7 +671,7 @@ export function addPersonalRecordTabAction4(appState) {
                 this.innerText = "❌ エラー"
                 setTimeout(() => {
                   this.style.backgroundColor = "#4CAF50"
-                  this.innerText = "📋 貼り付け"
+                  this.innerText = "📋 入力"
                   this.style.transform = "translateY(-50%) scale(1)"
                 }, 2000)
                 return
@@ -686,7 +686,7 @@ export function addPersonalRecordTabAction4(appState) {
                 this.innerText = "❌ 空です"
                 setTimeout(() => {
                   this.style.backgroundColor = "#4CAF50"
-                  this.innerText = "📋 貼り付け"
+                  this.innerText = "📋 入力"
                   this.style.transform = "translateY(-50%) scale(1)"
                 }, 2000)
                 return
@@ -706,7 +706,7 @@ export function addPersonalRecordTabAction4(appState) {
               this.innerText = "✅ 完了！"
               setTimeout(() => {
                 this.style.backgroundColor = "#4CAF50"
-                this.innerText = "📋 貼り付け"
+                this.innerText = "📋 入力"
                 this.style.transform = "translateY(-50%) scale(1)"
               }, 2000)
 
@@ -716,7 +716,7 @@ export function addPersonalRecordTabAction4(appState) {
               this.innerText = "❌ エラー"
               setTimeout(() => {
                 this.style.backgroundColor = "#4CAF50"
-                this.innerText = "📋 貼り付け"
+                this.innerText = "📋 入力"
                 this.style.transform = "translateY(-50%) scale(1)"
               }, 2000)
             }
