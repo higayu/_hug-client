@@ -124,14 +124,11 @@ export default function ListBox_Text({ monthStr = "" }) {
   };
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 px-1 py-2 bg-slate-100 rounded-lg">
       {/* 日付セレクトボックス */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          日付を選択
-        </label>
+      <div className="flex justify-around">
         <select
-          className="w-full rounded border border-gray-300 px-3 py-2 bg-white focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+          className="w-[60%] rounded border border-gray-300 px-3 py-2 bg-white focus:ring-2 focus:ring-amber-500 focus:border-transparent"
           value={selectedDate}
           onChange={(e) => setSelectedDate(e.target.value)}
           disabled={dateList.length === 0}
@@ -147,11 +144,9 @@ export default function ListBox_Text({ monthStr = "" }) {
             ))
           )}
         </select>
-        
         {/* 選択中の日付情報 */}
         {selectedDate && (
-          <div className="mt-1 text-xs text-gray-500">
-            {formatDateDisplay(selectedDate)}
+          <div className="flex shrink-0 items-center justify-center text-xs text-gray-500">
             {hasNote(selectedDate) ? " - 記録あり ✅" : " - 記録なし"}
           </div>
         )}
@@ -159,9 +154,6 @@ export default function ListBox_Text({ monthStr = "" }) {
 
       {/* テキストエリア - 選択された日付の内容を表示 */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          個人記録
-        </label>
         <textarea
           className="h-40 w-full rounded bg-gray-700 p-3 text-white resize-none focus:ring-2 focus:ring-amber-500 focus:outline-none"
           value={selectedNote}

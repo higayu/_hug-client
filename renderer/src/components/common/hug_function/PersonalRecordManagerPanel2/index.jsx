@@ -78,7 +78,7 @@ export default function PersonalRecordManagerPanel2() {
             </span>
           ) : (
             <p className="m-0 whitespace-nowrap text-sm text-gray-500">
-              個人記録を取得する児童を選択してください。
+              Not Select
             </p>
           )}
         </div>
