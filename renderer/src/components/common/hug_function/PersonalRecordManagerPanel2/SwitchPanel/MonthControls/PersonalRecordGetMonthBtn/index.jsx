@@ -1,36 +1,83 @@
 import { useCallback, useRef, useState } from "react";
 import { useAppState } from "@/AppStateContext";
 import { useToast } from "@/components/common/ToastContext.jsx";
-import { fetchPersonalRecord } from "@/utils/fetchPersonalRecord";
-import { postServiceRecordsToLocalApi } from "../postServiceRecordsToLocalApi";
+import { fetchPersonalRecord2 } from "./fetchPersonalRecord2";
+import { postServiceRecordsToLocalApi } from "./postServiceRecordsToLocalApi";
 import { useDataBase } from "@/hooks/useDataBase";
 
 const LOG_TAG = "PersonalRecordGet";
 
-function notifyPostResultToasts(postResult, { showSuccessToast, showErrorToast }) {
+function notifyPostResultToasts(
+  postResult,
+  { showSuccessToast, showErrorToast }
+) {
   const { posted = 0, failed = 0 } = postResult ?? {};
 
   if (posted > 0) {
     showSuccessToast(
-      posted === 1 ? "個人記録を保存しました" : `${posted}件の個人記録を保存しました`
+      posted === 1
+        ? "個人記録を保存しました"
+        : `${posted}件の個人記録を保存しました`
     );
   }
+
   if (failed > 0) {
     showErrorToast("個人記録の保存に失敗しました");
   }
 }
 
 /**
- * 選択中児童の個人記録（活動内容 note）を hugview 経由で取得し、コンソールに出力する（テスト用）
+ * YYYY-MM-DD → YYYY-MM に変換
  */
-export default function PersonalRecordUpdateBtn({ dateStr }) {
-  const { SELECT_CHILD, FACILITY_ID, STAFF_ID, CURRENT_YMD } = useAppState();
-  const { showSuccessToast, showErrorToast } = useToast();
+const toMonthStr = (value) => {
+  if (!value) return "";
+
+  // すでに YYYY-MM の場合
+  if (/^\d{4}-\d{2}$/.test(value)) {
+    return value;
+  }
+
+  // YYYY-MM-DD の場合
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    return value.slice(0, 7);
+  }
+
+  return "";
+};
+
+/**
+ * 選択中児童の個人記録を取得し、ローカルDBへ保存するボタン
+ *
+ * @param {string} monthStr YYYY-MM形式
+ * @param {boolean} disabled 親コンポーネントから渡される使用不可フラグ
+ */
+export default function PersonalRecordGetMonthBtn({
+  monthStr,
+  disabled = false,
+}) {
+  const {
+    SELECT_CHILD,
+    FACILITY_ID,
+    STAFF_ID,
+    CURRENT_YMD,
+  } = useAppState();
+
+  const {
+    showSuccessToast,
+    showErrorToast,
+  } = useToast();
+
   const [fetching, setFetching] = useState(false);
   const isFetchingRef = useRef(false);
   const { loadDataBase } = useDataBase();
 
   const runFetch = useCallback(async () => {
+    // 親コンポーネントから使用不可にされている場合
+    if (disabled) {
+      console.warn(`[${LOG_TAG}] 使用不可のため処理を中止しました`);
+      return;
+    }
+
     if (!SELECT_CHILD) {
       console.warn(`[${LOG_TAG}] 児童が選択されていません`);
       return;
@@ -42,7 +89,16 @@ export default function PersonalRecordUpdateBtn({ dateStr }) {
     }
 
     const facilityId = FACILITY_ID || "3";
-    const currentYmd = dateStr || CURRENT_YMD || new Date().toISOString().slice(0, 10);
+
+    // monthStr は親から渡される YYYY-MM 形式
+    // CURRENT_YMD は YYYY-MM-DD 形式なので変換する
+    const yearMonth = monthStr || toMonthStr(CURRENT_YMD);
+
+    if (!yearMonth || !/^\d{4}-\d{2}$/.test(yearMonth)) {
+      console.error(`[${LOG_TAG}] 年月形式が不正: ${yearMonth}`);
+      showErrorToast("年月の形式が不正です");
+      return;
+    }
 
     isFetchingRef.current = true;
     setFetching(true);
@@ -50,14 +106,14 @@ export default function PersonalRecordUpdateBtn({ dateStr }) {
     console.log(`[${LOG_TAG}] 取得開始`, {
       childId: SELECT_CHILD,
       facilityId,
-      currentYmd,
+      yearMonth,
     });
 
     try {
-      const result = await fetchPersonalRecord({
+      const result = await fetchPersonalRecord2({
         childId: SELECT_CHILD,
         facilityId,
-        currentYmd,
+        year_month: yearMonth,
       });
 
       if (!result.ok) {
@@ -71,6 +127,7 @@ export default function PersonalRecordUpdateBtn({ dateStr }) {
         rowCount: result.rowCount,
         presentCount: result.presentCount,
       });
+
       console.log(`[${LOG_TAG}] records:`, result.records);
 
       result.records?.forEach((row) => {
@@ -82,53 +139,77 @@ export default function PersonalRecordUpdateBtn({ dateStr }) {
         });
       });
 
-      const postResult = await postServiceRecordsToLocalApi(result.records, {
-        childrenId: SELECT_CHILD,
-        facilityId,
-        staffId: STAFF_ID,
-      });
+      const postResult = await postServiceRecordsToLocalApi(
+        result.records,
+        {
+          childrenId: SELECT_CHILD,
+          facilityId,
+          staffId: STAFF_ID,
+        }
+      );
 
       console.log(`[${LOG_TAG}] ローカルDB保存`, postResult);
+
       notifyPostResultToasts(postResult, {
         showSuccessToast,
         showErrorToast,
       });
+
       postResult.results?.forEach((row) => {
         if (row.ok) {
-          console.log(`[${LOG_TAG}] Upsert成功 ${row.date}`, row.payload);
+          console.log(
+            `[${LOG_TAG}] Upsert成功 ${row.date}`,
+            row.payload
+          );
         } else if (row.skipped) {
-          console.warn(`[${LOG_TAG}] Upsertスキップ ${row.date}:`, row.error);
+          console.warn(
+            `[${LOG_TAG}] Upsertスキップ ${row.date}:`,
+            row.error
+          );
         } else {
-          console.error(`[${LOG_TAG}] Upsert失敗 ${row.date}:`, row.error);
+          console.error(
+            `[${LOG_TAG}] Upsert失敗 ${row.date}:`,
+            row.error
+          );
         }
       });
 
       await loadDataBase({
         reason: "manual/ProfessionalPlan",
       });
-    } catch (e) {
-      console.error(`[${LOG_TAG}] 例外:`, e);
-      showErrorToast("個人記録の取得・保存でエラーが発生しました");
+    } catch (error) {
+      console.error(`[${LOG_TAG}] 例外:`, error);
+      showErrorToast(
+        "個人記録の取得・保存でエラーが発生しました"
+      );
     } finally {
       isFetchingRef.current = false;
       setFetching(false);
     }
   }, [
+    disabled,
     SELECT_CHILD,
     FACILITY_ID,
+    STAFF_ID,
     CURRENT_YMD,
-    dateStr,
+    monthStr,
     showSuccessToast,
     showErrorToast,
-    STAFF_ID,
+    loadDataBase,
   ]);
+
+  const isDisabled =
+    disabled ||
+    !SELECT_CHILD ||
+    !(monthStr || CURRENT_YMD) ||
+    fetching;
 
   return (
     <button
       type="button"
       id="personal-record-get"
       onClick={runFetch}
-      disabled={!SELECT_CHILD || !(dateStr || CURRENT_YMD) || fetching}
+      disabled={isDisabled}
       className="
         flex items-center justify-center
         bg-amber-500 text-white
@@ -137,7 +218,9 @@ export default function PersonalRecordUpdateBtn({ dateStr }) {
         cursor-pointer transition-all whitespace-nowrap
         hover:bg-amber-600 hover:scale-105
         active:bg-amber-700 active:scale-[0.97]
-        disabled:grayscale disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100
+        disabled:grayscale disabled:opacity-50
+        disabled:cursor-not-allowed
+        disabled:hover:scale-100
       "
     >
       {fetching ? "取得中…" : "記録取得"}

@@ -1,8 +1,8 @@
 import { useCallback, useRef, useState } from "react";
 import { useAppState } from "@/AppStateContext";
 import { useToast } from "@/components/common/ToastContext.jsx";
-import { fetchPersonalRecord2 } from "./fetchPersonalRecord2";
-import { postServiceRecordsToLocalApi } from "./postServiceRecordsToLocalApi";//ローカルサーバに送信
+import { fetchPersonalRecord } from "@/utils/fetchPersonalRecord";
+import { postServiceRecordsToLocalApi } from "./postServiceRecordsToLocalApi";
 import { useDataBase } from "@/hooks/useDataBase";
 
 const LOG_TAG = "PersonalRecordGet";
@@ -21,25 +21,9 @@ function notifyPostResultToasts(postResult, { showSuccessToast, showErrorToast }
 }
 
 /**
- * YYYY-MM-DD → YYYY-MM に変換
- */
-const toMonthStr = (value) => {
-  if (!value) return "";
-  // すでに YYYY-MM の場合
-  if (/^\d{4}-\d{2}$/.test(value)) {
-    return value;
-  }
-  // YYYY-MM-DD の場合
-  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
-    return value.slice(0, 7);
-  }
-  return "";
-};
-
-/**
  * 選択中児童の個人記録（活動内容 note）を hugview 経由で取得し、コンソールに出力する（テスト用）
  */
-export default function PersonalRecordUpdateBtn2({ monthStr }) {
+export default function PersonalRecordGetDayBtn({ dateStr }) {
   const { SELECT_CHILD, FACILITY_ID, STAFF_ID, CURRENT_YMD } = useAppState();
   const { showSuccessToast, showErrorToast } = useToast();
   const [fetching, setFetching] = useState(false);
@@ -58,16 +42,7 @@ export default function PersonalRecordUpdateBtn2({ monthStr }) {
     }
 
     const facilityId = FACILITY_ID || "3";
-    // monthStr は親から渡される YYYY-MM 形式
-    // CURRENT_YMD は YYYY-MM-DD 形式なので変換が必要
-    const yearMonth = monthStr || toMonthStr(CURRENT_YMD);
-
-    // yearMonth が正しい形式かチェック
-    if (!yearMonth || !/^\d{4}-\d{2}$/.test(yearMonth)) {
-      console.error(`[${LOG_TAG}] 年月形式が不正: ${yearMonth}`);
-      showErrorToast("年月の形式が不正です");
-      return;
-    }
+    const currentYmd = dateStr || CURRENT_YMD || new Date().toISOString().slice(0, 10);
 
     isFetchingRef.current = true;
     setFetching(true);
@@ -75,14 +50,14 @@ export default function PersonalRecordUpdateBtn2({ monthStr }) {
     console.log(`[${LOG_TAG}] 取得開始`, {
       childId: SELECT_CHILD,
       facilityId,
-      yearMonth,
+      currentYmd,
     });
 
     try {
-      const result = await fetchPersonalRecord2({
+      const result = await fetchPersonalRecord({
         childId: SELECT_CHILD,
-        facilityId: facilityId,
-        year_month: yearMonth,
+        facilityId,
+        currentYmd,
       });
 
       if (!result.ok) {
@@ -142,11 +117,10 @@ export default function PersonalRecordUpdateBtn2({ monthStr }) {
     SELECT_CHILD,
     FACILITY_ID,
     CURRENT_YMD,
-    monthStr,
+    dateStr,
     showSuccessToast,
     showErrorToast,
     STAFF_ID,
-    loadDataBase,
   ]);
 
   return (
@@ -154,7 +128,7 @@ export default function PersonalRecordUpdateBtn2({ monthStr }) {
       type="button"
       id="personal-record-get"
       onClick={runFetch}
-      disabled={!SELECT_CHILD || !(monthStr || CURRENT_YMD) || fetching}
+      disabled={!SELECT_CHILD || !(dateStr || CURRENT_YMD) || fetching}
       className="
         flex items-center justify-center
         bg-amber-500 text-white
