@@ -343,7 +343,7 @@ export function addPersonalRecordTabAction4(appState) {
     }
 
     // ===============================
-    // 🔽 content.jsスタイルのボタンを生成（クリップボードエラー修正版）
+    // 🔽 content.jsスタイルのボタンを生成（クリップボードエラー修正版 + サイズ調整）
     // ===============================
     await newWebview.executeJavaScript(`
       (function () {
@@ -447,17 +447,14 @@ export function addPersonalRecordTabAction4(appState) {
               textarea.style.top = '-9999px';
               document.body.appendChild(textarea);
               
-              // フォーカスを設定
               const activeElement = document.activeElement;
               textarea.focus();
               
-              // execCommandで貼り付けを実行
               const success = document.execCommand('paste');
               
               if (success) {
                 const text = textarea.value;
                 document.body.removeChild(textarea);
-                // 元のフォーカスを復元
                 if (activeElement) activeElement.focus();
                 if (text && text.length > 0) {
                   console.log("✅ execCommandで読み取り成功");
@@ -475,7 +472,6 @@ export function addPersonalRecordTabAction4(appState) {
             // 方法3: 手動入力ダイアログ（最終手段）
             console.warn("⚠️ 自動読み取りができないため、手動入力を促します");
             return new Promise((resolve) => {
-              // モーダルダイアログを作成
               const overlay = document.createElement('div');
               overlay.style.position = 'fixed';
               overlay.style.top = '0';
@@ -539,23 +535,19 @@ export function addPersonalRecordTabAction4(appState) {
               const confirmBtn = dialog.querySelector('#manualPasteConfirm');
               const cancelBtn = dialog.querySelector('#manualPasteCancel');
 
-              // テキストエリアにフォーカス
               setTimeout(() => textarea.focus(), 100);
 
-              // 確認ボタン
               confirmBtn.addEventListener('click', () => {
                 const text = textarea.value;
                 document.body.removeChild(overlay);
                 resolve(text && text.trim().length > 0 ? text : null);
               });
 
-              // キャンセルボタン
               cancelBtn.addEventListener('click', () => {
                 document.body.removeChild(overlay);
                 resolve(null);
               });
 
-              // Ctrl+Enterで確認
               textarea.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
                   confirmBtn.click();
@@ -565,29 +557,30 @@ export function addPersonalRecordTabAction4(appState) {
           }
 
           // ============================================
-          // 1. 貼り付けボタン（📋）- 改良版
+          // 1. 貼り付けボタン（📋）- サイズ調整版
           // ============================================
           const pasteBtn = document.createElement("button")
           pasteBtn.id = "myPasteBtn"
           pasteBtn.innerText = "📋 貼り付け"
           
-          // 貼り付けボタンのスタイル
+          // 貼り付けボタンのスタイル（サイズ調整）
           pasteBtn.style.position = "fixed"
           pasteBtn.style.top = "50%"
-          pasteBtn.style.right = "160px"
+          pasteBtn.style.right = "180px"  // 間隔を広げた（160px → 180px）
           pasteBtn.style.transform = "translateY(-50%)"
           pasteBtn.style.zIndex = "999999"
-          pasteBtn.style.padding = "15px 25px"
+          pasteBtn.style.padding = "10px 18px"  // パディングを縮小（15px 25px → 10px 18px）
           pasteBtn.style.color = "white"
-          pasteBtn.style.fontSize = "18px"
+          pasteBtn.style.fontSize = "14px"  // フォントサイズを縮小（18px → 14px）
           pasteBtn.style.fontWeight = "bold"
           pasteBtn.style.border = "none"
-          pasteBtn.style.borderRadius = "10px"
+          pasteBtn.style.borderRadius = "8px"  // 角丸を少し小さく（10px → 8px）
           pasteBtn.style.cursor = "pointer"
-          pasteBtn.style.boxShadow = "0 4px 15px rgba(0,0,0,0.3)"
+          pasteBtn.style.boxShadow = "0 3px 12px rgba(0,0,0,0.3)"
           pasteBtn.style.transition = "all 0.3s ease"
-          pasteBtn.style.letterSpacing = "1px"
+          pasteBtn.style.letterSpacing = "0.5px"  // 文字間隔を調整
           pasteBtn.style.backgroundColor = "#4CAF50"
+          pasteBtn.style.whiteSpace = "nowrap"  // テキストを折り返さない
 
           // ホバー効果
           pasteBtn.addEventListener("mouseenter", () => {
@@ -596,20 +589,18 @@ export function addPersonalRecordTabAction4(appState) {
           })
           pasteBtn.addEventListener("mouseleave", () => {
             pasteBtn.style.transform = "translateY(-50%) scale(1)"
-            pasteBtn.style.boxShadow = "0 4px 15px rgba(0,0,0,0.3)"
+            pasteBtn.style.boxShadow = "0 3px 12px rgba(0,0,0,0.3)"
           })
 
-          // 貼り付けボタンのクリック処理（改良版）
+          // 貼り付けボタンのクリック処理
           pasteBtn.addEventListener("click", async function() {
             console.log("📋 貼り付けボタンがクリックされました")
             
-            // フィードバック（処理中）
             this.style.backgroundColor = "#FF9800"
             this.innerText = "⏳ 貼り付け中..."
             this.style.transform = "translateY(-50%) scale(0.95)"
             
             try {
-              // クリップボードからテキストを読み取り（改良版）
               const clipboardText = await getClipboardText();
               
               if (!clipboardText || clipboardText.trim().length === 0) {
@@ -624,7 +615,6 @@ export function addPersonalRecordTabAction4(appState) {
                 return
               }
 
-              // テキストエリアを探す
               const textarea = document.querySelector('textarea[name="note"][data-field-key="note"]') ||
                                document.querySelector('textarea[name="note"]')
               
@@ -640,15 +630,12 @@ export function addPersonalRecordTabAction4(appState) {
                 return
               }
 
-              // テキストエリアにスクロール
               scrollToElement(textarea)
               
-              // テキストを埋め込み
               textarea.value = clipboardText
               textarea.dispatchEvent(new Event('input', { bubbles: true }))
               textarea.dispatchEvent(new Event('change', { bubbles: true }))
               
-              // ハイライト表示
               highlightElement(textarea)
               textarea.focus()
               
@@ -674,32 +661,33 @@ export function addPersonalRecordTabAction4(appState) {
           })
 
           document.body.appendChild(pasteBtn)
-          console.log("✅ 貼り付けボタン生成完了（webview対応版）")
+          console.log("✅ 貼り付けボタン生成完了（サイズ調整版）")
 
           // ============================================
-          // 2. 下書き保存ボタン（💾）- content.jsスタイル
+          // 2. 下書き保存ボタン（💾）- サイズ調整版
           // ============================================
           const draftBtn = document.createElement("button")
           draftBtn.id = "myCustomDraftBtn"
           draftBtn.innerText = "💾 下書き保存"
           
-          // 下書き保存ボタンのスタイル
+          // 下書き保存ボタンのスタイル（サイズ調整）
           draftBtn.style.position = "fixed"
           draftBtn.style.top = "50%"
           draftBtn.style.right = "20px"
           draftBtn.style.transform = "translateY(-50%)"
           draftBtn.style.zIndex = "999999"
-          draftBtn.style.padding = "15px 25px"
+          draftBtn.style.padding = "10px 18px"  // パディングを縮小
           draftBtn.style.color = "white"
-          draftBtn.style.fontSize = "18px"
+          draftBtn.style.fontSize = "14px"  // フォントサイズを縮小
           draftBtn.style.fontWeight = "bold"
           draftBtn.style.border = "none"
-          draftBtn.style.borderRadius = "10px"
+          draftBtn.style.borderRadius = "8px"  // 角丸を少し小さく
           draftBtn.style.cursor = "pointer"
-          draftBtn.style.boxShadow = "0 4px 15px rgba(0,0,0,0.3)"
+          draftBtn.style.boxShadow = "0 3px 12px rgba(0,0,0,0.3)"
           draftBtn.style.transition = "all 0.3s ease"
-          draftBtn.style.letterSpacing = "1px"
+          draftBtn.style.letterSpacing = "0.5px"
           draftBtn.style.backgroundColor = "#9C27B0"
+          draftBtn.style.whiteSpace = "nowrap"
 
           // ホバー効果
           draftBtn.addEventListener("mouseenter", () => {
@@ -708,28 +696,24 @@ export function addPersonalRecordTabAction4(appState) {
           })
           draftBtn.addEventListener("mouseleave", () => {
             draftBtn.style.transform = "translateY(-50%) scale(1)"
-            draftBtn.style.boxShadow = "0 4px 15px rgba(0,0,0,0.3)"
+            draftBtn.style.boxShadow = "0 3px 12px rgba(0,0,0,0.3)"
           })
 
           // 下書き保存ボタンのクリック処理
           draftBtn.addEventListener("click", function() {
             console.log("💾 下書き保存ボタンがクリックされました")
             
-            // フィードバック（処理中）
             this.style.backgroundColor = "#FF9800"
             this.innerText = "⏳ 保存中..."
             this.style.transform = "translateY(-50%) scale(0.95)"
             
             try {
-              // 関数4のセレクタを使用（最優先）
               let saveButton = document.querySelector('button[data-save-button][value="1"]')
               
-              // フォールバック1: 従来のセレクタ
               if (!saveButton) {
                 saveButton = document.querySelector('button.btn.btn-sm.draft[data-save-button=""]')
               }
               
-              // フォールバック2: テキスト検索
               if (!saveButton) {
                 const allButtons = document.querySelectorAll('button')
                 for (const btn of allButtons) {
@@ -756,22 +740,16 @@ export function addPersonalRecordTabAction4(appState) {
 
               console.log("✅ 下書き保存ボタンを発見:", saveButton)
               
-              // 保存ボタンまでスクロール
               scrollToElement(saveButton)
-              
-              // ハイライト表示
               highlightElement(saveButton)
 
-              // クリック実行
               setTimeout(() => {
                 try {
-                  // 方法1: 標準クリック
                   saveButton.click()
                   console.log("✅ 標準クリック実行")
                 } catch (e) {
                   console.warn("⚠️ 標準クリック失敗:", e)
                   try {
-                    // 方法2: dispatchEvent
                     const clickEvent = new MouseEvent('click', {
                       view: window,
                       bubbles: true,
@@ -784,7 +762,6 @@ export function addPersonalRecordTabAction4(appState) {
                   }
                 }
                 
-                // 成功フィードバック
                 this.style.backgroundColor = "#4CAF50"
                 this.innerText = "✅ 保存完了！"
                 setTimeout(() => {
@@ -807,14 +784,14 @@ export function addPersonalRecordTabAction4(appState) {
           })
 
           document.body.appendChild(draftBtn)
-          console.log("✅ 下書き保存ボタン生成完了（content.jsスタイル）")
+          console.log("✅ 下書き保存ボタン生成完了（サイズ調整版）")
 
           // ============================================
           // 3. デバッグ情報
           // ============================================
-          console.log("=== ボタン生成完了 ===")
-          console.log("📋 貼り付けボタン: 右から160px")
-          console.log("💾 下書き保存ボタン: 右から20px")
+          console.log("=== ボタン生成完了（サイズ調整版） ===")
+          console.log("📋 貼り付けボタン: 右から180px（サイズ: 10px 18px, 14px）")
+          console.log("💾 下書き保存ボタン: 右から20px（サイズ: 10px 18px, 14px）")
           console.log("テキストエリアの有無:", 
             document.querySelector('textarea[name="note"]') ? "あり" : "なし"
           )

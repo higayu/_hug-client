@@ -573,7 +573,7 @@ export function addProfessionalSupportNewAction3(appState) {
         ` : ''}
 
         // ===============================
-        // ② content.jsスタイルのボタン埋め込み処理
+        // ② content.jsスタイルのボタン埋め込み処理（サイズ調整版）
         // ===============================
 
         // ============================================
@@ -638,27 +638,144 @@ export function addProfessionalSupportNewAction3(appState) {
         }
 
         // ============================================
-        // 共通関数: クリップボードからテキストを読み取り
+        // 改良版: クリップボードからテキストを読み取る関数（webview対応）
         // ============================================
         async function getClipboardText() {
+          // 方法1: 標準のクリップボードAPI
           try {
-            if (!navigator.clipboard) {
-              console.warn("クリップボードAPIが利用できません");
-              return null;
+            if (navigator.clipboard && navigator.clipboard.readText) {
+              const text = await navigator.clipboard.readText();
+              if (text && text.length > 0) {
+                console.log("✅ クリップボードAPIで読み取り成功");
+                return text;
+              }
             }
-            const text = await navigator.clipboard.readText();
-            return text;
-          } catch (error) {
-            console.error("クリップボード読み取りエラー:", error);
-            return null;
+          } catch (apiError) {
+            console.warn("⚠️ クリップボードAPI失敗:", apiError.message);
           }
+
+          // 方法2: execCommand（webviewで動作することが多い）
+          try {
+            const textarea = document.createElement('textarea');
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            textarea.style.left = '-9999px';
+            textarea.style.top = '-9999px';
+            document.body.appendChild(textarea);
+            
+            const activeElement = document.activeElement;
+            textarea.focus();
+            
+            const success = document.execCommand('paste');
+            
+            if (success) {
+              const text = textarea.value;
+              document.body.removeChild(textarea);
+              if (activeElement) activeElement.focus();
+              if (text && text.length > 0) {
+                console.log("✅ execCommandで読み取り成功");
+                return text;
+              }
+            }
+            
+            document.body.removeChild(textarea);
+            if (activeElement) activeElement.focus();
+            console.warn("⚠️ execCommandでの貼り付けに失敗");
+          } catch (execError) {
+            console.warn("⚠️ execCommandエラー:", execError.message);
+          }
+
+          // 方法3: 手動入力ダイアログ（最終手段）
+          console.warn("⚠️ 自動読み取りができないため、手動入力を促します");
+          return new Promise((resolve) => {
+            const overlay = document.createElement('div');
+            overlay.style.position = 'fixed';
+            overlay.style.top = '0';
+            overlay.style.left = '0';
+            overlay.style.width = '100%';
+            overlay.style.height = '100%';
+            overlay.style.backgroundColor = 'rgba(0,0,0,0.5)';
+            overlay.style.zIndex = '9999999';
+            overlay.style.display = 'flex';
+            overlay.style.justifyContent = 'center';
+            overlay.style.alignItems = 'center';
+
+            const dialog = document.createElement('div');
+            dialog.style.backgroundColor = 'white';
+            dialog.style.padding = '30px';
+            dialog.style.borderRadius = '10px';
+            dialog.style.maxWidth = '500px';
+            dialog.style.width = '90%';
+            dialog.style.boxShadow = '0 10px 40px rgba(0,0,0,0.3)';
+
+            dialog.innerHTML = \`
+              <h3 style="margin-top: 0; color: #333;">📋 クリップボードの内容を貼り付けてください</h3>
+              <p style="color: #666; font-size: 14px;">自動読み取りに失敗しました。手動で貼り付けてください。</p>
+              <textarea id="manualPasteTextarea" style="
+                width: 100%;
+                height: 150px;
+                padding: 10px;
+                border: 2px solid #4CAF50;
+                border-radius: 5px;
+                font-size: 14px;
+                font-family: inherit;
+                box-sizing: border-box;
+                resize: vertical;
+              " placeholder="ここにテキストを貼り付けてください (Ctrl+V / ⌘V)"></textarea>
+              <div style="margin-top: 15px; display: flex; gap: 10px; justify-content: flex-end;">
+                <button id="manualPasteCancel" style="
+                  padding: 10px 20px;
+                  border: 1px solid #ccc;
+                  border-radius: 5px;
+                  background: white;
+                  cursor: pointer;
+                  font-size: 14px;
+                ">キャンセル</button>
+                <button id="manualPasteConfirm" style="
+                  padding: 10px 20px;
+                  border: none;
+                  border-radius: 5px;
+                  background: #4CAF50;
+                  color: white;
+                  cursor: pointer;
+                  font-size: 14px;
+                  font-weight: bold;
+                ">✅ 貼り付け</button>
+              </div>
+            \`;
+
+            overlay.appendChild(dialog);
+            document.body.appendChild(overlay);
+
+            const textarea = dialog.querySelector('#manualPasteTextarea');
+            const confirmBtn = dialog.querySelector('#manualPasteConfirm');
+            const cancelBtn = dialog.querySelector('#manualPasteCancel');
+
+            setTimeout(() => textarea.focus(), 100);
+
+            confirmBtn.addEventListener('click', () => {
+              const text = textarea.value;
+              document.body.removeChild(overlay);
+              resolve(text && text.trim().length > 0 ? text : null);
+            });
+
+            cancelBtn.addEventListener('click', () => {
+              document.body.removeChild(overlay);
+              resolve(null);
+            });
+
+            textarea.addEventListener('keydown', (e) => {
+              if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                confirmBtn.click();
+              }
+            });
+          });
         }
 
         // ============================================
-        // 1. 自由項目貼り付けボタン（📋）
+        // 1. 自由項目貼り付けボタン（📋）- サイズ調整版
         // ============================================
         (function createPasteButton() {
-          // 既存ボタンがあれば削除
           const existingPasteBtn = document.getElementById("customizePasteBtn");
           if (existingPasteBtn) {
             existingPasteBtn.remove();
@@ -669,35 +786,34 @@ export function addProfessionalSupportNewAction3(appState) {
           pasteBtn.id = "customizePasteBtn";
           pasteBtn.innerText = "📋 自由項目貼り付け";
           
-          // スタイル設定
+          // サイズ調整済みスタイル
           pasteBtn.style.position = "fixed";
           pasteBtn.style.top = "50%";
-          pasteBtn.style.right = "200px";
+          pasteBtn.style.right = "180px";
           pasteBtn.style.transform = "translateY(-50%)";
           pasteBtn.style.zIndex = "999999";
-          pasteBtn.style.padding = "15px 25px";
+          pasteBtn.style.padding = "10px 18px";
           pasteBtn.style.color = "white";
-          pasteBtn.style.fontSize = "18px";
+          pasteBtn.style.fontSize = "14px";
           pasteBtn.style.fontWeight = "bold";
           pasteBtn.style.border = "none";
-          pasteBtn.style.borderRadius = "10px";
+          pasteBtn.style.borderRadius = "8px";
           pasteBtn.style.cursor = "pointer";
-          pasteBtn.style.boxShadow = "0 4px 15px rgba(0,0,0,0.3)";
+          pasteBtn.style.boxShadow = "0 3px 12px rgba(0,0,0,0.3)";
           pasteBtn.style.transition = "all 0.3s ease";
-          pasteBtn.style.letterSpacing = "1px";
+          pasteBtn.style.letterSpacing = "0.5px";
           pasteBtn.style.backgroundColor = "#4CAF50";
+          pasteBtn.style.whiteSpace = "nowrap";
 
-          // ホバー効果
           pasteBtn.addEventListener("mouseenter", () => {
             pasteBtn.style.transform = "translateY(-50%) scale(1.05)";
             pasteBtn.style.boxShadow = "0 6px 20px rgba(0,0,0,0.4)";
           });
           pasteBtn.addEventListener("mouseleave", () => {
             pasteBtn.style.transform = "translateY(-50%) scale(1)";
-            pasteBtn.style.boxShadow = "0 4px 15px rgba(0,0,0,0.3)";
+            pasteBtn.style.boxShadow = "0 3px 12px rgba(0,0,0,0.3)";
           });
 
-          // クリック処理
           pasteBtn.addEventListener("click", async function() {
             console.log("📋 自由項目貼り付けボタンがクリックされました");
             
@@ -708,9 +824,10 @@ export function addProfessionalSupportNewAction3(appState) {
             try {
               const clipboardText = await getClipboardText();
               
-              if (!clipboardText) {
+              if (!clipboardText || clipboardText.trim().length === 0) {
+                console.error("❌ クリップボードが空です");
                 this.style.backgroundColor = "#f44336";
-                this.innerText = "❌ エラー";
+                this.innerText = "❌ 空です";
                 setTimeout(() => {
                   this.style.backgroundColor = "#4CAF50";
                   this.innerText = "📋 自由項目貼り付け";
@@ -719,7 +836,6 @@ export function addProfessionalSupportNewAction3(appState) {
                 return;
               }
 
-              // 自由項目テキストエリアを探す
               const textarea = document.querySelector('textarea[name="customize[contents][]"]');
               
               if (!textarea) {
@@ -734,15 +850,12 @@ export function addProfessionalSupportNewAction3(appState) {
                 return;
               }
 
-              // テキストエリアにスクロール
               scrollToElement(textarea);
               
-              // テキストを埋め込み
               textarea.value = clipboardText;
               textarea.dispatchEvent(new Event('input', { bubbles: true }));
               textarea.dispatchEvent(new Event('change', { bubbles: true }));
               
-              // ハイライト表示
               highlightElement(textarea);
               textarea.focus();
               
@@ -768,14 +881,13 @@ export function addProfessionalSupportNewAction3(appState) {
           });
 
           document.body.appendChild(pasteBtn);
-          console.log("✅ 自由項目貼り付けボタン生成完了");
+          console.log("✅ 自由項目貼り付けボタン生成完了（サイズ調整版）");
         })();
 
         // ============================================
-        // 2. 専門的加算 下書き保存ボタン（💾）
+        // 2. 専門的加算 下書き保存ボタン（💾）- サイズ調整版
         // ============================================
         (function createDraftButton() {
-          // 既存ボタンがあれば削除
           const existingDraftBtn = document.getElementById("professionalDraftBtn");
           if (existingDraftBtn) {
             existingDraftBtn.remove();
@@ -786,35 +898,34 @@ export function addProfessionalSupportNewAction3(appState) {
           draftBtn.id = "professionalDraftBtn";
           draftBtn.innerText = "💾 専門的加算保存";
           
-          // スタイル設定
+          // サイズ調整済みスタイル
           draftBtn.style.position = "fixed";
           draftBtn.style.top = "50%";
           draftBtn.style.right = "20px";
           draftBtn.style.transform = "translateY(-50%)";
           draftBtn.style.zIndex = "999999";
-          draftBtn.style.padding = "15px 25px";
+          draftBtn.style.padding = "10px 18px";
           draftBtn.style.color = "white";
-          draftBtn.style.fontSize = "18px";
+          draftBtn.style.fontSize = "14px";
           draftBtn.style.fontWeight = "bold";
           draftBtn.style.border = "none";
-          draftBtn.style.borderRadius = "10px";
+          draftBtn.style.borderRadius = "8px";
           draftBtn.style.cursor = "pointer";
-          draftBtn.style.boxShadow = "0 4px 15px rgba(0,0,0,0.3)";
+          draftBtn.style.boxShadow = "0 3px 12px rgba(0,0,0,0.3)";
           draftBtn.style.transition = "all 0.3s ease";
-          draftBtn.style.letterSpacing = "1px";
+          draftBtn.style.letterSpacing = "0.5px";
           draftBtn.style.backgroundColor = "#9C27B0";
+          draftBtn.style.whiteSpace = "nowrap";
 
-          // ホバー効果
           draftBtn.addEventListener("mouseenter", () => {
             draftBtn.style.transform = "translateY(-50%) scale(1.05)";
             draftBtn.style.boxShadow = "0 6px 20px rgba(0,0,0,0.4)";
           });
           draftBtn.addEventListener("mouseleave", () => {
             draftBtn.style.transform = "translateY(-50%) scale(1)";
-            draftBtn.style.boxShadow = "0 4px 15px rgba(0,0,0,0.3)";
+            draftBtn.style.boxShadow = "0 3px 12px rgba(0,0,0,0.3)";
           });
 
-          // クリック処理（関数 addProfessionalSupportNewAction2 のロジック採用）
           draftBtn.addEventListener("click", function() {
             console.log("💾 専門的加算 下書き保存ボタンがクリックされました");
             
@@ -823,20 +934,16 @@ export function addProfessionalSupportNewAction3(appState) {
             this.style.transform = "translateY(-50%) scale(0.95)";
             
             try {
-              // 方法1: 関数で使用しているセレクタ（優先）
               let saveButton = document.querySelector('button.save[value="draft"]');
               
-              // 方法2: 関数4のセレクタ（フォールバック）
               if (!saveButton) {
                 saveButton = document.querySelector('button[data-save-button][value="1"]');
               }
               
-              // 方法3: 従来のセレクタ
               if (!saveButton) {
                 saveButton = document.querySelector('button.btn.btn-sm.draft[data-save-button=""]');
               }
               
-              // 方法4: テキスト検索でのフォールバック
               if (!saveButton) {
                 const allButtons = document.querySelectorAll('button');
                 for (const btn of allButtons) {
@@ -864,22 +971,16 @@ export function addProfessionalSupportNewAction3(appState) {
 
               console.log("✅ 下書き保存ボタンを発見:", saveButton);
               
-              // 保存ボタンまでスクロール
               scrollToElement(saveButton);
-              
-              // ハイライト表示
               highlightElement(saveButton);
 
-              // クリック実行
               setTimeout(() => {
                 try {
-                  // 方法1: 標準クリック
                   saveButton.click();
                   console.log("✅ 標準クリック実行");
                 } catch (e) {
                   console.warn("⚠️ 標準クリック失敗:", e);
                   try {
-                    // 方法2: dispatchEvent
                     const clickEvent = new MouseEvent('click', {
                       view: window,
                       bubbles: true,
@@ -892,7 +993,6 @@ export function addProfessionalSupportNewAction3(appState) {
                   }
                 }
                 
-                // 成功フィードバック
                 this.style.backgroundColor = "#4CAF50";
                 this.innerText = "✅ 保存完了！";
                 setTimeout(() => {
@@ -915,15 +1015,15 @@ export function addProfessionalSupportNewAction3(appState) {
           });
 
           document.body.appendChild(draftBtn);
-          console.log("✅ 専門的加算 下書き保存ボタン生成完了");
+          console.log("✅ 専門的加算 下書き保存ボタン生成完了（サイズ調整版）");
         })();
 
         // ===============================
         // ③ デバッグ情報
         // ===============================
-        console.log("=== ボタン生成完了 ===");
-        console.log("📋 自由項目貼り付けボタン: 右から200px");
-        console.log("💾 専門的加算保存ボタン: 右から20px");
+        console.log("=== ボタン生成完了（サイズ調整版） ===");
+        console.log("📋 自由項目貼り付けボタン: 右から180px（サイズ: 10px 18px, 14px）");
+        console.log("💾 専門的加算保存ボタン: 右から20px（サイズ: 10px 18px, 14px）");
         console.log("自由項目テキストエリアの有無:", 
           document.querySelector('textarea[name="customize[contents][]"]') ? "あり" : "なし"
         );

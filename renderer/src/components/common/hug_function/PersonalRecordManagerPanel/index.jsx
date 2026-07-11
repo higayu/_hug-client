@@ -64,21 +64,21 @@ export default function PersonalRecordManagerPanel() {
     applyDisplayFromStore();
   }, [applyDisplayFromStore]);
 
-  const handleRefreshAndDisplay = async () => {
-    setRefreshing(true);
-    setPersonalRecordTextError("");
+  // const handleRefreshAndDisplay = async () => {
+  //   setRefreshing(true);
+  //   setPersonalRecordTextError("");
 
-    try {
-      await loadDataBase({
-        reason: "manual/ProfessionalPlan",
-      });
-    } catch (error) {
-      console.error("個人記録の再読み込みに失敗しました:", error);
-      setPersonalRecordTextError("テーブルデータの再取得に失敗しました。");
-    } finally {
-      setRefreshing(false);
-    }
-  };
+  //   try {
+  //     await loadDataBase({
+  //       reason: "manual/ProfessionalPlan",
+  //     });
+  //   } catch (error) {
+  //     console.error("個人記録の再読み込みに失敗しました:", error);
+  //     setPersonalRecordTextError("テーブルデータの再取得に失敗しました。");
+  //   } finally {
+  //     setRefreshing(false);
+  //   }
+  // };
 
   return (
     <div className="w-full space-y-3">
@@ -92,15 +92,6 @@ export default function PersonalRecordManagerPanel() {
 
         <PersonalRecordUpdateBtn dateStr={date} />
       </div>
-
-      <button
-        type="button"
-        onClick={handleRefreshAndDisplay}
-        disabled={refreshing || !SELECT_CHILD}
-        className="rounded bg-indigo-600 px-3 py-2 text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
-      >
-        {refreshing ? "読み込み中…" : "個人記録の表示"}
-      </button>
 
       {personalRecordTextError && (
         <div className="rounded bg-red-100 p-2 text-sm text-red-700">
