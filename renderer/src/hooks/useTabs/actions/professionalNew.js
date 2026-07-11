@@ -451,6 +451,9 @@ export function addProfessionalSupportNewAction2(appState) {
   activateTab(newId)
 }
 
+// ============================================
+// addProfessionalSupportNewAction3（修正版 - 改行対応 + 初期値設定 + サイズ調整）
+// ============================================
 export function addProfessionalSupportNewAction3(appState) {
   if (!appState.SELECT_CHILD) {
     alert('子どもを選択してください')
@@ -573,7 +576,7 @@ export function addProfessionalSupportNewAction3(appState) {
         ` : ''}
 
         // ===============================
-        // ② content.jsスタイルのボタン埋め込み処理（サイズ調整版）
+        // ② content.jsスタイルのボタン埋め込み処理（改行対応 + 初期値設定 + サイズ調整）
         // ===============================
 
         // ============================================
@@ -638,9 +641,9 @@ export function addProfessionalSupportNewAction3(appState) {
         }
 
         // ============================================
-        // 改良版: クリップボードからテキストを読み取る関数（webview対応）
+        // 改良版: クリップボードからテキストを読み取る関数（webview対応 + 初期値設定 + 改行対応）
         // ============================================
-        async function getClipboardText() {
+        async function getClipboardText(targetTextarea) {
           // 方法1: 標準のクリップボードAPI
           try {
             if (navigator.clipboard && navigator.clipboard.readText) {
@@ -685,9 +688,16 @@ export function addProfessionalSupportNewAction3(appState) {
             console.warn("⚠️ execCommandエラー:", execError.message);
           }
 
-          // 方法3: 手動入力ダイアログ（最終手段）
+          // 方法3: 手動入力ダイアログ（最終手段）- 初期値付き + 改行対応
           console.warn("⚠️ 自動読み取りができないため、手動入力を促します");
           return new Promise((resolve) => {
+            // 既存の値を取得（初期値用）
+            let existingValue = '';
+            if (targetTextarea) {
+              existingValue = targetTextarea.value || '';
+              console.log("📝 既存の値を初期値として設定:", existingValue.substring(0, 50) + (existingValue.length > 50 ? "..." : ""));
+            }
+
             const overlay = document.createElement('div');
             overlay.style.position = 'fixed';
             overlay.style.top = '0';
@@ -704,24 +714,33 @@ export function addProfessionalSupportNewAction3(appState) {
             dialog.style.backgroundColor = 'white';
             dialog.style.padding = '30px';
             dialog.style.borderRadius = '10px';
-            dialog.style.maxWidth = '500px';
+            dialog.style.maxWidth = '600px';
             dialog.style.width = '90%';
             dialog.style.boxShadow = '0 10px 40px rgba(0,0,0,0.3)';
+
+            const existingValueMessage = existingValue 
+              ? \`<p style="color: #4CAF50; font-size: 13px; margin: 5px 0 10px 0;">
+                  ✅ 現在の値が初期設定されています（編集可能です）
+                 </p>\`
+              : \`<p style="color: #999; font-size: 13px; margin: 5px 0 10px 0;">
+                  💡 現在の値は空です
+                 </p>\`;
 
             dialog.innerHTML = \`
               <h3 style="margin-top: 0; color: #333;">📋 クリップボードの内容を貼り付けてください</h3>
               <p style="color: #666; font-size: 14px;">自動読み取りに失敗しました。手動で貼り付けてください。</p>
+              \${existingValueMessage}
               <textarea id="manualPasteTextarea" style="
                 width: 100%;
-                height: 150px;
+                height: 200px;
                 padding: 10px;
-                border: 2px solid #4CAF50;
+                border: 2px solid \${existingValue ? '#4CAF50' : '#ccc'};
                 border-radius: 5px;
                 font-size: 14px;
                 font-family: inherit;
                 box-sizing: border-box;
                 resize: vertical;
-              " placeholder="ここにテキストを貼り付けてください (Ctrl+V / ⌘V)"></textarea>
+              " placeholder="ここにテキストを貼り付けてください (Ctrl+V / ⌘V)">\${existingValue}</textarea>
               <div style="margin-top: 15px; display: flex; gap: 10px; justify-content: flex-end;">
                 <button id="manualPasteCancel" style="
                   padding: 10px 20px;
@@ -731,6 +750,15 @@ export function addProfessionalSupportNewAction3(appState) {
                   cursor: pointer;
                   font-size: 14px;
                 ">キャンセル</button>
+                <button id="manualPasteClear" style="
+                  padding: 10px 20px;
+                  border: 1px solid #f44336;
+                  border-radius: 5px;
+                  background: white;
+                  color: #f44336;
+                  cursor: pointer;
+                  font-size: 14px;
+                ">🗑️ クリア</button>
                 <button id="manualPasteConfirm" style="
                   padding: 10px 20px;
                   border: none;
@@ -750,30 +778,60 @@ export function addProfessionalSupportNewAction3(appState) {
             const textarea = dialog.querySelector('#manualPasteTextarea');
             const confirmBtn = dialog.querySelector('#manualPasteConfirm');
             const cancelBtn = dialog.querySelector('#manualPasteCancel');
+            const clearBtn = dialog.querySelector('#manualPasteClear');
 
-            setTimeout(() => textarea.focus(), 100);
+            // テキストエリアにフォーカス
+            setTimeout(() => {
+              textarea.focus();
+              if (existingValue) {
+                textarea.select();
+              }
+            }, 100);
 
+            // クリアボタン
+            clearBtn.addEventListener('click', () => {
+              textarea.value = '';
+              textarea.focus();
+              console.log("🗑️ テキストをクリアしました");
+            });
+
+            // 確認ボタン
             confirmBtn.addEventListener('click', () => {
               const text = textarea.value;
               document.body.removeChild(overlay);
               resolve(text && text.trim().length > 0 ? text : null);
             });
 
+            // キャンセルボタン
             cancelBtn.addEventListener('click', () => {
               document.body.removeChild(overlay);
               resolve(null);
             });
 
+            // ★ 修正ポイント: Enterキーの処理（改行を許可）
             textarea.addEventListener('keydown', (e) => {
+              // Ctrl+Enter または Cmd+Enter の場合のみ確定（改行を防止）
               if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                e.preventDefault();
                 confirmBtn.click();
+                return;
               }
+              
+              // Escape でキャンセル
+              if (e.key === 'Escape') {
+                e.preventDefault();
+                cancelBtn.click();
+                return;
+              }
+              
+              // 通常の Enter は何もしない → デフォルトの改行動作が実行される
+              // ★ e.preventDefault() を呼ばないことが重要！
             });
           });
         }
 
         // ============================================
-        // 1. 自由項目貼り付けボタン（📋）- サイズ調整版
+        // 1. 自由項目貼り付けボタン（📋）- サイズ調整版 + 初期値設定対応 + 改行対応
         // ============================================
         (function createPasteButton() {
           const existingPasteBtn = document.getElementById("customizePasteBtn");
@@ -822,12 +880,13 @@ export function addProfessionalSupportNewAction3(appState) {
             this.style.transform = "translateY(-50%) scale(0.95)";
             
             try {
-              const clipboardText = await getClipboardText();
+              // 貼り付け先のテキストエリアを先に取得
+              const textarea = document.querySelector('textarea[name="customize[contents][]"]');
               
-              if (!clipboardText || clipboardText.trim().length === 0) {
-                console.error("❌ クリップボードが空です");
+              if (!textarea) {
+                console.error("❌ 自由項目テキストエリアが見つかりません");
                 this.style.backgroundColor = "#f44336";
-                this.innerText = "❌ 空です";
+                this.innerText = "❌ エラー";
                 setTimeout(() => {
                   this.style.backgroundColor = "#4CAF50";
                   this.innerText = "📋 自由項目貼り付け";
@@ -836,12 +895,13 @@ export function addProfessionalSupportNewAction3(appState) {
                 return;
               }
 
-              const textarea = document.querySelector('textarea[name="customize[contents][]"]');
+              // ★ テキストエリアを引数として渡す（初期値取得のため）
+              const clipboardText = await getClipboardText(textarea);
               
-              if (!textarea) {
-                console.error("❌ 自由項目テキストエリアが見つかりません");
+              if (!clipboardText || clipboardText.trim().length === 0) {
+                console.error("❌ 貼り付け内容が空です");
                 this.style.backgroundColor = "#f44336";
-                this.innerText = "❌ エラー";
+                this.innerText = "❌ 空です";
                 setTimeout(() => {
                   this.style.backgroundColor = "#4CAF50";
                   this.innerText = "📋 自由項目貼り付け";
@@ -881,7 +941,7 @@ export function addProfessionalSupportNewAction3(appState) {
           });
 
           document.body.appendChild(pasteBtn);
-          console.log("✅ 自由項目貼り付けボタン生成完了（サイズ調整版）");
+          console.log("✅ 自由項目貼り付けボタン生成完了（サイズ調整版 + 初期値設定対応 + 改行対応）");
         })();
 
         // ============================================
@@ -1021,7 +1081,7 @@ export function addProfessionalSupportNewAction3(appState) {
         // ===============================
         // ③ デバッグ情報
         // ===============================
-        console.log("=== ボタン生成完了（サイズ調整版） ===");
+        console.log("=== ボタン生成完了（サイズ調整版 + 初期値設定対応 + 改行対応） ===");
         console.log("📋 自由項目貼り付けボタン: 右から180px（サイズ: 10px 18px, 14px）");
         console.log("💾 専門的加算保存ボタン: 右から20px（サイズ: 10px 18px, 14px）");
         console.log("自由項目テキストエリアの有無:", 
