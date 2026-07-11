@@ -10,7 +10,7 @@ import {
 import { useToast } from '@/components/common/ToastContext'
 import AttendanceActionSection from './AttendanceActionSection'
 import { isAttendanceDataLoaded } from '@/utils/attendance/helpers/attendanceStatus.js'
-import './attendanceForm.css'
+import './index.css'
 import PersonalRecordCheckPanel from '@/components/common/hug_function/PersonalRecordCheckPanel'
 import ProfessionalSupportCheckPanel2 from '@/components/common/hug_function/ProfessionalSupportCheckPanel2'
 import GetTodayUsersChildren from '@/components/common/hug_function/GetTodayUsersChildren'

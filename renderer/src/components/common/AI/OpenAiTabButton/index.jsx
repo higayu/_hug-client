@@ -95,10 +95,14 @@ export default function OpenAiTabButton() {
     <button
       type="button"
       onClick={handleOpenAI}
-      className="w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-md px-3 py-2 transition-colors"
+      className="min-w-[150px] flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-md px-3 py-2 transition-colors"
     >
       <FaRobot size={18} />
-      <span>OpenAIを起動（新しいタブ）</span>
+      <span
+        title="新しいタブで開く"
+      >
+        OpenAIを起動
+      </span>
     </button>
   )
 

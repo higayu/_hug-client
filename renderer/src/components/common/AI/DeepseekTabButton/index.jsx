@@ -83,14 +83,15 @@ export default function DeepseekTabButton() {
     <button
       type="button"
       onClick={handleDeepSeek}
-      className="w-full flex items-center justify-center gap-2 bg-white hover:bg-blue-300 text-blue-600 rounded-xl shadow-md px-3 py-2 transition-colors"
+      className="min-w-[150px] flex items-center justify-center gap-2 bg-white hover:bg-blue-300 text-blue-600 rounded-xl shadow-md px-3 py-2 transition-colors"
+      title="新しいタブで開く"
     >
       <img 
         src={tabIcon} 
         alt="icon" 
         className="w-[20px] h-[20px] object-contain hover:bg-blue-300"
       />
-      <span>deepseekを起動（新しいタブ）</span>
+      <span>deepseekを起動</span>
     </button>
 
   )

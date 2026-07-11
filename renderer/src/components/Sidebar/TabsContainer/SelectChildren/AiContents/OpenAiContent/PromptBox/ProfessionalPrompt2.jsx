@@ -1,8 +1,7 @@
 // renderer/src/components/Sidebar/Tools/MemoTool/Parts/AiContents/common/ProfessionalPrompt2.jsx
 import React, { useState, useEffect } from "react";
 import { useAppState } from "@/AppStateContext";
-import ProfessionalInjectButton from "./ProfessionalInput/ProfessionalInjectButton";
-import ProfessionalDraftSaveButton from './ProfessionalInput/ProfessionalDraftSaveButton';
+
 import MemoInputBox from './MemoInputBox';
 
 const DBG = 'ProfessionalPrompt2';
@@ -121,13 +120,6 @@ export default function ProfessionalPrompt2({
         >
           実行
         </button>
-
-        {DEBUG_FLG && (
-          <div className="flex flex-col justify-end">
-            <ProfessionalDraftSaveButton />
-            <ProfessionalInjectButton />
-          </div>
-        )}
 
       </div>
       {(aiName === "Gemini" || aiName === "Ollama") &&

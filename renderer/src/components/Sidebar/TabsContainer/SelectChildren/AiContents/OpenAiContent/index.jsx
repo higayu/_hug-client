@@ -2,7 +2,7 @@ import React, { useEffect } from "react"
 import { useAppState } from "@/AppStateContext"
 import PromptBox from "@/components/common/PromptBox"
 import AccountInfoPanel from "@/components/ui/AccountInfoPanel"
-import OpenAiTabButton from "@/components/common/AI/OpenAiTabButton"
+
 import { AI_PROMPT_COMPONENT_MAP } from "./PromptBox"
 import { sendPromptToChatGPT } from "./send/sendPromptToChatGPT";
 
@@ -17,13 +17,13 @@ export default function OpenAiContent() {
 
   return (
     <div className="flex flex-col items-center justify-center w-full p-2 space-y-3">
-      <OpenAiTabButton />
-
+      <div>ChatGPT</div>
       <PromptBox 
         sendPrompt={sendPromptToChatGPT}
         aiName="ChatGpt"
         componentMap={AI_PROMPT_COMPONENT_MAP} 
       />
+      
       <AccountInfoPanel
         title="OpenAI アカウント情報"
         items={[

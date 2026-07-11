@@ -12,11 +12,11 @@ import {
   sendSuccess,
   sendError
 } from '@/store/slices/sendTextSlice'
-import PersonalInjectButton from './PersonalInput/PersonalInjectButton';
-import RecordProceedingsDraftSaveButton from './PersonalInput/RecordProceedingsDraftSaveButton';
+
 import MemoInputBox from './MemoInputBox';
 import TwoTabPanel from '@/components/ui/TwoTabPanel';
 import PersonalRecordManagerPanel from '@/components/common/hug_function/PersonalRecordManagerPanel';
+import OpenAiTabButton from "@/components/common/AI/OpenAiTabButton";
 
 const DBG = 'PersonalRecordPrompt';
 
@@ -182,20 +182,14 @@ export default function PersonalRecordPrompt({
         />
 
         <div className="flex flex-row justify-between items-center">
+          <OpenAiTabButton />
           <button
-            className="w-full bg-green-500 hover:bg-green-600 p-2 rounded text-white disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-[60%] bg-green-500 hover:bg-green-600 p-2 rounded text-white disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={clickEnterButton}
             disabled={!aiText || sending}
           >
             {sending ? "送信中…" : "ChatGPT実行"}
           </button>
-
-          {DEBUG_FLG && (
-            <div className="flex flex-col justify-end">
-              <RecordProceedingsDraftSaveButton />
-              <PersonalInjectButton />
-            </div>
-          )}
         </div>
 
         {(aiName === "Gemini" || aiName === "Ollama") &&

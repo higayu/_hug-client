@@ -2,7 +2,6 @@ import React, { useEffect } from "react"
 import { useAppState } from "@/AppStateContext";
 import PromptBox from "@/components/common/PromptBox"
 import AccountInfoPanel from "@/components/ui/AccountInfoPanel";
-import DeepseekTabButton from "@/components/common/AI/DeepseekTabButton"
 import { AI_PROMPT_COMPONENT_MAP } from "./PromptBox"
 import { sendPromptToDeepSeek } from "./send/sendPromptToDeepSeek";
 
@@ -17,9 +16,7 @@ export default function DeepSeekContent() {
 
   return (
     <div className="flex flex-col items-center justify-center w-full p-2 space-y-3">
-      <DeepseekTabButton />
-
-
+      <div>DeepSeek</div>
       <PromptBox 
         sendPrompt={sendPromptToDeepSeek}
         aiName="DeepSeek"

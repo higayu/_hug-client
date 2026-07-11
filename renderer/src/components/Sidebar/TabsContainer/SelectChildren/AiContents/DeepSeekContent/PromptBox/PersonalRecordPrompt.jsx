@@ -15,6 +15,7 @@ import {
 import MemoInputBox from './MemoInputBox';
 import TwoTabPanel from '@/components/ui/TwoTabPanel';
 import PersonalRecordManagerPanel from '@/components/common/hug_function/PersonalRecordManagerPanel';
+import DeepseekTabButton from "@/components/common/AI/DeepseekTabButton";
 
 const DBG = 'PersonalRecordPrompt';
 
@@ -176,8 +177,9 @@ export default function PersonalRecordPrompt({
         />
 
         <div className="flex flex-row justify-between items-center">
+          <DeepseekTabButton />
           <button
-            className="w-full bg-green-500 hover:bg-green-600 p-2 rounded text-white disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-[60%] bg-green-500 hover:bg-green-600 p-2 rounded text-white disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={clickEnterButton}
             disabled={!aiText || sending}
           >
