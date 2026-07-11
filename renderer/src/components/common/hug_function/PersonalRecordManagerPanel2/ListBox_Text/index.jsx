@@ -1,4 +1,3 @@
-// ListBox_Text/index.jsx
 import React, { useState, useEffect, useCallback } from "react";
 import { useSelector } from "react-redux";
 import { useAppState } from "@/AppStateContext";
@@ -43,6 +42,21 @@ export default function ListBox_Text({ monthStr = "" }) {
   }, []);
 
   /**
+   * 1週間前の日付を取得（YYYY-MM-DD形式）
+   */
+  const getOneWeekAgo = useCallback(() => {
+    const today = new Date();
+    const oneWeekAgo = new Date(today);
+    oneWeekAgo.setDate(today.getDate() - 7);
+    
+    const year = oneWeekAgo.getFullYear();
+    const month = String(oneWeekAgo.getMonth() + 1).padStart(2, '0');
+    const day = String(oneWeekAgo.getDate()).padStart(2, '0');
+    
+    return `${year}-${month}-${day}`;
+  }, []);
+
+  /**
    * 月が変わったら日付リストを更新
    */
   useEffect(() => {
@@ -50,9 +64,16 @@ export default function ListBox_Text({ monthStr = "" }) {
       const days = getDaysInMonth(monthStr);
       setDateList(days);
       
-      // 最初の日付をデフォルト選択
       if (days.length > 0) {
-        setSelectedDate(days[0]);
+        // 1週間前の日付を取得
+        const oneWeekAgo = getOneWeekAgo();
+        
+        // 1週間前の日付がリストに含まれているかチェック
+        const targetDate = days.includes(oneWeekAgo) 
+          ? oneWeekAgo 
+          : days[days.length - 1]; // 含まれていなければ月末を選択
+        
+        setSelectedDate(targetDate);
       } else {
         setSelectedDate("");
       }
@@ -60,7 +81,7 @@ export default function ListBox_Text({ monthStr = "" }) {
       setDateList([]);
       setSelectedDate("");
     }
-  }, [monthStr, getDaysInMonth]);
+  }, [monthStr, getDaysInMonth, getOneWeekAgo]);
 
   /**
    * 選択された日付のnoteを取得
