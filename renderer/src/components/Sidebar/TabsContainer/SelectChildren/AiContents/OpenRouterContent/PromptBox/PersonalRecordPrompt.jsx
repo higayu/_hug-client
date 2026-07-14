@@ -191,7 +191,7 @@ export default function PersonalRecordPrompt({
             minHeight={200}
           />
           <div className="flex flex-wrap items-center justify-center gap-2">
-            <PersonalRecordManagerPanel />
+            <PersonalRecordManagerPanel2 />
           </div>
         </TwoTabPanel>
 
