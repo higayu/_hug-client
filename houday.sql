@@ -974,7 +974,7 @@ CREATE TABLE IF NOT EXISTS `staffs` (
 
 CREATE TABLE `staff_all_v` (
 	`staff_id` INT(11) NOT NULL,
-	`staff_admin` INT(11) NOT NULL,
+	`staff_role_id` INT(11) NOT NULL,
 	`staff_name` VARCHAR(1) NOT NULL COLLATE 'utf8mb4_general_ci',
 	`notes` TEXT NULL COLLATE 'utf8mb4_general_ci',
 	`is_delete` TINYINT(4) NOT NULL,
@@ -1002,7 +1002,7 @@ CREATE TABLE IF NOT EXISTS `staff_facility_roles` (
 
 CREATE TABLE `staff_facility_v` (
 	`staff_id` INT(11) NOT NULL,
-	`staff_admin` INT(11) NOT NULL,
+	`staff_role_id` INT(11) NOT NULL,
 	`staff_name` VARCHAR(1) NOT NULL COLLATE 'utf8mb4_general_ci',
 	`notes` TEXT NULL COLLATE 'utf8mb4_general_ci',
 	`is_delete` TINYINT(4) NOT NULL,
@@ -1012,7 +1012,7 @@ CREATE TABLE `staff_facility_v` (
 
 CREATE TABLE `staff_v` (
 	`staff_id` INT(11) NOT NULL,
-	`staff_admin` INT(11) NOT NULL,
+	`staff_role_id` INT(11) NOT NULL,
 	`staff_name` VARCHAR(1) NOT NULL COLLATE 'utf8mb4_general_ci',
 	`notes` TEXT NULL COLLATE 'utf8mb4_general_ci',
 	`is_delete` TINYINT(4) NOT NULL,
@@ -1613,15 +1613,15 @@ CREATE ALGORITHM=UNDEFINED SQL SECURITY DEFINER VIEW `pc_to_children_v` AS selec
 ;
 
 DROP TABLE IF EXISTS `staff_all_v`;
-CREATE ALGORITHM=UNDEFINED SQL SECURITY DEFINER VIEW `staff_all_v` AS select `s`.`id` AS `staff_id`,`s`.`role_id` AS `staff_admin`,`s`.`name` AS `staff_name`,`s`.`notes` AS `notes`,`s`.`is_delete` AS `is_delete`,group_concat(`f`.`id` order by `f`.`id` ASC separator ',') AS `facility_ids`,group_concat(`f`.`name` order by `f`.`name` ASC separator ', ') AS `facility_names` from ((`staffs` `s` left join `facility_staff` `fs` on(`s`.`id` = `fs`.`staff_id`)) left join `facilitys` `f` on(`fs`.`facility_id` = `f`.`id`)) where `s`.`id` <> -1 group by `s`.`id`,`s`.`role_id`,`s`.`name`,`s`.`notes`,`s`.`is_delete`
+CREATE ALGORITHM=UNDEFINED SQL SECURITY DEFINER VIEW `staff_all_v` AS select `s`.`id` AS `staff_id`,`s`.`role_id` AS `staff_role_id`,`s`.`name` AS `staff_name`,`s`.`notes` AS `notes`,`s`.`is_delete` AS `is_delete`,group_concat(`f`.`id` order by `f`.`id` ASC separator ',') AS `facility_ids`,group_concat(`f`.`name` order by `f`.`name` ASC separator ', ') AS `facility_names` from ((`staffs` `s` left join `facility_staff` `fs` on(`s`.`id` = `fs`.`staff_id`)) left join `facilitys` `f` on(`fs`.`facility_id` = `f`.`id`)) where `s`.`id` <> -1 group by `s`.`id`,`s`.`role_id`,`s`.`name`,`s`.`notes`,`s`.`is_delete`
 ;
 
 DROP TABLE IF EXISTS `staff_facility_v`;
-CREATE ALGORITHM=UNDEFINED SQL SECURITY DEFINER VIEW `staff_facility_v` AS select `s`.`id` AS `staff_id`,`s`.`role_id` AS `staff_admin`,`s`.`name` AS `staff_name`,`s`.`notes` AS `notes`,`s`.`is_delete` AS `is_delete`,group_concat(`f`.`id` order by `f`.`id` ASC separator ',') AS `facility_ids`,group_concat(`f`.`name` order by `f`.`name` ASC separator ', ') AS `facility_names` from ((`facility_staff` `fs` join `staffs` `s` on(`fs`.`staff_id` = `s`.`id`)) join `facilitys` `f` on(`fs`.`facility_id` = `f`.`id`)) where `s`.`id` <> -1 and `s`.`is_delete` <> 1 group by `s`.`id`,`s`.`role_id`,`s`.`name`,`s`.`notes`,`s`.`is_delete`
+CREATE ALGORITHM=UNDEFINED SQL SECURITY DEFINER VIEW `staff_facility_v` AS select `s`.`id` AS `staff_id`,`s`.`role_id` AS `staff_role_id`,`s`.`name` AS `staff_name`,`s`.`notes` AS `notes`,`s`.`is_delete` AS `is_delete`,group_concat(`f`.`id` order by `f`.`id` ASC separator ',') AS `facility_ids`,group_concat(`f`.`name` order by `f`.`name` ASC separator ', ') AS `facility_names` from ((`facility_staff` `fs` join `staffs` `s` on(`fs`.`staff_id` = `s`.`id`)) join `facilitys` `f` on(`fs`.`facility_id` = `f`.`id`)) where `s`.`id` <> -1 and `s`.`is_delete` <> 1 group by `s`.`id`,`s`.`role_id`,`s`.`name`,`s`.`notes`,`s`.`is_delete`
 ;
 
 DROP TABLE IF EXISTS `staff_v`;
-CREATE ALGORITHM=UNDEFINED SQL SECURITY DEFINER VIEW `staff_v` AS select `s`.`id` AS `staff_id`,`s`.`role_id` AS `staff_admin`,`s`.`name` AS `staff_name`,`s`.`notes` AS `notes`,`s`.`is_delete` AS `is_delete`,group_concat(`f`.`id` order by `f`.`id` ASC separator ',') AS `facility_ids`,group_concat(`f`.`name` order by `f`.`name` ASC separator ', ') AS `facility_names` from ((`staffs` `s` left join `facility_staff` `fs` on(`s`.`id` = `fs`.`staff_id`)) left join `facilitys` `f` on(`fs`.`facility_id` = `f`.`id`)) where `s`.`id` <> -1 and `s`.`is_delete` <> 1 group by `s`.`id`,`s`.`role_id`,`s`.`name`,`s`.`notes`,`s`.`is_delete`
+CREATE ALGORITHM=UNDEFINED SQL SECURITY DEFINER VIEW `staff_v` AS select `s`.`id` AS `staff_id`,`s`.`role_id` AS `staff_role_id`,`s`.`name` AS `staff_name`,`s`.`notes` AS `notes`,`s`.`is_delete` AS `is_delete`,group_concat(`f`.`id` order by `f`.`id` ASC separator ',') AS `facility_ids`,group_concat(`f`.`name` order by `f`.`name` ASC separator ', ') AS `facility_names` from ((`staffs` `s` left join `facility_staff` `fs` on(`s`.`id` = `fs`.`staff_id`)) left join `facilitys` `f` on(`fs`.`facility_id` = `f`.`id`)) where `s`.`id` <> -1 and `s`.`is_delete` <> 1 group by `s`.`id`,`s`.`role_id`,`s`.`name`,`s`.`notes`,`s`.`is_delete`
 ;
 
 /*!40103 SET TIME_ZONE=IFNULL(@OLD_TIME_ZONE, 'system') */;
