@@ -5,12 +5,19 @@ import { useHugActions } from '@/hooks/useHugActions';
 export default function AutoLoginButton() {
   const { handleLogin } = useHugActions();
 
+    /**
+   * 自動ログインボタン押下時の処理
+   */
+    const handleLogin_func = () => {
+      handleLogin();
+    };
+
   return (
     <nav className="relative z-[1001] ml-0 inline-block min-w-fit flex-shrink-0">
       <button
         id="loginBtn"
         type="button"
-        onClick={handleLogin}
+        onClick={handleLogin_func}
         className="
           flex
           cursor-pointer
