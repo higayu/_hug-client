@@ -1,25 +1,24 @@
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { ArrowRightOnRectangleIcon } from '@heroicons/react/24/outline';
-
-import { useHugActions } from '@/hooks/useHugActions';
 
 import {
   selectFacilityId,
   setFacilityId,
 } from '@/store/slices/appStateSlice';
 
-import ProfessionalSupportListButton from '@/components/Header/ProfessionalSupportListButton';
-import SettingsEditButton from '@/components/Header/SettingsEditButton';
-
-import SupportPlanNavigation from './SupportPlanNavigation';
-import ToolsListNavi from './ToolsListNavi';
-import CustomButtonsPanel from './CustomButtonsPanel';
 
 import UrlContent from '@/components/ui/UrlContent';
 import CloseToggleSwitch from '@/components/ui/CloseToggleSwitch';
 import FacilitySelector from '@/components/FacilitySelector';
 import ActiveApiStatus from '@/components/common/Synchronization/ActiveApiStatus';
+
+import SupportPlanNavigation from './SupportPlanNavigation';
+import ToolsListNavi from './ToolsListNavi';
+import CustomButtonsPanel from './CustomButtonsPanel';
+import AutoLoginButton from './AutoLoginButton';
+import ProfessionalSupportListButton from './ProfessionalSupportListButton';
+import SettingsEditButton from './SettingsEditButton';
+
 
 import { useAppState } from '@/AppStateContext';
 
@@ -28,8 +27,6 @@ export default function Toolbar() {
   const facilityId = useSelector(selectFacilityId);
 
   const [showCloseButton, setShowCloseButton] = useState(true);
-
-  const { handleLogin } = useHugActions();
 
   const {
     activeSidebarTab: activeTab,
@@ -83,36 +80,7 @@ export default function Toolbar() {
       </nav>
 
       {/* 自動ログイン */}
-      <nav className="relative z-[1001] ml-0 inline-block min-w-fit flex-shrink-0">
-        <button
-          id="loginBtn"
-          type="button"
-          onClick={handleLogin}
-          className="
-            flex
-            cursor-pointer
-            items-center
-            gap-2
-            rounded-full
-            border-none
-            bg-sky-600
-            px-4 py-2
-            text-left
-            text-sm
-            text-white
-            transition-colors
-            hover:bg-gray-800
-          "
-          aria-label="自動ログイン"
-        >
-          <ArrowRightOnRectangleIcon
-            className="h-5 w-5"
-            aria-hidden="true"
-          />
-
-          <span>Login</span>
-        </button>
-      </nav>
+      <AutoLoginButton />
 
 
       {/* URL・施設 */}
