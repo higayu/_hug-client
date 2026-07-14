@@ -1,30 +1,22 @@
-// main/parts/readfile/configHandler.js
+// main/parts/readfile/configHandler/index.js
 const fs = require("fs");
 const path = require("path");
 const { app, dialog, shell } = require("electron");
-const { getDataDir, getConfigPath } = require("../utils/pathResolver");
+const { getDataDir, getConfigPath } = require("../../utils/pathResolver");
+const { DEFAULT_CONFIG, getDefaultConfig } = require("./defaultConfig");
 
 function handleConfigAccess(ipcMain) {
+  // ============================================================
+  // 📖 config.json 読み込み
+  // ============================================================
   ipcMain.handle("read-config", async () => {
     try {
       const filePath = getConfigPath();
 
       if (!fs.existsSync(filePath)) {
-        const defaultConfig = {
-          HUG_USERNAME: "",
-          HUG_PASSWORD: "",
-          GEMINI_API_KEY: "",
-          GEMINI_MODEL: "gemini-3.5-flash",
-          OPEN_ROUTER_API_KEY: "",
-          OPEN_ROUTER_MODEL:"openai/gpt-oss-120b:free",
-          DEEPSEEK_MAIL: "",
-          DEEPSEEK_PASSWORD: "",
-          OPENAI_MAIL: "",
-          OPENAI_PASSWORD: "",
-          OLLAMA_URL: "http://localhost:11434/api/generate",
-          OLLAMA_MODEL: "gemma4:latest"
-        };
-
+        // デフォルト設定を使用
+        const defaultConfig = getDefaultConfig();
+        
         const dir = path.dirname(filePath);
         if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 
@@ -33,18 +25,44 @@ function handleConfigAccess(ipcMain) {
       }
 
       const jsonData = JSON.parse(fs.readFileSync(filePath, "utf8"));
-      return { success: true, data: jsonData };
+      
+      // バージョンチェックやマイグレーションが必要な場合
+      // 不足しているキーをデフォルト値で補完
+      const completeData = { ...DEFAULT_CONFIG, ...jsonData };
+      
+      // 補完したデータを保存（必要に応じて）
+      if (Object.keys(completeData).length !== Object.keys(jsonData).length) {
+        fs.writeFileSync(filePath, JSON.stringify(completeData, null, 2), "utf8");
+      }
+      
+      return { success: true, data: completeData };
     } catch (err) {
       console.error("❌ config読み込み失敗:", err);
       return { success: false, error: err.message };
     }
   });
 
+  // ============================================================
+  // 💾 config.json 保存
+  // ============================================================
   ipcMain.handle("save-config", async (event, data) => {
     try {
       if (!data || typeof data !== "object") {
         console.error("❌ config.json保存失敗: データが無効です", data);
         return { success: false, error: "データが無効です。" };
+      }
+
+      // 必須フィールドが存在するかチェック
+      const requiredFields = ['GEMINI_API_KEY', 'OLLAMA_URL', 'HUG_USERNAME'];
+      const missingFields = requiredFields.filter(field => !(field in data));
+      if (missingFields.length > 0) {
+        console.warn(`⚠️ 必須フィールドが不足しています: ${missingFields.join(', ')}`);
+        // 不足フィールドをデフォルト値で補完
+        missingFields.forEach(field => {
+          if (field in DEFAULT_CONFIG) {
+            data[field] = DEFAULT_CONFIG[field];
+          }
+        });
       }
 
       const filePath = getConfigPath();
@@ -60,6 +78,9 @@ function handleConfigAccess(ipcMain) {
     }
   });
 
+  // ============================================================
+  // 📂 設定ファイルインポート
+  // ============================================================
   ipcMain.handle("import-config-file", async () => {
     try {
       const { canceled, filePaths } = await dialog.showOpenDialog({
@@ -84,6 +105,9 @@ function handleConfigAccess(ipcMain) {
     }
   });
 
+  // ============================================================
+  // 📁 設定フォルダを開く
+  // ============================================================
   ipcMain.handle("open-config-folder", async () => {
     try {
       const configDir = getDataDir();

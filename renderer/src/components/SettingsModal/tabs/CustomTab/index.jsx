@@ -1,3 +1,14 @@
+/*
+  AVAILABLE_ACTIONS	
+  機能のカタログ	
+  変更	コード修正が必要	
+  保存場所	コード内（Context）	
+  関係 元データから選択して作成
+
+  customButtons.json
+  ユーザーの設定 ユーザーが自由に編集可能 ファイル（JSON）
+*/
+
 import {
   useMemo,
   useState,
@@ -168,7 +179,7 @@ function CustomTab() {
   return (
     <div>
       <h3 className="mb-4 border-b border-gray-200 pb-2 text-lg text-gray-700">
-        カスタムボタン
+        カスタムボタン 【 機能が未完成 の為 開発モードのみ表示  】
       </h3>
 
       <p className="mb-4 text-gray-600">

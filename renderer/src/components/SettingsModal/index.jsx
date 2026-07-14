@@ -10,20 +10,20 @@ import { useSettingsModal } from './useSettingsModal';
 import {
   ApiTab,
   ConfigTab,
-  CustomTab,
   FeaturesTab,
   UITab,
   WindowTab,
-
+  CustomTab,
   UpdateTab,
-  
 } from "./tabs";
 
+import { useAppState } from '@/AppStateContext';
 import { ModalPortal } from '@/components/modals/ModalPortal';
 
 const DEFAULT_TAB_ID = 'api'
 
-const TABS = [
+// ベースとなるタブ（常に表示）
+const BASE_TABS = [
   {
     id: 'api',
     label: 'API設定',
@@ -50,14 +50,18 @@ const TABS = [
     component: ConfigTab,
   },
   {
-    id: 'custom',
-    label: 'カスタムボタン',
-    component: CustomTab,
-  },
-  {
     id: 'update',
     label: 'アップデート',
     component: UpdateTab,
+  },
+]
+
+// デバッグモード用のタブ
+const DEBUG_TABS = [
+  {
+    id: 'custom',
+    label: 'カスタムボタン',
+    component: CustomTab,
   },
 ]
 
@@ -65,16 +69,22 @@ export default function SettingsModal({
   isOpen,
   onClose,
 }) {
-  const [activeTab, setActiveTab] =
-    useState(DEFAULT_TAB_ID)
+  const [activeTab, setActiveTab] = useState(DEFAULT_TAB_ID)
 
   /*
    * モーダルを開いた際に、
    * ini.json・config.json・カスタムボタンなどを読み込む。
    */
+  const { isLoading } = useSettingsModal(isOpen)
+
   const {
-    isLoading,
-  } = useSettingsModal(isOpen)
+    activeSidebarTab: activeTabFromState,
+    setActiveSidebarTab: setActiveTabFromState,
+    DEBUG_FLG,
+  } = useAppState();
+
+  // DEBUG_FLG に基づいて表示するタブを決定
+  const tabs = DEBUG_FLG ? [...BASE_TABS, ...DEBUG_TABS] : BASE_TABS;
 
   /*
    * モーダルを開くたびにAPI設定タブへ戻す。
@@ -103,34 +113,30 @@ export default function SettingsModal({
       onClose()
     }
 
-    document.addEventListener(
-      'keydown',
-      handleEscapeKey
-    )
+    document.addEventListener('keydown', handleEscapeKey)
 
     return () => {
-      document.removeEventListener(
-        'keydown',
-        handleEscapeKey
-      )
+      document.removeEventListener('keydown', handleEscapeKey)
     }
-  }, [
-    isOpen,
-    onClose,
-  ])
+  }, [isOpen, onClose])
 
   /*
    * モーダル背景をクリックした場合だけ閉じる。
    */
   const handleBackdropClick = (event) => {
-    if (
-      event.target !== event.currentTarget
-    ) {
+    if (event.target !== event.currentTarget) {
       return
     }
 
     onClose()
   }
+
+  // 現在アクティブなタブが存在しない場合は最初のタブに設定
+  useEffect(() => {
+    if (tabs.length > 0 && !tabs.find(tab => tab.id === activeTab)) {
+      setActiveTab(tabs[0].id);
+    }
+  }, [tabs, activeTab]);
 
   if (!isOpen) {
     return null
@@ -154,6 +160,11 @@ export default function SettingsModal({
           <header className="flex shrink-0 items-center justify-between bg-gradient-to-r from-[#667eea] to-[#764ba2] p-5 text-white">
             <h2 className="m-0 text-2xl font-semibold">
               ⚙️ 設定編集
+              {DEBUG_FLG && (
+                <span className="ml-2 text-sm font-normal bg-yellow-400 text-black px-2 py-0.5 rounded">
+                  DEBUG
+                </span>
+              )}
             </h2>
 
             <button
@@ -180,9 +191,8 @@ export default function SettingsModal({
               aria-label="設定カテゴリ"
               className="mb-5 flex overflow-x-auto border-b-2 border-gray-200"
             >
-              {TABS.map((tab) => {
-                const isActive =
-                  activeTab === tab.id
+              {tabs.map((tab) => {
+                const isActive = activeTab === tab.id
 
                 return (
                   <button
@@ -204,6 +214,11 @@ export default function SettingsModal({
                     }}
                   >
                     {tab.label}
+                    {DEBUG_FLG && tab.id === 'custom' && (
+                      <span className="ml-1.5 text-[10px] bg-purple-500 text-white px-1.5 py-0.5 rounded">
+                        DEV
+                      </span>
+                    )}
                   </button>
                 )
               })}
@@ -213,12 +228,9 @@ export default function SettingsModal({
              * 各タブのローカル入力状態を維持するため、
              * アンマウントせずhiddenで表示を切り替える。
              */}
-            {TABS.map((tab) => {
-              const TabComponent =
-                tab.component
-
-              const isActive =
-                activeTab === tab.id
+            {tabs.map((tab) => {
+              const TabComponent = tab.component
+              const isActive = activeTab === tab.id
 
               return (
                 <section
@@ -227,11 +239,7 @@ export default function SettingsModal({
                   role="tabpanel"
                   aria-labelledby={`settings-tab-${tab.id}`}
                   hidden={!isActive}
-                  className={
-                    isActive
-                      ? 'block'
-                      : 'hidden'
-                  }
+                  className={isActive ? 'block' : 'hidden'}
                 >
                   <TabComponent />
                 </section>

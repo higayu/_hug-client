@@ -1,0 +1,64 @@
+// main/parts/readfile/defaultCustomButtons.js
+// デフォルトのカスタムボタン設定
+
+const DEFAULT_CUSTOM_BUTTONS = {
+    version: "1.0.0",
+    customButtons: [
+      {
+        id: "individualSupportPlan",
+        enabled: true,
+        text: "個別支援計画",
+        color: "#007bff",
+        action: "individualSupportPlan",
+        order: 1,
+        category: "支援計画"
+      },
+      {
+        id: "specializedSupportPlan",
+        enabled: true,
+        text: "専門的支援計画",
+        color: "#28a745",
+        action: "specializedSupportPlan",
+        order: 2,
+        category: "支援計画"
+      },
+      {
+        id: "importSetting",
+        enabled: false,
+        text: "設定ファイル取得",
+        color: "#6c757d",
+        action: "importSetting",
+        order: 3,
+        category: "設定"
+      },
+      {
+        id: "getUrl",
+        enabled: false,
+        text: "URL取得",
+        color: "#17a2b8",
+        action: "getUrl",
+        order: 4,
+        category: "ユーティリティ"
+      },
+      {
+        id: "loadIni",
+        enabled: true,
+        text: "設定の再読み込み",
+        color: "#e5d7fe",
+        action: "loadIni",
+        order: 5,
+        category: "設定"
+      },
+      {
+        id: "additionCompare",
+        enabled: true,
+        text: "加算の比較",
+        color: "#f9d4fc",
+        action: "additionCompare",
+        order: 6,
+        category: "比較機能"
+      }
+    ]
+  };
+  
+  module.exports = { DEFAULT_CUSTOM_BUTTONS };
