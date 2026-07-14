@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, useCallback } from 'react'  // ← useCallback を追加
 import BrowserOpenButton from '@/components/common/BrowserOpenButton'
 import { useAppState } from '@/AppStateContext'
 import { useToast } from '@/components/common/ToastContext.jsx'
@@ -178,6 +178,7 @@ function ApiTab() {
     appState?.USE_AI,
     appState?.AUTO_SYNCHRONIZATION,
     appState?.AUTO_SWITCHING,
+    appState?.DEBUG_FLG,  // ← 追加
   ])
 
   /*
@@ -320,6 +321,66 @@ function ApiTab() {
   }
 
   /*
+  * debugFlg を個別に更新する関数
+  */
+  const handleDebugFlgChange = useCallback(async (newValue) => {
+    // 現在の値をログ出力（デバッグ用）
+    console.log('[ApiTab] handleDebugFlgChange called:', {
+      currentFormValue: form.debugFlg,
+      newValue,
+      type: typeof newValue,
+    })
+
+    // フォームの状態を即時更新（UI反映用）
+    setForm(prev => {
+      const updated = { ...prev, debugFlg: newValue }
+      console.log('[ApiTab] setForm updated:', updated)
+      return updated
+    })
+
+    try {
+      // ini.jsonの該当フィールドを個別更新
+      const result = await window.electronAPI.updateIniSetting(
+        'apiSettings.debugFlg',
+        String(newValue)
+      )
+
+      console.log('[ApiTab] updateIniSetting result:', result)
+
+      if (!result?.success) {
+        console.error('[ApiTab] updateIniSetting failed:', result?.error)
+        // 失敗したらフォームを元に戻す
+        setForm(prev => ({ ...prev, debugFlg: !newValue }))
+        showErrorToast(result?.error || 'デバッグフラグの更新に失敗しました')
+        return
+      }
+
+      // ContextのiniStateを更新
+      setIniState(prev => {
+        const updated = {
+          ...prev,
+          apiSettings: {
+            ...prev?.apiSettings,
+            debugFlg: String(newValue)
+          }
+        }
+        console.log('[ApiTab] setIniState updated:', updated)
+        return updated
+      })
+
+      // Reduxを更新
+      updateAppState({ DEBUG_FLG: newValue })
+
+      showSuccessToast(`デバッグモードを${newValue ? '有効' : '無効'}にしました`)
+    } catch (error) {
+      console.error('[ApiTab] debugFlg更新エラー:', error)
+      // エラー時はフォームを元に戻す
+      setForm(prev => ({ ...prev, debugFlg: !newValue }))
+      showErrorToast(error?.message || 'デバッグフラグの更新に失敗しました')
+    }
+  }, [form.debugFlg, setIniState, updateAppState, showSuccessToast, showErrorToast])
+
+  /*
    * ini.jsonへ保存
    */
   const handleSave = async () => {
@@ -350,6 +411,8 @@ function ApiTab() {
         autoSwitching: String(
           form.autoSwitching
         ),
+
+        debugFlg: String(form.debugFlg),  // ← 追加
       }
 
       const nextIniState = {
@@ -410,6 +473,8 @@ function ApiTab() {
 
         AUTO_SWITCHING:
           form.autoSwitching,
+
+        DEBUG_FLG: form.debugFlg,  // ← 追加
       })
 
       showSuccessToast(
@@ -481,6 +546,8 @@ function ApiTab() {
 
         AUTO_SWITCHING:
           nextForm.autoSwitching,
+
+        DEBUG_FLG: nextForm.debugFlg,  // ← 追加
       })
 
       showSuccessToast(
@@ -727,6 +794,63 @@ function ApiTab() {
               ※吉島サーバに接続できる場合に自動で切り替わります
             </span>
           </label>
+        </div>
+
+        {/* ============================================================
+            🐞 debugFlg 設定（新規追加）
+            ============================================================ */}
+        <div className="mb-3 border-t border-gray-200 pt-4">
+          <div className="flex items-center py-2">
+            <span className="min-w-[120px] font-medium text-gray-700">
+              🐞 デバッグモード:
+            </span>
+
+            <div className="flex flex-1 items-center gap-4">
+              <button
+                type="button"
+                onClick={() => handleDebugFlgChange(!form.debugFlg)}
+                className={`
+                  relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full 
+                  border-2 border-transparent transition-colors duration-200 ease-in-out 
+                  focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2
+                  ${form.debugFlg ? 'bg-blue-600' : 'bg-gray-200'}
+                `}
+                role="switch"
+                aria-checked={form.debugFlg}
+              >
+                <span
+                  className={`
+                    pointer-events-none inline-block h-5 w-5 transform rounded-full 
+                    bg-white shadow ring-0 transition duration-200 ease-in-out
+                    ${form.debugFlg ? 'translate-x-5' : 'translate-x-0'}
+                  `}
+                />
+              </button>
+
+              <span className={`text-sm font-medium ${form.debugFlg ? 'text-green-600' : 'text-gray-500'}`}>
+                {form.debugFlg ? '🟢 有効' : '⚪ 無効'}
+              </span>
+
+              <span className="text-xs text-gray-500">
+                ※デバッグモード有効時は開発者向け機能が表示されます
+              </span>
+            </div>
+          </div>
+
+          {/* デバッグモード有効時の説明 */}
+          {form.debugFlg && (
+            <div className="ml-[120px] mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+              <p className="text-sm font-medium text-yellow-800">
+                ⚠️ デバッグモードが有効です
+              </p>
+              <ul className="mt-1 text-xs text-yellow-700 list-disc list-inside space-y-0.5">
+                <li>設定画面に「カスタムボタン」タブが表示されます</li>
+                <li>開発者ツール（DevTools）が利用可能になります</li>
+                <li>詳細なデバッグログがコンソールに出力されます</li>
+                <li>アプリケーションの動作確認用の追加機能が表示されます</li>
+              </ul>
+            </div>
+          )}
         </div>
       </div>
 

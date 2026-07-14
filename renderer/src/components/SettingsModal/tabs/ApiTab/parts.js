@@ -80,5 +80,12 @@ export const createFormState = ({
       appState?.AUTO_SWITCHING,
       true
     ),
+
+    // 🔥 debugFlg を追加（これが抜けていた）
+    debugFlg: toBoolean(
+      apiSettings?.debugFlg ??
+      appState?.DEBUG_FLG,
+      false  // デフォルトは false
+    ),
   }
 }
