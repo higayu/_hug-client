@@ -24,10 +24,6 @@ function getCustomButtonsPath() {
   return path.join(getDataDir(), "customButtons.json");
 }
 
-function getAvailableActionsPath() {
-  return path.join(getDataDir(), "availableActions.json");
-}
-
 function getPromptsConfigPath() {
   return path.join(getDataDir(), "prompts.json");
 }
@@ -43,7 +39,6 @@ module.exports = {
   getIniPath,
   getDbPath,
   getCustomButtonsPath,
-  getAvailableActionsPath,
   getPromptsConfigPath,
   getPromptDir,
 };

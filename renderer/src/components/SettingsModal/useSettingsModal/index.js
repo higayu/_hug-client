@@ -6,7 +6,7 @@ import { loadConfig } from '@/utils/config/configUtils'
 export function useSettingsModal(isOpen) {
   const [isLoading, setIsLoading] = useState(false)
   const { loadIni } = useAppState()
-  const { loadCustomButtons, loadAvailableActions } = useCustomButtons()
+  const { loadCustomButtons } = useCustomButtons()
 
   // モーダルが開かれた時に設定を再読み込み
   useEffect(() => {
@@ -19,7 +19,6 @@ export function useSettingsModal(isOpen) {
         await loadIni()
         await loadConfig()
         await loadCustomButtons()
-        await loadAvailableActions()
         console.log('✅ [useSettingsModal] 設定の再読み込み完了')
       } catch (error) {
         console.error('❌ [useSettingsModal] 設定の再読み込みエラー:', error)
@@ -29,7 +28,7 @@ export function useSettingsModal(isOpen) {
     }
 
     loadSettings()
-  }, [isOpen, loadIni, loadCustomButtons, loadAvailableActions])
+  }, [isOpen, loadIni, loadCustomButtons])
 
   return { isLoading }
 }

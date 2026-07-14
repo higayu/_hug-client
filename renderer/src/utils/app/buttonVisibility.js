@@ -3,53 +3,64 @@
 
 /**
  * ボタンの表示/非表示を制御する関数
- * React Context経由でIniStateにアクセス
+ * customButtons.jsonの設定を優先
  */
 export function updateButtonVisibility() {
   console.log('🔄 [BUTTON_VISIBILITY] ボタン表示制御を実行中...');
   
-  // React Contextから関数を取得（window経由でアクセス可能）
-  function isFeatureEnabled(featureName) {
-    if (window.IniState?.isFeatureEnabled) {
-      return window.IniState.isFeatureEnabled(featureName);
+  // customButtons.jsonの設定を取得
+  function getButtonConfig(buttonId) {
+    // グローバル設定から取得（Contextで設定される）
+    if (window.__customButtonsConfig) {
+      const config = window.__customButtonsConfig[buttonId];
+      if (config) {
+        return config;
+      }
     }
-    console.warn(`⚠️ window.IniState.isFeatureEnabled が見つかりません。IniStateProviderが初期化されるまで待ってください。`);
-    return false;
-  }
-
-  function getButtonConfig(buttonName) {
-    if (window.IniState?.getButtonConfig) {
-      return window.IniState.getButtonConfig(buttonName);
+    
+    // フォールバック: CustomButtonsStateを使用
+    if (window.CustomButtonsState?.getButtonConfig) {
+      return window.CustomButtonsState.getButtonConfig(buttonId);
     }
-    console.warn(`⚠️ window.IniState.getButtonConfig が見つかりません。IniStateProviderが初期化されるまで待ってください。`);
-    return {};
+    
+    console.warn(`⚠️ [BUTTON_VISIBILITY] ボタン設定が見つかりません: ${buttonId}`);
+    return { enabled: false };
   }
 
   // 各ボタンの表示/非表示を制御
   const buttonMappings = {
-    'getUrl': 'Get-Url',
+    'individualSupportPlan': 'individual-support-plan-btn',
+    'specializedSupportPlan': 'specialized-support-plan-btn',
+    'importSetting': 'import-setting-btn',
+    'getUrl': 'get-url-btn',
+    'loadIni': 'load-ini-btn',
   };
 
-  Object.keys(buttonMappings).forEach(featureName => {
-    const buttonId = buttonMappings[featureName];
+  Object.entries(buttonMappings).forEach(([featureName, buttonId]) => {
     const button = document.getElementById(buttonId);
     
     if (button) {
-      const isEnabled = isFeatureEnabled(featureName);
+      const config = getButtonConfig(featureName);
+      const isEnabled = config.enabled || false;
+      
       console.log(`🔧 [BUTTON_VISIBILITY] ボタン更新: ${buttonId}, 有効: ${isEnabled}`);
       
       // ボタンの表示/非表示を制御
       button.style.display = isEnabled ? 'inline-block' : 'none';
       
-      // ボタンテキストとカラーを更新
-      const config = getButtonConfig(featureName);
-      if (config.buttonText) {
-        button.textContent = config.buttonText;
-        console.log(`📝 [BUTTON_VISIBILITY] ボタンテキスト更新: ${buttonId} -> ${config.buttonText}`);
+      // ボタンテキストを更新
+      if (config.text) {
+        const textNode = button.querySelector('.button-text') || button;
+        if (textNode) {
+          textNode.textContent = config.text;
+          console.log(`📝 [BUTTON_VISIBILITY] ボタンテキスト更新: ${buttonId} -> ${config.text}`);
+        }
       }
-      if (config.buttonColor) {
-        button.style.backgroundColor = config.buttonColor;
-        console.log(`🎨 [BUTTON_VISIBILITY] ボタンカラー更新: ${buttonId} -> ${config.buttonColor}`);
+      
+      // ボタンカラーを更新
+      if (config.color) {
+        button.style.backgroundColor = config.color;
+        console.log(`🎨 [BUTTON_VISIBILITY] ボタンカラー更新: ${buttonId} -> ${config.color}`);
       }
     } else {
       console.warn(`⚠️ [BUTTON_VISIBILITY] ボタンが見つかりません: ${buttonId}`);
@@ -58,4 +69,3 @@ export function updateButtonVisibility() {
   
   console.log('✅ [BUTTON_VISIBILITY] ボタン表示制御完了');
 }
-

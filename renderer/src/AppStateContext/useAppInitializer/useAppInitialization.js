@@ -4,7 +4,8 @@ import { updateButtonVisibility } from '@/utils/app/buttonVisibility.js'
 import { useHugActions } from '@/hooks/useHugActions.js'
 import { loadAllReload } from '@/utils/config/reloadSettings.js'
 // updateUI は React側の useUpdateUI() フックに移行済み
-import { useUpdateUI } from '@/hooks/useUpdateUI.js'
+import { useUpdateUI } from './useUpdateUI.js'
+
 import { useCustomButtonManager } from '@/hooks/useCustomButtonManager.js'
 // buttonVisibilityManager は削除されました（機能が空のため）
 import { getActiveWebview } from '@/utils/webview/webviewState.js'

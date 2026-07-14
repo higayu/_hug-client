@@ -1,7 +1,7 @@
 // main/parts/readfile/customButtonsHandler.js
 const fs = require("fs");
 const path = require("path");
-const { getCustomButtonsPath, getAvailableActionsPath } = require("../utils/pathResolver");
+const { getCustomButtonsPath } = require("../utils/pathResolver");
 
 function handleCustomButtonsAccess(ipcMain) {
   // ============================================================
@@ -12,18 +12,56 @@ function handleCustomButtonsAccess(ipcMain) {
       const filePath = getCustomButtonsPath();
 
       if (!fs.existsSync(filePath)) {
+        // デフォルトのカスタムボタン設定（featuresを統合）
         const defaultCustomButtons = {
           version: "1.0.0",
           customButtons: [
             {
-              id: "addition-compare-btn",
+              id: "individualSupportPlan",
               enabled: true,
-              text: "加算の比較",
-              color: "#f9d4fc",
-              action: "additionCompare",
+              text: "個別支援計画",
+              color: "#007bff",
+              action: "individualSupportPlan",
               order: 1,
+              category: "支援計画"
             },
-          ],
+            {
+              id: "specializedSupportPlan",
+              enabled: true,
+              text: "専門的支援計画",
+              color: "#28a745",
+              action: "specializedSupportPlan",
+              order: 2,
+              category: "支援計画"
+            },
+            {
+              id: "importSetting",
+              enabled: false,
+              text: "設定ファイル取得",
+              color: "#6c757d",
+              action: "importSetting",
+              order: 3,
+              category: "設定"
+            },
+            {
+              id: "getUrl",
+              enabled: false,
+              text: "URL取得",
+              color: "#17a2b8",
+              action: "getUrl",
+              order: 4,
+              category: "ユーティリティ"
+            },
+            {
+              id: "loadIni",
+              enabled: true,
+              text: "設定の再読み込み",
+              color: "#e5d7fe",
+              action: "loadIni",
+              order: 5,
+              category: "設定"
+            }
+          ]
         };
 
         const dir = path.dirname(filePath);
@@ -54,48 +92,6 @@ function handleCustomButtonsAccess(ipcMain) {
   
       return { success: true };
     } catch (err) {
-      return { success: false, error: err.message };
-    }
-  });
-
-  // ============================================================
-  // 🟩 availableActions.json 読み込み
-  // ============================================================
-  ipcMain.handle("read-available-actions", async () => {
-    try {
-      const filePath = getAvailableActionsPath();
-
-      if (!fs.existsSync(filePath)) {
-        const defaultAvailableActions = {
-          version: "1.0.0",
-          availableActions: [
-            {
-              id: "additionCompare",
-              name: "加算比較",
-              description: "加算登録の比較機能を実行します",
-              category: "比較機能",
-              icon: "📊",
-            },
-            {
-              id: "customAction1",
-              name: "キャンセル待ちの登録",
-              description: "キャンセル待ちの登録を実行します",
-              category: "カスタム",
-              icon: "🔧",
-            },
-          ],
-        };
-
-        const dir = path.dirname(filePath);
-        if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-        fs.writeFileSync(filePath, JSON.stringify(defaultAvailableActions, null, 2));
-        return { success: true, data: defaultAvailableActions };
-      }
-
-      const jsonData = JSON.parse(fs.readFileSync(filePath, "utf8"));
-      return { success: true, data: jsonData };
-    } catch (err) {
-      console.error("❌ availableActions.json 読み込み失敗:", err);
       return { success: false, error: err.message };
     }
   });

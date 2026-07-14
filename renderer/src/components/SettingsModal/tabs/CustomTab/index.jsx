@@ -3,6 +3,7 @@ import {
   useState,
 } from 'react'
 
+// ✅ インポートパスを修正
 import { useCustomButtons } from '@/components/CustomButtonsContext'
 import { useToast } from '@/components/common/ToastContext.jsx'
 
@@ -13,24 +14,18 @@ const DEFAULT_BUTTON = {
 }
 
 function CustomTab() {
-  const [newButton, setNewButton] = useState(
-    DEFAULT_BUTTON
-  )
-
+  const [newButton, setNewButton] = useState(DEFAULT_BUTTON)
   const [isSaving, setIsSaving] = useState(false)
   const [isReloading, setIsReloading] = useState(false)
 
   const {
     customButtons = [],
     availableActions = [],
-
     addCustomButton,
     updateCustomButtonById,
     removeCustomButtonById,
-
     saveCustomButtons,
     loadCustomButtons,
-    loadAvailableActions,
   } = useCustomButtons()
 
   const {
@@ -41,39 +36,24 @@ function CustomTab() {
   const sortedButtons = useMemo(() => {
     return [...customButtons].sort(
       (first, second) => {
-        return (
-          Number(first?.order ?? 0) -
-          Number(second?.order ?? 0)
-        )
+        return (Number(first?.order ?? 0) - Number(second?.order ?? 0))
       }
     )
   }, [customButtons])
 
   const actionsByCategory = useMemo(() => {
-    return availableActions.reduce(
-      (result, action) => {
-        const category =
-          action?.category ||
-          'その他'
-
-        if (!result[category]) {
-          result[category] = []
-        }
-
-        result[category].push(action)
-
-        return result
-      },
-      {}
-    )
+    return availableActions.reduce((result, action) => {
+      const category = action?.category || 'その他'
+      if (!result[category]) {
+        result[category] = []
+      }
+      result[category].push(action)
+      return result
+    }, {})
   }, [availableActions])
 
   const handleNewButtonChange = (event) => {
-    const {
-      name,
-      value,
-    } = event.target
-
+    const { name, value } = event.target
     setNewButton((previous) => ({
       ...previous,
       [name]: value,
@@ -82,117 +62,62 @@ function CustomTab() {
 
   const handleCreateButton = async () => {
     if (!newButton.action) {
-      showErrorToast(
-        'アクションを選択してください'
-      )
-
+      showErrorToast('アクションを選択してください')
       return
     }
 
     try {
-      const success =
-        await Promise.resolve(
-          addCustomButton(
-            newButton.action,
-            newButton.text.trim(),
-            newButton.color
-          )
+      const success = await Promise.resolve(
+        addCustomButton(
+          newButton.action,
+          newButton.text.trim(),
+          newButton.color
         )
+      )
 
       if (!success) {
-        throw new Error(
-          'カスタムボタンの作成に失敗しました'
-        )
+        throw new Error('カスタムボタンの作成に失敗しました')
       }
 
       setNewButton(DEFAULT_BUTTON)
-
-      showSuccessToast(
-        'カスタムボタンを作成しました'
-      )
+      showSuccessToast('カスタムボタンを作成しました')
     } catch (error) {
-      console.error(
-        '[CustomTab] 作成エラー:',
-        error
-      )
-
-      showErrorToast(
-        error?.message ||
-        'カスタムボタンの作成に失敗しました'
-      )
+      console.error('[CustomTab] 作成エラー:', error)
+      showErrorToast(error?.message || 'カスタムボタンの作成に失敗しました')
     }
   }
 
-  const handleButtonUpdate = async (
-    buttonId,
-    field,
-    value
-  ) => {
+  const handleButtonUpdate = async (buttonId, field, value) => {
     try {
-      const success =
-        await Promise.resolve(
-          updateCustomButtonById(
-            buttonId,
-            {
-              [field]: value,
-            }
-          )
-        )
+      const success = await Promise.resolve(
+        updateCustomButtonById(buttonId, { [field]: value })
+      )
 
       if (!success) {
-        throw new Error(
-          'カスタムボタンの更新に失敗しました'
-        )
+        throw new Error('カスタムボタンの更新に失敗しました')
       }
     } catch (error) {
-      console.error(
-        '[CustomTab] 更新エラー:',
-        error
-      )
-
-      showErrorToast(
-        error?.message ||
-        'カスタムボタンの更新に失敗しました'
-      )
+      console.error('[CustomTab] 更新エラー:', error)
+      showErrorToast(error?.message || 'カスタムボタンの更新に失敗しました')
     }
   }
 
-  const handleButtonDelete = async (
-    buttonId
-  ) => {
-    if (
-      !window.confirm(
-        'このカスタムボタンを削除しますか？'
-      )
-    ) {
+  const handleButtonDelete = async (buttonId) => {
+    if (!window.confirm('このカスタムボタンを削除しますか？')) {
       return
     }
 
     try {
-      const success =
-        await Promise.resolve(
-          removeCustomButtonById(buttonId)
-        )
+      const success = await Promise.resolve(removeCustomButtonById(buttonId))
 
       if (!success) {
-        throw new Error(
-          'カスタムボタンの削除に失敗しました'
-        )
+        throw new Error('カスタムボタンの削除に失敗しました')
       }
 
-      showSuccessToast(
-        'カスタムボタンを削除しました'
-      )
+      showSuccessToast('カスタムボタンを削除しました')
     } catch (error) {
-      console.error(
-        '[CustomTab] 削除エラー:',
-        error
-      )
-
-      showErrorToast(
-        error?.message ||
-        'カスタムボタンの削除に失敗しました'
-      )
+      console.error('[CustomTab] 削除エラー:', error)
+      showErrorToast(error?.message || 'カスタムボタンの削除に失敗しました')
     }
   }
 
@@ -204,34 +129,17 @@ function CustomTab() {
     setIsSaving(true)
 
     try {
-      const result =
-        await saveCustomButtons()
+      // saveCustomButtons は boolean を返す
+      const success = await saveCustomButtons()
 
-      if (
-        result === false ||
-        result == null ||
-        result?.success === false
-      ) {
-        throw new Error(
-          result?.error ||
-          result?.message ||
-          'カスタムボタンの保存に失敗しました'
-        )
+      if (!success) {
+        throw new Error('カスタムボタンの保存に失敗しました')
       }
 
-      showSuccessToast(
-        'カスタムボタンを保存しました'
-      )
+      showSuccessToast('カスタムボタンを保存しました')
     } catch (error) {
-      console.error(
-        '[CustomTab] 保存エラー:',
-        error
-      )
-
-      showErrorToast(
-        error?.message ||
-        'カスタムボタンの保存に失敗しました'
-      )
+      console.error('[CustomTab] 保存エラー:', error)
+      showErrorToast(error?.message || 'カスタムボタンの保存に失敗しました')
     } finally {
       setIsSaving(false)
     }
@@ -245,31 +153,17 @@ function CustomTab() {
     setIsReloading(true)
 
     try {
-      await Promise.all([
-        loadCustomButtons(),
-        loadAvailableActions(),
-      ])
-
-      showSuccessToast(
-        'カスタムボタンを再読み込みしました'
-      )
+      await loadCustomButtons()
+      showSuccessToast('カスタムボタンを再読み込みしました')
     } catch (error) {
-      console.error(
-        '[CustomTab] 再読み込みエラー:',
-        error
-      )
-
-      showErrorToast(
-        error?.message ||
-        'カスタムボタンの再読み込みに失敗しました'
-      )
+      console.error('[CustomTab] 再読み込みエラー:', error)
+      showErrorToast(error?.message || 'カスタムボタンの再読み込みに失敗しました')
     } finally {
       setIsReloading(false)
     }
   }
 
-  const isProcessing =
-    isSaving || isReloading
+  const isProcessing = isSaving || isReloading
 
   return (
     <div>
@@ -308,26 +202,15 @@ function CustomTab() {
                 アクションを選択してください
               </option>
 
-              {Object.entries(
-                actionsByCategory
-              ).map(
-                ([category, actions]) => (
-                  <optgroup
-                    key={category}
-                    label={category}
-                  >
-                    {actions.map((action) => (
-                      <option
-                        key={action.id}
-                        value={action.id}
-                      >
-                        {action.icon || ''}{' '}
-                        {action.name}
-                      </option>
-                    ))}
-                  </optgroup>
-                )
-              )}
+              {Object.entries(actionsByCategory).map(([category, actions]) => (
+                <optgroup key={category} label={category}>
+                  {actions.map((action) => (
+                    <option key={action.id} value={action.id}>
+                      {action.icon || ''} {action.name}
+                    </option>
+                  ))}
+                </optgroup>
+              ))}
             </select>
           </div>
 
@@ -372,7 +255,7 @@ function CustomTab() {
             type="button"
             id="create-custom-button"
             onClick={handleCreateButton}
-            className="h-10 rounded-md bg-gradient-to-r from-blue-600 to-blue-700 px-5 font-medium text-white"
+            className="h-10 rounded-md bg-gradient-to-r from-blue-600 to-blue-700 px-5 font-medium text-white hover:opacity-90 transition-opacity"
           >
             作成
           </button>
@@ -397,9 +280,7 @@ function CustomTab() {
               <label className="mb-3 flex items-center gap-3">
                 <input
                   type="checkbox"
-                  checked={
-                    button.enabled === true
-                  }
+                  checked={button.enabled === true}
                   onChange={(event) => {
                     handleButtonUpdate(
                       button.id,
@@ -432,17 +313,11 @@ function CustomTab() {
                     }}
                     className="w-full rounded border border-gray-300 px-2 py-2 text-sm"
                   >
-                    {availableActions.map(
-                      (action) => (
-                        <option
-                          key={action.id}
-                          value={action.id}
-                        >
-                          {action.icon || ''}{' '}
-                          {action.name}
-                        </option>
-                      )
-                    )}
+                    {availableActions.map((action) => (
+                      <option key={action.id} value={action.id}>
+                        {action.icon || ''} {action.name}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
@@ -472,10 +347,7 @@ function CustomTab() {
 
                   <input
                     type="color"
-                    value={
-                      button.color ||
-                      '#007bff'
-                    }
+                    value={button.color || '#007bff'}
                     onChange={(event) => {
                       handleButtonUpdate(
                         button.id,
@@ -491,11 +363,9 @@ function CustomTab() {
               <button
                 type="button"
                 onClick={() => {
-                  handleButtonDelete(
-                    button.id
-                  )
+                  handleButtonDelete(button.id)
                 }}
-                className="rounded-md bg-gradient-to-r from-red-600 to-red-700 px-4 py-2 text-sm font-medium text-white"
+                className="rounded-md bg-gradient-to-r from-red-600 to-red-700 px-4 py-2 text-sm font-medium text-white hover:opacity-90 transition-opacity"
               >
                 削除
               </button>
@@ -509,22 +379,18 @@ function CustomTab() {
           type="button"
           onClick={handleReload}
           disabled={isProcessing}
-          className="rounded-md bg-gray-600 px-5 py-2.5 text-white disabled:opacity-60"
+          className="rounded-md bg-gray-600 px-5 py-2.5 text-white disabled:opacity-60 hover:bg-gray-700 transition-colors"
         >
-          {isReloading
-            ? '再読み込み中...'
-            : 'カスタムボタンを再読み込み'}
+          {isReloading ? '再読み込み中...' : 'カスタムボタンを再読み込み'}
         </button>
 
         <button
           type="button"
           onClick={handleSave}
           disabled={isProcessing}
-          className="rounded-md bg-gradient-to-r from-blue-600 to-blue-700 px-5 py-2.5 text-white disabled:opacity-60"
+          className="rounded-md bg-gradient-to-r from-blue-600 to-blue-700 px-5 py-2.5 text-white disabled:opacity-60 hover:opacity-90 transition-opacity"
         >
-          {isSaving
-            ? '保存中...'
-            : 'カスタムボタンを保存'}
+          {isSaving ? '保存中...' : 'カスタムボタンを保存'}
         </button>
       </div>
     </div>

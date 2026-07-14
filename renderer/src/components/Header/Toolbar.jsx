@@ -11,13 +11,17 @@ import {
 
 import ProfessionalSupportListButton from '@/components/Header/ProfessionalSupportListButton';
 import SettingsEditButton from '@/components/Header/SettingsEditButton';
-import SupportPlanNavigation from '@/components/Header/SupportPlanNavigation';
-import ToolsListNavi from '@/components/Header/ToolsListNavi';
+
+import SupportPlanNavigation from './SupportPlanNavigation';
+import ToolsListNavi from './ToolsListNavi';
+import CustomButtonsPanel from './CustomButtonsPanel';
 
 import UrlContent from '@/components/ui/UrlContent';
 import CloseToggleSwitch from '@/components/ui/CloseToggleSwitch';
 import FacilitySelector from '@/components/FacilitySelector';
 import ActiveApiStatus from '@/components/common/Synchronization/ActiveApiStatus';
+
+import { useAppState } from '@/AppStateContext';
 
 export default function Toolbar() {
   const dispatch = useDispatch();
@@ -26,6 +30,12 @@ export default function Toolbar() {
   const [showCloseButton, setShowCloseButton] = useState(true);
 
   const { handleLogin } = useHugActions();
+
+  const {
+    activeSidebarTab: activeTab,
+    setActiveSidebarTab: setActiveTab,
+    DEBUG_FLG,
+  } = useAppState()
 
   /**
    * 施設IDが未設定の場合は初期値を設定
@@ -130,6 +140,14 @@ export default function Toolbar() {
 
             {/* ツールメニュー */}
             <ToolsListNavi />
+
+            {DEBUG_FLG && (
+              <>
+                {/* カスタムボタン */}
+                <CustomButtonsPanel />
+              </>
+            )}
+
           </div>
         </div>
       </div>

@@ -204,9 +204,6 @@ function createElectronApi(ipcRenderer, isDebugMode) {
     saveCustomButtons: (data) =>
       ipcRenderer.invoke("save-custom-buttons", data),
 
-    readAvailableActions: () =>
-      ipcRenderer.invoke("read-available-actions"),
-
     // ---- Close ----
     onConfirmCloseRequest: (callback) => {
       const listener = () => callback();

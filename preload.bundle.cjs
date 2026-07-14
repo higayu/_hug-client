@@ -223,7 +223,6 @@ var require_electronApi = __commonJS({
         // ---- カスタムボタン ----
         readCustomButtons: () => ipcRenderer2.invoke("read-custom-buttons"),
         saveCustomButtons: (data) => ipcRenderer2.invoke("save-custom-buttons", data),
-        readAvailableActions: () => ipcRenderer2.invoke("read-available-actions"),
         // ---- Close ----
         onConfirmCloseRequest: (callback) => {
           const listener = () => callback();
