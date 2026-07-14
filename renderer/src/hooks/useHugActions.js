@@ -6,7 +6,7 @@ import { useAppState } from '@/AppStateContext'
 import { useToast } from '@/components/common/ToastContext.jsx'
 import { getActiveWebview } from '@/utils/webview/webviewState.js'
 import { loadAllReload } from '@/utils/config/reloadSettings.js'
-import { updateButtonVisibility } from '@/utils/app/buttonVisibility.js'
+// ❌ 削除: import { updateButtonVisibility } from '@/utils/app/buttonVisibility.js'
 import { useCustomButtonManager } from './useCustomButtonManager.js'
 
 export function useHugActions() {
@@ -128,7 +128,8 @@ export function useHugActions() {
       const reloadOk = await loadAllReload()
 
       if (reloadOk) {
-        updateButtonVisibility()
+        // ❌ 削除: updateButtonVisibility()
+        // buttonVisibility.js は廃止されました
         await reloadCustomButtons()
         showSuccessToast('✅ 設定の再読み込みが完了しました')
       }
@@ -189,6 +190,7 @@ export function useHugActions() {
       closeToggle.addEventListener('change', handleCloseToggle)
     }
 
+    // ===== クリーンアップ =====
     return () => {
       if (loginBtn) {
         loginBtn.removeEventListener('click', handleLogin)

@@ -1,6 +1,5 @@
 import { useEffect, useRef } from 'react'
 // initTabs は React側の useTabs() フックに移行済み
-import { updateButtonVisibility } from '@/utils/app/buttonVisibility.js'
 import { useHugActions } from '@/hooks/useHugActions.js'
 import { loadAllReload } from '@/utils/config/reloadSettings.js'
 // updateUI は React側の useUpdateUI() フックに移行済み
@@ -555,10 +554,10 @@ export function useAppInitialization() {
         // window.settingsEditor = initSettingsEditor()
       }, 200)
 
-      // ===== 6️⃣ ボタンの表示を更新（少し遅延させて確実に実行） =====
-      setTimeout(() => {
-        updateButtonVisibility()
-      }, 100)
+      // ===== 6️⃣ ❌ ボタンの表示を更新（buttonVisibility.js は廃止） =====
+      // setTimeout(() => {
+      //   updateButtonVisibility()
+      // }, 100)
 
       // ===== 退出確認（メインからの要求に応答） =====
       if (typeof window.electronAPI?.onConfirmCloseRequest === 'function') {
@@ -669,7 +668,7 @@ export function useAppInitialization() {
       console.log('🔧 カスタムボタンマネージャーを初期化中...')
       await initCustomButtons()
 
-      // ===== 🔟 ボタン表示制御マネージャー初期化 =====
+      // ===== 🔟 ❌ ボタン表示制御マネージャー初期化（buttonVisibilityManager は削除） =====
       // buttonVisibilityManager は削除されました（機能が空のため）
 
       // ===== ⓫ アクティブURLのUI反映（設定モーダルのみ） =====

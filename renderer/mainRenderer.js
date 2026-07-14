@@ -1,5 +1,5 @@
 // ===== モジュール読み込み =====
-import { updateButtonVisibility } from "@/utils/app/buttonVisibility";
+// ❌ 削除: import { updateButtonVisibility } from "@/utils/app/buttonVisibility";
 import { loadAllReload } from "@/utils/config/reloadSettings";
 import {
   fetchAttendanceTableData,
@@ -25,12 +25,12 @@ window.addEventListener("DOMContentLoaded", async () => {
   );
 
   // ============================================================
-  // ボタン表示を更新
+  // ❌ 削除: ボタン表示を更新（buttonVisibility.js は廃止）
   // ============================================================
-  setTimeout(() => {
-    console.log("🔄 [mainRenderer] updateButtonVisibility");
-    updateButtonVisibility();
-  }, 100);
+  // setTimeout(() => {
+  //   console.log("🔄 [mainRenderer] updateButtonVisibility");
+  //   updateButtonVisibility();
+  // }, 100);
 
   // ============================================================
   // 設定ファイルインポート後の再読み込み処理
@@ -55,8 +55,13 @@ window.addEventListener("DOMContentLoaded", async () => {
           });
 
           if (reloadOk) {
-            updateButtonVisibility();
+            // ❌ 削除: updateButtonVisibility();
             console.log("✅ [mainRenderer] config file imported and reloaded");
+            
+            // 必要に応じてカスタムボタンの再読み込みをトリガー
+            if (window.CustomButtonsState?.loadCustomButtons) {
+              await window.CustomButtonsState.loadCustomButtons();
+            }
           }
         }
       } catch (err) {
@@ -86,8 +91,13 @@ window.addEventListener("DOMContentLoaded", async () => {
         });
 
         if (reloadOk) {
-          updateButtonVisibility();
+          // ❌ 削除: updateButtonVisibility();
           console.log("✅ [mainRenderer] ini.json manually loaded");
+          
+          // 必要に応じてカスタムボタンの再読み込みをトリガー
+          if (window.CustomButtonsState?.loadCustomButtons) {
+            await window.CustomButtonsState.loadCustomButtons();
+          }
         }
       } catch (err) {
         console.error("❌ [mainRenderer] ini.json manually load failed:", err);
