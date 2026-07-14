@@ -33,18 +33,21 @@ CREATE TABLE IF NOT EXISTS "facilitys" (
 	PRIMARY KEY("id")
 );
 CREATE TABLE IF NOT EXISTS "staffs" (
-	"id"	INTEGER NOT NULL,
-	"name"	TEXT NOT NULL,
-	"work_style"	TEXT DEFAULT NULL,
-	"notes"	TEXT NOT NULL DEFAULT '',
-	"is_delete"	INTEGER NOT NULL DEFAULT 0,
-	"admin"	INTEGER DEFAULT NULL,
-	"display_order"	INTEGER DEFAULT NULL,
-	"entered_at"	TEXT DEFAULT NULL,
-	"leaving_at"	TEXT DEFAULT NULL,
-	"hug_updated_at"	TEXT DEFAULT NULL,
-	"hug_updated_by"	TEXT DEFAULT NULL,
-	PRIMARY KEY("id")
+    "id" INTEGER NOT NULL,
+    "name" TEXT NOT NULL,
+    "work_style" TEXT DEFAULT NULL,
+    "notes" TEXT DEFAULT '',
+    "is_delete" INTEGER NOT NULL DEFAULT 0,
+    "role_id" INTEGER NOT NULL DEFAULT 0,
+    "display_order" INTEGER DEFAULT NULL,
+    "entered_at" TEXT DEFAULT NULL,
+    "leaving_at" TEXT DEFAULT NULL,
+    "hug_updated_at" TEXT DEFAULT NULL,
+    "hug_updated_by" TEXT DEFAULT NULL,
+    "login_id" TEXT DEFAULT NULL,
+    "password_hash" TEXT DEFAULT NULL,
+    PRIMARY KEY("id"),
+    UNIQUE("login_id")
 );
 CREATE TABLE IF NOT EXISTS "record_types" (
 	"id"	INTEGER NOT NULL,
@@ -214,14 +217,19 @@ CREATE TABLE IF NOT EXISTS "service_record" (
 	CONSTRAINT "FK_service_record_children" FOREIGN KEY("children_id") REFERENCES "children"("id") ON DELETE CASCADE
 );
 CREATE TABLE IF NOT EXISTS "refresh_tokens" (
-	"id"	INTEGER NOT NULL,
-	"user_id"	INTEGER NOT NULL,
-	"token"	TEXT NOT NULL,
-	"revoked"	INTEGER DEFAULT 0,
-	"expires_at"	TEXT NOT NULL,
-	"created_at"	TEXT DEFAULT CURRENT_TIMESTAMP,
-	PRIMARY KEY("id" AUTOINCREMENT),
-	CONSTRAINT "refresh_tokens_ibfk_1" FOREIGN KEY("user_id") REFERENCES "users"("id")
+    "id" INTEGER NOT NULL,
+    "staff_id" INTEGER NOT NULL,
+    "token_hash" TEXT NOT NULL,
+    "expires_at" TEXT NOT NULL,
+    "revoked_at" TEXT DEFAULT NULL,
+    "created_at" TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY("id" AUTOINCREMENT),
+    UNIQUE("token_hash"),
+    CONSTRAINT "fk_refresh_tokens_staff"
+        FOREIGN KEY("staff_id")
+        REFERENCES "staffs"("id")
+        ON DELETE CASCADE
 );
 CREATE TABLE IF NOT EXISTS "toolbox" (
 	"id"	INTEGER NOT NULL,
@@ -248,30 +256,86 @@ CREATE TABLE IF NOT EXISTS "individual_support" (
 	PRIMARY KEY("children_id")
 );
 
-CREATE INDEX IF NOT EXISTS "idx_children_pronunciation_id" ON "children" ("pronunciation_id");
-CREATE INDEX IF NOT EXISTS "idx_children_children_type_id" ON "children" ("children_type_id");
-CREATE INDEX IF NOT EXISTS "idx_child_records_children_id" ON "child_records" ("children_id");
-CREATE INDEX IF NOT EXISTS "idx_child_records_record_type_id" ON "child_records" ("record_type_id");
-CREATE INDEX IF NOT EXISTS "idx_child_records_facility_id" ON "child_records" ("facility_id");
-CREATE INDEX IF NOT EXISTS "idx_facility_children_children_id" ON "facility_children" ("children_id");
-CREATE INDEX IF NOT EXISTS "idx_facility_staff_staff_id" ON "facility_staff" ("staff_id");
-CREATE INDEX IF NOT EXISTS "idx_managers2_staff_id" ON "managers2" ("staff_id");
-CREATE INDEX IF NOT EXISTS "idx_managers2_day_of_week_id" ON "managers2" ("day_of_week_id");
-CREATE INDEX IF NOT EXISTS "idx_managers2_facility_id" ON "managers2" ("facility_id");
-CREATE INDEX IF NOT EXISTS "idx_pc_facility_id" ON "pc" ("facility_id");
-CREATE INDEX IF NOT EXISTS "idx_pc_to_children_children_id" ON "pc_to_children" ("children_id");
-CREATE INDEX IF NOT EXISTS "idx_pc_to_children_pc_id" ON "pc_to_children" ("pc_id");
-CREATE INDEX IF NOT EXISTS "idx_pc_to_children_day_of_week" ON "pc_to_children" ("day_of_week");
-CREATE INDEX IF NOT EXISTS "idx_refresh_tokens_user_id" ON "refresh_tokens" ("user_id");
-CREATE INDEX IF NOT EXISTS "idx_service_record_item_id" ON "service_record" ("item_id");
-CREATE INDEX IF NOT EXISTS "idx_service_record_day_of_week_id" ON "service_record" ("day_of_week_id");
-CREATE INDEX IF NOT EXISTS "idx_service_record_facility_id" ON "service_record" ("facility_id");
-CREATE INDEX IF NOT EXISTS "idx_staff_facility_roles_staff_id" ON "staff_facility_roles" ("staff_id");
-CREATE INDEX IF NOT EXISTS "idx_staff_facility_roles_facility_id" ON "staff_facility_roles" ("facility_id");
-CREATE INDEX IF NOT EXISTS "idx_temp_notes_staff_id" ON "temp_notes" ("staff_id");
-CREATE INDEX IF NOT EXISTS "idx_temp_notes_day_of_week_id" ON "temp_notes" ("day_of_week_id");
-CREATE INDEX IF NOT EXISTS "idx_toolbox_facility_id" ON "toolbox" ("facility_id");
-CREATE INDEX IF NOT EXISTS "idx_temp_notes_children_day_lookup" ON "temp_notes" ("children_id","day_of_week_id");
+CREATE INDEX IF NOT EXISTS "idx_children_pronunciation_id"
+ON "children" ("pronunciation_id");
+
+CREATE INDEX IF NOT EXISTS "idx_children_children_type_id"
+ON "children" ("children_type_id");
+
+CREATE INDEX IF NOT EXISTS "idx_child_records_children_id"
+ON "child_records" ("children_id");
+
+CREATE INDEX IF NOT EXISTS "idx_child_records_record_type_id"
+ON "child_records" ("record_type_id");
+
+CREATE INDEX IF NOT EXISTS "idx_child_records_facility_id"
+ON "child_records" ("facility_id");
+
+CREATE INDEX IF NOT EXISTS "idx_facility_children_children_id"
+ON "facility_children" ("children_id");
+
+CREATE INDEX IF NOT EXISTS "idx_facility_staff_staff_id"
+ON "facility_staff" ("staff_id");
+
+CREATE INDEX IF NOT EXISTS "idx_managers2_staff_id"
+ON "managers2" ("staff_id");
+
+CREATE INDEX IF NOT EXISTS "idx_managers2_day_of_week_id"
+ON "managers2" ("day_of_week_id");
+
+CREATE INDEX IF NOT EXISTS "idx_managers2_facility_id"
+ON "managers2" ("facility_id");
+
+CREATE INDEX IF NOT EXISTS "idx_pc_facility_id"
+ON "pc" ("facility_id");
+
+CREATE INDEX IF NOT EXISTS "idx_pc_to_children_children_id"
+ON "pc_to_children" ("children_id");
+
+CREATE INDEX IF NOT EXISTS "idx_pc_to_children_pc_id"
+ON "pc_to_children" ("pc_id");
+
+CREATE INDEX IF NOT EXISTS "idx_pc_to_children_day_of_week"
+ON "pc_to_children" ("day_of_week");
+
+CREATE INDEX IF NOT EXISTS "idx_refresh_tokens_staff_id"
+ON "refresh_tokens" ("staff_id");
+
+CREATE INDEX IF NOT EXISTS "idx_refresh_tokens_expires_at"
+ON "refresh_tokens" ("expires_at");
+
+CREATE INDEX IF NOT EXISTS "idx_refresh_tokens_revoked_at"
+ON "refresh_tokens" ("revoked_at");
+
+CREATE INDEX IF NOT EXISTS "idx_staffs_role_id"
+ON "staffs" ("role_id");
+
+CREATE INDEX IF NOT EXISTS "idx_service_record_item_id"
+ON "service_record" ("item_id");
+
+CREATE INDEX IF NOT EXISTS "idx_service_record_day_of_week_id"
+ON "service_record" ("day_of_week_id");
+
+CREATE INDEX IF NOT EXISTS "idx_service_record_facility_id"
+ON "service_record" ("facility_id");
+
+CREATE INDEX IF NOT EXISTS "idx_staff_facility_roles_staff_id"
+ON "staff_facility_roles" ("staff_id");
+
+CREATE INDEX IF NOT EXISTS "idx_staff_facility_roles_facility_id"
+ON "staff_facility_roles" ("facility_id");
+
+CREATE INDEX IF NOT EXISTS "idx_temp_notes_staff_id"
+ON "temp_notes" ("staff_id");
+
+CREATE INDEX IF NOT EXISTS "idx_temp_notes_day_of_week_id"
+ON "temp_notes" ("day_of_week_id");
+
+CREATE INDEX IF NOT EXISTS "idx_toolbox_facility_id"
+ON "toolbox" ("facility_id");
+
+CREATE INDEX IF NOT EXISTS "idx_temp_notes_children_day_lookup"
+ON "temp_notes" ("children_id", "day_of_week_id");
 
 CREATE UNIQUE INDEX IF NOT EXISTS "idx_temp_notes_children_staff_day" ON "temp_notes" ("children_id","staff_id","day_of_week_id");
 CREATE UNIQUE INDEX IF NOT EXISTS "idx_facility_children_ids" ON "facility_children" ("facility_id","children_id");
