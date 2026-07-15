@@ -7,6 +7,7 @@ import {
   selectSelectedChild,
 } from "@/store/slices/appStateSlice.js";
 import { selectProfessionalSupportStatus } from "@/store/slices/recordStatusSlice.js";
+import ProfessionalSupportListButton from './ProfessionalSupportListButton';
 
 /**
  * 専門的支援の利用日数チェック + 本日の専門的支援登録確認
@@ -96,7 +97,6 @@ const getProfessionalSupportRegisteredClass = (
 
 export default function ProfessionalSupportCheckPanel2({
   className = "",
-  buttonClassName = "",
   labelClassName = "",
   logTag = "ProfessionalSupportCheck",
 }) {
@@ -169,16 +169,23 @@ export default function ProfessionalSupportCheckPanel2({
 
   return (
     <div className={`flex flex-col gap-1 ${className}`.trim()}>
-      <button
-        type="button"
-        className={
-          `btn-purple hover:bg-purple-600 p-2 rounded text-white shrink-0 disabled:opacity-60 ${buttonClassName}`.trim()
-        }
-        onClick={handleClick}
-        disabled={checking}
-      >
-        {checking ? "確認中…" : "専門的支援チェック"}
-      </button>
+      <div className="flex flex-row gap-1">
+        <button
+          type="button"
+          className="flex-[6] bg-purple-600 hover:bg-purple-700 py-1 rounded text-white text-xs disabled:opacity-60 flex items-center justify-center gap-1"
+          onClick={handleClick}
+          disabled={checking}
+          title="専門的支援の保存数"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          {checking ? "確認中" : "チェック"}
+        </button>
+        <ProfessionalSupportListButton className="flex-[4]" />
+      </div>
+
+
 
       <div className="flex gap-1 items-stretch">
         <label

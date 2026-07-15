@@ -700,7 +700,6 @@ export default function ChildMemoPanel() {
       <ProfessionalSupportCheckPanel2
         logTag="ChildMemoPanel"
         className="mt-2 w-full items-stretch px-0"
-        buttonClassName="w-full text-xs"
         labelClassName="w-full"
       />
     </div>

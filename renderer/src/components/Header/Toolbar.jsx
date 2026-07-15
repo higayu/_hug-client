@@ -16,7 +16,6 @@ import SupportPlanNavigation from './SupportPlanNavigation';
 import ToolsListNavi from './ToolsListNavi';
 import CustomButtonsPanel from './CustomButtonsPanel';
 import AutoLoginButton from './AutoLoginButton';
-import ProfessionalSupportListButton from './ProfessionalSupportListButton';
 import SettingsEditButton from './SettingsEditButton';
 
 
@@ -61,7 +60,7 @@ export default function Toolbar() {
         pointer-events-auto
       "
     >
-      <ProfessionalSupportListButton />
+
 
       {/* 設定編集 */}
       <nav className="relative z-[1001] flex-shrink-0">

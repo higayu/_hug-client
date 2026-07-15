@@ -294,7 +294,6 @@ export default function ProfessionalPrompt1({
             <ProfessionalSupportCheckPanel2
               logTag="ProfessionalPrompt1"
               className="w-full"
-              buttonClassName="w-full text-xs"
               labelClassName="w-full"
             />
           </div>
