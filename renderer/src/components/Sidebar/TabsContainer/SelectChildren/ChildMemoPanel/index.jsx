@@ -467,7 +467,7 @@ export default function ChildMemoPanel() {
   if (!isAttendanceLoaded) {
     return renderPanelShell(
       <div className="flex-1 flex flex-col items-center justify-center text-center">
-        <p className="text-sm font-bold text-gray-800">
+        <p className="border rounded-md px-2 py-1 text-xl font-bold text-red-600">
           今日の利用者データを取得してください
         </p>
       </div>
