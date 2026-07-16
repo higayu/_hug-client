@@ -35,6 +35,8 @@ CREATE TABLE IF NOT EXISTS "facilitys" (
 CREATE TABLE IF NOT EXISTS "staffs" (
     "id" INTEGER NOT NULL,
     "name" TEXT NOT NULL,
+    "login_id" TEXT DEFAULT NULL,
+    "password_hash" TEXT DEFAULT NULL,
     "work_style" TEXT DEFAULT NULL,
     "notes" TEXT DEFAULT '',
     "is_delete" INTEGER NOT NULL DEFAULT 0,
@@ -44,8 +46,8 @@ CREATE TABLE IF NOT EXISTS "staffs" (
     "leaving_at" TEXT DEFAULT NULL,
     "hug_updated_at" TEXT DEFAULT NULL,
     "hug_updated_by" TEXT DEFAULT NULL,
-    "login_id" TEXT DEFAULT NULL,
-    "password_hash" TEXT DEFAULT NULL,
+    "created_at" TEXT DEFAULT NULL,
+    "updated_at" TEXT DEFAULT NULL,
     PRIMARY KEY("id"),
     UNIQUE("login_id")
 );
