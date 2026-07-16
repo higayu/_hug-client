@@ -35,7 +35,10 @@ import {
 import {
   APP_MODES,
   setMode as setModeRedux,
+  setSelectedItem as setSelectedItemRedux,
   resetMode as resetModeRedux,
+  resetModeSelection as resetModeSelectionRedux,
+  resetModeState as resetModeStateRedux,
 } from '@/store/slices/modeSlice'
 
 import { loadIni as loadIniFromUtils } from '@/utils/config/iniUtils'
@@ -557,6 +560,59 @@ export function AppStateProvider({ children }) {
   )
 
   /**
+   * モード内で選択中の項目を変更
+   *
+   * modeを省略した場合は、現在のモードへ保存する
+   */
+  const setModeSelectedItem = useCallback(
+    (itemId, mode = redux.CURRENT_MODE) => {
+      console.log(
+        '[AppStateContext/setModeSelectedItem wrapper]',
+        {
+          mode,
+          itemId,
+        }
+      )
+
+      dispatch(
+        setSelectedItemRedux({
+          mode,
+          itemId,
+        })
+      )
+    },
+    [dispatch, redux.CURRENT_MODE]
+  )
+
+  /**
+   * 指定したモードの選択項目を初期値へ戻す
+   *
+   * modeを省略した場合は、現在のモードを対象にする
+   */
+  const resetAppModeSelection = useCallback(
+    (mode = redux.CURRENT_MODE) => {
+      console.log(
+        '[AppStateContext/resetAppModeSelection wrapper]',
+        mode
+      )
+
+      dispatch(resetModeSelectionRedux(mode))
+    },
+    [dispatch, redux.CURRENT_MODE]
+  )
+
+  /**
+   * 表示モードと各モードの選択状態をすべて初期化
+   */
+  const resetAppModeState = useCallback(() => {
+    console.log(
+      '[AppStateContext/resetAppModeState wrapper]'
+    )
+
+    dispatch(resetModeStateRedux())
+  }, [dispatch])
+
+  /**
    * dashboardへ戻す
    */
   const resetAppMode = useCallback(() => {
@@ -748,7 +804,10 @@ export function AppStateProvider({ children }) {
 
       // 表示モード操作も window.AppState に公開する
       setAppMode,
+      setModeSelectedItem,
       resetAppMode,
+      resetAppModeSelection,
+      resetAppModeState,
       showDashboard,
       showAiInquiry,
 
@@ -779,6 +838,10 @@ export function AppStateProvider({ children }) {
     console.log(
       'window.AppState.showAiInquiry exists:',
       typeof window.AppState?.showAiInquiry
+    )
+    console.log(
+      'window.AppState.setModeSelectedItem exists:',
+      typeof window.AppState?.setModeSelectedItem
     )
     console.log(
       'window.AppState.isAutoSynchronizationEnabled exists:',
@@ -833,7 +896,10 @@ export function AppStateProvider({ children }) {
 
         // -- モードの追加 --
         setAppMode,
+        setModeSelectedItem,
         resetAppMode,
+        resetAppModeSelection,
+        resetAppModeState,
         showDashboard,
         showAiInquiry,
 
