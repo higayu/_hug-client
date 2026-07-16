@@ -12,6 +12,7 @@ export async function handleSQLiteDelete(
       children_id: child.children_id,
       staff_id:child.staff_id,
       day_of_week_id:child.day_of_week_id,
+      facility_id:child.facility_id,
     });
 
     console.log("SQLite: managers_delete 完了:", result3);
