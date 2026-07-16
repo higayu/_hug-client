@@ -1,23 +1,38 @@
-import { useRef } from "react"
-import TabsContainer from "./TabsContainer"
-import SidebarHeader from "./SidebarHeader"
+import { useRef } from "react";
+
+import Dashboard from "./Dashboard";
+import AiInquiry from "./AiInquiry";
+
+import { useAppState } from "@/AppStateContext";
 
 function Sidebar() {
-  const sidebarRef = useRef(null)
+  const sidebarRef = useRef(null);
+
+  const {
+    IS_DASHBOARD_MODE,
+    IS_AI_INQUIRY_MODE,
+  } = useAppState();
 
   return (
     <div
       ref={sidebarRef}
-      className="text-black bg-gray-50 flex flex-col h-full"
+      className="
+        flex
+        h-full
+        flex-col
+        bg-gray-50
+        text-black
+      "
     >
-      <SidebarHeader />
+      {IS_DASHBOARD_MODE && (
+        <Dashboard />
+      )}
 
-      {/* メインコンテンツ */}
-      <div className="flex flex-1 min-h-0 overflow-hidden">
-        <TabsContainer />
-      </div>
+      {IS_AI_INQUIRY_MODE && (
+        <AiInquiry />
+      )}
     </div>
-  )
+  );
 }
 
-export default Sidebar
+export default Sidebar;

@@ -4,7 +4,8 @@ import appStateReducer from './slices/appStateSlice.js'
 import databaseReducer from './slices/databaseSlice.js'
 import sendTextReducer from './slices/sendTextSlice.js'
 import webviewReducer from "./slices/webviewSlice.js"
-import recordStatusReducer from "./slices/recordStatusSlice.js"
+import recordStatusReducer from "./slices/recordStatusSlice.js";
+import modeReducer from './slices/modeSlice.js'
 
 export const store = configureStore({
   reducer: {
@@ -14,6 +15,7 @@ export const store = configureStore({
     sendText: sendTextReducer,
     webview: webviewReducer,
     recordStatus: recordStatusReducer,
+    mode: modeReducer,
   },
   devTools: process.env.NODE_ENV !== 'production'
 })

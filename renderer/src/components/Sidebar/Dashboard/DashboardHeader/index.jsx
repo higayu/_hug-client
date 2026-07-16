@@ -7,7 +7,7 @@ import { useToast } from "@/components/common/ToastContext";
 
 import WeekdaySelect from "@/components/ui/WeekdaySelect";
 
-function SidebarHeader() {
+function DashboardHeader() {
   const { showInfoToast } = useToast();
 
   const {
@@ -115,4 +115,4 @@ function SidebarHeader() {
   );
 }
 
-export default SidebarHeader;
+export default DashboardHeader;

@@ -30,7 +30,13 @@ import {
   selectDatabaseLoading,
   selectDatabaseError,
   selectDatabaseMetadata,
-} from '@/store/slices/databaseSlice'
+} from '@/store/slices/databaseSlice';
+
+import {
+  selectCurrentMode,
+  selectIsDashboardMode,
+  selectIsAiInquiryMode,
+} from '@/store/slices/modeSlice';
 
 import { splitChildrenData } from '@/AppStateContext/splitChildrenData'
 
@@ -133,6 +139,19 @@ export function useReduxBindings() {
   const attendanceData = useSelector(s.selectAttendanceData)
   const DEBUG_FLG = useSelector(s.selectDebugFlg)
   const SELECT_CHILD_FILTER_MODE = useSelector(s.selectSelectChildFilterMode)
+
+  // =========================
+  // modeSlice
+  // =========================
+  const CURRENT_MODE = useSelector(
+    selectCurrentMode
+  )
+  const IS_DASHBOARD_MODE = useSelector(
+    selectIsDashboardMode
+  )
+  const IS_AI_INQUIRY_MODE = useSelector(
+    selectIsAiInquiryMode
+  )
 
   // =========================
   // databaseSlice を抽出用 tables にまとめる
@@ -370,5 +389,12 @@ export function useReduxBindings() {
     attendanceData,
     DEBUG_FLG,
     SELECT_CHILD_FILTER_MODE,
+
+    // =========================
+    // 表示モード
+    // =========================
+    CURRENT_MODE,
+    IS_DASHBOARD_MODE,
+    IS_AI_INQUIRY_MODE,
   }
 }

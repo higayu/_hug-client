@@ -17,7 +17,7 @@ import ToolsListNavi from './ToolsListNavi';
 import CustomButtonsPanel from './CustomButtonsPanel';
 import AutoLoginButton from './AutoLoginButton';
 import SettingsEditButton from './SettingsEditButton';
-
+import ModeNavi from "./ModeNavi";
 
 import { useAppState } from '@/AppStateContext';
 
@@ -61,6 +61,7 @@ export default function Toolbar() {
       "
     >
 
+     <ModeNavi />
 
       {/* 設定編集 */}
       <nav className="relative z-[1001] flex-shrink-0">
