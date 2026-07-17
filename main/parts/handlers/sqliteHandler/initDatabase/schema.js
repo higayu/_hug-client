@@ -62,16 +62,6 @@ CREATE TABLE IF NOT EXISTS "m_service_items" (
 	"name"	TEXT NOT NULL DEFAULT '',
 	PRIMARY KEY("id" AUTOINCREMENT)
 );
-CREATE TABLE IF NOT EXISTS "users" (
-	"id"	INTEGER NOT NULL,
-	"name"	TEXT DEFAULT NULL,
-	"email"	TEXT NOT NULL,
-	"password"	TEXT NOT NULL,
-	"created_at"	TEXT DEFAULT CURRENT_TIMESTAMP,
-	"leaving_at"	TEXT DEFAULT NULL,
-	PRIMARY KEY("id" AUTOINCREMENT),
-	UNIQUE("email")
-);
 CREATE TABLE IF NOT EXISTS "text_data" (
 	"id"	INTEGER NOT NULL,
 	"genre"	TEXT NOT NULL,
@@ -340,7 +330,6 @@ CREATE UNIQUE INDEX IF NOT EXISTS "idx_managers2_ids" ON "managers2" ("children_
 CREATE UNIQUE INDEX IF NOT EXISTS "idx_pc_facility_pc_id" ON "pc" ("facility_id","pc_id");
 CREATE UNIQUE INDEX IF NOT EXISTS "idx_service_record_unique" ON "service_record" ("children_id","day_of_week_id","item_id","served_date");
 CREATE UNIQUE INDEX IF NOT EXISTS "idx_staff_facility_roles_unique" ON "staff_facility_roles" ("staff_id","facility_id","job_name","experience_label");
-CREATE UNIQUE INDEX IF NOT EXISTS "idx_users_email" ON "users" ("email");
 
 COMMIT;
 `;
