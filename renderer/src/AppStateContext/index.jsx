@@ -32,6 +32,15 @@ import {
   setAutoSwitching as setAutoSwitchingRedux,
 } from '@/store/slices/appStateSlice'
 
+import {
+  APP_MODES,
+  setMode as setModeRedux,
+  setSelectedItem as setSelectedItemRedux,
+  resetMode as resetModeRedux,
+  resetModeSelection as resetModeSelectionRedux,
+  resetModeState as resetModeStateRedux,
+} from '@/store/slices/modeSlice'
+
 import { loadIni as loadIniFromUtils } from '@/utils/config/iniUtils'
 
 const AppStateContext = createContext(null)
@@ -533,6 +542,115 @@ export function AppStateProvider({ children }) {
   ])
 
   // ===== Redux wrappers =====
+
+  // ===== モードスライス =====
+  /**
+   * 表示モードを変更
+   */
+  const setAppMode = useCallback(
+    (mode) => {
+      console.log(
+        '[AppStateContext/setAppMode wrapper]',
+        mode
+      )
+
+      dispatch(setModeRedux(mode))
+    },
+    [dispatch]
+  )
+
+  /**
+   * モード内で選択中の項目を変更
+   *
+   * modeを省略した場合は、現在のモードへ保存する
+   */
+  const setModeSelectedItem = useCallback(
+    (itemId, mode = redux.CURRENT_MODE) => {
+      console.log(
+        '[AppStateContext/setModeSelectedItem wrapper]',
+        {
+          mode,
+          itemId,
+        }
+      )
+
+      dispatch(
+        setSelectedItemRedux({
+          mode,
+          itemId,
+        })
+      )
+    },
+    [dispatch, redux.CURRENT_MODE]
+  )
+
+  /**
+   * 指定したモードの選択項目を初期値へ戻す
+   *
+   * modeを省略した場合は、現在のモードを対象にする
+   */
+  const resetAppModeSelection = useCallback(
+    (mode = redux.CURRENT_MODE) => {
+      console.log(
+        '[AppStateContext/resetAppModeSelection wrapper]',
+        mode
+      )
+
+      dispatch(resetModeSelectionRedux(mode))
+    },
+    [dispatch, redux.CURRENT_MODE]
+  )
+
+  /**
+   * 表示モードと各モードの選択状態をすべて初期化
+   */
+  const resetAppModeState = useCallback(() => {
+    console.log(
+      '[AppStateContext/resetAppModeState wrapper]'
+    )
+
+    dispatch(resetModeStateRedux())
+  }, [dispatch])
+
+  /**
+   * dashboardへ戻す
+   */
+  const resetAppMode = useCallback(() => {
+    console.log(
+      '[AppStateContext/resetAppMode wrapper]'
+    )
+
+    dispatch(resetModeRedux())
+  }, [dispatch])
+
+  /**
+   * dashboardを表示
+   */
+  const showDashboard = useCallback(() => {
+    console.log(
+      '[AppStateContext/showDashboard]'
+    )
+
+    dispatch(
+      setModeRedux(APP_MODES.DASHBOARD)
+    )
+  }, [dispatch])
+
+  /**
+   * AI問い合わせを表示
+   */
+  const showAiInquiry = useCallback(() => {
+    console.log(
+      '[AppStateContext/showAiInquiry]'
+    )
+
+    dispatch(
+      setModeRedux(APP_MODES.AI_INQUIRY)
+    )
+  }, [dispatch])
+
+  // ===== モードスライス　末尾 =====
+
   const updateAppState = useCallback(
     (updates) => {
       console.log('[AppStateContext/updateAppState wrapper]', updates)
@@ -684,6 +802,15 @@ export function AppStateProvider({ children }) {
       setAutoSynchronization,
       setAutoSwitching,
 
+      // 表示モード操作も window.AppState に公開する
+      setAppMode,
+      setModeSelectedItem,
+      resetAppMode,
+      resetAppModeSelection,
+      resetAppModeState,
+      showDashboard,
+      showAiInquiry,
+
       setDatabaseType,
       setUseAI,
       setStaffId,
@@ -708,6 +835,14 @@ export function AppStateProvider({ children }) {
     console.log('window.loadIni exists:', typeof window.loadIni)
     console.log('window.updateAppState exists:', typeof window.updateAppState)
     console.log('window.setDatabaseType exists:', typeof window.setDatabaseType)
+    console.log(
+      'window.AppState.showAiInquiry exists:',
+      typeof window.AppState?.showAiInquiry
+    )
+    console.log(
+      'window.AppState.setModeSelectedItem exists:',
+      typeof window.AppState?.setModeSelectedItem
+    )
     console.log(
       'window.AppState.isAutoSynchronizationEnabled exists:',
       typeof window.AppState?.isAutoSynchronizationEnabled
@@ -758,6 +893,15 @@ export function AppStateProvider({ children }) {
         setAttendanceData,
         setSelectedChildColumns: setSelectedChildColumnsCallback,
         setSelectChildFilterMode,
+
+        // -- モードの追加 --
+        setAppMode,
+        setModeSelectedItem,
+        resetAppMode,
+        resetAppModeSelection,
+        resetAppModeState,
+        showDashboard,
+        showAiInquiry,
 
         activeSidebarTab,
         setActiveSidebarTab,
