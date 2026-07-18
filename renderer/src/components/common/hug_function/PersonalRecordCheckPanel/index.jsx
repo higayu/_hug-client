@@ -72,7 +72,7 @@ export function PersonalRecordRegisteredStatus({
 /**
  * 個人記録 取得ボタン + 結果表示
  */
-export default function PersonalRecordCheckPanel() {
+export default function PersonalRecordCheckPanel({className=""}) {
   const { checking, runCheck } = usePersonRecordCheck();
 
   const currentYmd = useSelector(selectCurrentYmd);
@@ -86,19 +86,19 @@ export default function PersonalRecordCheckPanel() {
   const todayPersonalRecordCount = personalRecordStatus.recordCount;
 
   return (
-    <div className="inline-flex items-center gap-2">
+    <div className={`inline-flex items-center gap-2 ${className}`}>
       <button
         type="button"
         onClick={runCheck}
         disabled={checking}
         className={[
-          "inline-flex items-center rounded px-2 py-1 text-sm font-medium",
-          "border border-gray-300 bg-white text-gray-700",
-          "hover:bg-gray-50",
+          "inline-flex items-center rounded px-2 py-2 text-sm font-medium",
+          "border border-gray-300 bg-green-400 text-gray-700",
+          "hover:bg-green-700",
           "disabled:cursor-not-allowed disabled:opacity-50",
         ].join(" ")}
       >
-        {checking ? "取得中…" : "取得"}
+        {checking ? "取得中…" : "個人記録-確認"}
       </button>
 
       <span className="text-xs text-gray-600">

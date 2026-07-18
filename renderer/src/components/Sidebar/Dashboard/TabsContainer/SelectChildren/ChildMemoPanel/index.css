@@ -58,15 +58,21 @@
   display: block;
 }
 
+/* 入室ボタン */
 .child-memo-attendance-form .hug-btn-post-enter {
-  padding: 4px 10px;
+  padding: 6px 15px;
   font-size: 12px;
   cursor: pointer;
   border: 1px solid #1a6;
   border-radius: 4px;
-  background: #e8fff4;
-  color: #063;
+  background: #abfcd5;
+  font-weight: bold;
+  color: rgb(0, 28, 14);
   white-space: nowrap;
+}
+/* 入室ボタン　ホバー */
+.child-memo-attendance-form .hug-btn-post-enter:hover:not(:disabled) {
+    background: #00ff84;
 }
 
 .child-memo-attendance-form .hug-btn-post-enter.hug-btn-has-mail {
@@ -77,8 +83,9 @@
     0 1px 3px rgba(13, 71, 161, 0.35);
 }
 
+/* 退室ボタン */
 .child-memo-attendance-form .hug-btn-post-leave {
-  padding: 4px 10px;
+  padding: 6px 12px;
   font-size: 12px;
   font-weight: bold;
   cursor: pointer;
@@ -88,6 +95,12 @@
   color: #3e2723;
   white-space: nowrap;
   box-shadow: 0 1px 3px rgba(216, 67, 21, 0.35);
+}
+
+/* 退室ボタンのホバー時 */
+.child-memo-attendance-form .hug-btn-post-leave:hover:not(:disabled) {
+  background: #ff8f00;           /* ← ホバー時の背景色（例：濃いオレンジ） */
+  /* または filter: brightness(0.9); でも可 */
 }
 
 .child-memo-attendance-form .hug-btn-post-leave.hug-btn-has-mail {

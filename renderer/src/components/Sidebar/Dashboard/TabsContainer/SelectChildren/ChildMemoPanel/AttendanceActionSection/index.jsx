@@ -321,7 +321,7 @@ export default function AttendanceActionSection({
   }
 
   return (
-    <div className="hug-post-actions">
+    <div className="hug-post-actions flex justify-evenly gap-4">
       {showEnter ? (
         <AttendancePostButton
           action="enter"

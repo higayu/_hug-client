@@ -695,7 +695,7 @@ export default function ChildMemoPanel() {
         )}
       </div>
 
-      <PersonalRecordCheckPanel />
+      <PersonalRecordCheckPanel className="py-2" />
 
       <ProfessionalSupportCheckPanel2
         logTag="ChildMemoPanel"
