@@ -10,6 +10,7 @@
     "start": "npm run build:preload && electron . --prod",
     "start:dev": "npm run build:preload && electron . --dev",
     "electron": "npm run build:preload && electron .",
+    "build:whisper": "cmake -S whisper.cpp -B whisper.cpp/build -DWHISPER_BUILD_EXAMPLES=ON && cmake --build whisper.cpp/build --config Release --target whisper-cli --parallel",
     "dev": "concurrently \"npm run dev:renderer\" \"wait-on http://localhost:5173 && npm run build:preload && electron . --dev\"",
     "dev:renderer": "cd renderer && npm run dev",
     "dist": "npm run build:preload && npm run build:renderer && electron-builder"
