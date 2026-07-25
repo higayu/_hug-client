@@ -9,6 +9,7 @@ import { useCustomButtonManager } from '@/hooks/useCustomButtonManager.js'
 // buttonVisibilityManager は削除されました（機能が空のため）
 import { getActiveWebview } from '@/utils/webview/webviewState.js'
 import { useToast } from '@/components/common/ToastContext.jsx'
+import { confirmDialog } from '@/utils/dialog/confirmDialog.js'
 
 function toBooleanFlag(value, defaultValue = true) {
   let result = defaultValue
@@ -620,7 +621,7 @@ export function useAppInitialization() {
                   confirmMessage
                 )
 
-                shouldClose = window.confirm(confirmMessage)
+                shouldClose = await confirmDialog(confirmMessage)
 
                 console.log('🚪 [useAppInitialization] window.confirm result:', {
                   shouldClose,

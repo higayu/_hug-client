@@ -1,6 +1,7 @@
 // renderer/src/hooks/useTabs/actions/professionalNew.js
 
 import { createWebview, createTabButton, activateTab, closeTab } from '../common/index.js'
+import { confirmDialog } from '@/utils/dialog/confirmDialog.js'
 
 export function addProfessionalSupportNewAction(appState) {
   if (!appState.SELECT_CHILD) {
@@ -39,9 +40,9 @@ export function addProfessionalSupportNewAction(appState) {
 
   const closeBtn = tabButton.querySelector('.close-btn')
   if (closeBtn) {
-    closeBtn.addEventListener('click', (e) => {
+    closeBtn.addEventListener('click', async (e) => {
       e.stopPropagation()
-      if (!confirm('このタブを閉じますか？')) return
+      if (!(await confirmDialog('このタブを閉じますか？'))) return
       closeTab(newId)
     })
   }
@@ -170,9 +171,9 @@ export function addProfessionalSupportCheckAction(appState) {
 
   const closeBtn = tabButton.querySelector('.close-btn')
   if (closeBtn) {
-    closeBtn.addEventListener('click', (e) => {
+    closeBtn.addEventListener('click', async (e) => {
       e.stopPropagation()
-      if (!confirm('このタブを閉じますか？')) return
+      if (!(await confirmDialog('このタブを閉じますか？'))) return
       closeTab(newId)
     })
   }
@@ -305,9 +306,9 @@ export function addProfessionalSupportNewAction2(appState) {
 
   const closeBtn = tabButton.querySelector('.close-btn')
   if (closeBtn) {
-    closeBtn.addEventListener('click', (e) => {
+    closeBtn.addEventListener('click', async (e) => {
       e.stopPropagation()
-      if (!confirm('このタブを閉じますか？')) return
+      if (!(await confirmDialog('このタブを閉じますか？'))) return
       closeTab(newId)
     })
   }
@@ -491,9 +492,9 @@ export function addProfessionalSupportNewAction3(appState) {
 
   const closeBtn = tabButton.querySelector('.close-btn')
   if (closeBtn) {
-    closeBtn.addEventListener('click', (e) => {
+    closeBtn.addEventListener('click', async (e) => {
       e.stopPropagation()
-      if (!confirm('このタブを閉じますか？')) return
+      if (!(await confirmDialog('このタブを閉じますか？'))) return
       closeTab(newId)
     })
   }

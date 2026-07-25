@@ -12,7 +12,7 @@ const { registerCloseConfirmation } = require("./main/closeConfirmation");
 const { registerAppLifecycleHandlers } = require("./main/lifecycle");
 
 // 🔍 調査用: フォーカス/ウィンドウ生成トラッカー（原因調査が終わったら削除する）
-const { attachFocusTracker } = require("./focusTracker.main");
+//const { attachFocusTracker } = require("./main/debug/focusTracker.main");
 
 // ✅ 対策: window.confirm() の代わりに使う非ブロッキングな確認ダイアログ
 const { registerConfirmDialog } = require("./main/confirmDialog");
@@ -27,7 +27,7 @@ registerAppLifecycleHandlers();
 // ============================================================
 app.whenReady().then(async () => {
   // 🔍 調査用トラッカーを一番最初に起動（以降作られるウィンドウを全部拾うため）
-  attachFocusTracker();
+  //attachFocusTracker();
 
   // メニュー
   setAppMenu();

@@ -1,6 +1,7 @@
 // renderer/src/hooks/useTabs/actions/personalRecord.js
 
 import { getDateString } from '@/utils/date/dateUtils.js'
+import { confirmDialog } from '@/utils/dialog/confirmDialog.js'
 import { createWebview, createTabButton, activateTab, closeTab } from '../common/index.js'
 
 
@@ -39,9 +40,9 @@ export function addPersonalRecordTabAction3(appState) {
 
   const closeBtn = tabButton.querySelector('.close-btn')
   if (closeBtn) {
-    closeBtn.addEventListener('click', (e) => {
+    closeBtn.addEventListener('click', async (e) => {
       e.stopPropagation()
-      if (!confirm('このタブを閉じますか？')) return
+      if (!(await confirmDialog('このタブを閉じますか？'))) return
       closeTab(newId)
     })
   }
@@ -214,9 +215,9 @@ export function addPersonalRecordTabAction4(appState) {
 
   const closeBtn = tabButton.querySelector('.close-btn')
   if (closeBtn) {
-    closeBtn.addEventListener('click', (e) => {
+    closeBtn.addEventListener('click', async (e) => {
       e.stopPropagation()
-      if (!confirm('このタブを閉じますか？')) return
+      if (!(await confirmDialog('このタブを閉じますか？'))) return
       closeTab(newId)
     })
   }

@@ -1,6 +1,7 @@
 // renderer/src/hooks/useTabs/actions/normal.js
 
 import { createWebview, createTabButton, activateTab, closeTab } from '../common/index.js'
+import { confirmDialog } from '@/utils/dialog/confirmDialog.js'
 
 export function addNormalTabAction(appState) {
   console.log('🔍 [useTabs] ＋ボタンがクリックされました')
@@ -45,8 +46,8 @@ export function addNormalTabAction(appState) {
     closeBtn.addEventListener('click', async (e) => {
       e.stopPropagation()
 
-      const ok = await window.electronAPI.confirmDialog('このタブを閉じますか？')
-      if (!ok) return
+    const ok = await confirmDialog('このタブを閉じますか？')
+    if (!ok) return
 
       closeTab(newId)
     })

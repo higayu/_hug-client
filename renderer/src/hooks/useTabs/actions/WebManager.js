@@ -1,107 +1,187 @@
 // renderer/src/hooks/useTabs/actions/WebManager.js
 
-import { createWebview, createTabButton, activateTab, closeTab } from '../common/index.js'
+import {
+  createWebview,
+  createTabButton,
+  activateTab,
+  closeTab,
+} from '../common/index.js'
+
+import { confirmDialog } from '@/utils/dialog/confirmDialog.js'
 
 function getWebManagerUrl_kadai(iniState, appState) {
   return `${iniState?.apiSettings?.baseURL}/houday/build-file/yoshijima/childkadai-table?children_id=${appState?.SELECT_CHILD}&record_type_id=1`
 }
 
 function getUrl(path) {
-    return `${path}`
+  return `${path}`
 }
 
 function getWebManagerUrl(iniState, path) {
-
   return `${iniState?.apiSettings?.baseURL}${path}`
 }
 
-export function addWebManagerAction(appState, iniState) {
-  const tabsContainer = document.getElementById('tabs')
-  const webviewContainer = document.getElementById('webview-container')
+export function addWebManagerAction(
+  appState,
+  iniState,
+) {
+  const tabsContainer =
+    document.getElementById('tabs')
+
+  const webviewContainer =
+    document.getElementById(
+      'webview-container',
+    )
 
   if (!tabsContainer || !webviewContainer) {
-    console.error('tabs または webview-container が見つかりません')
+    console.error(
+      'tabs または webview-container が見つかりません',
+    )
     return
   }
 
-  const url = getWebManagerUrl(iniState, appState)
+  const url = getWebManagerUrl(
+    iniState,
+    appState,
+  )
+
   if (!url || url.includes('undefined')) {
-    console.error('WebManager URL の生成に失敗しました', {
-      baseURL: iniState?.apiSettings?.baseURL,
-      selectChild: appState?.SELECT_CHILD,
-      currentYmd: appState?.CURRENT_YMD,
-    })
+    console.error(
+      'WebManager URL の生成に失敗しました',
+      {
+        baseURL:
+          iniState?.apiSettings?.baseURL,
+        selectChild:
+          appState?.SELECT_CHILD,
+        currentYmd:
+          appState?.CURRENT_YMD,
+      },
+    )
     return
   }
 
-  const newId = `hugview-${appState.CURRENT_YMD}-${document.querySelectorAll('webview').length}`
-  const newWebview = createWebview(newId, url)
+  const newId =
+    `hugview-${appState.CURRENT_YMD}-${document.querySelectorAll('webview').length}`
+
+  const newWebview = createWebview(
+    newId,
+    url,
+  )
 
   webviewContainer.appendChild(newWebview)
 
   const tabButton = createTabButton(
     newId,
     'データ確認',
-    appState.closeButtonsVisible
+    appState.closeButtonsVisible,
   )
 
-  if (!tabButton) return
+  if (!tabButton) {
+    newWebview.remove()
+    return
+  }
 
   tabsContainer.appendChild(tabButton)
-  tabButton.addEventListener('click', () => activateTab(newId))
 
-  const closeBtn = tabButton.querySelector('.close-btn')
+  tabButton.addEventListener(
+    'click',
+    () => activateTab(newId),
+  )
+
+  const closeBtn =
+    tabButton.querySelector('.close-btn')
+
   if (closeBtn) {
-    closeBtn.addEventListener('click', (e) => {
-      e.stopPropagation()
-      if (!confirm('このタブを閉じますか？')) return
-      closeTab(newId)
-    })
+    closeBtn.addEventListener(
+      'click',
+      async (event) => {
+        event.stopPropagation()
+
+        const shouldClose =
+          await confirmDialog(
+            'このタブを閉じますか？',
+          )
+
+        if (!shouldClose) {
+          return
+        }
+
+        closeTab(newId)
+      },
+    )
   }
 
   let initialized = false
 
-  newWebview.addEventListener('did-finish-load', () => {
-    if (initialized) return
-    initialized = true
+  newWebview.addEventListener(
+    'did-finish-load',
+    () => {
+      if (initialized) return
+      initialized = true
 
-    newWebview.executeJavaScript(`
-    `)
-  }, { once: true })
+      newWebview.executeJavaScript(`
+      `)
+    },
+    {
+      once: true,
+    },
+  )
 
   activateTab(newId)
 }
 
-export function addWebManagerAction_OutWindow(appState, iniState, switch_id, path="") {
+export function addWebManagerAction_OutWindow(
+  appState,
+  iniState,
+  switch_id,
+  path = '',
+) {
   if (!appState?.SELECT_CHILD) {
-    console.error('WebManager URL の生成に失敗しました: 児童が選択されていません')
+    console.error(
+      'WebManager URL の生成に失敗しました: 児童が選択されていません',
+    )
     return
   }
 
-  let url="";
+  let url = ''
 
-  switch (switch_id){
+  switch (switch_id) {
     case 1:
-       url = getUrl(path);
-      break;
-    case 2:
-      url = getWebManagerUrl(iniState, path);
-      break;
-    default:
-      url = getWebManagerUrl_kadai(iniState, appState);
-  }
+      url = getUrl(path)
+      break
 
+    case 2:
+      url = getWebManagerUrl(
+        iniState,
+        path,
+      )
+      break
+
+    default:
+      url = getWebManagerUrl_kadai(
+        iniState,
+        appState,
+      )
+  }
 
   if (!url || url.includes('undefined')) {
-    console.error('WebManager URL の生成に失敗しました', {
-      baseURL: iniState?.apiSettings?.baseURL,
-      selectChild: appState?.SELECT_CHILD,
-      currentYmd: appState?.CURRENT_YMD,
-    })
+    console.error(
+      'WebManager URL の生成に失敗しました',
+      {
+        baseURL:
+          iniState?.apiSettings?.baseURL,
+        selectChild:
+          appState?.SELECT_CHILD,
+        currentYmd:
+          appState?.CURRENT_YMD,
+      },
+    )
     return
   }
 
-  if (window.electronAPI?.openWebManagerPage) {
+  if (
+    window.electronAPI?.openWebManagerPage
+  ) {
     window.electronAPI.openWebManagerPage({
       url,
       title: 'Webページ',
@@ -109,5 +189,9 @@ export function addWebManagerAction_OutWindow(appState, iniState, switch_id, pat
     return
   }
 
-  window.open(url, '_blank', 'noopener,noreferrer')
+  window.open(
+    url,
+    '_blank',
+    'noopener,noreferrer',
+  )
 }

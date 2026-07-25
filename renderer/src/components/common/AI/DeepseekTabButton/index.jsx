@@ -6,6 +6,7 @@ import {
   createWebview,
   createTabButton,
 } from "@/hooks/useTabs/common/index.js"
+import { confirmDialog } from "@/utils/dialog/confirmDialog.js"
 
 import tabIcon from "@assets/images/icon.png"
 
@@ -142,7 +143,7 @@ export default function DeepseekTabButton() {
       console.log("✅ DeepSeek dom-ready")
     }
 
-    function handleCloseClick(event) {
+    async function handleCloseClick(event) {
       event.preventDefault()
       event.stopPropagation()
 
@@ -151,7 +152,11 @@ export default function DeepseekTabButton() {
         newId,
       )
 
-      if (!confirm("このタブを閉じますか？")) {
+      const shouldClose = await confirmDialog(
+        "このタブを閉じますか？",
+      )
+
+      if (!shouldClose) {
         restoreFocusAfterDomUpdate()
         return
       }

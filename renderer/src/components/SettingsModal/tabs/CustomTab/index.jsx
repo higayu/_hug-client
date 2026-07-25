@@ -17,6 +17,7 @@ import {
 // ✅ インポートパスを修正
 import { useCustomButtons } from '@/components/CustomButtonsContext'
 import { useToast } from '@/components/common/ToastContext.jsx'
+import { confirmDialog } from '@/utils/dialog/confirmDialog.js'
 
 const DEFAULT_BUTTON = {
   action: '',
@@ -114,7 +115,7 @@ function CustomTab() {
   }
 
   const handleButtonDelete = async (buttonId) => {
-    if (!window.confirm('このカスタムボタンを削除しますか？')) {
+    if (!(await confirmDialog('このカスタムボタンを削除しますか？'))) {
       return
     }
 

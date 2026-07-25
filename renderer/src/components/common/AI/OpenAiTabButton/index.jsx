@@ -7,6 +7,7 @@ import {
   createWebview,
   createTabButton,
 } from "@/hooks/useTabs/common/index.js"
+import { confirmDialog } from "@/utils/dialog/confirmDialog.js"
 
 import {
   runEnableTemporaryChatAfterLoad,
@@ -114,11 +115,15 @@ export default function OpenAiTabButton() {
       activateTab(newId)
     }
 
-    function handleCloseClick(event) {
+    async function handleCloseClick(event) {
       event.preventDefault()
       event.stopPropagation()
 
-      if (!confirm("このタブを閉じますか？")) {
+      const shouldClose = await confirmDialog(
+        "このタブを閉じますか？",
+      )
+
+      if (!shouldClose) {
         restoreFocusAfterDomUpdate()
         return
       }
