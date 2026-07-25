@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { useAppState } from "@/AppStateContext";
 
-import MemoInputBox from './MemoInputBox';
+import MemoInputBox from '@/components/ui/MemoInputBox';
 
 const DBG = 'ProfessionalPrompt2';
 

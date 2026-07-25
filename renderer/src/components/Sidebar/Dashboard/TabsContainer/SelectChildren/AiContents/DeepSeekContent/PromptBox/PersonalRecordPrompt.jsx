@@ -12,7 +12,7 @@ import {
   sendError
 } from '@/store/slices/sendTextSlice'
 
-import MemoInputBox from './MemoInputBox';
+import MemoInputBox from '@/components/ui/MemoInputBox';
 import TwoTabPanel from '@/components/ui/TwoTabPanel';
 import PersonalRecordManagerPanel2 from '@/components/common/hug_function/PersonalRecordManagerPanel2';
 import DeepseekTabButton from "@/components/common/AI/DeepseekTabButton";
