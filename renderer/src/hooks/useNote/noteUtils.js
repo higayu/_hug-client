@@ -1,4 +1,4 @@
-// renderer/src/utils/noteUtils.js
+// \renderer\src\hooks\useNote\noteUtils.js
 
 const WEEKDAY_MAP = {
   日: 7,

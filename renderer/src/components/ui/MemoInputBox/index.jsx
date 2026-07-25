@@ -7,7 +7,7 @@ import React, {
 
 import { useToast } from "@/components/common/ToastContext.jsx";
 import { useAppState } from "@/AppStateContext";
-import { useNote } from "@/hooks/useNote.js";
+import { useNote } from "@/hooks/useNote";
 import { addPersonalRecordTabAction4 } from "@/hooks/useTabs/actions/personalRecord.js";
 import BrowserOpenButton from "@/components/common/BrowserOpenButton";
 

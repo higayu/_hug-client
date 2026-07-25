@@ -1,10 +1,11 @@
+// \renderer\src\hooks\useNote\index.js
 import { useAppState } from "@/AppStateContext";
 import {
   saveTempNote,
   saveTempNote1,
   saveTempNote2,
   loadTempNote as loadFn,
-} from "@/utils/app/noteUtils.js";
+} from "./noteUtils.js";
 import { useCallback } from "react";
 
 export function useNote() {
