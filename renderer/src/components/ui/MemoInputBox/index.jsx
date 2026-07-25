@@ -18,25 +18,49 @@ export default function MemoInputBox({
 }) {
   const textareaRef = useRef(null);
 
-  // 最新の読込処理だけを有効にするための番号
+  // 最新の読込処理だけを有効にする番号
   const loadSeqRef = useRef(0);
 
-  // 入力中にDBの値で上書きされないようにする
+  // ユーザーが入力を始めたか
   const editingRef = useRef(false);
 
   const { showSuccessToast, showErrorToast } = useToast();
   const { appState, SELECT_CHILD } = useAppState();
   const { saveTemp1, saveTemp2, loadTemp } = useNote();
 
-  // loadTempの関数参照が変化しても
-  // 読み込み用useEffectを再実行させない
+  const [value, setValue] = useState("");
+
+  /*
+   * useNoteから返る関数参照が変化しても、
+   * メモ読込用useEffectを不用意に再実行させない。
+   */
   const loadTempRef = useRef(loadTemp);
+  const saveTemp1Ref = useRef(saveTemp1);
+  const saveTemp2Ref = useRef(saveTemp2);
+  const showSuccessToastRef = useRef(showSuccessToast);
+  const showErrorToastRef = useRef(showErrorToast);
 
   useEffect(() => {
     loadTempRef.current = loadTemp;
   }, [loadTemp]);
 
-  const [value, setValue] = useState("");
+  useEffect(() => {
+    saveTemp1Ref.current = saveTemp1;
+  }, [saveTemp1]);
+
+  useEffect(() => {
+    saveTemp2Ref.current = saveTemp2;
+  }, [saveTemp2]);
+
+  useEffect(() => {
+    showSuccessToastRef.current = showSuccessToast;
+  }, [showSuccessToast]);
+
+  useEffect(() => {
+    showErrorToastRef.current = showErrorToast;
+  }, [showErrorToast]);
+
+  const textareaId = `memo-input-${memoType}`;
 
   const log = useCallback(
     (...args) => {
@@ -58,7 +82,7 @@ export default function MemoInputBox({
   }, [appState]);
 
   /*
-   * 児童またはメモ種別が変わったときだけ読み込む
+   * 児童またはメモ種別が変わったときだけDBから読み込む。
    */
   useEffect(() => {
     editingRef.current = false;
@@ -66,14 +90,16 @@ export default function MemoInputBox({
     if (!SELECT_CHILD) {
       loadSeqRef.current += 1;
       setValue("");
-      return;
+      return undefined;
     }
 
     const seq = ++loadSeqRef.current;
 
     const proxy = {
       set value(result) {
-        // 古い非同期処理の結果は無視
+        /*
+         * 児童切替後などに返ってきた古い通信結果は無視する。
+         */
         if (seq !== loadSeqRef.current) {
           log("古い読み込み結果を無視", {
             seq,
@@ -82,7 +108,10 @@ export default function MemoInputBox({
           return;
         }
 
-        // 読み込み中にユーザーが入力を始めた場合も無視
+        /*
+         * API読込中にユーザーが入力を始めた場合は、
+         * DBの値で入力内容を上書きしない。
+         */
         if (editingRef.current) {
           log("入力中のため読み込み結果を無視", {
             seq,
@@ -107,7 +136,13 @@ export default function MemoInputBox({
 
     async function loadMemo() {
       try {
-        await loadTempRef.current(SELECT_CHILD, proxy);
+        const currentLoadTemp = loadTempRef.current;
+
+        if (typeof currentLoadTemp !== "function") {
+          throw new Error("loadTempが利用できません。");
+        }
+
+        await currentLoadTemp(SELECT_CHILD, proxy);
       } catch (error) {
         if (seq !== loadSeqRef.current) {
           return;
@@ -120,14 +155,19 @@ export default function MemoInputBox({
           error,
         });
 
-        showErrorToast(`${label} の読み込みに失敗しました`);
+        showErrorToastRef.current?.(
+          `${label} の読み込みに失敗しました`,
+        );
       }
     }
 
     loadMemo();
 
     return () => {
-      // クリーンアップ後に返ってきた通信結果を無効化
+      /*
+       * コンポーネント更新後に古い通信結果が返ってきても
+       * 適用されないようにする。
+       */
       if (loadSeqRef.current === seq) {
         loadSeqRef.current += 1;
       }
@@ -137,8 +177,108 @@ export default function MemoInputBox({
     memoType,
     label,
     log,
-    showErrorToast,
   ]);
+
+  /*
+   * AIなどのwebviewタブを閉じたあと、
+   * Electron側のフォーカスが親rendererへ戻った際に
+   * メモ欄を再び入力可能な状態へ戻す。
+   */
+  useEffect(() => {
+    function restoreTextareaFocus() {
+      if (!SELECT_CHILD) {
+        return;
+      }
+
+      const textarea = textareaRef.current;
+
+      if (
+        !(textarea instanceof HTMLTextAreaElement) ||
+        textarea.disabled ||
+        textarea.readOnly
+      ) {
+        return;
+      }
+
+      /*
+       * 既に別のinput/textareaを操作中なら
+       * 勝手にフォーカスを奪わない。
+       */
+      const activeElement = document.activeElement;
+
+      const isOtherEditableElement =
+        activeElement &&
+        activeElement !== document.body &&
+        activeElement !== textarea &&
+        (
+          activeElement instanceof HTMLInputElement ||
+          activeElement instanceof HTMLTextAreaElement ||
+          activeElement instanceof HTMLSelectElement ||
+          activeElement.isContentEditable
+        );
+
+      if (isOtherEditableElement) {
+        return;
+      }
+
+      requestAnimationFrame(() => {
+        if (!textarea.isConnected) {
+          return;
+        }
+
+        textarea.focus({
+          preventScroll: true,
+        });
+      });
+    }
+
+    function handleWindowFocus() {
+      restoreTextareaFocus();
+    }
+
+    function handleVisibilityChange() {
+      if (document.visibilityState === "visible") {
+        restoreTextareaFocus();
+      }
+    }
+
+    /*
+     * closeTab側から明示的に通知できるようにする。
+     *
+     * 使用例:
+     * window.dispatchEvent(
+     *   new CustomEvent("app:webview-tab-closed")
+     * );
+     */
+    function handleWebviewTabClosed() {
+      restoreTextareaFocus();
+    }
+
+    window.addEventListener("focus", handleWindowFocus);
+    window.addEventListener(
+      "app:webview-tab-closed",
+      handleWebviewTabClosed,
+    );
+    document.addEventListener(
+      "visibilitychange",
+      handleVisibilityChange,
+    );
+
+    return () => {
+      window.removeEventListener(
+        "focus",
+        handleWindowFocus,
+      );
+      window.removeEventListener(
+        "app:webview-tab-closed",
+        handleWebviewTabClosed,
+      );
+      document.removeEventListener(
+        "visibilitychange",
+        handleVisibilityChange,
+      );
+    };
+  }, [SELECT_CHILD]);
 
   async function handleSave() {
     if (!SELECT_CHILD) {
@@ -146,21 +286,45 @@ export default function MemoInputBox({
     }
 
     try {
-      const result =
+      const saveFunction =
         memoType === 1
-          ? await saveTemp1(SELECT_CHILD, value)
-          : await saveTemp2(SELECT_CHILD, value);
+          ? saveTemp1Ref.current
+          : saveTemp2Ref.current;
+
+      if (typeof saveFunction !== "function") {
+        throw new Error(
+          memoType === 1
+            ? "saveTemp1が利用できません。"
+            : "saveTemp2が利用できません。",
+        );
+      }
+
+      const result = await saveFunction(
+        SELECT_CHILD,
+        value,
+      );
 
       if (!result) {
-        showErrorToast(`${label} の保存に失敗しました`);
+        showErrorToastRef.current?.(
+          `${label} の保存に失敗しました`,
+        );
         return;
       }
 
       editingRef.current = false;
-      showSuccessToast(`${label} を保存しました`);
+
+      showSuccessToastRef.current?.(
+        `${label} を保存しました`,
+      );
     } catch (error) {
-      console.error("[MemoInputBox] メモ保存エラー", error);
-      showErrorToast(`${label} の保存中にエラーが発生しました`);
+      console.error(
+        "[MemoInputBox] メモ保存エラー",
+        error,
+      );
+
+      showErrorToastRef.current?.(
+        `${label} の保存中にエラーが発生しました`,
+      );
     }
   }
 
@@ -169,11 +333,38 @@ export default function MemoInputBox({
     setValue(event.target.value);
   }
 
+  function handleCompositionStart() {
+    editingRef.current = true;
+  }
+
+  function handleKeyDown(event) {
+    /*
+     * 日本語IME変換中のEnterを、
+     * 親側のショートカット処理などに渡さない。
+     */
+    const isComposing =
+      event.nativeEvent?.isComposing ||
+      event.isComposing ||
+      event.keyCode === 229;
+
+    if (isComposing) {
+      event.stopPropagation();
+    }
+  }
+
+  function handleFocus() {
+    log("textarea focus", {
+      valueLength: value.length,
+      activeElementIsSelf:
+        document.activeElement === textareaRef.current,
+    });
+  }
+
   return (
     <div className="mt-3">
       <div className="flex gap-2 mt-1 mb-1 items-start">
         <label
-          htmlFor={`memo-input-${memoType}`}
+          htmlFor={textareaId}
           className="px-2 py-1 text-xs font-bold text-gray-700"
         >
           {label}
@@ -181,8 +372,10 @@ export default function MemoInputBox({
       </div>
 
       <textarea
-        id={`memo-input-${memoType}`}
+        id={textareaId}
         ref={textareaRef}
+        data-memo-input="true"
+        data-memo-type={memoType}
         className="
           w-full p-2 border border-gray-300 rounded text-xs
           bg-white resize-y text-black
@@ -194,18 +387,9 @@ export default function MemoInputBox({
         value={value}
         disabled={!SELECT_CHILD}
         onChange={handleChange}
-        onCompositionStart={() => {
-          editingRef.current = true;
-        }}
-        onKeyDown={(event) => {
-          // 日本語変換中のEnterは保存操作などに使わない
-          if (
-            event.nativeEvent?.isComposing ||
-            event.keyCode === 229
-          ) {
-            return;
-          }
-        }}
+        onFocus={handleFocus}
+        onCompositionStart={handleCompositionStart}
+        onKeyDown={handleKeyDown}
       />
 
       <div className="mt-2 flex gap-2 items-stretch">

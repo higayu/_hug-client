@@ -1,22 +1,19 @@
 import React, { useCallback } from "react"
-
 import { FaRobot } from "react-icons/fa"
 
 import { useTabs } from "@/hooks/useTabs"
+import { useAppState } from "@/AppStateContext"
+import {
+  createWebview,
+  createTabButton,
+} from "@/hooks/useTabs/common/index.js"
 
-import { useAppState } from "@/AppStateContext";
-
-import { createWebview, createTabButton } from "@/hooks/useTabs/common/index.js"
-
-import { runEnableTemporaryChatAfterLoad } from "./enableTemporaryChatInWebview.js"
-
-
+import {
+  runEnableTemporaryChatAfterLoad,
+} from "./enableTemporaryChatInWebview.js"
 
 const OPENAI_URL = "https://chat.openai.com/"
-
 const TAB_LABEL = "OpenAI ChatGPT"
-
-
 
 export default function OpenAiTabButton() {
   const { appState } = useAppState()
@@ -24,87 +21,239 @@ export default function OpenAiTabButton() {
 
   const handleOpenAI = useCallback(() => {
     const tabsContainer = document.getElementById("tabs")
-    const webviewContainer = document.getElementById("webview-container")
-
-    console.log("▶ handleOpenAI 実行開始")
+    const webviewContainer =
+      document.getElementById("webview-container")
 
     if (!tabsContainer || !webviewContainer) {
-      console.error("❌ tabs または webview-container が見つかりません")
+      console.error(
+        "tabs または webview-container が見つかりません",
+      )
       alert("タブ領域が見つかりません。")
       return
     }
 
-    const newId = `openai-${Date.now()}-${document.querySelectorAll("webview").length}`
-    console.log("🧠 OpenAIタブ作成:", newId, OPENAI_URL)
-    const newWebview = createWebview(newId, OPENAI_URL)
+    const newId =
+      `openai-${Date.now()}-${document.querySelectorAll("webview").length}`
+
+    const newWebview = createWebview(
+      newId,
+      OPENAI_URL,
+    )
+
     webviewContainer.appendChild(newWebview)
+
     const tabButton = createTabButton(
       newId,
       TAB_LABEL,
-      appState.closeButtonsVisible
+      appState.closeButtonsVisible,
     )
 
-    if (!tabButton) return
-      tabsContainer.appendChild(tabButton)
-        tabButton.addEventListener("click", () => {
-          console.log("🟩 タブアクティブ切り替え:", newId)
-          activateTab(newId)
-      })
-
-
-    const closeBtn = tabButton.querySelector(".close-btn")
-    if (closeBtn) {
-      closeBtn.addEventListener("click", (e) => {
-        e.stopPropagation()
-        console.log("🟥 タブ閉じるクリック:", newId)
-        if (!confirm("このタブを閉じますか？")) return
-        closeTab(newId)
-      })
+    if (!tabButton) {
+      newWebview.remove()
+      return
     }
 
-    activateTab(newId)
+    tabsContainer.appendChild(tabButton)
+
+    let tabClosed = false
     let temporaryChatDone = false
     let enablePending = false
 
-    const scheduleEnableTemporaryChat = () => {
-      if (temporaryChatDone || enablePending) return
+    function notifyWebviewTabClosed() {
+      window.dispatchEvent(
+        new CustomEvent("app:webview-tab-closed", {
+          detail: {
+            tabId: newId,
+          },
+        }),
+      )
+    }
+
+    function restoreRendererFocus() {
+      const activeElement = document.activeElement
+
+      if (activeElement instanceof HTMLElement) {
+        activeElement.blur()
+      }
+
+      window.focus()
+
+      if (document.body) {
+        document.body.focus()
+      }
+
+      const textarea =
+        document.querySelector(
+          '[data-memo-input="true"]:not([disabled]):not([readonly])',
+        ) ??
+        document.querySelector(
+          "textarea:not([disabled]):not([readonly])",
+        )
+
+      if (textarea instanceof HTMLTextAreaElement) {
+        textarea.focus({
+          preventScroll: true,
+        })
+      }
+    }
+
+    function restoreFocusAfterDomUpdate() {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          notifyWebviewTabClosed()
+          restoreRendererFocus()
+        })
+      })
+    }
+
+    function handleTabClick() {
+      if (tabClosed) {
+        return
+      }
+
+      activateTab(newId)
+    }
+
+    function handleCloseClick(event) {
+      event.preventDefault()
+      event.stopPropagation()
+
+      if (!confirm("このタブを閉じますか？")) {
+        restoreFocusAfterDomUpdate()
+        return
+      }
+
+      tabClosed = true
+
+      try {
+        newWebview.blur()
+      } catch (error) {
+        console.warn(
+          "webviewのblurに失敗しました",
+          error,
+        )
+      }
+
+      /*
+       * 登録したイベントを解除
+       */
+      tabButton.removeEventListener(
+        "click",
+        handleTabClick,
+      )
+
+      closeBtn?.removeEventListener(
+        "click",
+        handleCloseClick,
+      )
+
+      newWebview.removeEventListener(
+        "did-finish-load",
+        scheduleEnableTemporaryChat,
+      )
+
+      newWebview.removeEventListener(
+        "dom-ready",
+        scheduleEnableTemporaryChat,
+      )
+
+      closeTab(newId)
+
+      /*
+       * closeTab側でwebviewが削除されなかった場合の保険
+       */
+      if (newWebview.isConnected) {
+        newWebview.remove()
+      }
+
+      /*
+       * closeTab側でタブボタンが削除されなかった場合の保険
+       */
+      if (tabButton.isConnected) {
+        tabButton.remove()
+      }
+
+      restoreFocusAfterDomUpdate()
+    }
+
+    function scheduleEnableTemporaryChat() {
+      if (
+        tabClosed ||
+        temporaryChatDone ||
+        enablePending ||
+        !newWebview.isConnected
+      ) {
+        return
+      }
+
       enablePending = true
 
       runEnableTemporaryChatAfterLoad(newWebview)
         .then((ok) => {
-          if (ok) temporaryChatDone = true
+          if (!tabClosed && ok) {
+            temporaryChatDone = true
+          }
+        })
+        .catch((error) => {
+          if (!tabClosed) {
+            console.error(
+              "一時チャット有効化処理でエラー",
+              error,
+            )
+          }
         })
         .finally(() => {
           enablePending = false
         })
     }
 
-    newWebview.addEventListener("did-finish-load", () => {
-      console.log("✅ OpenAIページロード完了")
-      scheduleEnableTemporaryChat()
-    })
+    tabButton.addEventListener(
+      "click",
+      handleTabClick,
+    )
 
-    newWebview.addEventListener("dom-ready", () => {
-      console.log("✅ OpenAI dom-ready")
-      scheduleEnableTemporaryChat()
-    })
-  }, [appState.closeButtonsVisible, activateTab, closeTab])
+    const closeBtn =
+      tabButton.querySelector(".close-btn")
 
+    if (closeBtn) {
+      closeBtn.addEventListener(
+        "click",
+        handleCloseClick,
+      )
+    }
+
+    newWebview.addEventListener(
+      "did-finish-load",
+      scheduleEnableTemporaryChat,
+    )
+
+    newWebview.addEventListener(
+      "dom-ready",
+      scheduleEnableTemporaryChat,
+    )
+
+    activateTab(newId)
+  }, [
+    appState.closeButtonsVisible,
+    activateTab,
+    closeTab,
+  ])
 
   return (
     <button
       type="button"
       onClick={handleOpenAI}
-      className="min-w-[150px] flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-md px-3 py-2 transition-colors"
+      className="
+        min-w-[150px]
+        flex items-center justify-center gap-2
+        bg-indigo-600 hover:bg-indigo-700
+        text-white rounded-xl shadow-md
+        px-3 py-2 transition-colors
+      "
+      title="新しいタブで開く"
     >
       <FaRobot size={18} />
-      <span
-        title="新しいタブで開く"
-      >
-        OpenAIを起動
-      </span>
+      <span>OpenAIを起動</span>
     </button>
   )
-
 }
-
