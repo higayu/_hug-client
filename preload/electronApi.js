@@ -139,6 +139,11 @@ function createElectronApi(ipcRenderer, isDebugMode) {
     clearWebviewCache: (wcId) =>
       ipcRenderer.invoke("clear-webview-cache", wcId),
 
+    // ✅ 対策: window.confirm() の代わりに使う非ブロッキングな確認ダイアログ
+    //          (renderer側JSスレッドを止めず、常にmainWindowの前面に表示される)
+    confirmDialog: (message) =>
+      ipcRenderer.invoke("confirm-dialog", message),
+
     openIndividualSupportPlan: (childId) =>
       ipcRenderer.send("open-individual-support-plan", childId),
 

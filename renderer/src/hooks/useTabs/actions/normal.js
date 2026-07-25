@@ -36,11 +36,18 @@ export function addNormalTabAction(appState) {
   tabButton.addEventListener('click', () => activateTab(newId))
 
   // --- 閉じる処理 ---
+  // ✅ 対策: window.confirm() は renderer の JS スレッドを完全に止めてしまい、
+  //          webview構成のこのアプリでは「ダイアログが裏に隠れる」
+  //          「押すまで数秒〜間、入力や操作が一切効かなくなる」原因になっていた。
+  //          非同期のネイティブダイアログ(confirmDialog)に置き換える。
   const closeBtn = tabButton.querySelector('.close-btn')
   if (closeBtn) {
-    closeBtn.addEventListener('click', (e) => {
+    closeBtn.addEventListener('click', async (e) => {
       e.stopPropagation()
-      if (!confirm('このタブを閉じますか？')) return
+
+      const ok = await window.electronAPI.confirmDialog('このタブを閉じますか？')
+      if (!ok) return
+
       closeTab(newId)
     })
   }

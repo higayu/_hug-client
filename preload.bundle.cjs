@@ -196,6 +196,9 @@ var require_electronApi = __commonJS({
         }),
         // ---- UI / Window ----
         clearWebviewCache: (wcId) => ipcRenderer2.invoke("clear-webview-cache", wcId),
+        // ✅ 対策: window.confirm() の代わりに使う非ブロッキングな確認ダイアログ
+        //          (renderer側JSスレッドを止めず、常にmainWindowの前面に表示される)
+        confirmDialog: (message) => ipcRenderer2.invoke("confirm-dialog", message),
         openIndividualSupportPlan: (childId) => ipcRenderer2.send("open-individual-support-plan", childId),
         openSpecializedSupportPlan: (childId) => ipcRenderer2.send("open-specialized-support-plan", childId),
         Open_NowDayPage: (args) => ipcRenderer2.send("Open_NowDayPage", args),

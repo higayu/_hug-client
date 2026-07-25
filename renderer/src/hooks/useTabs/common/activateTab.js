@@ -2,6 +2,7 @@
 // タブをアクティブにする共通関数
 
 import { setActiveWebview } from '@/utils/webview/webviewState.js'
+import { restoreFocusAfterWebviewAction } from './restoreFocusAfterWebviewAction.js'
 
 /**
  * タブをアクティブにする共通関数
@@ -56,6 +57,10 @@ export function activateTab(targetId) {
     if (tabBtn) {
       tabBtn.classList.add('active-tab')
     }
+
+    // 🔍 対策: webviewへの切り替え後、renderer側（メモ欄など）へ
+    //          明示的にフォーカスを戻す。AIタブ側で行っていた処理と同等のもの。
+    restoreFocusAfterWebviewAction()
   }
 }
 
