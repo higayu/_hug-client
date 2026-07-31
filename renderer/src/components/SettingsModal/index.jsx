@@ -15,6 +15,7 @@ import {
   WindowTab,
   CustomTab,
   UpdateTab,
+  PromptTab,
 } from "./tabs";
 
 import { useAppState } from '@/AppStateContext';
@@ -50,10 +51,16 @@ const BASE_TABS = [
     component: ConfigTab,
   },
   {
+    id: 'prompt',
+    label: 'プロンプト',
+    component: PromptTab,
+  },
+  {
     id: 'update',
     label: 'アップデート',
     component: UpdateTab,
   },
+
 ]
 
 // デバッグモード用のタブ

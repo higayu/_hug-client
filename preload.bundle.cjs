@@ -144,6 +144,7 @@ var require_electronApi = __commonJS({
         syncDatabaseStateToSqlite: () => ipcRenderer2.invoke("sqlite:database:sync"),
         // ---- AI プロンプト ----
         loadPrompts: () => ipcRenderer2.invoke("load-prompts"),
+        savePrompts: (promptTexts) => ipcRenderer2.invoke("save-prompts", promptTexts),
         getAiPrompt: (promptKey) => ipcRenderer2.invoke("get-ai-prompt", promptKey),
         buildAiPrompt: (promptKey, userText) => ipcRenderer2.invoke("build-ai-prompt", promptKey, userText),
         // ============================================================

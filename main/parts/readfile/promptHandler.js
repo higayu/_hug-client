@@ -4,18 +4,6 @@ const path = require("path");
 const { ipcMain } = require("electron");
 const { getPromptDir, getPromptsConfigPath } = require("../utils/pathResolver");
 
-function getPromptConfigPath() {
-  return getPromptsConfigPath();
-}
-
-function getPromptDirLocal() {
-  return getPromptDir();
-}
-
-
-// ----------------------------------------------------
-//  🔹 デフォルト prompts.json 作成
-// ----------------------------------------------------
 function createDefaultPromptsJson() {
   return {
     personalRecord: {
@@ -33,119 +21,129 @@ function createDefaultPromptsJson() {
   };
 }
 
-// ----------------------------------------------------
-// 🔹 デフォルト TXT 内容
-// ----------------------------------------------------
-const DEFAULT_PERSONAL_TEXT =
-`放課後等デイサービスの児童対応の記録として文章を下記の文章を整えて`;
+// 現在配布している各ファイルの内容を、新規作成時の初期値として使用する。
+const DEFAULT_PROMPT_TEXTS = {
+  personalRecord:
+    "放課後等デイサービスの児童対応の記録として文章を下記の文章を整えて",
+  professional1:
+    "上記の内容に含まれる部分を下記の内容から抽出して",
+  professional2:
+    "抽出結果をまとめて文章を作成して"
+};
 
-const DEFAULT_PROFESSIONAL_TEXT =
-`上記の内容に含まれる部分を下記の内容から抽出して`;
-
-
-// ----------------------------------------------------
-// 🔹 prompts.json + txt を自動生成（存在しなければ）
-// ----------------------------------------------------
+/**
+ * prompts.json と各プロンプトファイルを、存在しない場合に限り作成する。
+ * 既存ファイルは上書きしない。
+ */
 function ensurePromptFiles() {
-  const cfgPath = getPromptConfigPath();
-  const promptDir = getPromptDirLocal();
+  const configPath = getPromptsConfigPath();
+  const promptDir = getPromptDir();
 
-  // フォルダ作成
-  if (!fs.existsSync(promptDir)) {
-    fs.mkdirSync(promptDir, { recursive: true });
+  fs.mkdirSync(promptDir, { recursive: true });
+
+  if (!fs.existsSync(configPath)) {
+    fs.writeFileSync(
+      configPath,
+      JSON.stringify(createDefaultPromptsJson(), null, 2),
+      "utf8"
+    );
   }
 
-  // ---------- prompts.json がない場合、自動生成 ----------
-  if (!fs.existsSync(cfgPath)) {
-    const defaultData = createDefaultPromptsJson();
-    fs.writeFileSync(cfgPath, JSON.stringify(defaultData, null, 2), "utf8");
-  }
+  const promptsConfig = JSON.parse(fs.readFileSync(configPath, "utf8"));
 
-  // ---------- 各 txt を生成 ----------
-  const cfg = JSON.parse(fs.readFileSync(cfgPath, "utf8"));
-
-  for (const key of Object.keys(cfg)) {
-    const fileName = cfg[key].file;
-    const fullPath = path.join(promptDir, fileName);
+  for (const [key, config] of Object.entries(promptsConfig)) {
+    const fullPath = path.join(promptDir, config.file);
 
     if (!fs.existsSync(fullPath)) {
-      let initialContent = "";
-
-      if (key === "personalRecord") {
-        initialContent = DEFAULT_PERSONAL_TEXT;
-      } else if (key === "professional") {
-        initialContent = DEFAULT_PROFESSIONAL_TEXT;
-      } else {
-        initialContent = `${key} 用のプロンプト内容をここに記述してください。`;
-      }
+      const initialContent =
+        DEFAULT_PROMPT_TEXTS[key] ||
+        `${key} 用のプロンプト内容をここに記述してください。`;
 
       fs.writeFileSync(fullPath, initialContent, "utf8");
     }
   }
 }
 
-
-
-// ----------------------------------------------------
-//  🔹 prompts.json + 各 txt を同期で読み込む
-// ----------------------------------------------------
 function loadPromptsSync() {
   try {
-    // まず自動生成チェック
     ensurePromptFiles();
 
-    const configPath = getPromptConfigPath();
-    const promptsConfig = JSON.parse(fs.readFileSync(configPath, "utf8"));
+    const promptsConfig = JSON.parse(
+      fs.readFileSync(getPromptsConfigPath(), "utf8")
+    );
     const result = {};
 
-    for (const key of Object.keys(promptsConfig)) {
-      const fileName = promptsConfig[key].file;
-      const fullPath = path.join(getPromptDirLocal(), fileName);
+    for (const [key, config] of Object.entries(promptsConfig)) {
+      const fullPath = path.join(getPromptDir(), config.file);
 
       if (!fs.existsSync(fullPath)) {
         result[key] = {
           success: false,
-          error: `${fileName} が見つかりません: ${fullPath}`
+          error: `${config.file} が見つかりません: ${fullPath}`
         };
         continue;
       }
 
-      const text = fs.readFileSync(fullPath, "utf8");
-
       result[key] = {
         success: true,
-        content: text,
-        description: promptsConfig[key].description || ""
+        content: fs.readFileSync(fullPath, "utf8"),
+        description: config.description || ""
       };
     }
 
     return { success: true, data: result };
-
   } catch (err) {
     return { success: false, error: err.message };
   }
 }
 
+function savePromptsSync(promptTexts) {
+  try {
+    ensurePromptFiles();
 
+    if (!promptTexts || typeof promptTexts !== "object" || Array.isArray(promptTexts)) {
+      throw new Error("保存するプロンプトの形式が正しくありません。");
+    }
 
-// ----------------------------------------------------
-//  🔹 IPC 登録
-// ----------------------------------------------------
+    const promptsConfig = JSON.parse(
+      fs.readFileSync(getPromptsConfigPath(), "utf8")
+    );
+
+    for (const [key, content] of Object.entries(promptTexts)) {
+      const config = promptsConfig[key];
+
+      if (!config) {
+        throw new Error(`指定されたプロンプト '${key}' は保存できません。`);
+      }
+
+      if (typeof content !== "string") {
+        throw new Error(`プロンプト '${key}' の内容が文字列ではありません。`);
+      }
+
+      fs.writeFileSync(path.join(getPromptDir(), config.file), content, "utf8");
+    }
+
+    return { success: true };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
+}
+
 function handlePromptAccess() {
+  ipcMain.handle("load-prompts", async () => loadPromptsSync());
+  ipcMain.handle("save-prompts", async (event, promptTexts) =>
+    savePromptsSync(promptTexts)
+  );
 
-  // prompts 全読み込み
-  ipcMain.handle("load-prompts", async () => {
-    return loadPromptsSync();
-  });
-
-
-  // ---------- AI プロンプトを取得 ----------
   ipcMain.handle("get-ai-prompt", async (event, promptKey) => {
     const prompts = loadPromptsSync();
     if (!prompts.success) return prompts;
 
     if (!prompts.data[promptKey]) {
-      return { success: false, error: `指定されたプロンプト '${promptKey}' が存在しません。` };
+      return {
+        success: false,
+        error: `指定されたプロンプト '${promptKey}' が存在しません。`
+      };
     }
 
     return {
@@ -155,30 +153,23 @@ function handlePromptAccess() {
     };
   });
 
-
-  // ---------- AI プロンプト + userText 合体 ----------
   ipcMain.handle("build-ai-prompt", async (event, promptKey, userText) => {
     const prompts = loadPromptsSync();
     if (!prompts.success) return prompts;
 
     const base = prompts.data[promptKey];
     if (!base) {
-      return { success: false, error: `指定されたプロンプト '${promptKey}' が存在しません。` };
+      return {
+        success: false,
+        error: `指定されたプロンプト '${promptKey}' が存在しません。`
+      };
     }
-
-    const finalPrompt = `${base.content}\n\n【ユーザー入力】\n${userText}`;
 
     return {
       success: true,
-      finalPrompt
+      finalPrompt: `${base.content}\n\n【ユーザー入力】\n${userText}`
     };
   });
-
 }
 
-
-
-// ----------------------------------------------------
-//  module.exports
-// ----------------------------------------------------
-module.exports = { handlePromptAccess, loadPromptsSync };
+module.exports = { handlePromptAccess, loadPromptsSync, savePromptsSync };

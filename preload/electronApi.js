@@ -59,6 +59,9 @@ function createElectronApi(ipcRenderer, isDebugMode) {
     // ---- AI プロンプト ----
     loadPrompts: () => ipcRenderer.invoke("load-prompts"),
 
+    savePrompts: (promptTexts) =>
+      ipcRenderer.invoke("save-prompts", promptTexts),
+
     getAiPrompt: (promptKey) =>
       ipcRenderer.invoke("get-ai-prompt", promptKey),
 
