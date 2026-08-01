@@ -173,13 +173,12 @@ export default function ProfessionalPrompt1({
 
   return (
     <div className="flex flex-col gap-4 p-3 w-full">
-      {/* --- SELECT_CHILD 監視表示 --- */}
-      <div className="text-xs bg-yellow-100 text-yellow-900 border border-yellow-300 rounded p-2">
-        appState.SELECT_CHILD:{" "}
-        <span className="font-bold">
-          {appState.SELECT_CHILD ?? "未選択"}
-        </span>
-      </div>
+      {/* --- SELECT_CHILD 未選択時のみ表示 --- */}
+      {!appState.SELECT_CHILD && (
+        <div className="rounded border border-yellow-300 bg-yellow-100 p-2 text-xs text-yellow-900">
+          選択してください
+        </div>
+      )}
 
       {/* --- DB保存済みメモ --- */}
       <div className="mt-4">
