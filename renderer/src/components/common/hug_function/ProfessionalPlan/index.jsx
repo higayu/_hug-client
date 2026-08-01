@@ -2,10 +2,10 @@
 import React from "react";
 import { useAppState } from "@/AppStateContext";
 import { useDataBase } from "@/hooks/useDataBase";
-import { getActiveWebview } from "@/utils/webview/webviewState.js";
+import { getHugWebviewForCache } from "@/hooks/useHugCache/getHugCache.js";
 import { ArrowPathIcon } from "@heroicons/react/24/solid";
 /**
- * アクティブ webview の Cookie 付きセッションで URL の HTML を取得する
+ * hugview の Cookie 付きセッションで URL の HTML を取得する
  * （renderer 上の fetch では webview のログイン Cookie が付かないため）
  */
 async function fetchHtmlInWebview(webview, url) {
@@ -193,7 +193,7 @@ export default function ProfessionalPlan() {
     };
 
     try {
-      const webview = getActiveWebview();
+      const webview = await getHugWebviewForCache();
       if (!webview) {
         console.error("[HUG WM] webview が見つかりません");
         return "";
