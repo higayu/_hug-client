@@ -5,42 +5,8 @@ const { session } = require("electron");
  * WebView / BrowserWindow で使用する権限を設定する
  */
 function setupMediaPermissions() {
-  const allowedHosts = new Set([
-    "www.hug-ayumu.link",
-    "hug-ayumu.link",
-  ]);
-
   /**
-   * 指定されたURLが許可対象か確認
-   *
-   * @param {string} value
-   * @returns {boolean}
-   */
-  const isAllowedUrl = (value) => {
-    if (!value) {
-      return false;
-    }
-
-    try {
-      const url = new URL(value);
-
-      return (
-        url.protocol === "https:" &&
-        allowedHosts.has(url.hostname)
-      );
-    } catch (error) {
-      console.warn(
-        "[Permission] URL parse failed:",
-        value,
-        error
-      );
-
-      return false;
-    }
-  };
-
-  /**
-   * 権限要求時の処理
+   * 権限要求時
    */
   session.defaultSession.setPermissionRequestHandler(
     (
@@ -81,48 +47,34 @@ function setupMediaPermissions() {
 
       // ==========================================
       // Clipboard 書き込み
-      //
-      // navigator.clipboard.writeText()
+      // 全サイト許可
       // ==========================================
       if (
         permission ===
         "clipboard-sanitized-write"
       ) {
-        const allowed =
-          isAllowedUrl(requestingUrl);
-
         console.log(
-          "[PermissionRequest] clipboard write:",
-          allowed
-            ? "allowed"
-            : "denied",
+          "[PermissionRequest] clipboard write: allowed",
           requestingUrl
         );
 
-        callback(allowed);
+        callback(true);
         return;
       }
 
       // ==========================================
       // Clipboard 読み込み
-      //
-      // navigator.clipboard.readText()
+      // 全サイト許可
       // ==========================================
       if (
         permission === "clipboard-read"
       ) {
-        const allowed =
-          isAllowedUrl(requestingUrl);
-
         console.log(
-          "[PermissionRequest] clipboard read:",
-          allowed
-            ? "allowed"
-            : "denied",
+          "[PermissionRequest] clipboard read: allowed",
           requestingUrl
         );
 
-        callback(allowed);
+        callback(true);
         return;
       }
 
@@ -140,7 +92,7 @@ function setupMediaPermissions() {
   );
 
   /**
-   * 権限チェック時の処理
+   * 権限チェック時
    */
   session.defaultSession.setPermissionCheckHandler(
     (
@@ -181,43 +133,33 @@ function setupMediaPermissions() {
 
       // ==========================================
       // Clipboard 書き込み
+      // 全サイト許可
       // ==========================================
       if (
         permission ===
         "clipboard-sanitized-write"
       ) {
-        const allowed =
-          isAllowedUrl(origin);
-
         console.log(
-          "[PermissionCheck] clipboard write:",
-          allowed
-            ? "allowed"
-            : "denied",
+          "[PermissionCheck] clipboard write: allowed",
           origin
         );
 
-        return allowed;
+        return true;
       }
 
       // ==========================================
       // Clipboard 読み込み
+      // 全サイト許可
       // ==========================================
       if (
         permission === "clipboard-read"
       ) {
-        const allowed =
-          isAllowedUrl(origin);
-
         console.log(
-          "[PermissionCheck] clipboard read:",
-          allowed
-            ? "allowed"
-            : "denied",
+          "[PermissionCheck] clipboard read: allowed",
           origin
         );
 
-        return allowed;
+        return true;
       }
 
       // ==========================================
