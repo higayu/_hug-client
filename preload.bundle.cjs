@@ -189,6 +189,11 @@ var require_electronApi = __commonJS({
         // ---- Laravel 接続確認 ----
         checkLaravelConnection: () => ipcRenderer2.invoke("laravel:connection:check"),
         // ---- Laravel 認証 ----
+        /**
+         * config.jsonの
+         * HUG_USERNAME / HUG_PASSWORDでログインする。
+         */
+        jwtAutoLogin: () => ipcRenderer2.invoke("laravel-auth-login"),
         laravel_auth_login: () => ipcRenderer2.invoke("laravel-auth-login"),
         laravel_auth_me: () => ipcRenderer2.invoke("laravel-auth-me"),
         laravel_auth_logout: () => ipcRenderer2.invoke("laravel-auth-logout"),

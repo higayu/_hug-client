@@ -6,13 +6,13 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build:preload": "node scripts/build-preload.js",
-    "build:renderer": "cd renderer && npm run build",
+    "build:renderer": "vite build --config renderer/vite.config.mjs",
     "start": "npm run build:preload && electron . --prod",
     "start:dev": "npm run build:preload && electron . --dev",
     "electron": "npm run build:preload && electron .",
     "build:whisper": "cmake -S whisper.cpp -B whisper.cpp/build -DWHISPER_BUILD_EXAMPLES=ON && cmake --build whisper.cpp/build --config Release --target whisper-cli --parallel",
     "dev": "concurrently \"npm run dev:renderer\" \"wait-on http://localhost:5173 && npm run build:preload && electron . --dev\"",
-    "dev:renderer": "cd renderer && npm run dev",
+    "dev:renderer": "vite --config renderer/vite.config.mjs",
     "dist": "npm run build:preload && npm run build:renderer && electron-builder"
   },
   "keywords": [],
@@ -29,10 +29,24 @@
     "sqlite3": "^5.1.7"
   },
   "devDependencies": {
+    "@heroicons/react": "^2.2.0",
+    "@reduxjs/toolkit": "^2.10.1",
+    "@types/react": "^18.2.43",
+    "@types/react-dom": "^18.2.17",
+    "@vitejs/plugin-react": "^4.2.1",
+    "autoprefixer": "^10.4.21",
     "concurrently": "^8.2.2",
     "electron": "^38.2.0",
     "electron-builder": "^26.0.12",
     "esbuild": "^0.28.1",
+    "lucide-react": "^0.561.0",
+    "postcss": "^8.5.6",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-icons": "^5.5.0",
+    "react-redux": "^9.2.0",
+    "tailwindcss": "^3.4.18",
+    "vite": "^5.0.8",
     "wait-on": "^7.2.0"
   },
   "build": {

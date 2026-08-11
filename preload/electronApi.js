@@ -65,6 +65,13 @@ function createElectronApi(ipcRenderer, isDebugMode) {
       ipcRenderer.invoke("laravel:connection:check"),
 
     // ---- Laravel 認証 ----
+    /**
+     * config.jsonの
+     * HUG_USERNAME / HUG_PASSWORDでログインする。
+     */
+    jwtAutoLogin: () =>
+      ipcRenderer.invoke("laravel-auth-login"),
+
     laravel_auth_login: () =>
       ipcRenderer.invoke("laravel-auth-login"),
 

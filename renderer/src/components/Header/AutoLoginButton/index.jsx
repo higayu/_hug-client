@@ -5,12 +5,33 @@ import { useHugActions } from '@/hooks/useHugActions';
 export default function AutoLoginButton() {
   const { handleLogin } = useHugActions();
 
-    /**
+  /**
    * 自動ログインボタン押下時の処理
    */
-    const handleLogin_func = () => {
-      handleLogin();
-    };
+  const handleLogin_func = async () => {
+    try {
+      const res = await window.electronAPI.jwtAutoLogin();
+
+      if (!res?.success) {
+        console.error(
+          'Laravel認証失敗:',
+          res?.message,
+          res?.error
+        );
+
+        return;
+      }
+
+      console.log('Laravel認証成功:', res.data?.user);
+
+      await handleLogin();
+    } catch (error) {
+      console.error(
+        '自動ログイン処理中にエラーが発生しました:',
+        error
+      );
+    }
+  };
 
   return (
     <nav className="relative z-[1001] ml-0 inline-block min-w-fit flex-shrink-0">

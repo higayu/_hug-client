@@ -24,7 +24,9 @@ const ActiveApiStatus = ({ className = '' }) => {
   const [switching, setSwitching] = useState(false)
   const [lastMessage, setLastMessage] = useState('')
 
-  const databaseType = reduxDatabaseType || 'sqlite'
+  const databaseType = String(reduxDatabaseType || 'sqlite')
+    .trim()
+    .toLowerCase()
 
   const isMariaDb = databaseType === 'mariadb'
   const isLaravel = databaseType === 'laravel'
@@ -91,19 +93,36 @@ const ActiveApiStatus = ({ className = '' }) => {
       }
 
       if (isMariaDb) {
-        const result = await checkLaravelConnection(dispatch, {
+        const connectionResult = await checkLaravelConnection(dispatch, {
           autoFallbackToSqlite: false,
-          switchToLaravelOnSuccess: true,
+          switchToLaravelOnSuccess: false,
+          persistIni: false,
+        })
+
+        console.log(
+          '[ActiveApiStatus] checkLaravelConnection result:',
+          connectionResult
+        )
+
+        const connected = connectionResult?.connected === true
+
+        const result = await switchDatabaseType({
+          dispatch,
+          databaseType: 'laravel',
+          message: connected
+            ? 'Laravel API に切り替えました'
+            : 'Laravel API に切り替えました（接続確認は失敗しました）',
           persistIni: true,
         })
 
-        console.log('[ActiveApiStatus] checkLaravelConnection result:', result)
+        console.log(
+          '[ActiveApiStatus] Laravel switchDatabaseType result:',
+          result
+        )
 
         setLastMessage(
           result?.message ||
-            (result?.connected
-              ? 'Laravel API に切り替えました'
-              : 'Laravel API に接続できませんでした')
+            'Laravel API に切り替えました'
         )
         return
       }
