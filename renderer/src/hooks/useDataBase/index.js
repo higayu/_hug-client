@@ -6,6 +6,7 @@ import { useAppState } from "@/AppStateContext"
 
 import { mariadbApi } from "./sql/mariadbApi";
 import { sqliteApi } from "./sql/sqliteApi";
+import { laravelApi } from "./sql/laravelApi";
 
 import { fetchAllTables } from "@/store/slices/databaseSlice"
 import { selectDatabaseType } from "@/store/slices/appStateSlice"
@@ -87,7 +88,19 @@ export function useDataBase({ autoLoad = false } = {}) {
   // DATABASE_TYPE から API を解決
   // =============================================================
   const resolveApiByDatabaseType = useCallback((type) => {
-    return type === "mariadb" ? mariadbApi : sqliteApi
+    const normalizedType = String(type ?? "")
+      .trim()
+      .toLowerCase()
+
+    if (normalizedType === "laravel") {
+      return laravelApi
+    }
+
+    if (normalizedType === "mariadb") {
+      return mariadbApi
+    }
+
+    return sqliteApi
   }, [])
 
   // =============================================================
@@ -357,7 +370,9 @@ export function useDataBase({ autoLoad = false } = {}) {
           useAutoSwitching,
           resolvedDatabaseType,
           apiName:
-            apiToUse === mariadbApi
+            apiToUse === laravelApi
+              ? "laravelApi"
+              : apiToUse === mariadbApi
               ? "mariadbApi"
               : apiToUse === sqliteApi
                 ? "sqliteApi"

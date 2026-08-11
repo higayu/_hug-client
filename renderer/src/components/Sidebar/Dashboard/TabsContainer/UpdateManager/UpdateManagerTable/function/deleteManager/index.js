@@ -2,6 +2,7 @@
 
 import { handleSQLiteDelete } from "./parts/sqlite.js";
 import { handleMariaDBDelete } from "./parts/mariadb.js";
+import { handleLaravelDelete } from "./parts/laravel.js";
 
 export async function deleteManager(
   selectedChildren,
@@ -27,6 +28,12 @@ export async function deleteManager(
       const result =  await handleMariaDBDelete(selectedChildren);
       if(result){
           return true;
+      }
+    } else if (databaseType === 'laravel') {
+      console.log("→ 使用DB: Laravel");
+      const result = await handleLaravelDelete(selectedChildren);
+      if (result) {
+        return true;
       }
     } else {
       console.warn("⚠️ 不明な databaseType:", databaseType);

@@ -23,6 +23,7 @@ function normalizeDatabaseType(value) {
     const normalized = value.trim().toLowerCase();
 
     if (normalized === "mariadb") return "mariadb";
+    if (normalized === "laravel") return "laravel";
     if (normalized === "sqlite") return "sqlite";
 
     return "sqlite";
@@ -619,14 +620,15 @@ export async function switchDatabaseType({
 }) {
   const checkedAt = new Date().toISOString();
 
-  const resolvedDatabaseType =
-    normalizeDatabaseType(databaseType) === "mariadb" ? "mariadb" : "sqlite";
+  const resolvedDatabaseType = normalizeDatabaseType(databaseType);
 
   const resolvedMessage =
     message ||
     (resolvedDatabaseType === "mariadb"
       ? "MariaDB に切り替えました"
-      : "SQLite に切り替えました");
+      : resolvedDatabaseType === "laravel"
+        ? "Laravel API に切り替えました"
+        : "SQLite に切り替えました");
 
   console.group("🔁 [switchDatabaseType] DB種別切替開始");
   console.log("📌 params:", {
@@ -728,7 +730,7 @@ export async function switchDatabaseType({
 
     const result = {
       success: true,
-      connected: resolvedDatabaseType === "mariadb",
+      connected: resolvedDatabaseType !== "sqlite",
       databaseType: resolvedDatabaseType,
       message: resolvedMessage,
       checkedAt,
@@ -781,7 +783,7 @@ function applyDatabaseTypeToRedux(
     checkedAt,
   }
 ) {
-  const connected = databaseType === "mariadb";
+  const connected = databaseType !== "sqlite";
 
   console.log("📤 [applyDatabaseTypeToRedux]", {
     databaseType,
@@ -829,7 +831,7 @@ function syncWindowAppStateDatabaseType({
   }
 
   window.AppState.DATABASE_TYPE = databaseType;
-  window.AppState.SERVER_CONNECTED = databaseType === "mariadb";
+  window.AppState.SERVER_CONNECTED = databaseType !== "sqlite";
   window.AppState.SERVER_CONNECTION_CHECKING = false;
   window.AppState.SERVER_CONNECTION_MESSAGE = message;
   window.AppState.SERVER_CONNECTION_CHECKED_AT = checkedAt;

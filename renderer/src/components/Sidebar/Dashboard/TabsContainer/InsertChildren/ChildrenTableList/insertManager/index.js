@@ -2,6 +2,7 @@
 
 import { handleSQLiteInsert } from "./parts/sqlite.js";
 import { handleMariaDBInsert } from "./parts/mariadb.js";
+import { handleLaravelInsert } from "./parts/laravel.js";
 
 /**
  * 児童の managers2 登録処理
@@ -9,14 +10,14 @@ import { handleMariaDBInsert } from "./parts/mariadb.js";
  * 方針:
  * - activeApi は使わない
  * - Redux / AppState の DATABASE_TYPE を呼び出し元から databaseType として受け取る
- * - databaseType に応じて SQLite / MariaDB の処理を分岐する
+ * - databaseType に応じて SQLite / MariaDB / Laravel の処理を分岐する
  * - managers2 に facility_id が追加されたため、施設IDも必須条件として扱う
  *
  * @param {Object|Object[]} selectedChildren 選択された児童、または児童配列
  * @param {Object} params
  * @param {Array} params.childrenData 子どもデータ
  * @param {Array} params.managersData managers2 データ
- * @param {string} params.databaseType "sqlite" | "mariadb"
+ * @param {string} params.databaseType "sqlite" | "mariadb" | "laravel"
  * @param {string|number} params.FACILITY_ID 施設ID
  * @param {string|number} params.STAFF_ID スタッフID
  * @param {Object} params.CURRENT_DAY_OF_WEEK 現在の曜日情報
@@ -46,8 +47,29 @@ export async function insertManager(
       return false;
     }
 
-    const resolvedDatabaseType =
-      databaseType === "mariadb" ? "mariadb" : "sqlite";
+    const resolvedDatabaseType = String(databaseType).trim().toLowerCase();
+
+    const handlers = {
+      sqlite: {
+        handler: handleSQLiteInsert,
+        label: "SQLite",
+      },
+      mariadb: {
+        handler: handleMariaDBInsert,
+        label: "MariaDB",
+      },
+      laravel: {
+        handler: handleLaravelInsert,
+        label: "Laravel",
+      },
+    };
+
+    const selectedHandler = handlers[resolvedDatabaseType];
+
+    if (!selectedHandler) {
+      console.warn("⚠️ 不明な databaseType:", databaseType);
+      return false;
+    }
 
     console.log("databaseType:", databaseType);
     console.log("resolvedDatabaseType:", resolvedDatabaseType);
@@ -118,13 +140,8 @@ export async function insertManager(
     // =============================================================
     // DB種別ごとの処理関数を決定
     // =============================================================
-    const insertHandler =
-      resolvedDatabaseType === "mariadb"
-        ? handleMariaDBInsert
-        : handleSQLiteInsert;
-
-    const dbLabel =
-      resolvedDatabaseType === "mariadb" ? "MariaDB" : "SQLite";
+    const insertHandler = selectedHandler.handler;
+    const dbLabel = selectedHandler.label;
 
     // =============================================================
     // 児童ごとに登録処理
@@ -146,7 +163,7 @@ export async function insertManager(
         continue;
       }
 
-      await insertHandler(child, {
+      const result = await insertHandler(child, {
         childrenData,
         managersData,
 
@@ -159,6 +176,11 @@ export async function insertManager(
         FACILITY_ID: facilityId,
         STAFF_ID: staffId,
       });
+
+      if (!result) {
+        console.error(`❌ ${dbLabel} 処理失敗:`, childId);
+        return false;
+      }
 
       console.log(`✔ ${dbLabel} 処理完了:`, childId);
       console.log("▶ 児童処理終了:", childId);

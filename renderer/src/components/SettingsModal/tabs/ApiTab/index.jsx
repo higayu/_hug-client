@@ -704,6 +704,10 @@ function ApiTab() {
             <option value="mariadb">
               MariaDB
             </option>
+
+            <option value="laravel">
+              Laravel
+            </option>
           </select>
         </div>
 

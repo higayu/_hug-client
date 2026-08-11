@@ -58,9 +58,33 @@ var require_tables = __commonJS({
       "toolbox",
       "memo"
     ];
+    var laravelTables = [
+      "children",
+      "children_type",
+      "day_of_week",
+      "facility_children",
+      "facility_staff",
+      "facilitys",
+      "individual_support",
+      "managers2",
+      "pc",
+      "pc_to_children",
+      "pronunciation",
+      "staffs",
+      "service_record",
+      "temp_notes",
+      "record_types",
+      "child_records",
+      "m_service_items",
+      "staff_facility_roles",
+      "text_data",
+      "toolbox",
+      "memo"
+    ];
     module2.exports = {
       sqliteTables,
-      mariadbTables
+      mariadbTables,
+      laravelTables
     };
   }
 });
@@ -68,7 +92,11 @@ var require_tables = __commonJS({
 // preload/tableApis.js
 var require_tableApis = __commonJS({
   "preload/tableApis.js"(exports2, module2) {
-    var { sqliteTables, mariadbTables } = require_tables();
+    var {
+      sqliteTables,
+      mariadbTables,
+      laravelTables
+    } = require_tables();
     function createTableApis(ipcRenderer2) {
       const tableAPIs = {};
       for (const table of sqliteTables) {
@@ -101,6 +129,22 @@ var require_tableApis = __commonJS({
         });
         tableAPIs[`mariadb_${table}_upsert`] = (data) => ipcRenderer2.invoke(`mariadb:${table}:upsert`, data);
       }
+      for (const table of laravelTables) {
+        tableAPIs[`laravel_${table}_getAll`] = async (params = {}) => {
+          const result = await ipcRenderer2.invoke(
+            "laravel-fetch-table-all",
+            params
+          );
+          if (result?.success === false) {
+            return result;
+          }
+          const tables = result?.success === true ? result.data : result;
+          return Array.isArray(tables?.[table]) ? tables[table] : [];
+        };
+      }
+      tableAPIs.laravel_managers2_delete = (data) => ipcRenderer2.invoke("laravel:managers2:delete", data);
+      tableAPIs.laravel_children_update = (data) => ipcRenderer2.invoke("laravel:children:update", data);
+      tableAPIs.laravel_temp_notes_getByPk = (data) => ipcRenderer2.invoke("laravel:getTempNote", data);
       return tableAPIs;
     }
     module2.exports = {
@@ -125,7 +169,10 @@ var require_electronApi = __commonJS({
     async function getDbPrefix(ipcRenderer2) {
       const result = await ipcRenderer2.invoke("get-database-type");
       const dbType = normalizeDatabaseType(result);
-      return dbType === "mariadb" ? "mariadb" : "sqlite";
+      if (dbType === "mariadb" || dbType === "laravel") {
+        return dbType;
+      }
+      return "sqlite";
     }
     function createElectronApi2(ipcRenderer2, isDebugMode2) {
       return {
@@ -137,6 +184,31 @@ var require_electronApi = __commonJS({
         checkMariaDbConnection: () => ipcRenderer2.invoke("mariadb:connection:check"),
         // ---- テーブル一括取得 ----
         fetchTableAll: () => ipcRenderer2.invoke("fetchTableAll"),
+        // ---- Laravel テーブル一括取得 ----
+        laravel_fetchTableAll: (params = {}) => ipcRenderer2.invoke("laravel-fetch-table-all", params),
+        // ---- Laravel 接続確認 ----
+        checkLaravelConnection: () => ipcRenderer2.invoke("laravel:connection:check"),
+        // ---- Laravel 認証 ----
+        laravel_auth_login: () => ipcRenderer2.invoke("laravel-auth-login"),
+        laravel_auth_me: () => ipcRenderer2.invoke("laravel-auth-me"),
+        laravel_auth_logout: () => ipcRenderer2.invoke("laravel-auth-logout"),
+        // ---- Laravel managers2 ----
+        laravel_procedure_upsertManagers2: (data) => ipcRenderer2.invoke("laravel:procedure:upsert-managers2", data),
+        laravel_procedure_registerManagerAssignment: (data) => ipcRenderer2.invoke(
+          "laravel:procedure:register-manager-assignment",
+          data
+        ),
+        laravel_procedure_call: (procedureName, params = []) => ipcRenderer2.invoke(
+          "laravel:procedure:call",
+          procedureName,
+          params
+        ),
+        laravel_procedure_registerFacilityChildren: (data) => ipcRenderer2.invoke(
+          "laravel:procedure:register-facility-children",
+          data
+        ),
+        laravel_procedure_syncHugStaffs: (data) => ipcRenderer2.invoke("laravel:procedure:sync-hug-staffs", data),
+        laravel_procedure_upsertServiceRecord: (data) => ipcRenderer2.invoke("laravel:procedure:upsert-service-record", data),
         // ---- テーブル一括同期処理 ----
         // renderer から databaseState を渡さない。
         // main 側の sqlite:database:sync 内で apiClient.fetchTableAll() を呼び、
@@ -159,18 +231,43 @@ var require_electronApi = __commonJS({
         // ============================================================
         saveTempNote: async (data) => {
           const prefix = await getDbPrefix(ipcRenderer2);
+          if (prefix === "laravel") {
+            return ipcRenderer2.invoke(
+              "laravel:procedure:upsert-temp-notes-all",
+              data
+            );
+          }
           return ipcRenderer2.invoke(`${prefix}:saveTempNote`, data);
         },
         saveTempNote1: async (data) => {
           const prefix = await getDbPrefix(ipcRenderer2);
+          if (prefix === "laravel") {
+            return ipcRenderer2.invoke(
+              "laravel:procedure:upsert-temp-notes-memo1",
+              data
+            );
+          }
           return ipcRenderer2.invoke(`${prefix}:saveTempNote1`, data);
         },
         saveTempNote2: async (data) => {
           const prefix = await getDbPrefix(ipcRenderer2);
+          if (prefix === "laravel") {
+            return ipcRenderer2.invoke(
+              "laravel:procedure:upsert-temp-notes-memo2",
+              data
+            );
+          }
           return ipcRenderer2.invoke(`${prefix}:saveTempNote2`, data);
         },
         getTempNote: async ({ children_id, staff_id, day_of_week_id }) => {
           const prefix = await getDbPrefix(ipcRenderer2);
+          if (prefix === "laravel") {
+            return ipcRenderer2.invoke("laravel:getTempNote", {
+              children_id,
+              staff_id,
+              day_of_week_id
+            });
+          }
           return ipcRenderer2.invoke(`${prefix}:getTempNote`, {
             children_id,
             staff_id,
@@ -191,6 +288,15 @@ var require_electronApi = __commonJS({
         mariadb_saveTempNote1: (data) => ipcRenderer2.invoke("mariadb:saveTempNote1", data),
         mariadb_saveTempNote2: (data) => ipcRenderer2.invoke("mariadb:saveTempNote2", data),
         mariadb_getTempNote: ({ children_id, staff_id, day_of_week_id }) => ipcRenderer2.invoke("mariadb:getTempNote", {
+          children_id,
+          staff_id,
+          day_of_week_id
+        }),
+        // ---- 一時メモ: 明示的に Laravel を呼びたい場合 ----
+        laravel_saveTempNote: (data) => ipcRenderer2.invoke("laravel:procedure:upsert-temp-notes-all", data),
+        laravel_saveTempNote1: (data) => ipcRenderer2.invoke("laravel:procedure:upsert-temp-notes-memo1", data),
+        laravel_saveTempNote2: (data) => ipcRenderer2.invoke("laravel:procedure:upsert-temp-notes-memo2", data),
+        laravel_getTempNote: ({ children_id, staff_id, day_of_week_id }) => ipcRenderer2.invoke("laravel:getTempNote", {
           children_id,
           staff_id,
           day_of_week_id
@@ -245,10 +351,28 @@ var require_electronApi = __commonJS({
         // ---- MariaDB service_record ----
         mariadb_service_record_insert: (data) => ipcRenderer2.invoke("mariadb:service_record:insert", data),
         mariadb_service_record_upsert: (data) => ipcRenderer2.invoke("mariadb:service_record:upsert", data),
+        // ---- Laravel service_record ----
+        // Laravel側は登録・更新ともupsertプロシージャを使用する。
+        laravel_service_record_insert: (data) => ipcRenderer2.invoke("laravel:procedure:upsert-service-record", data),
+        laravel_service_record_upsert: (data) => ipcRenderer2.invoke("laravel:procedure:upsert-service-record", data),
         // ---- HUG staffs ----
-        syncHugStaffs: (data) => ipcRenderer2.invoke("mariadb:hug_staffs:sync", data),
+        syncHugStaffs: async (data) => {
+          const prefix = await getDbPrefix(ipcRenderer2);
+          return prefix === "laravel" ? ipcRenderer2.invoke("laravel:procedure:sync-hug-staffs", data) : ipcRenderer2.invoke("mariadb:hug_staffs:sync", data);
+        },
+        laravel_hug_staffs_sync: (data) => ipcRenderer2.invoke("laravel:procedure:sync-hug-staffs", data),
         // ---- HUG childrens ----
-        syncHugChildrens: (data) => ipcRenderer2.invoke("mariadb:hug_childrens:sync", data),
+        syncHugChildrens: async (data) => {
+          const prefix = await getDbPrefix(ipcRenderer2);
+          return prefix === "laravel" ? ipcRenderer2.invoke(
+            "laravel:procedure:register-facility-children",
+            data
+          ) : ipcRenderer2.invoke("mariadb:hug_childrens:sync", data);
+        },
+        laravel_hug_childrens_sync: (data) => ipcRenderer2.invoke(
+          "laravel:procedure:register-facility-children",
+          data
+        ),
         // ---- CRUD API 展開 ----
         ...createTableApis(ipcRenderer2)
       };

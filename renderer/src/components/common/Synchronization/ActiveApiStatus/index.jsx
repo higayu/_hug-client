@@ -13,6 +13,7 @@ import {
   checkMariaDbConnection,
   switchDatabaseType,
 } from '@/hooks/useDataBase/checkMariaDbConnection'
+import { checkLaravelConnection } from '@/hooks/useDataBase/checkLaravelConnection'
 
 const ActiveApiStatus = ({ className = '' }) => {
   const dispatch = useDispatch()
@@ -26,11 +27,14 @@ const ActiveApiStatus = ({ className = '' }) => {
   const databaseType = reduxDatabaseType || 'sqlite'
 
   const isMariaDb = databaseType === 'mariadb'
+  const isLaravel = databaseType === 'laravel'
   const isSqlite = databaseType === 'sqlite'
 
   const icon = switching ? (
     <Loader2 size={10} className="animate-spin" />
   ) : isMariaDb ? (
+    <Server size={10} />
+  ) : isLaravel ? (
     <Server size={10} />
   ) : isSqlite ? (
     <Database size={10} />
@@ -40,17 +44,25 @@ const ActiveApiStatus = ({ className = '' }) => {
 
   const label = isMariaDb
     ? 'MariaDB'
+    : isLaravel
+      ? 'Laravel API'
     : isSqlite
       ? 'SQLite'
       : 'DB未確定'
 
   const detail = isMariaDb
     ? '接続モード'
+    : isLaravel
+      ? 'API接続モード'
     : isSqlite
       ? '非常用モード'
       : '未初期化'
 
-  const nextLabel = isMariaDb ? 'SQLiteへ切替' : 'MariaDBへ切替'
+  const nextLabel = isMariaDb
+    ? 'Laravel APIへ切替'
+    : isLaravel
+      ? 'SQLiteへ切替'
+      : 'MariaDBへ切替'
 
   const handleToggleDatabaseType = async () => {
     if (switching) return
@@ -58,13 +70,14 @@ const ActiveApiStatus = ({ className = '' }) => {
     console.group('[ActiveApiStatus] handleToggleDatabaseType')
     console.log('クリック時 databaseType:', databaseType)
     console.log('クリック時 isMariaDb:', isMariaDb)
+    console.log('クリック時 isLaravel:', isLaravel)
     console.log('クリック時 isSqlite:', isSqlite)
 
     setSwitching(true)
     setLastMessage('')
 
     try {
-      if (isMariaDb) {
+      if (isLaravel) {
         const result = await switchDatabaseType({
           dispatch,
           databaseType: 'sqlite',
@@ -74,6 +87,24 @@ const ActiveApiStatus = ({ className = '' }) => {
 
         console.log('[ActiveApiStatus] switchDatabaseType result:', result)
         setLastMessage(result?.message || 'SQLite に切り替えました')
+        return
+      }
+
+      if (isMariaDb) {
+        const result = await checkLaravelConnection(dispatch, {
+          autoFallbackToSqlite: false,
+          switchToLaravelOnSuccess: true,
+          persistIni: true,
+        })
+
+        console.log('[ActiveApiStatus] checkLaravelConnection result:', result)
+
+        setLastMessage(
+          result?.message ||
+            (result?.connected
+              ? 'Laravel API に切り替えました'
+              : 'Laravel API に接続できませんでした')
+        )
         return
       }
 
@@ -103,6 +134,8 @@ const ActiveApiStatus = ({ className = '' }) => {
   const titleText = [
     isMariaDb
       ? 'サーバー側APIを使用しています'
+      : isLaravel
+        ? 'Laravel APIを使用しています'
       : isSqlite
         ? 'ローカルSQLiteを使用しています'
         : 'DATABASE_TYPE がまだ確定していません',
@@ -124,6 +157,8 @@ const ActiveApiStatus = ({ className = '' }) => {
         'disabled:cursor-not-allowed disabled:opacity-70',
         isMariaDb
           ? 'border-red-200 bg-red-50 text-red-800 hover:bg-red-100'
+          : isLaravel
+            ? 'border-emerald-200 bg-emerald-50 text-emerald-800 hover:bg-emerald-100'
           : isSqlite
             ? 'border-blue-200 bg-blue-50 text-blue-800 hover:bg-blue-100'
             : 'border-gray-200 bg-gray-50 text-gray-600 hover:bg-gray-100',
