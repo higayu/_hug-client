@@ -201,17 +201,17 @@ function registerLaravelAuthHandlers(
 
   ipcMain.handle(
     "laravel:procedure:upsert-temp-notes-all",
-    procedures.upsertTempNotesAllHandler
+    tempNotes.saveAllHandler
   );
 
   ipcMain.handle(
     "laravel:procedure:upsert-temp-notes-memo1",
-    procedures.upsertTempNotesMemo1Handler
+    tempNotes.saveMemo1Handler
   );
 
   ipcMain.handle(
     "laravel:procedure:upsert-temp-notes-memo2",
-    procedures.upsertTempNotesMemo2Handler
+    tempNotes.saveMemo2Handler
   );
 
   /*

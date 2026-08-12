@@ -64,6 +64,20 @@ async function getTempNoteApiNames() {
   };
 }
 
+function getTempNoteErrorMessage(result, fallbackMessage) {
+  const candidates = [
+    result?.message,
+    result?.error?.message,
+    result?.error?.details?.message,
+    result?.error?.details?.error,
+    typeof result?.error === "string" ? result.error : null,
+  ];
+
+  return candidates.find(
+    (message) => typeof message === "string" && message.trim()
+  ) || fallbackMessage;
+}
+
 /**
  * 一時メモを保存する
  */
@@ -115,7 +129,7 @@ export async function saveTempNote(childId, memo1, memo2, appState) {
       return true;
     }
 
-    throw new Error(result?.error || "保存失敗");
+    throw new Error(getTempNoteErrorMessage(result, "保存失敗"));
   } catch (error) {
     console.error("❌ 一時メモ保存エラー(saveTempNote):", error);
     return false;
@@ -173,7 +187,7 @@ export async function saveTempNote1(childId, memo1, appState) {
       return true;
     }
 
-    throw new Error(result?.error || "保存失敗");
+    throw new Error(getTempNoteErrorMessage(result, "保存失敗"));
   } catch (error) {
     console.error("❌ 一時メモ保存エラー(saveTempNote1):", error);
     return false;
@@ -231,7 +245,7 @@ export async function saveTempNote2(childId, memo2, appState) {
       return true;
     }
 
-    throw new Error(result?.error || "保存失敗");
+    throw new Error(getTempNoteErrorMessage(result, "保存失敗"));
   } catch (error) {
     console.error("❌ 一時メモ保存エラー(saveTempNote2):", error);
     return false;
