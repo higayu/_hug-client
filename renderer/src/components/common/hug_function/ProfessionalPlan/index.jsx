@@ -28,7 +28,7 @@ async function fetchHtmlInWebview(webview, url) {
 }
 
 export default function ProfessionalPlan() {
-  const { SELECT_CHILD } = useAppState();
+  const { SELECT_CHILD, DATABASE_TYPE } = useAppState();
   const { loadDataBase } = useDataBase();
 
   const handleGetProfessionalPlan = async () => {
@@ -294,16 +294,29 @@ export default function ProfessionalPlan() {
         return markdown;
       }
 
-      if (!window.electronAPI?.mariadb_children_update) {
-        console.warn("[HUG WM] mariadb_children_update が利用できません");
+      const childrenUpdate =
+        DATABASE_TYPE === "laravel"
+          ? window.electronAPI?.laravel_children_update
+          : window.electronAPI?.mariadb_children_update;
+      const childrenUpdateApiName =
+        DATABASE_TYPE === "laravel"
+          ? "laravel_children_update"
+          : "mariadb_children_update";
+
+      if (typeof childrenUpdate !== "function") {
+        console.warn(`[HUG WM] ${childrenUpdateApiName} が利用できません`);
         return markdown;
       }
 
-      await window.electronAPI.mariadb_children_update({
+      const updateResult = await childrenUpdate({
         pk: "id",
         values: String(SELECT_CHILD),
         data: { notes: markdown },
       });
+
+      if (updateResult?.success === false) {
+        throw new Error(updateResult.message || "児童情報の更新に失敗しました");
+      }
 
       await loadDataBase({
         reason: "manual/ProfessionalPlan",

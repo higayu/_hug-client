@@ -11,10 +11,12 @@ const WEEKDAY_MAP = {
 };
 
 function normalizeDatabaseType(value) {
-  if (typeof value === "string") return value;
+  if (typeof value === "string") return value.toLowerCase();
 
   if (value && typeof value === "object") {
-    return value.type || value.databaseType || value.dbType || "mariadb";
+    return String(
+      value.type || value.databaseType || value.dbType || "mariadb"
+    ).toLowerCase();
   }
 
   return "sqlite";
@@ -32,6 +34,16 @@ async function getDatabaseType() {
 
 async function getTempNoteApiNames() {
   const databaseType = await getDatabaseType();
+
+  if (databaseType === "laravel") {
+    return {
+      databaseType,
+      save: "laravel_saveTempNote",
+      save1: "laravel_saveTempNote1",
+      save2: "laravel_saveTempNote2",
+      get: "laravel_getTempNote",
+    };
+  }
 
   if (databaseType === "mariadb") {
     return {

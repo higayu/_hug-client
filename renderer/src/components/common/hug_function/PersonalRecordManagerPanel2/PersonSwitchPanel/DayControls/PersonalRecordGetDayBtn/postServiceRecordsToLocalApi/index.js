@@ -94,7 +94,7 @@ export function isServiceRecordDuplicateError(message) {
  * 取得した個人記録を UpsertServiceRecord プロシージャ経由でローカル DB へ保存
  *
  * @param {Array<object>} records
- * @param {{ childrenId: string|number, facilityId: string|number, staffId?: string|number }} ctx
+ * @param {{ childrenId: string|number, facilityId: string|number, staffId?: string|number, databaseType?: string }} ctx
  * @returns {Promise<{
  *   ok: boolean;
  *   posted: number;
@@ -111,7 +111,7 @@ export function isServiceRecordDuplicateError(message) {
  * }>}
  */
 export async function postServiceRecordsToLocalApi(records, ctx) {
-  const { childrenId, facilityId, staffId } = ctx || {};
+  const { childrenId, facilityId, staffId, databaseType } = ctx || {};
 
   if (!childrenId || !facilityId) {
     return {
@@ -123,14 +123,23 @@ export async function postServiceRecordsToLocalApi(records, ctx) {
     };
   }
 
-  if (!window.electronAPI?.mariadb_service_record_upsert) {
+  const serviceRecordUpsert =
+    databaseType === "laravel"
+      ? window.electronAPI?.laravel_procedure_upsertServiceRecord
+      : window.electronAPI?.mariadb_service_record_upsert;
+  const serviceRecordUpsertApiName =
+    databaseType === "laravel"
+      ? "laravel_procedure_upsertServiceRecord"
+      : "mariadb_service_record_upsert";
+
+  if (typeof serviceRecordUpsert !== "function") {
     return {
       ok: false,
       posted: 0,
       skipped: 0,
       failed: 0,
       results: [
-        { ok: false, error: "mariadb_service_record_upsert が利用できません" },
+        { ok: false, error: `${serviceRecordUpsertApiName} が利用できません` },
       ],
     };
   }
@@ -151,9 +160,7 @@ export async function postServiceRecordsToLocalApi(records, ctx) {
         staffId,
       });
 
-      const data = await window.electronAPI.mariadb_service_record_upsert(
-        payload
-      );
+      const data = await serviceRecordUpsert(payload);
 
       posted += 1;
       results.push({ date: dateLabel, ok: true, payload, data });

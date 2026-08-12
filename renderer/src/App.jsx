@@ -7,7 +7,7 @@ import { AppStateProvider } from '@/AppStateContext'
 import { CustomButtonsProvider } from '@/components/CustomButtonsContext'
 import Toolbar from '@/components/Header/Toolbar.jsx'
 import Tabs from '@/components/Header/Tabs.jsx'
-import ContentArea from '@/components/ContentArea.jsx'
+import MainContent from '@/MainContent.jsx'
 import { useActiveWebviewLogger } from '@/hooks/useTabs/useActiveWebviewLogger'
 import DataBaseAutoLoader from '@/components/common/Synchronization/DataBaseAutoLoader'
 
@@ -19,7 +19,7 @@ function AppContent({ preloadPath }) {
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
       <Toolbar />
       <Tabs />
-      <ContentArea preloadPath={preloadPath} />
+      <MainContent preloadPath={preloadPath} />
       <pre id="configOutput" style={{ display: 'none' }}></pre>
     </div>
   )

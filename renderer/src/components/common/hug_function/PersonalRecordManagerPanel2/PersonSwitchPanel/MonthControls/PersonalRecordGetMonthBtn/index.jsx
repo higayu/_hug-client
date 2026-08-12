@@ -60,6 +60,7 @@ export default function PersonalRecordGetMonthBtn({
     FACILITY_ID,
     STAFF_ID,
     CURRENT_YMD,
+    DATABASE_TYPE,
   } = useAppState();
 
   const {
@@ -145,6 +146,7 @@ export default function PersonalRecordGetMonthBtn({
           childrenId: SELECT_CHILD,
           facilityId,
           staffId: STAFF_ID,
+          databaseType: DATABASE_TYPE,
         }
       );
 
@@ -191,6 +193,7 @@ export default function PersonalRecordGetMonthBtn({
     SELECT_CHILD,
     FACILITY_ID,
     STAFF_ID,
+    DATABASE_TYPE,
     CURRENT_YMD,
     monthStr,
     showSuccessToast,

@@ -24,7 +24,7 @@ function notifyPostResultToasts(postResult, { showSuccessToast, showErrorToast }
  * 選択中児童の個人記録（活動内容 note）を hugview 経由で取得し、コンソールに出力する（テスト用）
  */
 export default function PersonalRecordGetDayBtn({ dateStr }) {
-  const { SELECT_CHILD, FACILITY_ID, STAFF_ID, CURRENT_YMD } = useAppState();
+  const { SELECT_CHILD, FACILITY_ID, STAFF_ID, CURRENT_YMD, DATABASE_TYPE } = useAppState();
   const { showSuccessToast, showErrorToast } = useToast();
   const [fetching, setFetching] = useState(false);
   const isFetchingRef = useRef(false);
@@ -86,6 +86,7 @@ export default function PersonalRecordGetDayBtn({ dateStr }) {
         childrenId: SELECT_CHILD,
         facilityId,
         staffId: STAFF_ID,
+        databaseType: DATABASE_TYPE,
       });
 
       console.log(`[${LOG_TAG}] ローカルDB保存`, postResult);
@@ -121,6 +122,7 @@ export default function PersonalRecordGetDayBtn({ dateStr }) {
     showSuccessToast,
     showErrorToast,
     STAFF_ID,
+    DATABASE_TYPE,
   ]);
 
   return (

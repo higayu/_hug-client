@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
-import Sidebar from './Sidebar'
+import Sidebar from '@/Sidebar'
 
-function ContentArea({ preloadPath }) {
+function MainContent({ preloadPath }) {
   useEffect(() => {
     if (!preloadPath) return
 
@@ -11,7 +11,7 @@ function ContentArea({ preloadPath }) {
     const webview = document.getElementById('hugview')
     if (webview && webview.getAttribute('preload') !== preloadPath) {
       webview.setAttribute('preload', preloadPath)
-      console.log('✅ [ContentArea] 初期webviewにpreload属性を設定:', preloadPath)
+      console.log('✅ [MainContent] 初期webviewにpreload属性を設定:', preloadPath)
     }
   }, [preloadPath])
 
@@ -43,5 +43,5 @@ function ContentArea({ preloadPath }) {
   )
 }
 
-export default ContentArea
+export default MainContent
 
