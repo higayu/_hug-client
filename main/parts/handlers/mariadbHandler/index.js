@@ -25,6 +25,10 @@ const {
   delete_manager,
 } = require("./mariadb/managers2");
 
+const {
+  getServiceRecordMonthly,
+} = require("./mariadb/get_service_record_monthly");
+
 /**
  * 空判定
  * 0 は有効値として扱う
@@ -354,6 +358,10 @@ WHERE
   // ============================================================
   ipcMain.handle("mariadb:service_record:upsert", async (_, data) => {
     return upsertServiceRecord(data);
+  });
+
+  ipcMain.handle("mariadb:service_record:get-monthly", async (_, data) => {
+    return getServiceRecordMonthly(data);
   });
 
   // ============================================================

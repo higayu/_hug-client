@@ -207,8 +207,9 @@ const apiClient = {
     updateBaseURL();
 
     const res = await axiosInstance.get(`/${DB_NAME}/__all`);
+    const { service_record: _serviceRecord, ...tables } = res.data ?? {};
 
-    return res.data;
+    return tables;
   },
 
   /* --------------------

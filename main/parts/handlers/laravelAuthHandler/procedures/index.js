@@ -15,6 +15,9 @@ const syncHugStaffs =
 const upsertServiceRecord =
   require("./upsertServiceRecord");
 
+const getServiceRecordMonthly =
+  require("./get_service_record_monthly");
+
 const upsertManagers2 =
   require("./upsertManagers2");
 
@@ -48,6 +51,9 @@ module.exports = {
 
   upsertServiceRecordHandler:
     upsertServiceRecord.handler,
+
+  getServiceRecordMonthlyHandler:
+    getServiceRecordMonthly.handler,
 
   // ============================================================
   // 担当児童

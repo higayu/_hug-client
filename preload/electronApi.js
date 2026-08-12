@@ -110,6 +110,18 @@ function createElectronApi(ipcRenderer, isDebugMode) {
     laravel_procedure_upsertServiceRecord: (data) =>
       ipcRenderer.invoke("laravel:procedure:upsert-service-record", data),
 
+    laravel_procedure_getServiceRecordMonthly: (data) =>
+      ipcRenderer.invoke(
+        "laravel:procedure:get-service-record-monthly",
+        data,
+      ),
+
+    mariadb_procedure_getServiceRecordMonthly: (data) =>
+      ipcRenderer.invoke("mariadb:service_record:get-monthly", data),
+
+    sqlite_getServiceRecordMonthly: (data) =>
+      ipcRenderer.invoke("sqlite:service_record:get-monthly", data),
+
     // ---- テーブル一括同期処理 ----
     // renderer から databaseState を渡さない。
     // main 側の sqlite:database:sync 内で apiClient.fetchTableAll() を呼び、
@@ -357,6 +369,12 @@ function createElectronApi(ipcRenderer, isDebugMode) {
 
     laravel_service_record_upsert: (data) =>
       ipcRenderer.invoke("laravel:procedure:upsert-service-record", data),
+
+    laravel_service_record_monthly: (data) =>
+      ipcRenderer.invoke(
+        "laravel:procedure:get-service-record-monthly",
+        data,
+      ),
 
     // ---- HUG staffs ----
     syncHugStaffs: async (data) => {

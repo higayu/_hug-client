@@ -47,6 +47,15 @@ const tableKeys = [
 // =============================================================
 const applyPayloadToState = (state, payload = {}) => {
   tableKeys.forEach((key) => {
+    // service_recordは月次取得で個別に更新する。
+    // 全件取得レスポンスに含まれない場合、現在の月次データを保持する。
+    if (
+      key === 'service_record' &&
+      !Object.prototype.hasOwnProperty.call(payload, key)
+    ) {
+      return
+    }
+
     state[key] = Array.isArray(payload[key]) ? payload[key] : []
   })
 }
@@ -122,6 +131,12 @@ const databaseSlice = createSlice({
       state.error = null
     },
 
+    setServiceRecord: (state, action) => {
+      state.service_record = Array.isArray(action.payload)
+        ? action.payload
+        : []
+    },
+
     clearSqliteData: (state) => {
       tableKeys.forEach((key) => {
         state[key] = []
@@ -166,6 +181,7 @@ const databaseSlice = createSlice({
 
 export const {
   setAllTables,
+  setServiceRecord,
   clearSqliteData,
   clearError,
 } = databaseSlice.actions

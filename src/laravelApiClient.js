@@ -1291,6 +1291,35 @@ const laravelApiClient = {
     },
 
   /**
+   * get_service_record_monthly プロシージャ実行
+   *
+   * POST /api/__procedure/get-service-record-monthly
+   */
+  getServiceRecordMonthly:
+    async (
+      payload,
+    ) => {
+      prepareRequest();
+
+      try {
+        const response =
+          await laravelAxiosInstance.post(
+            "/__procedure/get-service-record-monthly",
+            payload,
+          );
+
+        return response.data;
+      } catch (error) {
+        console.error(
+          "❌ [laravelApiClient] getServiceRecordMonthly failed:",
+          error?.response?.data || error?.message || error,
+        );
+
+        throw error;
+      }
+    },
+
+  /**
    * upsert_managers2 プロシージャ実行
    *
    * POST /api/__procedure/upsert-managers2

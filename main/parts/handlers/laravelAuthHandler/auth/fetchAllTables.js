@@ -33,14 +33,19 @@ async function handler(params = {}) {
     };
   }
 
+  const {
+    service_record: _serviceRecord,
+    ...syncTables
+  } = tables;
+
   return {
     success: true,
     connected: true,
     message: "Laravelから全テーブルを取得しました。",
-    data: tables,
+    data: syncTables,
     meta: {
       authenticated: true,
-      tableCount: Object.keys(tables).length,
+      tableCount: Object.keys(syncTables).length,
       reauthenticated: result?.meta?.reauthenticated ?? false,
     },
     error: null,

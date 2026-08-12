@@ -45,6 +45,7 @@ const IPC_CHANNELS = [
   "laravel:procedure:register-manager-assignment",
   "laravel:procedure:sync-hug-staffs",
   "laravel:procedure:upsert-service-record",
+  "laravel:procedure:get-service-record-monthly",
   "laravel:procedure:upsert-managers2",
 
   "laravel:managers2:delete",  // 追加
@@ -271,6 +272,15 @@ function registerLaravelAuthHandlers(
     "laravel:procedure:upsert-service-record",
     procedures
       .upsertServiceRecordHandler
+  );
+
+  /**
+   * 月次サービス記録の取得。
+   */
+  ipcMain.handle(
+    "laravel:procedure:get-service-record-monthly",
+    procedures
+      .getServiceRecordMonthlyHandler
   );
 
   /**

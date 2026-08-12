@@ -35,6 +35,9 @@ const record_types = require("./sqlite/record_types");
 const child_records = require("./sqlite/child_records");
 const m_service_items = require("./sqlite/m_service_items");
 const service_record = require("./sqlite/service_record");
+const {
+  getServiceRecordMonthly,
+} = require("./sqlite/get_service_record_monthly");
 const staff_facility_roles = require("./sqlite/staff_facility_roles");
 const text_data = require("./sqlite/text_data");
 const toolbox = require("./sqlite/toolbox");
@@ -423,7 +426,6 @@ function registerSqliteHandlers(ipcMain) {
 
     // 記録系
     "individual_support",
-    "service_record",
     "child_records",
     "memo",
 
@@ -707,6 +709,10 @@ function registerSqliteHandlers(ipcMain) {
       console.error("❌ SQLite getTempNote エラー:", err);
       throw err;
     }
+  });
+
+  safeHandle(ipcMain, "sqlite:service_record:get-monthly", async (_, data) => {
+    return getServiceRecordMonthly(data);
   });
 }
 

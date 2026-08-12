@@ -214,6 +214,12 @@ var require_electronApi = __commonJS({
         ),
         laravel_procedure_syncHugStaffs: (data) => ipcRenderer2.invoke("laravel:procedure:sync-hug-staffs", data),
         laravel_procedure_upsertServiceRecord: (data) => ipcRenderer2.invoke("laravel:procedure:upsert-service-record", data),
+        laravel_procedure_getServiceRecordMonthly: (data) => ipcRenderer2.invoke(
+          "laravel:procedure:get-service-record-monthly",
+          data
+        ),
+        mariadb_procedure_getServiceRecordMonthly: (data) => ipcRenderer2.invoke("mariadb:service_record:get-monthly", data),
+        sqlite_getServiceRecordMonthly: (data) => ipcRenderer2.invoke("sqlite:service_record:get-monthly", data),
         // ---- テーブル一括同期処理 ----
         // renderer から databaseState を渡さない。
         // main 側の sqlite:database:sync 内で apiClient.fetchTableAll() を呼び、
@@ -360,6 +366,10 @@ var require_electronApi = __commonJS({
         // Laravel側は登録・更新ともupsertプロシージャを使用する。
         laravel_service_record_insert: (data) => ipcRenderer2.invoke("laravel:procedure:upsert-service-record", data),
         laravel_service_record_upsert: (data) => ipcRenderer2.invoke("laravel:procedure:upsert-service-record", data),
+        laravel_service_record_monthly: (data) => ipcRenderer2.invoke(
+          "laravel:procedure:get-service-record-monthly",
+          data
+        ),
         // ---- HUG staffs ----
         syncHugStaffs: async (data) => {
           const prefix = await getDbPrefix(ipcRenderer2);
