@@ -61,6 +61,7 @@ function getDefaultIni() {
     },
     apiSettings: {
       baseURL: "http://192.168.1.229",
+      laravelURL: "https://dev-hug-banso.we-labo.com",
       staffId: "",
       facilityId: "3",
       databaseType: "mariadb",
@@ -91,6 +92,7 @@ function loadIni() {
     const json = JSON.parse(raw);
     console.log("ini.json loaded:", {
       baseURL: json?.apiSettings?.baseURL,
+      laravelURL: json?.apiSettings?.laravelURL,
       databaseType: json?.apiSettings?.databaseType,
       useAI: json?.apiSettings?.useAI
     });

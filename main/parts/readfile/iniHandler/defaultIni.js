@@ -42,6 +42,7 @@ const DEFAULT_INI = {
     },
     apiSettings: {
       baseURL: "http://192.168.1.229",
+      laravelURL: "https://dev-hug-banso.we-labo.com",
       staffId: "",
       facilityId: "3",
       databaseType: "mariadb",

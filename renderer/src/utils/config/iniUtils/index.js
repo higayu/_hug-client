@@ -7,6 +7,7 @@
  */
 const DEFAULT_API_SETTINGS = {
   baseURL: 'http://192.168.1.229',
+  laravelURL: 'https://dev-hug-banso.we-labo.com',
   staffId: '',
   facilityId: '3',
   databaseType: 'mariadb',

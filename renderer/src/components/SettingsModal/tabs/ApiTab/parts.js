@@ -31,9 +31,15 @@ export const isNotDeleted = (value) => {
 export const normalizeDatabaseType = (value) => {
   const normalized = String(value ?? '').toLowerCase()
 
-  return normalized === 'mariadb'
-    ? 'mariadb'
-    : 'sqlite'
+  if (normalized === 'mariadb') {
+    return 'mariadb'
+  }
+
+  if (normalized === 'laravel') {
+    return 'laravel'
+  }
+
+  return 'sqlite'
 }
 
 export const createFormState = ({
@@ -44,6 +50,11 @@ export const createFormState = ({
     baseURL: String(
       apiSettings?.baseURL ??
       appState?.BASE_URL ??
+      ''
+    ),
+
+    laravelURL: String(
+      apiSettings?.laravelURL ??
       ''
     ),
 

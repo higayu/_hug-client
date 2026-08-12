@@ -2,6 +2,16 @@ import React, { useState } from "react";
 import { Wifi, WifiOff, Loader2 } from "lucide-react";
 import { useAppState } from "@/AppStateContext";
 
+const toDatabaseType = (value) => {
+  const normalized = String(value || "").trim().toLowerCase();
+
+  if (normalized === "laravel" || normalized === "mariadb") {
+    return normalized;
+  }
+
+  return "sqlite";
+};
+
 const ServerConnectButton = ({
   className = "",
   autoFallbackToSqlite = true,
@@ -14,11 +24,7 @@ const ServerConnectButton = ({
   const {
     updateAppState,
     updateIniSetting,
-
-    // 既存のDB種別を参照する
     DATABASE_TYPE,
-
-    // もし useReduxBindings 側で公開されていれば利用する
     SERVER_CONNECTED,
     SERVER_CONNECTION_STATE,
     SERVER_CONNECTION_CHECKING,
@@ -26,33 +32,40 @@ const ServerConnectButton = ({
     SERVER_CONNECTION_CHECKED_AT,
   } = useAppState();
 
-  const isMariaDb = DATABASE_TYPE === "mariadb";
+  const databaseType = toDatabaseType(DATABASE_TYPE);
+  const isMariaDb = databaseType === "mariadb";
+  const isLaravel = databaseType === "laravel";
 
   const appStateConnected =
     SERVER_CONNECTED === true || SERVER_CONNECTION_STATE === "connected";
 
   const isConnected =
-    result?.connected === true || appStateConnected || isMariaDb;
+    result?.connected === true || appStateConnected || isMariaDb || isLaravel;
 
   const isChecking = checking || SERVER_CONNECTION_CHECKING === true;
-
   const checkedAt = result?.checkedAt || SERVER_CONNECTION_CHECKED_AT;
+
+  const currentLabel = isLaravel
+    ? "Laravel API"
+    : isMariaDb
+      ? "MariaDB / API"
+      : "SQLite";
 
   const displayMessage =
     result?.message ||
     SERVER_CONNECTION_MESSAGE ||
     (isConnected
-      ? "MariaDB / APIサーバに接続済みです"
-      : "MariaDB / APIサーバに接続していません");
+      ? `${currentLabel} に接続済みです`
+      : `${currentLabel} に接続していません`);
 
   const titleText = [
     isChecking
-      ? "MariaDB 接続確認中..."
+      ? `${currentLabel} 接続確認中...`
       : isConnected
-        ? "MariaDB / APIサーバ接続OK"
+        ? `${currentLabel} 接続 OK`
         : result
-          ? "MariaDB / APIサーバ接続NG"
-          : "MariaDB / APIサーバ接続を確認",
+          ? `${currentLabel} 接続 NG`
+          : `${currentLabel} 接続を確認`,
     displayMessage,
     DATABASE_TYPE ? `DATABASE_TYPE: ${DATABASE_TYPE}` : null,
     checkedAt ? `checkedAt: ${checkedAt}` : null,
@@ -60,69 +73,70 @@ const ServerConnectButton = ({
     .filter(Boolean)
     .join("\n");
 
-  const syncDatabaseType = async (databaseType, message) => {
-    const connected = databaseType === "mariadb";
-    const checkedAt = new Date().toISOString();
-
-    console.log("[ServerConnectButton] DATABASE_TYPE を同期します", {
-      databaseType,
-      connected,
-      persistIni,
-    });
+  const syncDatabaseType = async (nextDatabaseType, message) => {
+    const connected =
+      nextDatabaseType === "mariadb" || nextDatabaseType === "laravel";
+    const checkedAtValue = new Date().toISOString();
 
     updateAppState({
-      DATABASE_TYPE: databaseType,
-
+      DATABASE_TYPE: nextDatabaseType,
       SERVER_CONNECTED: connected,
       SERVER_CONNECTION_STATE: connected ? "connected" : "disconnected",
       SERVER_CONNECTION_CHECKING: false,
       SERVER_CONNECTION_MESSAGE:
         message ||
         (connected
-          ? "APIサーバに接続できたため MariaDB に切り替えました"
-          : "APIサーバに接続できないため SQLite に切り替えました"),
-      SERVER_CONNECTION_CHECKED_AT: checkedAt,
+          ? `${nextDatabaseType} に切り替えました`
+          : "SQLite に切り替えました"),
+      SERVER_CONNECTION_CHECKED_AT: checkedAtValue,
     });
 
     if (persistIni) {
-      await updateIniSetting("apiSettings.databaseType", databaseType);
+      await updateIniSetting("apiSettings.databaseType", nextDatabaseType);
     }
   };
 
   const handleCheckConnection = async () => {
-    console.log("[ServerConnectButton] サーバ接続確認を開始します");
+    console.log("[ServerConnectButton] connection check start:", {
+      databaseType,
+    });
 
     setChecking(true);
     setResult(null);
 
     updateAppState({
       SERVER_CONNECTION_CHECKING: true,
-      SERVER_CONNECTION_MESSAGE: "MariaDB 接続確認中...",
+      SERVER_CONNECTION_MESSAGE: `${currentLabel} 接続確認中...`,
     });
 
     try {
-      if (!window.electronAPI?.checkMariaDbConnection) {
-        throw new Error("checkMariaDbConnection が preload に定義されていません");
+      const checkConnection = isLaravel
+        ? window.electronAPI?.checkLaravelConnection
+        : window.electronAPI?.checkMariaDbConnection;
+
+      if (typeof checkConnection !== "function") {
+        throw new Error(
+          isLaravel
+            ? "checkLaravelConnection が preload に定義されていません"
+            : "checkMariaDbConnection が preload に定義されていません"
+        );
       }
 
-      const res = await window.electronAPI.checkMariaDbConnection();
-
-      console.log("[ServerConnectButton] 接続確認結果:", res);
-
+      const res = await checkConnection();
       const connected = res?.connected === true || res?.success === true;
-      const checkedAt = new Date().toISOString();
+      const checkedAtValue = new Date().toISOString();
 
       const normalizedResult = {
         ...res,
         success: connected,
         connected,
         checking: false,
-        checkedAt,
+        checkedAt: checkedAtValue,
         message:
           res?.message ||
           (connected
-            ? "APIサーバに接続できました"
-            : "APIサーバに接続できません"),
+            ? `${currentLabel} に接続できました`
+            : `${currentLabel} に接続できません`),
       };
 
       setResult(normalizedResult);
@@ -132,40 +146,40 @@ const ServerConnectButton = ({
         SERVER_CONNECTION_STATE: connected ? "connected" : "disconnected",
         SERVER_CONNECTION_CHECKING: false,
         SERVER_CONNECTION_MESSAGE: normalizedResult.message,
-        SERVER_CONNECTION_CHECKED_AT: checkedAt,
+        SERVER_CONNECTION_CHECKED_AT: checkedAtValue,
       });
 
       if (connected) {
-        console.log("[ServerConnectButton] MariaDB 接続成功");
-
-        if (switchToMariaDbOnSuccess) {
+        if (isLaravel) {
+          await syncDatabaseType(
+            "laravel",
+            "Laravel API に接続できたため Laravel に切り替えました"
+          );
+        } else if (switchToMariaDbOnSuccess) {
           await syncDatabaseType(
             "mariadb",
-            "APIサーバに接続できたため MariaDB に切り替えました"
+            "API サーバーに接続できたため MariaDB に切り替えました"
           );
         }
 
         return;
       }
 
-      console.warn("[ServerConnectButton] MariaDB 接続失敗", normalizedResult);
-
       if (autoFallbackToSqlite) {
         await syncDatabaseType(
           "sqlite",
-          "APIサーバに接続できないため SQLite に切り替えました"
+          `${currentLabel} に接続できないため SQLite に切り替えました`
         );
       }
     } catch (err) {
-      console.error("[ServerConnectButton] 接続確認エラー:", err);
+      console.error("[ServerConnectButton] connection check error:", err);
 
-      const checkedAt = new Date().toISOString();
-
+      const checkedAtValue = new Date().toISOString();
       const errorResult = {
         success: false,
         connected: false,
         checking: false,
-        checkedAt,
+        checkedAt: checkedAtValue,
         message: err?.message || "接続確認に失敗しました",
       };
 
@@ -176,7 +190,7 @@ const ServerConnectButton = ({
         SERVER_CONNECTION_STATE: "disconnected",
         SERVER_CONNECTION_CHECKING: false,
         SERVER_CONNECTION_MESSAGE: errorResult.message,
-        SERVER_CONNECTION_CHECKED_AT: checkedAt,
+        SERVER_CONNECTION_CHECKED_AT: checkedAtValue,
       });
 
       if (autoFallbackToSqlite) {
@@ -186,7 +200,6 @@ const ServerConnectButton = ({
         );
       }
     } finally {
-      console.log("[ServerConnectButton] サーバ接続確認を終了します");
       setChecking(false);
     }
   };
@@ -218,7 +231,7 @@ const ServerConnectButton = ({
           <Wifi size={18} />
         )}
 
-        <span>サーバ接続</span>
+        <span>サーバー接続</span>
       </button>
     </div>
   );

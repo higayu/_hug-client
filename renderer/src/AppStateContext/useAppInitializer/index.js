@@ -33,6 +33,8 @@ const normalizeDatabaseType = (value) => {
   if (value === "MariaDB") return "mariadb";
   if (value === "sqlite") return "sqlite";
   if (value === "SQLite") return "sqlite";
+  if (value === "laravel") return "laravel";
+  if (value === "Laravel") return "laravel";
 
   return "sqlite";
 };

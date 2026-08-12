@@ -467,6 +467,8 @@ export function AppStateProvider({ children }) {
     const dbType =
       rawDbType === 'mariadb' || rawDbType === 'MariaDB'
         ? 'mariadb'
+        : rawDbType === 'laravel' || rawDbType === 'Laravel'
+          ? 'laravel'
         : rawDbType === 'sqlite' || rawDbType === 'SQLite'
           ? 'sqlite'
           : null

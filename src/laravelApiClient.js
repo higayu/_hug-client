@@ -201,6 +201,7 @@ function parseHttpUrl(
  *
  * ini.jsonで使用できる設定:
  *
+ * apiSettings.laravelURL
  * apiSettings.baseURL
  * apiSettings.port
  * apiSettings.apiPort
@@ -211,10 +212,19 @@ function buildLaravelBaseURL(
 ) {
   const configuredBaseURL =
     normalizeString(
-      apiSettings.baseURL,
+      apiSettings.laravelURL,
+    ) ||
+    normalizeString(
+      apiSettings.laravelUrl,
+    ) ||
+    normalizeString(
+      apiSettings.LARAVEL_URL,
     ) ||
     normalizeString(
       apiSettings.baseUrl,
+    ) ||
+    normalizeString(
+      apiSettings.baseURL,
     ) ||
     normalizeString(
       apiSettings.host,
