@@ -16,7 +16,7 @@ const {
 
 const {
   INIT_SQL,
-} = require("./schema");
+} = require("./schema/index");
 
 const {
   migrateLegacyDayOfWeekIfNeeded,
@@ -201,6 +201,9 @@ async function initializeDatabase() {
       "staffs",
       "record_types",
       "m_service_items",
+      "m_pronpt_items",
+      "ai_prompts",
+      "ai_prompt_histories",
       "users",
       "memo",
       "text_data",

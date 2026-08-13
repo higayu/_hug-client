@@ -1,4 +1,5 @@
 import { getActiveAiPrompts as getFromLaravel } from "./parts/laravel";
+import { getActiveAiPrompts as getFromMariadb } from "./parts/mariadb";
 
 const PROMPT_KEY_BY_ITEM_ID = {
   1: "personalRecord",
@@ -43,11 +44,14 @@ export async function getActiveAiPrompts({
 }) {
   const normalizedDatabaseType = String(databaseType ?? "").toLowerCase();
 
-  if (normalizedDatabaseType !== "laravel") {
-    return null;
-  }
+  const getter = {
+    laravel: getFromLaravel,
+    mariadb: getFromMariadb,
+  }[normalizedDatabaseType];
 
-  const rows = await getFromLaravel({ staffId, itemId });
+  if (!getter) return null;
+
+  const rows = await getter({ staffId, itemId });
 
   return normalizeActiveAiPrompts(rows);
 }

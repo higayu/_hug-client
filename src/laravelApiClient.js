@@ -1319,6 +1319,42 @@ const laravelApiClient = {
       }
     },
 
+  getActiveAiPrompt: async (payload) => {
+    prepareRequest();
+
+    try {
+      const response = await laravelAxiosInstance.post(
+        "/__procedure/get-active-ai-prompt",
+        payload,
+      );
+      return response.data;
+    } catch (error) {
+      console.error(
+        "❌ [laravelApiClient] getActiveAiPrompt failed:",
+        error?.response?.data || error?.message || error,
+      );
+      throw error;
+    }
+  },
+
+  upsertAiPrompt: async (payload) => {
+    prepareRequest();
+
+    try {
+      const response = await laravelAxiosInstance.post(
+        "/__procedure/upsert-ai-prompt",
+        payload,
+      );
+      return response.data;
+    } catch (error) {
+      console.error(
+        "❌ [laravelApiClient] upsertAiPrompt failed:",
+        error?.response?.data || error?.message || error,
+      );
+      throw error;
+    }
+  },
+
   /**
    * upsert_managers2 プロシージャ実行
    *

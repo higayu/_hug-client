@@ -3,6 +3,24 @@
 const { tryRunSql } = require("./helpers");
 
 async function createIndexes(db) {
+  const aiPromptIndexes = [
+    ["idx_ai_prompts_updated_by", "ai_prompts", "updated_by"],
+    ["idx_ai_prompts_updated_at", "ai_prompts", "updated_at"],
+    ["idx_ai_prompts_staff_id", "ai_prompts", "staff_id"],
+    ["idx_ai_prompts_item_id", "ai_prompts", "item_id"],
+    ["idx_ai_prompt_histories_prompt_id", "ai_prompt_histories", "prompt_id"],
+    ["idx_ai_prompt_histories_created_by", "ai_prompt_histories", "created_by"],
+    ["idx_ai_prompt_histories_created_at", "ai_prompt_histories", "created_at"],
+  ];
+
+  for (const [indexName, tableName, columnName] of aiPromptIndexes) {
+    await tryRunSql(
+      db,
+      `CREATE INDEX IF NOT EXISTS "${indexName}" ON "${tableName}" ("${columnName}")`,
+      indexName
+    );
+  }
+
   await tryRunSql(
     db,
     `

@@ -10,55 +10,7 @@ var __commonJS = (cb, mod) => function __require() {
 // preload/tables.js
 var require_tables = __commonJS({
   "preload/tables.js"(exports2, module2) {
-    var sqliteTables = [
-      "children",
-      "children_type",
-      "day_of_week",
-      "facility_children",
-      "facility_staff",
-      "facilitys",
-      "individual_support",
-      "managers2",
-      "pc",
-      "pc_to_children",
-      "pronunciation",
-      "staffs",
-      "temp_notes",
-      "service_record",
-      // MariaDB 追加分を SQLite フォールバックでも使う場合
-      "record_types",
-      "child_records",
-      "m_service_items",
-      "staff_facility_roles",
-      "text_data",
-      "toolbox",
-      "memo"
-    ];
-    var mariadbTables = [
-      "children",
-      "children_type",
-      "day_of_week",
-      "facility_children",
-      "facility_staff",
-      "facilitys",
-      "individual_support",
-      "managers2",
-      "pc",
-      "pc_to_children",
-      "pronunciation",
-      "staffs",
-      "service_record",
-      "temp_notes",
-      // MariaDB 追加分
-      "record_types",
-      "child_records",
-      "m_service_items",
-      "staff_facility_roles",
-      "text_data",
-      "toolbox",
-      "memo"
-    ];
-    var laravelTables = [
+    var sharedTables = [
       "children",
       "children_type",
       "day_of_week",
@@ -81,6 +33,14 @@ var require_tables = __commonJS({
       "toolbox",
       "memo"
     ];
+    var aiPromptTables = [
+      "m_pronpt_items",
+      "ai_prompts",
+      "ai_prompt_histories"
+    ];
+    var sqliteTables = [...sharedTables];
+    var mariadbTables = [...sharedTables, ...aiPromptTables];
+    var laravelTables = [...sharedTables, ...aiPromptTables];
     module2.exports = {
       sqliteTables,
       mariadbTables,
@@ -218,6 +178,10 @@ var require_electronApi = __commonJS({
           "laravel:procedure:get-service-record-monthly",
           data
         ),
+        laravel_procedure_getActiveAiPrompt: (data) => ipcRenderer2.invoke("laravel:procedure:get-active-ai-prompt", data),
+        laravel_procedure_upsertAiPrompt: (data) => ipcRenderer2.invoke("laravel:procedure:upsert-ai-prompt", data),
+        mariadb_procedure_getActiveAiPrompt: (data) => ipcRenderer2.invoke("mariadb:procedure:get-active-ai-prompt", data),
+        mariadb_procedure_upsertAiPrompt: (data) => ipcRenderer2.invoke("mariadb:procedure:upsert-ai-prompt", data),
         mariadb_procedure_getServiceRecordMonthly: (data) => ipcRenderer2.invoke("mariadb:service_record:get-monthly", data),
         sqlite_getServiceRecordMonthly: (data) => ipcRenderer2.invoke("sqlite:service_record:get-monthly", data),
         // ---- テーブル一括同期処理 ----

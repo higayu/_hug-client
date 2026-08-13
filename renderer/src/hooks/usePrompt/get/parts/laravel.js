@@ -3,7 +3,7 @@
  * itemIdを省略すると全項目を取得する。
  */
 export async function getActiveAiPrompts({ staffId, itemId = null }) {
-  const api = window.electronAPI?.laravel_procedure_call;
+  const api = window.electronAPI?.laravel_procedure_getActiveAiPrompt;
 
   if (typeof api !== "function") {
     throw new Error("LaravelプロシージャAPIが利用できません。");
@@ -25,10 +25,10 @@ export async function getActiveAiPrompts({ staffId, itemId = null }) {
     throw new Error("item_idが不正です。");
   }
 
-  const result = await api("get_active_ai_prompt", [
-    normalizedStaffId,
-    normalizedItemId,
-  ]);
+  const result = await api({
+    staff_id: normalizedStaffId,
+    item_id: normalizedItemId,
+  });
 
   if (result?.success === false) {
     throw new Error(

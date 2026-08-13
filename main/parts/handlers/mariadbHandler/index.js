@@ -4,30 +4,38 @@ const apiClient = require("../../../../src/apiClient");
 
 const {
   upsertServiceRecord,
-} = require("./mariadb/UpsertServiceRecord");
+} = require("./procedures/UpsertServiceRecord");
 
 const {
   syncHugStaffs,
-} = require("./mariadb/SyncHugStaffs");
+} = require("./procedures/SyncHugStaffs");
 
 const {
   syncHugChildrens,
-} = require("./mariadb/SyncHugChildrens");
+} = require("./procedures/SyncHugChildrens");
 
 const {
   upsertTempNote,
   upsertTempNote1,
   upsertTempNote2,
   getTempNote,
-} = require("./mariadb/UpsertTempNote");
+} = require("./crud/UpsertTempNote");
 
 const {
   delete_manager,
-} = require("./mariadb/managers2");
+} = require("./crud/managers2");
 
 const {
   getServiceRecordMonthly,
-} = require("./mariadb/get_service_record_monthly");
+} = require("./procedures/get_service_record_monthly");
+
+const {
+  getActiveAiPrompt,
+} = require("./procedures/get_active_ai_prompt");
+
+const {
+  upsertAiPrompt,
+} = require("./procedures/upsert_ai_prompt");
 
 /**
  * 空判定
@@ -160,6 +168,16 @@ function registerMariadbHandlers(ipcMain) {
     "day_of_week",
     "service_record",
     "temp_notes",
+    "record_types",
+    "child_records",
+    "m_service_items",
+    "staff_facility_roles",
+    "text_data",
+    "toolbox",
+    "memo",
+    "m_pronpt_items",
+    "ai_prompts",
+    "ai_prompt_histories",
   ];
 
   for (const table of tables) {
@@ -362,6 +380,14 @@ WHERE
 
   ipcMain.handle("mariadb:service_record:get-monthly", async (_, data) => {
     return getServiceRecordMonthly(data);
+  });
+
+  ipcMain.handle("mariadb:procedure:get-active-ai-prompt", async (_, data) => {
+    return getActiveAiPrompt(data);
+  });
+
+  ipcMain.handle("mariadb:procedure:upsert-ai-prompt", async (_, data) => {
+    return upsertAiPrompt(data);
   });
 
   // ============================================================

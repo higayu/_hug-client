@@ -414,9 +414,12 @@ function registerSqliteHandlers(ipcMain) {
     // MariaDB 追加マスタ系
     "record_types",
     "m_service_items",
+    "m_pronpt_items",
     "staff_facility_roles",
     "text_data",
     "toolbox",
+    "ai_prompts",
+    "ai_prompt_histories",
 
     // 関連テーブル
     "facility_staff",

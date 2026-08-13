@@ -1,4 +1,4 @@
-// main/parts/handlers/mariadbHandler/mariadb/managers2.js
+// main/parts/handlers/mariadbHandler/mariadb/crud/managers2.js
 const apiClient = require("../../../../../src/apiClient");
 
 /**

@@ -1,4 +1,4 @@
-// main/parts/handlers/syncHugChildrens.js
+// main/parts/handlers/mariadbHandler/mariadb/procedures/SyncHugChildrens.js
 const apiClient = require("../../../../../src/apiClient");
 
 const PROCEDURE_NAME = "register_facility_children";

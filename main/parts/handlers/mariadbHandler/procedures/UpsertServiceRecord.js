@@ -1,4 +1,4 @@
-// main/parts/handlers/mariadbHandler/mariadb/UpsertServiceRecord.js
+// main/parts/handlers/mariadbHandler/mariadb/procedures/UpsertServiceRecord.js
 const apiClient = require("../../../../../src/apiClient");
 
 const PROCEDURE_NAME = "UpsertServiceRecord";
