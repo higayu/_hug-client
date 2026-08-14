@@ -8,7 +8,7 @@ import React, {
 import { useToast } from '@/provider/ToastProvider/ToastContext'
 import { useAppState } from "@/AppStateContext";
 import { useNote } from "@/hooks/useNote";
-import { addPersonalRecordTabAction4 } from "@/hooks/useTabs/actions/personalRecord.js";
+import PersonalRecordButton from "@/components/common/PersonalRecordButton";
 import BrowserOpenButton from "@/components/common/BrowserOpenButton";
 
 export default function MemoInputBox({
@@ -25,7 +25,7 @@ export default function MemoInputBox({
   const editingRef = useRef(false);
 
   const { showSuccessToast, showErrorToast } = useToast();
-  const { appState, SELECT_CHILD } = useAppState();
+  const { SELECT_CHILD } = useAppState();
   const { saveTemp1, saveTemp2, loadTemp } = useNote();
 
   const [value, setValue] = useState("");
@@ -76,10 +76,6 @@ export default function MemoInputBox({
     },
     [label, memoType, SELECT_CHILD],
   );
-
-  const addPersonalRecordTab = useCallback(() => {
-    addPersonalRecordTabAction4(appState);
-  }, [appState]);
 
   /*
    * 児童またはメモ種別が変わったときだけDBから読み込む。
@@ -418,26 +414,10 @@ export default function MemoInputBox({
         </button>
 
         {(memoType === 1 || memoType === 2) && (
-          <button
-            type="button"
-            id={`kojin-kiroku-${memoType}`}
-            onClick={addPersonalRecordTab}
+          <PersonalRecordButton
             disabled={!SELECT_CHILD}
-            className="
-              flex items-center justify-center shrink-0
-              bg-[#4CAF50] text-white
-              px-3 py-2
-              rounded-lg font-bold text-xs
-              cursor-pointer transition-all whitespace-nowrap
-              hover:bg-[#66BB6A] hover:scale-105
-              active:bg-[#43A047] active:scale-[0.97]
-              disabled:grayscale disabled:opacity-50
-              disabled:cursor-not-allowed
-              disabled:hover:scale-100
-            "
-          >
-            個人記録
-          </button>
+            className='flex items-center rounded-lg px-3 py-2 font-bold text-xs justify-center shrink-0'
+          />
         )}
       </div>
     </div>

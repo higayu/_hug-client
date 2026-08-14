@@ -1,10 +1,15 @@
 import { CheckCircleIcon } from "@heroicons/react/24/outline";
 import { useSelector } from "react-redux";
+
+import PersonalRecordButton from "@/components/common/PersonalRecordButton";
+
 import { usePersonRecordCheck } from "./usePersonRecordCheck";
+
 import {
   selectCurrentYmd,
   selectSelectedChild,
 } from "@/store/slices/appStateSlice.js";
+
 import { selectPersonalRecordStatus } from "@/store/slices/recordStatusSlice.js";
 
 /**
@@ -27,7 +32,10 @@ export const personalRecordRegisteredLabel = (registered, checking) => {
  * @param {boolean | null | undefined} registered
  * @param {boolean} checking
  */
-export const getPersonalRecordRegisteredClass = (registered, checking) => {
+export const getPersonalRecordRegisteredClass = (
+  registered,
+  checking
+) => {
   if (checking) return "text-gray-400";
 
   if (registered === true) {
@@ -49,7 +57,11 @@ export function PersonalRecordRegisteredStatus({
   checking,
   recordCount,
 }) {
-  const registeredText = personalRecordRegisteredLabel(registered, checking);
+  const registeredText = personalRecordRegisteredLabel(
+    registered,
+    checking
+  );
+
   const registeredClass = getPersonalRecordRegisteredClass(
     registered,
     checking
@@ -72,21 +84,32 @@ export function PersonalRecordRegisteredStatus({
 /**
  * 個人記録 取得ボタン + 結果表示
  */
-export default function PersonalRecordCheckPanel({className=""}) {
+export default function PersonalRecordCheckPanel({
+  className = "",
+}) {
   const { checking, runCheck } = usePersonRecordCheck();
 
   const currentYmd = useSelector(selectCurrentYmd);
   const selectedChildId = useSelector(selectSelectedChild);
 
   const personalRecordStatus = useSelector((state) =>
-    selectPersonalRecordStatus(state, currentYmd, selectedChildId)
+    selectPersonalRecordStatus(
+      state,
+      currentYmd,
+      selectedChildId
+    )
   );
 
-  const todayPersonalRecordRegistered = personalRecordStatus.registered;
-  const todayPersonalRecordCount = personalRecordStatus.recordCount;
+  const todayPersonalRecordRegistered =
+    personalRecordStatus.registered;
+
+  const todayPersonalRecordCount =
+    personalRecordStatus.recordCount;
 
   return (
-    <div className={`inline-flex items-center gap-2 ${className}`}>
+    <div
+      className={`inline-flex items-center gap-2 ${className}`}
+    >
       <button
         type="button"
         onClick={runCheck}
@@ -111,13 +134,24 @@ export default function PersonalRecordCheckPanel({className=""}) {
         recordCount={todayPersonalRecordCount}
       />
 
-      {todayPersonalRecordRegistered === true ? (
+      {todayPersonalRecordRegistered === true && (
         <CheckCircleIcon
           className="h-4 w-4 text-green-600 shrink-0"
           title="本日の個人記録登録済み"
           aria-label="本日の個人記録登録済み"
         />
-      ) : null}
+      )}
+
+      <PersonalRecordButton
+        disabled={!selectedChildId}
+        label="個"
+        className="
+          flex items-center rounded-full
+          px-3 py-2
+          font-bold text-xs
+          justify-center shrink-0
+        "
+      />
     </div>
   );
 }
