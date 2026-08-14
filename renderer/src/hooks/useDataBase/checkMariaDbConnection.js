@@ -274,7 +274,7 @@ function getAutoSwitchingEnabled() {
  * 方針:
  * - activeApi は使わない
  * - DATABASE_TYPE を Redux / window.AppState の正本にする
- * - AUTO_SWITCHING=true の場合、SQLite中でも接続成功なら MariaDB に切替える
+ * - AUTO_SWITCHING の切替先は Laravel のため、この関数では参照のみ行う
  * - MariaDB中に接続失敗した場合は SQLite へ fallback する
  * - fallback時は Redux / ini.json / window.AppState / ApiTab select をまとめて更新する
  *
@@ -386,19 +386,19 @@ export async function checkMariaDbConnection(dispatch, options = {}) {
     }
 
     // =============================================================
-    // SQLite → MariaDB 自動切替
+    // MariaDB への明示切替
     //
     // 条件:
     // - 接続成功
-    // - 現在 sqlite
-    // - AUTO_SWITCHING=true
+    // - 現在 mariadb 以外
+    // - switchToMariaDbOnSuccess=true
     //
-    // または switchToMariaDbOnSuccess=true の場合は強制的に切替
+    // AUTO_SWITCHING の切替先は Laravel API のため、ここでは判定に使用しない。
     // =============================================================
     const shouldSwitchToMariaDb =
       connected &&
-      currentDatabaseType === "sqlite" &&
-      (autoSwitching || switchToMariaDbOnSuccess);
+      currentDatabaseType !== "mariadb" &&
+      switchToMariaDbOnSuccess;
 
     console.log("🔀 MariaDB切替判定:", {
       connected,
@@ -409,9 +409,8 @@ export async function checkMariaDbConnection(dispatch, options = {}) {
     });
 
     if (shouldSwitchToMariaDb) {
-      const reason = autoSwitching
-        ? "AUTO_SWITCHING=true かつ APIサーバに接続できたため MariaDB に切り替えました"
-        : "switchToMariaDbOnSuccess=true のため MariaDB に切り替えました";
+      const reason =
+        "switchToMariaDbOnSuccess=true のため MariaDB に切り替えました";
 
       const switched = await switchDatabaseType({
         dispatch,
@@ -425,7 +424,7 @@ export async function checkMariaDbConnection(dispatch, options = {}) {
         message: switched.message,
         switchedDatabaseType: switched.databaseType,
         fallbackToSqlite: false,
-        autoSwitchingToMariaDb: autoSwitching,
+        autoSwitchingToMariaDb: false,
         switchResult: switched,
       };
 

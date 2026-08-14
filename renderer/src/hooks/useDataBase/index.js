@@ -11,6 +11,7 @@ import { laravelApi } from "./sql/laravelApi";
 import { fetchAllTables } from "@/store/slices/databaseSlice"
 import { selectDatabaseType } from "@/store/slices/appStateSlice"
 import { checkMariaDbConnection } from "./checkMariaDbConnection"
+import { checkLaravelConnection } from "./checkLaravelConnection"
 
 function toBooleanFlag(value, defaultValue = true) {
   if (value === true || value === "true") return true
@@ -110,7 +111,7 @@ export function useDataBase({ autoLoad = false } = {}) {
   // - reason: ログ用
   // - forceDatabaseType: DB種別を強制する
   // - useAutoSwitching:
-  //   true の場合だけ、DATABASE_TYPE=sqlite 時に AUTO_SWITCHING を参照する
+  //   true の場合だけ AUTO_SWITCHING を参照し、接続先を自動選択する
   //   初回自動取得以外では基本 false
   // =============================================================
   const loadDataBase = useCallback(
@@ -124,11 +125,10 @@ export function useDataBase({ autoLoad = false } = {}) {
        * AUTO_SWITCHING を使うかどうかは呼び出し側で明示する。
        *
        * true:
-       * - DATABASE_TYPE=sqlite の場合、AUTO_SWITCHING=true なら MariaDB 接続確認する
+       * - AUTO_SWITCHING=true なら Laravel → MariaDB の順に接続確認する
        *
        * false:
-       * - DATABASE_TYPE=sqlite の場合、MariaDB 接続確認しない
-       * - そのまま sqliteApi を使う
+       * - 自動接続確認をせず、現在選択されているDB/APIを使う
        */
       const useAutoSwitching = options.useAutoSwitching === true
 
@@ -177,6 +177,7 @@ export function useDataBase({ autoLoad = false } = {}) {
 
         let mariaDbConnectionResult = null
         let checkedMariaDbConnection = false
+        let laravelConnectionResult = null
 
         console.log("🔍 [useDataBase] 初期 resolvedDatabaseType:", {
           loadId,
@@ -193,98 +194,53 @@ export function useDataBase({ autoLoad = false } = {}) {
         })
 
         // =============================================================
-        // DATABASE_TYPE=sqlite の場合
-        //
-        // 方針:
-        // - useAutoSwitching=false の場合
-        //   - AUTO_SWITCHING を見ない
-        //   - MariaDB 接続確認をしない
-        //   - そのまま sqliteApi を使う
-        //
-        // - useAutoSwitching=true の場合
-        //   - AUTO_SWITCHING を見る
-        //   - AUTO_SWITCHING=true なら MariaDB 接続確認する
-        //   - 接続できた場合は checkMariaDbConnection 側で MariaDB へ自動切替
-        //
-        // つまり AUTO_SWITCHING を使うのは初回自動取得時だけ。
+        // 初回自動取得時の接続優先順位
+        // Laravel → MariaDB → SQLite
+        // 接続できた時点で確認を終了し、そのDB/APIを使用する。
         // =============================================================
-        if (resolvedDatabaseType === "sqlite") {
-          const autoSwitchingEnabled = useAutoSwitching
-            ? getAutoSwitchingEnabledForUseDataBase()
-            : false
+        const autoSwitchingEnabled = useAutoSwitching
+          ? getAutoSwitchingEnabledForUseDataBase()
+          : false
 
-          console.log("🔍 [useDataBase] DATABASE_TYPE=sqlite 判定:", {
-            loadId,
-            reason,
-            resolvedDatabaseType,
-            useAutoSwitching,
-            autoSwitchingEnabled,
-            rawAppStateAutoSwitching: window.AppState?.AUTO_SWITCHING,
-            rawIniAutoSwitching: window.IniState?.apiSettings?.autoSwitching,
+        if (autoSwitchingEnabled) {
+          console.log(
+            "🔌 [useDataBase] AUTO_SWITCHING=true: Laravel API接続確認を実行します"
+          )
+
+          laravelConnectionResult = await checkLaravelConnection(dispatch, {
+            autoFallbackToSqlite: false,
+            switchToLaravelOnSuccess: true,
+            persistIni: true,
           })
 
-          if (!useAutoSwitching) {
+          if (laravelConnectionResult?.connected === true) {
             console.log(
-              "⏭ [useDataBase] useAutoSwitching=false のため AUTO_SWITCHING を見ず、MariaDB接続確認をスキップして sqliteApi を使用します"
+              "✅ [useDataBase] Laravel APIに接続できたため接続確認を終了します"
             )
-
-            resolvedDatabaseType = "sqlite"
-            apiToUse = sqliteApi
-          } else if (!autoSwitchingEnabled) {
-            console.log(
-              "⏭ [useDataBase] 初期読み込みだが AUTO_SWITCHING=false のため MariaDB接続確認をスキップし、sqliteApi を使用します"
-            )
-
-            resolvedDatabaseType = "sqlite"
-            apiToUse = sqliteApi
+            resolvedDatabaseType = "laravel"
+            apiToUse = laravelApi
           } else {
             console.log(
-              "🔌 [useDataBase] 初期読み込みかつ AUTO_SWITCHING=true のため MariaDB接続確認を実行します"
+              "⏭ [useDataBase] Laravel APIに接続できないため MariaDB接続確認を実行します"
             )
 
             mariaDbConnectionResult = await checkMariaDbConnection(dispatch, {
               autoFallbackToSqlite: true,
-              switchToMariaDbOnSuccess: false,
+              switchToMariaDbOnSuccess: true,
               persistIni: true,
             })
-
             checkedMariaDbConnection = true
 
-            console.log(
-              "🔌 [useDataBase] sqlite時の MariaDB接続確認結果:",
-              mariaDbConnectionResult
-            )
-
-            if (mariaDbConnectionResult?.switchedDatabaseType === "mariadb") {
+            if (mariaDbConnectionResult?.connected === true) {
               console.log(
-                "✅ [useDataBase] AUTO_SWITCHING により mariadb へ切替済み。今回の取得も mariadbApi を使用します",
-                {
-                  connected: mariaDbConnectionResult?.connected,
-                  switchedDatabaseType:
-                    mariaDbConnectionResult?.switchedDatabaseType,
-                  autoSwitching: mariaDbConnectionResult?.autoSwitching,
-                  currentDatabaseType:
-                    mariaDbConnectionResult?.currentDatabaseType,
-                }
+                "✅ [useDataBase] MariaDBに接続できたため接続確認を終了します"
               )
-
               resolvedDatabaseType = "mariadb"
               apiToUse = mariadbApi
             } else {
               console.log(
-                "⏭ [useDataBase] MariaDBへは切り替えず、sqliteApi を使用します",
-                {
-                  connected: mariaDbConnectionResult?.connected,
-                  autoSwitching: mariaDbConnectionResult?.autoSwitching,
-                  switchedDatabaseType:
-                    mariaDbConnectionResult?.switchedDatabaseType,
-                  fallbackToSqlite:
-                    mariaDbConnectionResult?.fallbackToSqlite,
-                  currentDatabaseType:
-                    mariaDbConnectionResult?.currentDatabaseType,
-                }
+                "⏭ [useDataBase] Laravel/MariaDBに接続できないため SQLiteを使用します"
               )
-
               resolvedDatabaseType = "sqlite"
               apiToUse = sqliteApi
             }
@@ -379,6 +335,7 @@ export function useDataBase({ autoLoad = false } = {}) {
                 : "unknown",
           checkedMariaDbConnection,
           mariaDbConnectionResult,
+          laravelConnectionResult,
         })
 
         const tables = await apiToUse.getAllTables()
