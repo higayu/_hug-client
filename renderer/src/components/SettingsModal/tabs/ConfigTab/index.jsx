@@ -5,7 +5,7 @@ import {
 
 import ToggleContainer from '@/components/ui/ToggleContainer'
 import { useAppState } from '@/AppStateContext'
-import { useToast } from '@/components/common/ToastContext.jsx'
+import { useToast } from '@/provider/ToastProvider/ToastContext'
 
 import {
   loadConfig,

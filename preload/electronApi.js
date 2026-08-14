@@ -54,7 +54,8 @@ function createElectronApi(ipcRenderer, isDebugMode) {
       ipcRenderer.invoke("mariadb:connection:check"),
 
     // ---- テーブル一括取得 ----
-    fetchTableAll: () => ipcRenderer.invoke("fetchTableAll"),
+    mariadb_fetchTableAll: () =>
+      ipcRenderer.invoke("mariadb-fetch-table-all"),
 
     // ---- Laravel テーブル一括取得 ----
     laravel_fetchTableAll: (params = {}) =>

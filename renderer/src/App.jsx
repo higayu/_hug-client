@@ -2,14 +2,15 @@ import { usePreloadPath } from '@/hooks/usePreloadPath'
 import { useAppInitialization } from '@/AppStateContext/useAppInitializer/useAppInitialization.js'
 import { Provider } from 'react-redux'
 import { store } from '@/store/store.js'
-import { ToastProvider } from '@/components/common/ToastContext'
+
 import { AppStateProvider } from '@/AppStateContext'
 import { CustomButtonsProvider } from '@/components/CustomButtonsContext'
 import Toolbar from '@/components/Header/Toolbar.jsx'
 import Tabs from '@/components/Header/Tabs.jsx'
 import MainContent from '@/MainContent.jsx'
 import { useActiveWebviewLogger } from '@/hooks/useTabs/useActiveWebviewLogger'
-import DataBaseAutoLoader from '@/components/common/Synchronization/DataBaseAutoLoader'
+import { ToastProvider } from '@/provider/ToastProvider/ToastContext'
+import DataBaseAutoLoader from '@/provider/DataBaseAutoLoader'
 
 // Provider内で初期化を実行する内部コンポーネント
 function AppContent({ preloadPath }) {

@@ -3,7 +3,7 @@ import {
     TrashIcon,
   } from '@heroicons/react/24/outline';
   
-  import { useToast } from '@/components/common/ToastContext';
+  import { useToast } from '@/provider/ToastProvider/ToastContext'
   import { useAppState } from '@/AppStateContext';
   import { useTabs } from '@/hooks/useTabs';
   import { useHugActions } from '@/hooks/useHugActions';

@@ -4,7 +4,7 @@
 import { useEffect } from 'react'
 import { useTabs } from '@/hooks/useTabs'
 import { activateHugViewFirstButton } from '@/hooks/useTabs/common/index'
-import { useToast } from  '@/components/common/ToastContext.jsx'
+import { useToast } from '@/provider/ToastProvider/ToastContext'
 
 function Tabs() {
   const { showErrorToast, showSuccessToast,showWarningToast } = useToast();

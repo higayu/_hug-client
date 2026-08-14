@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 
-import { useToast } from '@/components/common/ToastContext.jsx'
+import { useToast } from '@/provider/ToastProvider/ToastContext'
 
 const PROMPT_ORDER = [
   'personalRecord',

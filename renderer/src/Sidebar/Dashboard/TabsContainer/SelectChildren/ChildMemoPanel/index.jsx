@@ -7,7 +7,7 @@ import {
   clickAbsenceButton,
   clickExitButton,
 } from '@/utils/attendance/index.js'
-import { useToast } from '@/components/common/ToastContext'
+import { useToast } from '@/provider/ToastProvider/ToastContext'
 import AttendanceActionSection from './AttendanceActionSection'
 import { isAttendanceDataLoaded } from '@/utils/attendance/helpers/attendanceStatus.js'
 import './index.css'

@@ -104,6 +104,20 @@ function buildSetPreview(data) {
 }
 
 function registerMariadbHandlers(ipcMain) {
+  // MariaDB 全テーブル取得
+  ipcMain.handle("mariadb-fetch-table-all", async () => {
+    console.log("🔄 [MariaDB API] fetchTableAll START");
+
+    try {
+      const result = await apiClient.fetchTableAll();
+      console.log("✅ [MariaDB API] fetchTableAll DONE");
+      return result;
+    } catch (error) {
+      console.error("❌ [MariaDB API] fetchTableAll ERROR:", error);
+      throw error;
+    }
+  });
+
   console.log("🔥 registerMariadbHandlers (mariadb) CALLED");
 
   // ============================================================

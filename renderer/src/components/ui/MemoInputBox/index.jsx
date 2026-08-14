@@ -5,7 +5,7 @@ import React, {
   useCallback,
 } from "react";
 
-import { useToast } from "@/components/common/ToastContext.jsx";
+import { useToast } from '@/provider/ToastProvider/ToastContext'
 import { useAppState } from "@/AppStateContext";
 import { useNote } from "@/hooks/useNote";
 import { addPersonalRecordTabAction4 } from "@/hooks/useTabs/actions/personalRecord.js";

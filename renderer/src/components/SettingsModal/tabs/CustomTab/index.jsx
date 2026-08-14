@@ -16,7 +16,7 @@ import {
 
 // ✅ インポートパスを修正
 import { useCustomButtons } from '@/components/CustomButtonsContext'
-import { useToast } from '@/components/common/ToastContext.jsx'
+import { useToast } from '@/provider/ToastProvider/ToastContext'
 import { confirmDialog } from '@/utils/dialog/confirmDialog.js'
 
 const DEFAULT_BUTTON = {

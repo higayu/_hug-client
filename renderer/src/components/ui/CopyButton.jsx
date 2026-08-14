@@ -1,7 +1,7 @@
 // components/common/CopyButton.jsx
 import React, { useCallback } from "react";
 import { Copy } from "lucide-react";
-import { useToast } from "@/components/common/ToastContext.jsx";
+import { useToast } from '@/provider/ToastProvider/ToastContext'
 
 export default function CopyButton({ text }) {
   const { showSuccessToast, showErrorToast } = useToast();

@@ -8,7 +8,7 @@ import { useUpdateUI } from './useUpdateUI.js'
 import { useCustomButtonManager } from '@/hooks/useCustomButtonManager.js'
 // buttonVisibilityManager は削除されました（機能が空のため）
 import { getActiveWebview } from '@/utils/webview/webviewState.js'
-import { useToast } from '@/components/common/ToastContext.jsx'
+import { useToast } from '@/provider/ToastProvider/ToastContext'
 import { confirmDialog } from '@/utils/dialog/confirmDialog.js'
 
 function toBooleanFlag(value, defaultValue = true) {

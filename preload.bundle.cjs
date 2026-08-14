@@ -143,7 +143,7 @@ var require_electronApi = __commonJS({
         // ---- MariaDB 接続確認 ----
         checkMariaDbConnection: () => ipcRenderer2.invoke("mariadb:connection:check"),
         // ---- テーブル一括取得 ----
-        fetchTableAll: () => ipcRenderer2.invoke("fetchTableAll"),
+        mariadb_fetchTableAll: () => ipcRenderer2.invoke("mariadb-fetch-table-all"),
         // ---- Laravel テーブル一括取得 ----
         laravel_fetchTableAll: (params = {}) => ipcRenderer2.invoke("laravel-fetch-table-all", params),
         // ---- Laravel 接続確認 ----

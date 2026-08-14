@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState, useCallback } from 'react'  // ← useCallback を追加
 import BrowserOpenButton from '@/components/common/BrowserOpenButton'
 import { useAppState } from '@/AppStateContext'
-import { useToast } from '@/components/common/ToastContext.jsx'
+import { useToast } from '@/provider/ToastProvider/ToastContext'
 
 import {
   createFormState,

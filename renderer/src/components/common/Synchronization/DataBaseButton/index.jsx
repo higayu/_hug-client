@@ -2,7 +2,7 @@
 
 import { Database } from "lucide-react"
 import { useDataBase } from "@/hooks/useDataBase"
-import { useToast } from "@/components/common/ToastContext"
+import { useToast } from '@/provider/ToastProvider/ToastContext'
 
 export default function DataBaseButton({ className = "" }) {
   const { showInfoToast, showErrorToast } = useToast()

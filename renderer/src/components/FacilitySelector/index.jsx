@@ -11,9 +11,7 @@ import {
   selectFacilityId,
 } from '@/store/slices/appStateSlice';
 
-import {
-  useToast,
-} from '@/components/common/ToastContext.jsx';
+import {  useToast,} from '@/provider/ToastProvider/ToastContext'
 
 import {
   useAppState,

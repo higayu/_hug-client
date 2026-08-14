@@ -3,7 +3,7 @@
 
 import { useEffect, useCallback, useRef } from 'react'
 import { useAppState } from '@/AppStateContext'
-import { useToast } from '@/components/common/ToastContext.jsx'
+import { useToast } from '@/provider/ToastProvider/ToastContext'
 import { getActiveWebview } from '@/utils/webview/webviewState.js'
 import { loadAllReload } from '@/utils/config/reloadSettings.js'
 // ❌ 削除: import { updateButtonVisibility } from '@/utils/app/buttonVisibility.js'

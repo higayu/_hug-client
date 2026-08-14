@@ -24,7 +24,6 @@ const IPC_CHANNELS = [
   // 全テーブル取得
   // ============================================================
 
-  "fetchTableAll",
   "laravel-fetch-table-all",
 
   // ============================================================
@@ -187,11 +186,6 @@ function registerLaravelAuthHandlers(
     createFetchTableAllHandler(
       auth.fetchAllTables
     );
-
-  ipcMain.handle(
-    "fetchTableAll",
-    fetchTableAllHandler
-  );
 
   ipcMain.handle(
     "laravel-fetch-table-all",
