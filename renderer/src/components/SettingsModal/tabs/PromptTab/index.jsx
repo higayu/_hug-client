@@ -1,88 +1,160 @@
 import { useCallback, useEffect, useState } from 'react'
 
+import { useAppState } from '@/AppStateContext'
+import { usePrompt } from '@/hooks/usePrompt'
 import { useToast } from '@/provider/ToastProvider/ToastContext'
 
-const PROMPT_ORDER = [
-  'personalRecord',
-  'professional1',
-  'professional2',
-]
-
-const PROMPT_LABELS = {
-  personalRecord: '個人記録',
-  professional1: '専門的支援加算 1',
-  professional2: '専門的支援加算 2',
-}
+import {
+  DEFAULT_PROMPTS,
+  PROMPT_DEFINITIONS,
+} from './const'
 
 function PromptTab() {
+  const { DATABASE_TYPE, STAFF_ID, updateAppState } = useAppState()
+  const { getActiveAiPrompts, upsertAiPrompt } = usePrompt()
+  const { showSuccessToast, showErrorToast } = useToast()
+
   const [prompts, setPrompts] = useState({})
   const [savedPrompts, setSavedPrompts] = useState({})
+  const [promptRecords, setPromptRecords] = useState({})
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
-  const { showSuccessToast, showErrorToast } = useToast()
 
   const loadPrompts = useCallback(async (showToast = false) => {
     setIsLoading(true)
 
     try {
-      if (typeof window.electronAPI?.loadPrompts !== 'function') {
-        throw new Error('プロンプト読み込みAPIを利用できません。')
+      if (!STAFF_ID) {
+        throw new Error('スタッフを選択してください。')
       }
 
-      const result = await window.electronAPI.loadPrompts()
-      if (!result?.success) {
-        throw new Error(result?.error || 'プロンプトを読み込めませんでした。')
-      }
+      const records = await getActiveAiPrompts({
+        databaseType: DATABASE_TYPE,
+        staffId: STAFF_ID,
+      })
 
+      const nextRecords = records ?? {}
       const nextPrompts = {}
-      for (const key of PROMPT_ORDER) {
-        nextPrompts[key] = result.data?.[key]?.content ?? ''
+
+      for (const { key } of PROMPT_DEFINITIONS) {
+        nextPrompts[key] = nextRecords[key]?.content ?? ''
       }
 
+      setPromptRecords(nextRecords)
       setPrompts(nextPrompts)
       setSavedPrompts(nextPrompts)
 
+      updateAppState({
+        PROMPTS: nextRecords,
+      })
+
       if (showToast) {
-        showSuccessToast('プロンプトを再読み込みしました。')
+        showSuccessToast(
+          'データベースからプロンプトを再読み込みしました。'
+        )
       }
     } catch (error) {
-      console.error('[PromptTab] 読み込みエラー:', error)
-      showErrorToast(error?.message || 'プロンプトの読み込みに失敗しました。')
+      console.error(
+        '[PromptTab] DB読み込みエラー:',
+        error
+      )
+
+      showErrorToast(
+        error?.message ||
+          'プロンプトの取得に失敗しました。'
+      )
     } finally {
       setIsLoading(false)
     }
-  }, [showErrorToast, showSuccessToast])
+  }, [
+    DATABASE_TYPE,
+    STAFF_ID,
+    getActiveAiPrompts,
+    showErrorToast,
+    showSuccessToast,
+    updateAppState,
+  ])
 
   useEffect(() => {
     loadPrompts()
   }, [loadPrompts])
 
+  /**
+   * プロンプトを初期値に戻す
+   *
+   * DBにはまだ保存しない。
+   * textareaの内容だけ初期値へ変更する。
+   */
+  const handleReset = () => {
+    if (isLoading || isSaving) {
+      return
+    }
+
+    setPrompts({
+      ...DEFAULT_PROMPTS,
+    })
+
+    showSuccessToast(
+      'プロンプトを初期値に戻しました。保存するとデータベースに反映されます。'
+    )
+  }
+
   const handleSave = async () => {
     if (isLoading || isSaving) return
+
     setIsSaving(true)
 
     try {
-      if (typeof window.electronAPI?.savePrompts !== 'function') {
-        throw new Error('プロンプト保存APIを利用できません。')
+      if (!STAFF_ID) {
+        throw new Error('スタッフを選択してください。')
       }
 
-      const result = await window.electronAPI.savePrompts(prompts)
-      if (!result?.success) {
-        throw new Error(result?.error || 'プロンプトを保存できませんでした。')
-      }
+      const changedDefinitions =
+        PROMPT_DEFINITIONS.filter(
+          ({ key }) =>
+            prompts[key] !== savedPrompts[key]
+        )
 
-      setSavedPrompts({ ...prompts })
-      showSuccessToast('プロンプトを保存しました。')
+      await Promise.all(
+        changedDefinitions.map(
+          ({ key, itemId }) =>
+            upsertAiPrompt({
+              databaseType: DATABASE_TYPE,
+              promptId:
+                promptRecords[key]?.promptId ??
+                null,
+              staffId: STAFF_ID,
+              itemId,
+              content: prompts[key],
+              isActive: true,
+              updatedBy: STAFF_ID,
+            })
+        )
+      )
+
+      await loadPrompts()
+
+      showSuccessToast(
+        'プロンプトをデータベースに保存しました。'
+      )
     } catch (error) {
-      console.error('[PromptTab] 保存エラー:', error)
-      showErrorToast(error?.message || 'プロンプトの保存に失敗しました。')
+      console.error(
+        '[PromptTab] DB保存エラー:',
+        error
+      )
+
+      showErrorToast(
+        error?.message ||
+          'プロンプトの保存に失敗しました。'
+      )
     } finally {
       setIsSaving(false)
     }
   }
 
-  const hasChanges = PROMPT_ORDER.some(
-    (key) => prompts[key] !== savedPrompts[key]
+  const hasChanges = PROMPT_DEFINITIONS.some(
+    ({ key }) =>
+      prompts[key] !== savedPrompts[key]
   )
 
   return (
@@ -92,7 +164,7 @@ function PromptTab() {
       </h3>
 
       <p className="mb-5 text-sm text-gray-600">
-        AIへの指示文を編集できます。変更後は「保存」を押してください。
+        選択中のスタッフのプロンプトをデータベースで管理します。
       </p>
 
       {isLoading ? (
@@ -101,30 +173,32 @@ function PromptTab() {
         </p>
       ) : (
         <div className="space-y-5">
-          {PROMPT_ORDER.map((key) => (
-            <div key={key}>
-              <label
-                htmlFor={`prompt-${key}`}
-                className="mb-2 block font-semibold text-gray-700"
-              >
-                {PROMPT_LABELS[key]}
-              </label>
+          {PROMPT_DEFINITIONS.map(
+            ({ key, itemId, label }) => (
+              <div key={key}>
+                <label
+                  htmlFor={`prompt-${key}`}
+                  className="mb-2 block font-semibold text-gray-700"
+                >
+                  {label}（item_id: {itemId}）
+                </label>
 
-              <textarea
-                id={`prompt-${key}`}
-                value={prompts[key] ?? ''}
-                onChange={(event) => {
-                  setPrompts((previous) => ({
-                    ...previous,
-                    [key]: event.target.value,
-                  }))
-                }}
-                rows={5}
-                disabled={isSaving}
-                className="w-full resize-y rounded-md border border-gray-300 px-3 py-2 text-sm leading-6 text-gray-900 transition focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:bg-gray-100"
-              />
-            </div>
-          ))}
+                <textarea
+                  id={`prompt-${key}`}
+                  value={prompts[key] ?? ''}
+                  onChange={(event) => {
+                    setPrompts((previous) => ({
+                      ...previous,
+                      [key]: event.target.value,
+                    }))
+                  }}
+                  rows={5}
+                  disabled={isSaving}
+                  className="w-full resize-y rounded-md border border-gray-300 px-3 py-2 text-sm leading-6 text-gray-900 transition focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:bg-gray-100"
+                />
+              </div>
+            )
+          )}
         </div>
       )}
 
@@ -132,7 +206,11 @@ function PromptTab() {
         <button
           type="button"
           onClick={() => loadPrompts(true)}
-          disabled={isLoading || isSaving}
+          disabled={
+            isLoading ||
+            isSaving ||
+            !STAFF_ID
+          }
           className="rounded-md bg-gray-600 px-5 py-2.5 text-white transition-colors hover:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-60"
         >
           再読み込み
@@ -140,15 +218,35 @@ function PromptTab() {
 
         <button
           type="button"
+          onClick={handleReset}
+          disabled={
+            isLoading ||
+            isSaving ||
+            !STAFF_ID
+          }
+          className="rounded-md bg-amber-600 px-5 py-2.5 text-white transition-colors hover:bg-amber-700 disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          初期化
+        </button>
+
+        <button
+          type="button"
           onClick={handleSave}
-          disabled={isLoading || isSaving || !hasChanges}
+          disabled={
+            isLoading ||
+            isSaving ||
+            !hasChanges ||
+            !STAFF_ID
+          }
           className="rounded-md bg-gradient-to-r from-blue-600 to-blue-700 px-5 py-2.5 text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {isSaving ? '保存中...' : '保存'}
         </button>
 
         {hasChanges && (
-          <span className="text-sm text-amber-700">未保存の変更があります</span>
+          <span className="text-sm text-amber-700">
+            未保存の変更があります
+          </span>
         )}
       </div>
     </div>
