@@ -3,8 +3,8 @@
 /**
  * DBの種類に応じて「待機児童」データを取得
  * @param {Object} params
- * @param {Object} params.tables - SQLiteモード時の全テーブル
- * @param {number|string} [params.facility_id] - 施設ID（MariaDBモード用）
+ * @param {Object} params.tables - Laravel APIの全テーブル
+ * @param {number|string} [params.facility_id] - 施設ID（Laravel APIモード用）
  * @returns {Promise<Array>}
  */
 export async function Get_waiting_children_pc({ tables, facility_id = null }) {
@@ -15,11 +15,32 @@ export async function Get_waiting_children_pc({ tables, facility_id = null }) {
         return [];
       }
 
-      const { children, pc, pc_to_children } = tables;
+      const {
+        children = [],
+        pc = [],
+        pc_to_children = [],
+        facility_children = [],
+      } = tables;
+
+      const facilityIdText =
+        facility_id == null || facility_id === "" ? null : String(facility_id);
+      const facilityChildRows = facilityIdText === null
+        ? facility_children
+        : facility_children.filter(
+            (row) => String(row.facility_id) === facilityIdText
+          );
+      const childIdsInFacility = new Set(
+        facilityChildRows.map((row) => String(row.children_id))
+      );
 
       // children_type_id = 2 が「待機児童」
       const waitingChildren = children
-        .filter((c) => Number(c.children_type_id) === 2 && Number(c.is_delete) === 0)
+        .filter(
+          (c) =>
+            Number(c.children_type_id) === 2 &&
+            Number(c.is_delete) === 0 &&
+            (facilityIdText === null || childIdsInFacility.has(String(c.id)))
+        )
         .map((c) => {
           const ptc = pc_to_children.find((p) => p.children_id === c.id);
           const pcItem = ptc ? pc.find((p) => p.id === ptc.pc_id) : null;
@@ -37,7 +58,10 @@ export async function Get_waiting_children_pc({ tables, facility_id = null }) {
             pc_name: pcItem?.name || "",
             explanation: pcItem?.explanation || "",
             memo: pcItem?.memo || "",
-            facility_id: pcItem?.facility_id || null,
+            facility_id:
+              facilityChildRows.find(
+                (row) => String(row.children_id) === String(c.id)
+              )?.facility_id ?? null,
           };
         })
         .sort((a, b) => a.children_name.localeCompare(b.children_name, "ja"));

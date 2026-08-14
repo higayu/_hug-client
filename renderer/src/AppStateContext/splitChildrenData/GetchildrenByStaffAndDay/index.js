@@ -67,6 +67,7 @@ export async function GetchildrenByStaffAndDay({
   tables,
   staffId,
   weekdayId,
+  facility_id = null,
 }) {
   if (!tables) {
     console.error("❌ GetchildrenByStaffAndDay: テーブルデータが未定義です")
@@ -95,6 +96,8 @@ export async function GetchildrenByStaffAndDay({
 
   const staffIdText = String(staffId)
   const weekdayIdNum = Number(weekdayId)
+  const facilityIdText =
+    facility_id == null || facility_id === "" ? null : String(facility_id)
 
   const weekdayObj = DAY_OF_WEEK_MASTER.find(
     (w) => Number(w.id) === weekdayIdNum
@@ -106,6 +109,10 @@ export async function GetchildrenByStaffAndDay({
   const joined = managers2
     // 曜日ID一致のみ
     .filter((m) => Number(m.day_of_week_id) === weekdayIdNum)
+    .filter(
+      (m) =>
+        facilityIdText === null || String(m.facility_id) === facilityIdText
+    )
     .map((m) => {
       const child = children.find(
         (c) => String(c.id) === String(m.children_id)

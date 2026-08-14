@@ -7,7 +7,7 @@ import { Experience_children_v } from "./Experience_children_v";
 /**
  * 子どもデータを包括的に取得する（週／待機／体験）
  * @param {Object} params
- * @param {Object} params.tables - SQLiteモードの全テーブルデータ
+ * @param {Object} params.tables - Laravel APIの全テーブルデータ
  * @param {number|string} params.staffId - スタッフID
  * @param {number} params.weekdayId - 日付または曜日
  * @param {number|string|null} [params.facility_id] - 施設ID（省略可）
@@ -22,9 +22,15 @@ export async function splitChildrenData({ tables, staffId, weekdayId, facility_i
   console.log('日付の引数',weekdayId);
 
     // 各種データ取得
-    myChildren = await GetchildrenByStaffAndDay({ tables, staffId, weekdayId });
+    myChildren = await GetchildrenByStaffAndDay({
+      tables,
+      staffId,
+      weekdayId,
+      facility_id,
+    });
+
     myWaitingChildren = await Get_waiting_children_pc({ tables, facility_id });
-    myExperienceChildren = await Experience_children_v({ tables });
+    myExperienceChildren = await Experience_children_v({ tables, facility_id });
 
     console.log("✅ [splitChildrenData] 抽出完了:", {
       week_children: myChildren.length,
