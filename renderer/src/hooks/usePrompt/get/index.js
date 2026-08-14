@@ -1,5 +1,6 @@
 import { getActiveAiPrompts as getFromLaravel } from "./parts/laravel";
 import { getActiveAiPrompts as getFromMariadb } from "./parts/mariadb";
+import { getActiveAiPrompts as getFromSqlite } from "./parts/sqlite";
 
 const PROMPT_KEY_BY_ITEM_ID = {
   1: "personalRecord",
@@ -47,6 +48,7 @@ export async function getActiveAiPrompts({
   const getter = {
     laravel: getFromLaravel,
     mariadb: getFromMariadb,
+    sqlite: getFromSqlite,
   }[normalizedDatabaseType];
 
   if (!getter) return null;

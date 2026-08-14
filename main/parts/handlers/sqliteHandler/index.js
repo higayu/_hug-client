@@ -42,6 +42,8 @@ const staff_facility_roles = require("./sqlite/staff_facility_roles");
 const text_data = require("./sqlite/text_data");
 const toolbox = require("./sqlite/toolbox");
 const memo = require("./sqlite/memo");
+const ai_prompts = require("./sqlite/ai_prompts");
+const m_pronpt_items = require("./sqlite/m_pronpt_items");
 
 // ============================================================
 // IPC 重複登録防止
@@ -397,6 +399,8 @@ function registerSqliteHandlers(ipcMain) {
     text_data,
     toolbox,
     memo,
+    m_pronpt_items,
+    ai_prompts,
   };
 
   // apiClient.fetchTableAll() から SQLite に同期する対象
@@ -717,6 +721,18 @@ function registerSqliteHandlers(ipcMain) {
   safeHandle(ipcMain, "sqlite:service_record:get-monthly", async (_, data) => {
     return getServiceRecordMonthly(data);
   });
+
+  safeHandle(
+    ipcMain,
+    "sqlite:procedure:get-active-ai-prompt",
+    async (_, data) => ai_prompts.getActiveAiPrompt(data)
+  );
+
+  safeHandle(
+    ipcMain,
+    "sqlite:procedure:upsert-ai-prompt",
+    async (_, data) => ai_prompts.upsertAiPrompt(data)
+  );
 }
 
 module.exports = {

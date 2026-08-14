@@ -29,7 +29,11 @@ export default function AiContents() {
   const AiComponent = AI_COMPONENT_MAP[USE_AI];
 
   useEffect(() => {
-    if (String(DATABASE_TYPE).toLowerCase() !== "laravel" || !STAFF_ID) {
+    const supportedDatabaseTypes = ["sqlite", "mariadb", "laravel"];
+    if (
+      !supportedDatabaseTypes.includes(String(DATABASE_TYPE).toLowerCase()) ||
+      !STAFF_ID
+    ) {
       return;
     }
 

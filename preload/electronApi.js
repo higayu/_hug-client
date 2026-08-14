@@ -129,6 +129,12 @@ function createElectronApi(ipcRenderer, isDebugMode) {
     mariadb_procedure_upsertAiPrompt: (data) =>
       ipcRenderer.invoke("mariadb:procedure:upsert-ai-prompt", data),
 
+    sqlite_procedure_getActiveAiPrompt: (data) =>
+      ipcRenderer.invoke("sqlite:procedure:get-active-ai-prompt", data),
+
+    sqlite_procedure_upsertAiPrompt: (data) =>
+      ipcRenderer.invoke("sqlite:procedure:upsert-ai-prompt", data),
+
     mariadb_procedure_getServiceRecordMonthly: (data) =>
       ipcRenderer.invoke("mariadb:service_record:get-monthly", data),
 

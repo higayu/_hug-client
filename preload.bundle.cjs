@@ -182,6 +182,8 @@ var require_electronApi = __commonJS({
         laravel_procedure_upsertAiPrompt: (data) => ipcRenderer2.invoke("laravel:procedure:upsert-ai-prompt", data),
         mariadb_procedure_getActiveAiPrompt: (data) => ipcRenderer2.invoke("mariadb:procedure:get-active-ai-prompt", data),
         mariadb_procedure_upsertAiPrompt: (data) => ipcRenderer2.invoke("mariadb:procedure:upsert-ai-prompt", data),
+        sqlite_procedure_getActiveAiPrompt: (data) => ipcRenderer2.invoke("sqlite:procedure:get-active-ai-prompt", data),
+        sqlite_procedure_upsertAiPrompt: (data) => ipcRenderer2.invoke("sqlite:procedure:upsert-ai-prompt", data),
         mariadb_procedure_getServiceRecordMonthly: (data) => ipcRenderer2.invoke("mariadb:service_record:get-monthly", data),
         sqlite_getServiceRecordMonthly: (data) => ipcRenderer2.invoke("sqlite:service_record:get-monthly", data),
         // ---- テーブル一括同期処理 ----
