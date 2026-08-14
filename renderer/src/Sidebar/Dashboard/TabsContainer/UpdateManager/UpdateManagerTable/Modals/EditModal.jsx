@@ -29,11 +29,11 @@ const PRIORITY_OPTIONS = [
   },
   {
     value: 1,
-    label: "時折（たまに）対応する",
+    label: "時々対応する",
   },
   {
     value: 2,
-    label: "一時的（滅多に無い）に対応する",
+    label: "例外的な場合のみ",
   },
 ];
 
