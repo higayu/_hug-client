@@ -24,21 +24,10 @@ function getCustomButtonsPath() {
   return path.join(getDataDir(), "customButtons.json");
 }
 
-function getPromptsConfigPath() {
-  return path.join(getDataDir(), "prompts.json");
-}
-
-function getPromptDir() {
-  return path.join(getDataDir(), "prompts");  // フォルダ
-}
-
-
 module.exports = {
   getDataDir,
   getConfigPath,
   getIniPath,
   getDbPath,
   getCustomButtonsPath,
-  getPromptsConfigPath,
-  getPromptDir,
 };

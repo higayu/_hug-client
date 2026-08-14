@@ -142,18 +142,6 @@ function createElectronApi(ipcRenderer, isDebugMode) {
     syncDatabaseStateToSqlite: () =>
       ipcRenderer.invoke("sqlite:database:sync"),
 
-    // ---- AI プロンプト ----
-    loadPrompts: () => ipcRenderer.invoke("load-prompts"),
-
-    savePrompts: (promptTexts) =>
-      ipcRenderer.invoke("save-prompts", promptTexts),
-
-    getAiPrompt: (promptKey) =>
-      ipcRenderer.invoke("get-ai-prompt", promptKey),
-
-    buildAiPrompt: (promptKey, userText) =>
-      ipcRenderer.invoke("build-ai-prompt", promptKey, userText),
-
     // ============================================================
     // 一時メモ
     //

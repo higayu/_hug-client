@@ -3,12 +3,10 @@
 import {
   loadConfig,
   loadIni,
-  loadPrompt,
 } from "@/utils/config";
 
 import {
   updateAppState,
-  setPrompts,
 } from "@/store/slices/appStateSlice";
 
 /**
@@ -43,7 +41,7 @@ const normalizeDatabaseType = (value) => {
  * AppState 初期化
  *
  * 方針:
- * - config.json / ini.json / prompt をすべて読み込む
+ * - config.json / ini.json を読み込む
  * - すべて読み込み完了後に Redux(appStateSlice) へ反映する
  * - activeApi は使わない
  * - DATABASE_TYPE を正本にする
@@ -53,7 +51,7 @@ const normalizeDatabaseType = (value) => {
  * @param {Object} params
  * @param {Function} params.dispatch Redux dispatch
  * @param {Function} params.setIsInitialized 初期化完了フラグ setter
- * @returns {Promise<{ config: Object | null, ini: Object | null, prompts: Object }>}
+ * @returns {Promise<{ config: Object | null, ini: Object | null }>}
  */
 export async function initializeAppState({
   dispatch,
@@ -65,12 +63,11 @@ export async function initializeAppState({
     console.group("🚀 [initializeAppState] 初期化開始");
 
     // =============================================================
-    // 1) config / ini / prompt をすべて読み込む
+    // 1) config / ini を読み込む
     // =============================================================
-    const [config, ini, prompts] = await Promise.all([
+    const [config, ini] = await Promise.all([
       loadConfig(),
       loadIni(),
-      loadPrompt(),
     ]);
 
     // =============================================================
@@ -205,7 +202,6 @@ export async function initializeAppState({
     // 4) Redux 反映
     // =============================================================
     dispatch(updateAppState(merged));
-    dispatch(setPrompts(prompts || {}));
 
     // =============================================================
     // 5) 初期化完了
@@ -229,7 +225,6 @@ export async function initializeAppState({
     return {
       config,
       ini,
-      prompts: prompts || {},
     };
   } catch (error) {
     console.error("❌ [initializeAppState] 初期化エラー:", error);
@@ -242,7 +237,6 @@ export async function initializeAppState({
     return {
       config: null,
       ini: null,
-      prompts: {},
     };
   }
 }

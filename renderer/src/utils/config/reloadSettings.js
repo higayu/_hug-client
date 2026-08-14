@@ -4,11 +4,9 @@
 import {
   loadConfig,
   loadIni as loadIniFromUtils,
-  loadPrompt,
 } from "./index";
 import { store } from '@/store/store.js'
 import {
-  setPrompts,
   updateAppState,
   setDatabaseType,
   setUseAI,
@@ -69,16 +67,7 @@ export async function loadAllReload() {
     console.log('📄 [reloadSettings] config.json:', configData)
 
     // =============================================================
-    // 2) prompt 読み込み
-    // =============================================================
-    const prompt = await loadPrompt()
-
-    store.dispatch(setPrompts(prompt || {}))
-
-    console.log('🤖 [reloadSettings] AI prompt:', prompt)
-
-    // =============================================================
-    // 3) config.json → Redux
+    // 2) config.json → Redux
     // =============================================================
     store.dispatch(
       updateAppState({

@@ -54,22 +54,6 @@ export async function loadIni() {
 }
 
 /**
- * ini.jsonを読み込み
- * @returns {Promise<Object|null>} 読み込んだ設定データ、失敗時はnull
- */
-export async function loadPrompt() {
-  try {
-
-    const res = await window.electronAPI.loadPrompts();
-    console.log("プロンプトのデータ",res);
-    return res.data
-  } catch (err) {
-    console.error('❌ [INI] ini.json読み込みエラー:', err)
-    return null
-  }
-}
-
-/**
  * ini.json を保存（全体上書き）
  * @param {Object} data
  * @returns {Promise<boolean>}

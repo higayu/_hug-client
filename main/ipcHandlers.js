@@ -14,7 +14,6 @@ const { open_addition_compare_btn } = require("./parts/window/computeWindows/ind
 const { handleProfessionalSupportSearch } = require("./parts/window/handleProfessionalSupportSearch/index");
 
 const { resolvePreloadPath } = require("./parts/window/windowManager");
-const { handlePromptAccess } = require("./parts/readfile/promptHandler");
 
 function registerIpcHandlers(mainWindow, tempNoteHandler) {
   console.log("🔥 registerIpcHandlers CALLED");
@@ -25,7 +24,6 @@ function registerIpcHandlers(mainWindow, tempNoteHandler) {
     handleConfigAccess(ipcMain);
     handleIniAccess(ipcMain);
     handleCustomButtonsAccess(ipcMain);
-    handlePromptAccess(ipcMain);
     registerPlanWindows(ipcMain);
     open_addition_compare_btn(ipcMain);
     handleProfessionalSupportSearch(ipcMain);
