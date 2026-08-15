@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useDispatch } from 'react-redux'
 import { useAppState } from '@/AppStateContext'
-import { useTabs } from '@/hooks/useTabs'
 import {
   clickEnterButton,
   clickAbsenceButton,
@@ -58,8 +57,6 @@ export default function ChildMemoPanel() {
     waiting_childrenData,
     Experience_childrenData,
   } = appStateValue
-
-  const { addProfessionalSupportNewTab } = useTabs()
 
   const {
     showSuccessToast,
@@ -681,7 +678,6 @@ export default function ChildMemoPanel() {
             onEnter={runEnter}
             onLeave={runLeave}
             onAbsence={runAbsence}
-            onProfessionalSupport={addProfessionalSupportNewTab}
           />
         ) : (
           <div className="rounded border border-amber-200 bg-amber-50 p-3 text-center">

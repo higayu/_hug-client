@@ -1,3 +1,5 @@
+import { useTabs } from '@/hooks/useTabs'
+
 /**
  * 専門的支援ボタン
  *
@@ -17,8 +19,9 @@ export default function ProfessionalSupportButton({
   isUIEnabled,
   isStop,
   loadingAction,
-  onClick,
 }) {
+  const { addProfessionalSupportNewTab } = useTabs()
+
   const disabled =
     !isUIEnabled ||
     isStop ||
@@ -55,7 +58,7 @@ export default function ProfessionalSupportButton({
     <button
       type="button"
       className="btn-purple mt-1 w-full p-2 text-sm disabled:cursor-not-allowed disabled:opacity-50"
-      onClick={onClick}
+      onClick={addProfessionalSupportNewTab}
       disabled={disabled}
       title={getTitle()}
     >

@@ -36,7 +36,6 @@ export default function AttendanceActionSection({
   onEnter,
   onLeave,
   onAbsence,
-  onProfessionalSupport,
 }) {
   const disabled =
     !isUIEnabled ||
@@ -77,7 +76,6 @@ export default function AttendanceActionSection({
       isUIEnabled={isUIEnabled}
       isStop={isStop}
       loadingAction={loadingAction}
-      onClick={onProfessionalSupport}
     />
   )
 
