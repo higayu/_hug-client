@@ -54,6 +54,7 @@ const toMonthStr = (value) => {
 export default function PersonalRecordGetMonthBtn({
   monthStr,
   disabled = false,
+  onServiceRecordsUpdated,
 }) {
   const {
     SELECT_CHILD,
@@ -179,6 +180,7 @@ export default function PersonalRecordGetMonthBtn({
       await loadDataBase({
         reason: "manual/ProfessionalPlan",
       });
+      onServiceRecordsUpdated?.();
     } catch (error) {
       console.error(`[${LOG_TAG}] 例外:`, error);
       showErrorToast(
@@ -199,6 +201,7 @@ export default function PersonalRecordGetMonthBtn({
     showSuccessToast,
     showErrorToast,
     loadDataBase,
+    onServiceRecordsUpdated,
   ]);
 
   const isDisabled =

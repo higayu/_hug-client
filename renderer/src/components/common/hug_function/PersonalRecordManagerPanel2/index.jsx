@@ -1,5 +1,5 @@
 // PersonalRecordManagerPanel2/index.jsx
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { useAppState } from "@/AppStateContext";
 import { useServiceRecord } from "@/hooks/useServiceRecord";
@@ -43,6 +43,7 @@ export default function PersonalRecordManagerPanel2() {
   const { getServiceRecordMonthly } = useServiceRecord();
   const [serviceRecordLoading, setServiceRecordLoading] = useState(false);
   const [serviceRecordError, setServiceRecordError] = useState("");
+  const [serviceRecordReloadSeq, setServiceRecordReloadSeq] = useState(0);
 
   const [periodType, setPeriodType] = useState(
     PERIOD_TYPES.MONTH
@@ -84,6 +85,10 @@ export default function PersonalRecordManagerPanel2() {
   );
 
   const facilityId = Number(FACILITY_ID);
+
+  const reloadServiceRecords = useCallback(() => {
+    setServiceRecordReloadSeq((current) => current + 1);
+  }, []);
 
   useEffect(() => {
     if (
@@ -139,6 +144,7 @@ export default function PersonalRecordManagerPanel2() {
     facilityId,
     getServiceRecordMonthly,
     listTargetMonth,
+    serviceRecordReloadSeq,
   ]);
 
   return (
@@ -165,6 +171,7 @@ export default function PersonalRecordManagerPanel2() {
           date={date}
           onDateChange={setDate}
           disabled={!SELECT_CHILD}
+          onServiceRecordsUpdated={reloadServiceRecords}
         />
       </div>
 

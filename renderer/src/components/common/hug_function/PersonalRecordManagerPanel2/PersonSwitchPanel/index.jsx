@@ -20,6 +20,7 @@ export default function PersonSwitchPanel({
   date,
   onDateChange,
   disabled = false,
+  onServiceRecordsUpdated,
 }) {
   const isMonth = value === PERIOD_TYPES.MONTH;
 
@@ -90,12 +91,14 @@ export default function PersonSwitchPanel({
             month={month}
             onMonthChange={onMonthChange}
             disabled={disabled}
+            onServiceRecordsUpdated={onServiceRecordsUpdated}
           />
         ) : (
           <DayControls
             date={date}
             onDateChange={onDateChange}
             disabled={disabled}
+            onServiceRecordsUpdated={onServiceRecordsUpdated}
           />
         )}
       </div>

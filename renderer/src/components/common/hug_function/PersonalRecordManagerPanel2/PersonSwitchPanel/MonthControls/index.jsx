@@ -5,6 +5,7 @@ export default function MonthControls({
   month,
   onMonthChange,
   disabled = false,
+  onServiceRecordsUpdated,
 }) {
   const handleMonthChange = (event) => {
     onMonthChange(event.target.value);
@@ -30,6 +31,7 @@ export default function MonthControls({
       <PersonalRecordGetMonthBtn
         monthStr={month}
         disabled={disabled}
+        onServiceRecordsUpdated={onServiceRecordsUpdated}
       />
     </div>
   );

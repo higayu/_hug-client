@@ -6,6 +6,7 @@ export default function DayControls({
   date,
   onDateChange,
   disabled = false,
+  onServiceRecordsUpdated,
 }) {
   const handleDateChange = (event) => {
     onDateChange(event.target.value);
@@ -31,6 +32,7 @@ export default function DayControls({
       <PersonalRecordGetDayBtn
         dateStr={date}
         disabled={disabled}
+        onServiceRecordsUpdated={onServiceRecordsUpdated}
       />
     </div>
   );

@@ -23,7 +23,11 @@ function notifyPostResultToasts(postResult, { showSuccessToast, showErrorToast }
 /**
  * 選択中児童の個人記録（活動内容 note）を hugview 経由で取得し、コンソールに出力する（テスト用）
  */
-export default function PersonalRecordGetDayBtn({ dateStr }) {
+export default function PersonalRecordGetDayBtn({
+  dateStr,
+  disabled = false,
+  onServiceRecordsUpdated,
+}) {
   const { SELECT_CHILD, FACILITY_ID, STAFF_ID, CURRENT_YMD, DATABASE_TYPE } = useAppState();
   const { showSuccessToast, showErrorToast } = useToast();
   const [fetching, setFetching] = useState(false);
@@ -31,6 +35,11 @@ export default function PersonalRecordGetDayBtn({ dateStr }) {
   const { loadDataBase } = useDataBase();
 
   const runFetch = useCallback(async () => {
+    if (disabled) {
+      console.warn(`[${LOG_TAG}] disabled`);
+      return;
+    }
+
     if (!SELECT_CHILD) {
       console.warn(`[${LOG_TAG}] 児童が選択されていません`);
       return;
@@ -107,6 +116,7 @@ export default function PersonalRecordGetDayBtn({ dateStr }) {
       await loadDataBase({
         reason: "manual/ProfessionalPlan",
       });
+      onServiceRecordsUpdated?.();
     } catch (e) {
       console.error(`[${LOG_TAG}] 例外:`, e);
       showErrorToast("個人記録の取得・保存でエラーが発生しました");
@@ -116,6 +126,7 @@ export default function PersonalRecordGetDayBtn({ dateStr }) {
     }
   }, [
     SELECT_CHILD,
+    disabled,
     FACILITY_ID,
     CURRENT_YMD,
     dateStr,
@@ -123,6 +134,8 @@ export default function PersonalRecordGetDayBtn({ dateStr }) {
     showErrorToast,
     STAFF_ID,
     DATABASE_TYPE,
+    loadDataBase,
+    onServiceRecordsUpdated,
   ]);
 
   return (
@@ -130,7 +143,7 @@ export default function PersonalRecordGetDayBtn({ dateStr }) {
       type="button"
       id="personal-record-get"
       onClick={runFetch}
-      disabled={!SELECT_CHILD || !(dateStr || CURRENT_YMD) || fetching}
+      disabled={disabled || !SELECT_CHILD || !(dateStr || CURRENT_YMD) || fetching}
       className="
         flex items-center justify-center
         bg-green-700 text-white
