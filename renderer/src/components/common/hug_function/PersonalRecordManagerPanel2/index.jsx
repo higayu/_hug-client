@@ -1,8 +1,4 @@
 // PersonalRecordManagerPanel2/index.jsx
-// PersonalRecordManagerPanel2/index.jsx の先頭（importの直後）
-console.log('🚀🚀🚀 PersonalRecordManagerPanel2 ファイルがロードされました');
-
-
 import { useCallback, useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { useAppState } from "@/AppStateContext";
@@ -11,8 +7,6 @@ import { setServiceRecord } from "@/store/slices/databaseSlice.js";
 
 import SwitchPanel, { PERIOD_TYPES, } from "./PersonSwitchPanel";
 import ListBox_Text from "./ListBox_Text";
-
-const LOG_TAG = "PersonalRecordManagerPanel2";
 
 const toMonthStr = (value) => {
   if (!value) return "";
@@ -63,26 +57,11 @@ export default function PersonalRecordManagerPanel2() {
     toDateStr(CURRENT_YMD)
   );
 
-  console.log(`[${LOG_TAG}] 初期状態`, {
-    SELECT_CHILD,
-    CURRENT_YMD,
-    FACILITY_ID,
-    periodType,
-    month,
-    date,
-  });
-
   useEffect(() => {
     if (!CURRENT_YMD) return;
 
     const nextMonth = toMonthStr(CURRENT_YMD);
     const nextDate = toDateStr(CURRENT_YMD);
-
-    console.log(`[${LOG_TAG}] CURRENT_YMD変更`, {
-      CURRENT_YMD,
-      nextMonth,
-      nextDate,
-    });
 
     if (nextMonth) {
       setMonth(nextMonth);
@@ -107,28 +86,11 @@ export default function PersonalRecordManagerPanel2() {
 
   const facilityId = Number(FACILITY_ID);
 
-  console.log(`[${LOG_TAG}] レンダリング`, {
-    listTargetMonth,
-    dayOfWeekId,
-    facilityId,
-    periodType,
-    date,
-    month,
-  });
-
   const reloadServiceRecords = useCallback(() => {
-    console.log(`[${LOG_TAG}] reloadServiceRecords 呼び出し`);
     setServiceRecordReloadSeq((current) => current + 1);
   }, []);
 
   useEffect(() => {
-    console.log(`[${LOG_TAG}] useEffect - サービス記録取得開始`, {
-      listTargetMonth,
-      dayOfWeekId,
-      facilityId,
-      serviceRecordReloadSeq,
-    });
-
     if (
       !/^\d{4}-\d{2}$/.test(listTargetMonth) ||
       !Number.isInteger(dayOfWeekId) ||
@@ -136,11 +98,6 @@ export default function PersonalRecordManagerPanel2() {
       !Number.isInteger(facilityId) ||
       facilityId <= 0
     ) {
-      console.warn(`[${LOG_TAG}] 条件不成立のためサービス記録をクリア`, {
-        listTargetMonth: /^\d{4}-\d{2}$/.test(listTargetMonth),
-        dayOfWeekId: Number.isInteger(dayOfWeekId) && dayOfWeekId > 0,
-        facilityId: Number.isInteger(facilityId) && facilityId > 0,
-      });
       dispatch(setServiceRecord([]));
       return;
     }
@@ -148,34 +105,22 @@ export default function PersonalRecordManagerPanel2() {
     let cancelled = false;
 
     const loadServiceRecords = async () => {
-      console.log(`[${LOG_TAG}] loadServiceRecords 開始`);
       setServiceRecordLoading(true);
       setServiceRecordError("");
 
       try {
-        const params = {
+        const rows = await getServiceRecordMonthly({
           target_month: listTargetMonth,
           day_of_week_id: dayOfWeekId,
           facility_id: facilityId,
-        };
-        console.log(`[${LOG_TAG}] getServiceRecordMonthly 呼び出し`, params);
-
-        const rows = await getServiceRecordMonthly(params);
-
-        console.log(`[${LOG_TAG}] getServiceRecordMonthly 完了`, {
-          rowCount: rows?.length ?? 0,
-          rows: rows,
         });
 
         if (!cancelled) {
           dispatch(setServiceRecord(rows));
-          console.log(`[${LOG_TAG}] Reduxにサービス記録を保存`, {
-            count: rows?.length ?? 0,
-          });
         }
       } catch (error) {
-        console.error(`[${LOG_TAG}] 月次サービス記録の取得に失敗`, error);
         if (!cancelled) {
+          console.error("月次サービス記録の取得に失敗しました。", error);
           dispatch(setServiceRecord([]));
           setServiceRecordError(
             error?.message || "月次サービス記録の取得に失敗しました。",
@@ -184,7 +129,6 @@ export default function PersonalRecordManagerPanel2() {
       } finally {
         if (!cancelled) {
           setServiceRecordLoading(false);
-          console.log(`[${LOG_TAG}] loadServiceRecords 完了`);
         }
       }
     };
@@ -192,7 +136,6 @@ export default function PersonalRecordManagerPanel2() {
     loadServiceRecords();
 
     return () => {
-      console.log(`[${LOG_TAG}] useEffect クリーンアップ`);
       cancelled = true;
     };
   }, [
