@@ -55,12 +55,19 @@ export function buildServiceRecordPayload(record, { childrenId, facilityId, staf
     throw new Error(`曜日IDを取得できません: ${dateStr}`);
   }
 
+  if (record?.permissionError === true) {
+    throw new Error(
+      record?.noteError || "編集権限がないため活動内容（note）を取得できません"
+    );
+  }
+
+  if (record?.noteError) {
+    throw new Error(record.noteError);
+  }
+
   const note = (record?.note ?? "").trim();
   if (!note) {
     throw new Error("活動内容（note）が空です");
-  }
-  if (record?.noteError) {
-    throw new Error(record.noteError);
   }
 
   const recordedStaffId = record?.recordStaff?.value
@@ -119,6 +126,8 @@ export async function postServiceRecordsToLocalApi(records, ctx) {
       posted: 0,
       skipped: 0,
       failed: 0,
+      permissionErrors: [],
+      hasPermissionError: false,
       results: [{ ok: false, error: "childrenId / facilityId が指定されていません" }],
     };
   }
@@ -138,6 +147,8 @@ export async function postServiceRecordsToLocalApi(records, ctx) {
       posted: 0,
       skipped: 0,
       failed: 0,
+      permissionErrors: [],
+      hasPermissionError: false,
       results: [
         { ok: false, error: `${serviceRecordUpsertApiName} が利用できません` },
       ],
@@ -149,9 +160,41 @@ export async function postServiceRecordsToLocalApi(records, ctx) {
   let posted = 0;
   let skipped = 0;
   let failed = 0;
+  const permissionErrors = [];
 
   for (const record of list) {
     const dateLabel = record?.date ?? parseCalDateFromEditPath(record?.editPath);
+
+    // 権限不足で note を取得できなかったレコードはDBへ保存しない。
+    // 失敗ではなく skipped として扱い、permissionError を結果に残す。
+    if (record?.permissionError === true) {
+      const message =
+        record?.noteError ||
+        "編集権限がないため活動内容（note）を取得できません";
+
+      skipped += 1;
+
+      const permissionError = {
+        date: dateLabel,
+        message,
+      };
+      permissionErrors.push(permissionError);
+
+      results.push({
+        date: dateLabel,
+        ok: false,
+        skipped: true,
+        permissionError: true,
+        error: message,
+      });
+
+      console.warn(
+        "[postServiceRecordsToLocalApi] 権限不足のためDB保存をスキップ:",
+        permissionError
+      );
+
+      continue;
+    }
 
     try {
       const payload = buildServiceRecordPayload(record, {
@@ -166,6 +209,32 @@ export async function postServiceRecordsToLocalApi(records, ctx) {
       results.push({ date: dateLabel, ok: true, payload, data });
     } catch (e) {
       const message = e?.message ? String(e.message) : String(e);
+
+      const isPermissionError =
+        message.includes("編集権限") ||
+        message.includes("権限がありません") ||
+        message.includes("編集権限がない");
+
+      if (isPermissionError) {
+        skipped += 1;
+
+        const permissionError = {
+          date: dateLabel,
+          message,
+        };
+        permissionErrors.push(permissionError);
+
+        results.push({
+          date: dateLabel,
+          ok: false,
+          skipped: true,
+          permissionError: true,
+          error: message,
+        });
+
+        continue;
+      }
+
       const isSkip =
         message.includes("活動内容（note）が空") ||
         message.includes("日付を解釈");
@@ -185,6 +254,8 @@ export async function postServiceRecordsToLocalApi(records, ctx) {
     posted,
     skipped,
     failed,
+    permissionErrors,
+    hasPermissionError: permissionErrors.length > 0,
     results,
   };
 }

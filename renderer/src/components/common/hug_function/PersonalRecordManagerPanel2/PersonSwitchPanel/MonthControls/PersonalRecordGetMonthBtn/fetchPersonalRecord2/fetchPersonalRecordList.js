@@ -25,6 +25,7 @@
  *         editPath: string;
  *         note: string | null;
  *         noteError?: string;
+ *         permissionError?: boolean;
  *       }>;
  *       rowCount: number;
  *       presentCount: number;
@@ -72,6 +73,34 @@ export async function fetchPersonalRecordList(webview, opts) {
         (doc.title || "").includes("ログイン") ||
         String(html || "").includes("login.php");
 
+      // HUG編集ページの権限不足メッセージを検出する
+      const getPermissionErrorMessage = (doc) => {
+        const cautionBox = doc.querySelector(".caution-box.print");
+        if (!cautionBox) return null;
+
+        const cautionTitle = cautionBox.querySelector("h4.caution-title");
+        const text = (cautionTitle?.textContent || cautionBox.textContent || "").trim();
+
+        if (
+          text.includes("編集権限がありません") ||
+          text.includes("権限がありません") ||
+          text.includes("編集権限がない")
+        ) {
+          return text || "編集権限がありません";
+        }
+
+        return null;
+      };
+
+      const isPermissionErrorMessage = (message) => {
+        const text = String(message || "");
+        return (
+          text.includes("編集権限") ||
+          text.includes("権限がありません") ||
+          text.includes("編集権限がない")
+        );
+      };
+
       const fetchContactBookNote = async (pathAndQuery) => {
         const editUrl = new URL(pathAndQuery, HUG_WM_BASE_URL).href;
 
@@ -92,6 +121,12 @@ export async function fetchPersonalRecordList(webview, opts) {
           throw new Error(
             "ログインページが返されました。HUGへのログイン状態を確認してください"
           );
+        }
+
+        const permissionErrorMessage = getPermissionErrorMessage(editDoc);
+        if (permissionErrorMessage) {
+          console.warn("[HUG WM] 権限エラー検出:", permissionErrorMessage);
+          throw new Error(permissionErrorMessage);
         }
 
         const textarea = editDoc.querySelector(
@@ -179,6 +214,8 @@ export async function fetchPersonalRecordList(webview, opts) {
         );
 
         const records = [];
+        const permissionErrors = [];
+
         for (const item of editTargets) {
           try {
             const note = await fetchContactBookNote(item.editPath);
@@ -199,14 +236,27 @@ export async function fetchPersonalRecordList(webview, opts) {
               noteErr && noteErr.message
                 ? String(noteErr.message)
                 : String(noteErr);
-            records.push({
+            const permissionError = isPermissionErrorMessage(noteError);
+
+            const record = {
               date: item.date,
               childName: item.childName,
               attendance: item.attendance,
               editPath: item.editPath,
               note: null,
               noteError
-            });
+            };
+
+            if (permissionError) {
+              record.permissionError = true;
+              permissionErrors.push({
+                date: item.date,
+                childName: item.childName,
+                message: noteError
+              });
+            }
+
+            records.push(record);
             console.warn("[HUG WM] note取得エラー:", item.date, noteError);
           }
         }
@@ -216,7 +266,9 @@ export async function fetchPersonalRecordList(webview, opts) {
           listUrl,
           records,
           rowCount: rows.length,
-          presentCount: editTargets.length
+          presentCount: editTargets.length,
+          permissionErrors,
+          hasPermissionError: permissionErrors.length > 0
         };
       } catch (error) {
         console.error("[HUG WM] 個人記録取得エラー:", error);

@@ -87,6 +87,7 @@ export default function PersonalRecordGetDayBtn({
           attendance: row.attendance,
           note: row.note,
           noteError: row.noteError,
+          permissionError: row.permissionError === true,
           editPath: row.editPath,
         });
       });
