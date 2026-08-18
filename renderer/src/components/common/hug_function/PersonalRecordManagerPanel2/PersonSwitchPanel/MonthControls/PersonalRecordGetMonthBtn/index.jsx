@@ -70,6 +70,7 @@ export default function PersonalRecordGetMonthBtn({
   } = useToast();
 
   const [fetching, setFetching] = useState(false);
+  const [permissionErrorCount, setPermissionErrorCount] = useState(0);
   const isFetchingRef = useRef(false);
   const { loadDataBase } = useDataBase();
 
@@ -104,6 +105,7 @@ export default function PersonalRecordGetMonthBtn({
 
     isFetchingRef.current = true;
     setFetching(true);
+    setPermissionErrorCount(0);
 
     console.log(`[${LOG_TAG}] 取得開始`, {
       childId: SELECT_CHILD,
@@ -142,6 +144,13 @@ export default function PersonalRecordGetMonthBtn({
         });
       });
 
+      const fetchedPermissionErrorCount =
+        result.permissionErrors?.length ??
+        result.records?.filter((row) => row?.permissionError === true).length ??
+        0;
+
+      setPermissionErrorCount(fetchedPermissionErrorCount);
+
       const postResult = await postServiceRecordsToLocalApi(
         result.records,
         {
@@ -153,6 +162,13 @@ export default function PersonalRecordGetMonthBtn({
       );
 
       console.log(`[${LOG_TAG}] ローカルDB保存`, postResult);
+
+      const savedPermissionErrorCount =
+        postResult?.permissionErrors?.length ??
+        postResult?.results?.filter((row) => row?.permissionError === true).length ??
+        0;
+
+      setPermissionErrorCount(savedPermissionErrorCount);
 
       notifyPostResultToasts(postResult, {
         showSuccessToast,
@@ -212,25 +228,36 @@ export default function PersonalRecordGetMonthBtn({
     fetching;
 
   return (
-    <button
-      type="button"
-      id="personal-record-get"
-      onClick={runFetch}
-      disabled={isDisabled}
-      className="
-        flex items-center justify-center
-        bg-green-700 text-gray-50
-        px-3 py-2
-        rounded-lg font-bold text-xs
-        cursor-pointer transition-all whitespace-nowrap
-        hover:bg-green-800 hover:scale-105
-        active:bg-green-900 active:scale-[0.97]
-        disabled:grayscale disabled:opacity-50
-        disabled:cursor-not-allowed
-        disabled:hover:scale-100
-      "
-    >
-      {fetching ? "取得中…" : "記録取得"}
-    </button>
+    <div className="flex items-center gap-2">
+      <button
+        type="button"
+        id="personal-record-get"
+        onClick={runFetch}
+        disabled={isDisabled}
+        className="
+          flex items-center justify-center
+          bg-green-700 text-gray-50
+          px-3 py-2
+          rounded-lg font-bold text-xs
+          cursor-pointer transition-all whitespace-nowrap
+          hover:bg-green-800 hover:scale-105
+          active:bg-green-900 active:scale-[0.97]
+          disabled:grayscale disabled:opacity-50
+          disabled:cursor-not-allowed
+          disabled:hover:scale-100
+        "
+      >
+        {fetching ? "取得中…" : "記録取得"}
+      </button>
+
+      {permissionErrorCount > 0 && (
+        <span
+          className="inline-flex items-center rounded-full border border-red-300 bg-red-50 px-2.5 py-1 text-xs font-bold text-red-700"
+          title="編集権限がないため取得できなかった個人記録があります"
+        >
+          権限不足 {permissionErrorCount}件
+        </span>
+      )}
+    </div>
   );
 }

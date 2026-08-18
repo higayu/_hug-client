@@ -21,6 +21,7 @@ export default function PersonSwitchPanel({
   onDateChange,
   disabled = false,
   onServiceRecordsUpdated,
+  className=''
 }) {
   const isMonth = value === PERIOD_TYPES.MONTH;
 
@@ -42,12 +43,7 @@ export default function PersonSwitchPanel({
 
   return (
     <div
-      className="
-        border border-gray-100 rounded-md
-        flex w-[300px] bg-gray-200 py-2 px-1
-        flex-row flex-nowrap
-        items-center gap-3
-      "
+      className={className}
     >
       {/* 切替ボタン */}
       <button

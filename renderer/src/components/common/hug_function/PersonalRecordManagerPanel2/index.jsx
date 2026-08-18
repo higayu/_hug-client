@@ -5,7 +5,7 @@ import { useAppState } from "@/AppStateContext";
 import { useServiceRecord } from "@/hooks/useServiceRecord";
 import { setServiceRecord } from "@/store/slices/databaseSlice.js";
 
-import SwitchPanel, { PERIOD_TYPES, } from "./PersonSwitchPanel";
+import PersonSwitchPanel, { PERIOD_TYPES, } from "./PersonSwitchPanel";
 import ListBox_Text from "./ListBox_Text";
 
 const toMonthStr = (value) => {
@@ -145,8 +145,8 @@ export default function PersonalRecordManagerPanel2() {
   ]);
 
   return (
-    <div className="w-full space-y-4">
-      <div className="bg-gray-200 flex flex-row items-center gap-3">
+    <div className="w-full">
+      <div className="bg-slate-100 flex flex-row items-center gap-3">
         {/* 児童情報 */}
         <div className="flex shrink-0 items-center justify-center">
           {SELECT_CHILD ? (
@@ -160,7 +160,7 @@ export default function PersonalRecordManagerPanel2() {
           )}
         </div>
 
-        <SwitchPanel
+        <PersonSwitchPanel
           value={periodType}
           onChange={setPeriodType}
           month={month}
@@ -169,6 +169,7 @@ export default function PersonalRecordManagerPanel2() {
           onDateChange={setDate}
           disabled={!SELECT_CHILD}
           onServiceRecordsUpdated={reloadServiceRecords}
+          className="border border-gray-100 rounded-md flex bg-gray-400 py-2 px-4 flex-row flex-nowrap items-center gap-3"
         />
       </div>
 
