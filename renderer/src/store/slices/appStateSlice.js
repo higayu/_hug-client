@@ -11,10 +11,13 @@ const toBooleanFlag = (value, defaultValue = true) => {
   return defaultValue
 }
 
+
+// ✅ 修正: モード4を許可
 const normalizeSelectChildFilterMode = (value) => {
   const mode = Number(value)
-
-  return mode === 1 || mode === 2 || mode === 3 ? mode : 0
+  // モード0, 1, 2, 3, 4 を許可
+  return (mode === 0 || mode === 1 || mode === 2 || mode === 3 || mode === 4) ? mode : 1
+  // デフォルトは1（選択施設）
 }
 
 // 初期状態

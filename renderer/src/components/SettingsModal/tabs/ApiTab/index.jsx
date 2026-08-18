@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState, useCallback } from 'react'  // ← useCal
 import BrowserOpenButton from '@/components/common/BrowserOpenButton'
 import { useAppState } from '@/AppStateContext'
 import { useToast } from '@/provider/ToastProvider/ToastContext'
+import { useDataBase } from '@/hooks/useDataBase'
 
 import {
   createFormState,
@@ -28,6 +29,10 @@ function ApiTab() {
     showSuccessToast,
     showErrorToast,
   } = useToast()
+
+  // DB全テーブルを再取得するために使用
+  // autoLoad は行わず、保存・再読み込み完了後に明示的に呼び出す
+  const { loadDataBase } = useDataBase()
 
   const [form, setForm] = useState(() => {
     return createFormState({
@@ -478,9 +483,44 @@ function ApiTab() {
         DEBUG_FLG: form.debugFlg,  // ← 追加
       })
 
-      showSuccessToast(
-        'API設定を保存しました'
+      /*
+       * 保存内容を反映した状態でDBデータを再取得
+       *
+       * updateAppState直後は、このコンポーネントが保持している
+       * databaseType がまだ旧値の場合があるため、保存した値を
+       * forceDatabaseType で明示的に指定する。
+       *
+       * AUTO_SWITCHING は初回起動時だけ使うため、ここでは false。
+       */
+      console.log(
+        '[ApiTab] 保存後のDBデータ再取得開始:',
+        nextApiSettings.databaseType
       )
+
+      const reloadSuccess = await loadDataBase({
+        reason: 'api-settings-saved',
+        forceDatabaseType:
+          nextApiSettings.databaseType,
+        useAutoSwitching: false,
+      })
+
+      if (!reloadSuccess) {
+        console.warn(
+          '[ApiTab] API設定は保存しましたが、DBデータの再取得に失敗しました'
+        )
+
+        showErrorToast(
+          'API設定は保存しましたが、データの再取得に失敗しました'
+        )
+      } else {
+        console.log(
+          '[ApiTab] 保存後のDBデータ再取得完了'
+        )
+
+        showSuccessToast(
+          'API設定を保存し、データを再読み込みしました'
+        )
+      }
 
       console.log(
         '[ApiTab] API設定保存完了:',
@@ -551,9 +591,38 @@ function ApiTab() {
         DEBUG_FLG: nextForm.debugFlg,  // ← 追加
       })
 
-      showSuccessToast(
-        'API設定を再読み込みしました'
+      /*
+       * ini.jsonから読み込んだ設定を反映した状態でDBデータを再取得
+       */
+      console.log(
+        '[ApiTab] 設定再読み込み後のDBデータ再取得開始:',
+        nextForm.databaseType
       )
+
+      const reloadSuccess = await loadDataBase({
+        reason: 'api-settings-reloaded',
+        forceDatabaseType:
+          nextForm.databaseType,
+        useAutoSwitching: false,
+      })
+
+      if (!reloadSuccess) {
+        console.warn(
+          '[ApiTab] API設定は再読み込みしましたが、DBデータの再取得に失敗しました'
+        )
+
+        showErrorToast(
+          'API設定は再読み込みしましたが、データの再取得に失敗しました'
+        )
+      } else {
+        console.log(
+          '[ApiTab] 設定再読み込み後のDBデータ再取得完了'
+        )
+
+        showSuccessToast(
+          'API設定とデータを再読み込みしました'
+        )
+      }
 
       console.log(
         '[ApiTab] API設定再読み込み完了:',

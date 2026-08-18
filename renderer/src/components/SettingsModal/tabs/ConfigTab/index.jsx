@@ -6,6 +6,7 @@ import {
 import ToggleContainer from '@/components/ui/ToggleContainer'
 import { useAppState } from '@/AppStateContext'
 import { useToast } from '@/provider/ToastProvider/ToastContext'
+import { useDataBase } from '@/hooks/useDataBase'
 
 import {
   loadConfig,
@@ -48,6 +49,10 @@ function ConfigTab() {
     showSuccessToast,
     showErrorToast,
   } = useToast()
+
+  // Config.json の変更反映後にDBデータを再取得するために使用
+  // autoLoad は使わず、保存・再読み込み後に明示的に実行する
+  const { loadDataBase } = useDataBase()
 
   const [form, setForm] = useState(() => {
     return createConfigFormState(appState)
@@ -149,9 +154,40 @@ function ConfigTab() {
        */
       updateAppState(nextForm)
 
-      showSuccessToast(
-        'Config.jsonを再読み込みしました'
+      /*
+       * Config.json の内容を AppState に反映した後、
+       * 現在選択中のDB/APIから全テーブルを再取得する。
+       *
+       * ConfigTabではDB種別自体は変更しないため、
+       * forceDatabaseType は指定しない。
+       * AUTO_SWITCHING は初回起動時のみ使用するため false。
+       */
+      console.log(
+        '[ConfigTab] Config.json再読み込み後のDBデータ再取得開始'
       )
+
+      const reloadSuccess = await loadDataBase({
+        reason: 'config-reloaded',
+        useAutoSwitching: false,
+      })
+
+      if (!reloadSuccess) {
+        console.warn(
+          '[ConfigTab] Config.jsonは再読み込みしましたが、DBデータの再取得に失敗しました'
+        )
+
+        showErrorToast(
+          'Config.jsonは再読み込みしましたが、データの再取得に失敗しました'
+        )
+      } else {
+        console.log(
+          '[ConfigTab] Config.json再読み込み後のDBデータ再取得完了'
+        )
+
+        showSuccessToast(
+          'Config.jsonとデータを再読み込みしました'
+        )
+      }
 
       console.log(
         '[ConfigTab] Config.json再読み込み完了:',
@@ -217,9 +253,40 @@ function ConfigTab() {
        */
       setForm(configData)
 
-      showSuccessToast(
-        'Config.jsonを保存しました'
+      /*
+       * 保存内容を AppState に反映した後、
+       * 現在選択中のDB/APIから全テーブルを再取得する。
+       *
+       * ConfigTabではDB種別自体は変更しないため、
+       * forceDatabaseType は指定しない。
+       * AUTO_SWITCHING は初回起動時のみ使用するため false。
+       */
+      console.log(
+        '[ConfigTab] Config.json保存後のDBデータ再取得開始'
       )
+
+      const reloadSuccess = await loadDataBase({
+        reason: 'config-saved',
+        useAutoSwitching: false,
+      })
+
+      if (!reloadSuccess) {
+        console.warn(
+          '[ConfigTab] Config.jsonは保存しましたが、DBデータの再取得に失敗しました'
+        )
+
+        showErrorToast(
+          'Config.jsonは保存しましたが、データの再取得に失敗しました'
+        )
+      } else {
+        console.log(
+          '[ConfigTab] Config.json保存後のDBデータ再取得完了'
+        )
+
+        showSuccessToast(
+          'Config.jsonを保存し、データを再読み込みしました'
+        )
+      }
 
       console.log(
         '[ConfigTab] Config.json保存完了:',

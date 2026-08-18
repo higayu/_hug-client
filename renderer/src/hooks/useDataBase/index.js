@@ -4,9 +4,9 @@ import { useEffect, useCallback, useRef } from "react"
 import { useDispatch, useSelector } from "react-redux"
 import { useAppState } from "@/AppStateContext"
 
-import { mariadbApi } from "./sql/mariadbApi";
-import { sqliteApi } from "./sql/sqliteApi";
-import { laravelApi } from "./sql/laravelApi";
+import { mariadbApi } from "./sql/mariadbApi"
+import { sqliteApi } from "./sql/sqliteApi"
+import { laravelApi } from "./sql/laravelApi"
 
 import { fetchAllTables } from "@/store/slices/databaseSlice"
 import { selectDatabaseType } from "@/store/slices/appStateSlice"
@@ -49,7 +49,10 @@ function getAutoSwitchingEnabledForUseDataBase() {
   }
 
   if (window.IniState?.apiSettings?.autoSwitching !== undefined) {
-    return toBooleanFlag(window.IniState.apiSettings.autoSwitching, true)
+    return toBooleanFlag(
+      window.IniState.apiSettings.autoSwitching,
+      true
+    )
   }
 
   return true
@@ -109,6 +112,7 @@ export function useDataBase({ autoLoad = false } = {}) {
   //
   // options:
   // - reason: ログ用
+  // - force: true の場合、取得中でも強制的に再取得する
   // - forceDatabaseType: DB種別を強制する
   // - useAutoSwitching:
   //   true の場合だけ AUTO_SWITCHING を参照し、接続先を自動選択する
@@ -118,6 +122,7 @@ export function useDataBase({ autoLoad = false } = {}) {
     async (options = {}) => {
       const loadId = ++loadSeqRef.current
       const reason = options.reason || "manual/unknown"
+      const force = options.force === true
       const forceDatabaseType = options.forceDatabaseType
 
       /**
@@ -133,9 +138,11 @@ export function useDataBase({ autoLoad = false } = {}) {
       const useAutoSwitching = options.useAutoSwitching === true
 
       console.group(`🧩 [useDataBase] loadDataBase START #${loadId}`)
+
       console.log("📌 [useDataBase] call info:", {
         loadId,
         reason,
+        force,
         forceDatabaseType,
         useAutoSwitching,
         autoLoad,
@@ -148,24 +155,44 @@ export function useDataBase({ autoLoad = false } = {}) {
         iniAutoSwitching: window.IniState?.apiSettings?.autoSwitching,
       })
 
-      if (loadingRef.current) {
-        console.warn("⏳ [useDataBase] すでにデータ取得中のためスキップします", {
-          loadId,
-          reason,
-        })
+      // 通常読み込みの場合は二重取得を防止
+      if (loadingRef.current && !force) {
+        console.warn(
+          "⏳ [useDataBase] すでにデータ取得中のためスキップします",
+          {
+            loadId,
+            reason,
+          }
+        )
+
         console.groupEnd()
         return false
+      }
+
+      // reloadData 等から force=true で呼ばれた場合
+      if (loadingRef.current && force) {
+        console.warn(
+          "🔄 [useDataBase] force=true のため強制再読み込みします",
+          {
+            loadId,
+            reason,
+          }
+        )
       }
 
       loadingRef.current = true
 
       try {
         if (!isInitialized) {
-          console.warn("⏳ [useDataBase] 初期化前のため取得をスキップします", {
-            loadId,
-            reason,
-            isInitialized,
-          })
+          console.warn(
+            "⏳ [useDataBase] 初期化前のため取得をスキップします",
+            {
+              loadId,
+              reason,
+              isInitialized,
+            }
+          )
+
           console.groupEnd()
           return false
         }
@@ -173,25 +200,35 @@ export function useDataBase({ autoLoad = false } = {}) {
         let resolvedDatabaseType =
           forceDatabaseType || databaseType || "mariadb"
 
-        let apiToUse = resolveApiByDatabaseType(resolvedDatabaseType)
+        let apiToUse = resolveApiByDatabaseType(
+          resolvedDatabaseType
+        )
 
         let mariaDbConnectionResult = null
         let checkedMariaDbConnection = false
         let laravelConnectionResult = null
 
-        console.log("🔍 [useDataBase] 初期 resolvedDatabaseType:", {
-          loadId,
-          reason,
-          forceDatabaseType,
-          useAutoSwitching,
-          databaseType,
-          resolvedDatabaseType,
-          reduxDatabaseType: databaseTypeFromRedux,
-          appStateDatabaseType: window.AppState?.DATABASE_TYPE,
-          appStateAutoSwitching: window.AppState?.AUTO_SWITCHING,
-          iniDatabaseType: window.IniState?.apiSettings?.databaseType,
-          iniAutoSwitching: window.IniState?.apiSettings?.autoSwitching,
-        })
+        console.log(
+          "🔍 [useDataBase] 初期 resolvedDatabaseType:",
+          {
+            loadId,
+            reason,
+            force,
+            forceDatabaseType,
+            useAutoSwitching,
+            databaseType,
+            resolvedDatabaseType,
+            reduxDatabaseType: databaseTypeFromRedux,
+            appStateDatabaseType:
+              window.AppState?.DATABASE_TYPE,
+            appStateAutoSwitching:
+              window.AppState?.AUTO_SWITCHING,
+            iniDatabaseType:
+              window.IniState?.apiSettings?.databaseType,
+            iniAutoSwitching:
+              window.IniState?.apiSettings?.autoSwitching,
+          }
+        )
 
         // =============================================================
         // 初回自動取得時の接続優先順位
@@ -207,16 +244,18 @@ export function useDataBase({ autoLoad = false } = {}) {
             "🔌 [useDataBase] AUTO_SWITCHING=true: Laravel API接続確認を実行します"
           )
 
-          laravelConnectionResult = await checkLaravelConnection(dispatch, {
-            autoFallbackToSqlite: false,
-            switchToLaravelOnSuccess: true,
-            persistIni: true,
-          })
+          laravelConnectionResult =
+            await checkLaravelConnection(dispatch, {
+              autoFallbackToSqlite: false,
+              switchToLaravelOnSuccess: true,
+              persistIni: true,
+            })
 
           if (laravelConnectionResult?.connected === true) {
             console.log(
               "✅ [useDataBase] Laravel APIに接続できたため接続確認を終了します"
             )
+
             resolvedDatabaseType = "laravel"
             apiToUse = laravelApi
           } else {
@@ -224,23 +263,29 @@ export function useDataBase({ autoLoad = false } = {}) {
               "⏭ [useDataBase] Laravel APIに接続できないため MariaDB接続確認を実行します"
             )
 
-            mariaDbConnectionResult = await checkMariaDbConnection(dispatch, {
-              autoFallbackToSqlite: true,
-              switchToMariaDbOnSuccess: true,
-              persistIni: true,
-            })
+            mariaDbConnectionResult =
+              await checkMariaDbConnection(dispatch, {
+                autoFallbackToSqlite: true,
+                switchToMariaDbOnSuccess: true,
+                persistIni: true,
+              })
+
             checkedMariaDbConnection = true
 
-            if (mariaDbConnectionResult?.connected === true) {
+            if (
+              mariaDbConnectionResult?.connected === true
+            ) {
               console.log(
                 "✅ [useDataBase] MariaDBに接続できたため接続確認を終了します"
               )
+
               resolvedDatabaseType = "mariadb"
               apiToUse = mariadbApi
             } else {
               console.log(
                 "⏭ [useDataBase] Laravel/MariaDBに接続できないため SQLiteを使用します"
               )
+
               resolvedDatabaseType = "sqlite"
               apiToUse = sqliteApi
             }
@@ -259,17 +304,26 @@ export function useDataBase({ autoLoad = false } = {}) {
             console.log(
               "🔌 [useDataBase] すでに MariaDB接続確認済みのため再チェックを省略します",
               {
-                connected: mariaDbConnectionResult?.connected,
+                connected:
+                  mariaDbConnectionResult?.connected,
+
                 switchedDatabaseType:
-                  mariaDbConnectionResult?.switchedDatabaseType,
+                  mariaDbConnectionResult
+                    ?.switchedDatabaseType,
+
                 fallbackToSqlite:
-                  mariaDbConnectionResult?.fallbackToSqlite,
+                  mariaDbConnectionResult
+                    ?.fallbackToSqlite,
+
                 currentDatabaseType:
-                  mariaDbConnectionResult?.currentDatabaseType,
+                  mariaDbConnectionResult
+                    ?.currentDatabaseType,
               }
             )
 
-            if (mariaDbConnectionResult?.connected === true) {
+            if (
+              mariaDbConnectionResult?.connected === true
+            ) {
               apiToUse = mariadbApi
             } else {
               console.warn(
@@ -284,11 +338,12 @@ export function useDataBase({ autoLoad = false } = {}) {
               "🔌 [useDataBase] DATABASE_TYPE=mariadb のため MariaDB接続確認を実行します"
             )
 
-            mariaDbConnectionResult = await checkMariaDbConnection(dispatch, {
-              autoFallbackToSqlite: true,
-              switchToMariaDbOnSuccess: false,
-              persistIni: true,
-            })
+            mariaDbConnectionResult =
+              await checkMariaDbConnection(dispatch, {
+                autoFallbackToSqlite: true,
+                switchToMariaDbOnSuccess: false,
+                persistIni: true,
+              })
 
             checkedMariaDbConnection = true
 
@@ -297,20 +352,29 @@ export function useDataBase({ autoLoad = false } = {}) {
               mariaDbConnectionResult
             )
 
-            if (mariaDbConnectionResult?.connected === true) {
+            if (
+              mariaDbConnectionResult?.connected === true
+            ) {
               resolvedDatabaseType = "mariadb"
               apiToUse = mariadbApi
             } else {
               console.warn(
                 "⚠️ [useDataBase] MariaDBに接続できないため SQLite で取得します",
                 {
-                  connected: mariaDbConnectionResult?.connected,
+                  connected:
+                    mariaDbConnectionResult?.connected,
+
                   switchedDatabaseType:
-                    mariaDbConnectionResult?.switchedDatabaseType,
+                    mariaDbConnectionResult
+                      ?.switchedDatabaseType,
+
                   fallbackToSqlite:
-                    mariaDbConnectionResult?.fallbackToSqlite,
+                    mariaDbConnectionResult
+                      ?.fallbackToSqlite,
+
                   currentDatabaseType:
-                    mariaDbConnectionResult?.currentDatabaseType,
+                    mariaDbConnectionResult
+                      ?.currentDatabaseType,
                 }
               )
 
@@ -320,33 +384,48 @@ export function useDataBase({ autoLoad = false } = {}) {
           }
         }
 
-        console.log("🔍 [useDataBase] 最終的に使用するDB/API:", {
-          loadId,
-          reason,
-          useAutoSwitching,
-          resolvedDatabaseType,
-          apiName:
-            apiToUse === laravelApi
-              ? "laravelApi"
-              : apiToUse === mariadbApi
-              ? "mariadbApi"
-              : apiToUse === sqliteApi
-                ? "sqliteApi"
-                : "unknown",
-          checkedMariaDbConnection,
-          mariaDbConnectionResult,
-          laravelConnectionResult,
-        })
+        console.log(
+          "🔍 [useDataBase] 最終的に使用するDB/API:",
+          {
+            loadId,
+            reason,
+            force,
+            useAutoSwitching,
+            resolvedDatabaseType,
 
+            apiName:
+              apiToUse === laravelApi
+                ? "laravelApi"
+                : apiToUse === mariadbApi
+                  ? "mariadbApi"
+                  : apiToUse === sqliteApi
+                    ? "sqliteApi"
+                    : "unknown",
+
+            checkedMariaDbConnection,
+            mariaDbConnectionResult,
+            laravelConnectionResult,
+          }
+        )
+
+        // =============================================================
+        // 全テーブル取得
+        // =============================================================
         const tables = await apiToUse.getAllTables()
 
         if (!tables) {
-          console.error("❌ [useDataBase] テーブル取得失敗")
+          console.error(
+            "❌ [useDataBase] テーブル取得失敗"
+          )
+
           console.groupEnd()
           return false
         }
 
-        console.log("⭐ [useDataBase] 取得した全テーブル:", tables)
+        console.log(
+          "⭐ [useDataBase] 取得した全テーブル:",
+          tables
+        )
 
         // =============================================================
         // databaseSlice に全テーブルを保存
@@ -354,25 +433,41 @@ export function useDataBase({ autoLoad = false } = {}) {
         // =============================================================
         await dispatch(fetchAllTables(tables))
 
-        console.log("✅ [useDataBase] databaseSlice 保存完了:", {
-          loadId,
-          reason,
-          useAutoSwitching,
-          resolvedDatabaseType,
-          tableKeys: Object.keys(tables),
-          counts: Object.fromEntries(
-            Object.entries(tables).map(([key, value]) => [
-              key,
-              Array.isArray(value) ? value.length : "not array",
-            ])
-          ),
-        })
+        console.log(
+          "✅ [useDataBase] databaseSlice 保存完了:",
+          {
+            loadId,
+            reason,
+            force,
+            useAutoSwitching,
+            resolvedDatabaseType,
+
+            tableKeys: Object.keys(tables),
+
+            counts: Object.fromEntries(
+              Object.entries(tables).map(
+                ([key, value]) => [
+                  key,
+                  Array.isArray(value)
+                    ? value.length
+                    : "not array",
+                ]
+              )
+            ),
+          }
+        )
 
         console.groupEnd()
+
         return true
       } catch (error) {
-        console.error("❌ [useDataBase] DBテーブル読み込みエラー:", error)
+        console.error(
+          "❌ [useDataBase] DBテーブル読み込みエラー:",
+          error
+        )
+
         console.groupEnd()
+
         return false
       } finally {
         loadingRef.current = false
@@ -389,6 +484,65 @@ export function useDataBase({ autoLoad = false } = {}) {
   )
 
   // =============================================================
+  // DB全テーブル再読み込み
+  //
+  // 用途:
+  // - データ追加後
+  // - データ更新後
+  // - データ削除後
+  // - 手動更新ボタン
+  //
+  // 重要:
+  // - 現在選択中のDB/APIを使用する
+  // - AUTO_SWITCHING は実行しない
+  // - force=true で強制的に再取得する
+  // =============================================================
+  const reloadData = useCallback(
+    async (options = {}) => {
+      console.log(
+        "🔄 [useDataBase] reloadData 開始",
+        options
+      )
+
+      try {
+        const result = await loadDataBase({
+          ...options,
+
+          // reloadData は常に強制再取得
+          force: true,
+
+          // reason が指定されていなければデフォルト値
+          reason:
+            options.reason || "manual-reload",
+
+          // 初回起動時以外は自動切り替えを使用しない
+          useAutoSwitching: false,
+        })
+
+        if (result) {
+          console.log(
+            "✅ [useDataBase] reloadData 完了"
+          )
+        } else {
+          console.warn(
+            "⚠️ [useDataBase] reloadData 失敗"
+          )
+        }
+
+        return result
+      } catch (error) {
+        console.error(
+          "❌ [useDataBase] reloadData エラー:",
+          error
+        )
+
+        return false
+      }
+    },
+    [loadDataBase]
+  )
+
+  // =============================================================
   // DB種別変更イベント
   //
   // 重要:
@@ -401,13 +555,19 @@ export function useDataBase({ autoLoad = false } = {}) {
       return undefined
     }
 
-    const handleDatabaseTypeChanged = async (event) => {
-      const nextDatabaseType = event?.detail?.databaseType || "mariadb"
+    const handleDatabaseTypeChanged = async (
+      event
+    ) => {
+      const nextDatabaseType =
+        event?.detail?.databaseType || "mariadb"
 
-      console.log("🔁 [useDataBase] database-type-changed 受信", {
-        nextDatabaseType,
-        detail: event?.detail,
-      })
+      console.log(
+        "🔁 [useDataBase] database-type-changed 受信",
+        {
+          nextDatabaseType,
+          detail: event?.detail,
+        }
+      )
 
       setSelectedChild("", "")
 
@@ -418,7 +578,10 @@ export function useDataBase({ autoLoad = false } = {}) {
       })
     }
 
-    window.addEventListener("database-type-changed", handleDatabaseTypeChanged)
+    window.addEventListener(
+      "database-type-changed",
+      handleDatabaseTypeChanged
+    )
 
     return () => {
       window.removeEventListener(
@@ -426,7 +589,11 @@ export function useDataBase({ autoLoad = false } = {}) {
         handleDatabaseTypeChanged
       )
     }
-  }, [autoLoad, loadDataBase, setSelectedChild])
+  }, [
+    autoLoad,
+    loadDataBase,
+    setSelectedChild,
+  ])
 
   // =============================================================
   // 初期化完了後に1回だけ自動取得
@@ -442,24 +609,34 @@ export function useDataBase({ autoLoad = false } = {}) {
     if (didAutoLoadRef.current) return
 
     if (!isInitialized) {
-      console.log("⏳ [useDataBase] autoLoad 待機中", {
-        isInitialized,
-      })
+      console.log(
+        "⏳ [useDataBase] autoLoad 待機中",
+        {
+          isInitialized,
+        }
+      )
+
       return
     }
 
     didAutoLoadRef.current = true
 
     loadDataBase({
-      reason: "autoLoad/after-initialized-once",
+      reason:
+        "autoLoad/after-initialized-once",
       useAutoSwitching: true,
     })
-  }, [autoLoad, isInitialized, loadDataBase])
+  }, [
+    autoLoad,
+    isInitialized,
+    loadDataBase,
+  ])
 
   // =============================================================
   // return
   // =============================================================
   return {
     loadDataBase,
+    reloadData,
   }
 }
