@@ -1,36 +1,6 @@
 /**
  * アクティブ webview の HUG セッションで個人記録（contact_book）一覧を取得し、
  * 出席行の編集ページから活動内容（note）を読み取る。
- * （renderer の fetch では Cookie が付かないため webview 内で実行）
- *
- * Google拡張機能 test_個人記録のデータ取得（content.js + editpage.js）と同じ流れ。
- *
- * @param {Electron.WebviewTag} webview
- * @param {{
- *   childId: string,
- *   facilityId?: string,
- *   dateStart: string,
- *   dateEnd: string,
- *   onlyPresent?: boolean,
- * }} opts
- *   onlyPresent 既定 true … 出席行のみ note を取得
- * @returns {Promise<
- *   | {
- *       ok: true;
- *       listUrl: string;
- *       records: Array<{
- *         date: string;
- *         childName: string;
- *         attendance: string;
- *         editPath: string;
- *         note: string | null;
- *         noteError?: string;
- *       }>;
- *       rowCount: number;
- *       presentCount: number;
- *     }
- *   | { ok: false; error: string }
- * >}
  */
 export async function fetchPersonalRecordList(webview, opts) {
   const {
@@ -62,20 +32,46 @@ export async function fetchPersonalRecordList(webview, opts) {
       const TABLE_SELECTOR =
         'table.table.lh1_5[data-api-url="contact_book.php"][data-concurrent-edit-target="ContactBook"]';
 
-      const parseEditPath = (onclick) => {
-        const match = String(onclick || "").match(/location\\.href='([^']+)'/);
+      var parseEditPath = function(onclick) {
+        var match = String(onclick || "").match(/location\\.href='([^']+)'/);
         return match ? match[1] : "";
       };
 
-      const isLoginPage = (doc, html) =>
-        doc.querySelector('input[name="username"]') !== null ||
-        (doc.title || "").includes("ログイン") ||
-        String(html || "").includes("login.php");
+      var isLoginPage = function(doc, html) {
+        return doc.querySelector('input[name="username"]') !== null ||
+          (doc.title || "").includes("ログイン") ||
+          String(html || "").includes("login.php");
+      };
 
-      const fetchContactBookNote = async (pathAndQuery) => {
-        const editUrl = new URL(pathAndQuery, HUG_WM_BASE_URL).href;
+      // 権限エラーチェック
+      var hasPermissionError = function(doc) {
+        var cautionBox = doc.querySelector('.caution-box.print');
+        if (!cautionBox) return false;
+        
+        var cautionTitle = cautionBox.querySelector('h4.caution-title');
+        if (!cautionTitle) return false;
+        
+        var text = cautionTitle.textContent || '';
+        return text.includes('編集権限がありません') || text.includes('権限がありません');
+      };
 
-        const response = await fetch(editUrl, {
+      // 権限エラーメッセージを取得
+      var getPermissionErrorMessage = function(doc) {
+        var cautionBox = doc.querySelector('.caution-box.print');
+        if (!cautionBox) return null;
+        
+        var cautionTitle = cautionBox.querySelector('h4.caution-title');
+        if (!cautionTitle) return null;
+        
+        return cautionTitle.textContent ? cautionTitle.textContent.trim() : null;
+      };
+
+      var fetchContactBookNote = async function(pathAndQuery) {
+        var editUrl = new URL(pathAndQuery, HUG_WM_BASE_URL).href;
+
+        console.log("[HUG WM] 編集ページ取得開始:", editUrl);
+
+        var response = await fetch(editUrl, {
           method: "GET",
           credentials: "include",
           cache: "no-store"
@@ -85,8 +81,8 @@ export async function fetchPersonalRecordList(webview, opts) {
           throw new Error("編集HTML取得エラー: " + response.status);
         }
 
-        const html = await response.text();
-        const editDoc = new DOMParser().parseFromString(html, "text/html");
+        var html = await response.text();
+        var editDoc = new DOMParser().parseFromString(html, "text/html");
 
         if (isLoginPage(editDoc, html)) {
           throw new Error(
@@ -94,29 +90,48 @@ export async function fetchPersonalRecordList(webview, opts) {
           );
         }
 
-        const textarea = editDoc.querySelector(
+        // 権限エラーチェック
+        if (hasPermissionError(editDoc)) {
+          var errorMsg = getPermissionErrorMessage(editDoc);
+          console.warn("[HUG WM] 権限エラー検出:", errorMsg);
+          throw new Error(errorMsg || "編集権限がありません");
+        }
+
+        var textarea = editDoc.querySelector(
           'textarea[name="note"][data-field-key="note"]'
         );
 
         if (!textarea) {
+          var allTextareas = editDoc.querySelectorAll('textarea');
+          console.log("[HUG WM] 見つかったtextarea数:", allTextareas.length);
+          
+          if (editDoc.querySelector('.caution-box.print')) {
+            throw new Error("編集権限がないため、noteを取得できません");
+          }
           throw new Error("note の textarea が見つかりませんでした");
         }
 
-        return (textarea.value || "").trim();
+        var noteValue = (textarea.value || "").trim();
+        console.log("[HUG WM] note取得成功:", {
+          length: noteValue.length,
+          preview: noteValue.substring(0, 50) + (noteValue.length > 50 ? "..." : "")
+        });
+
+        return noteValue;
       };
 
       try {
-        const listParams = new URLSearchParams({
+        var listParams = new URLSearchParams({
           f_id: F_ID,
           date: DATE_START,
           date_end: DATE_END,
           id: C_ID
         });
-        const listUrl = HUG_WM_BASE_URL + "contact_book.php?" + listParams.toString();
+        var listUrl = HUG_WM_BASE_URL + "contact_book.php?" + listParams.toString();
 
         console.log("[HUG WM] 個人記録 一覧 fetch開始:", listUrl);
 
-        const listResponse = await fetch(listUrl, {
+        var listResponse = await fetch(listUrl, {
           method: "GET",
           credentials: "include",
           cache: "no-store"
@@ -126,8 +141,8 @@ export async function fetchPersonalRecordList(webview, opts) {
           throw new Error("一覧HTML取得エラー: " + listResponse.status);
         }
 
-        const listHtml = await listResponse.text();
-        const listDoc = new DOMParser().parseFromString(listHtml, "text/html");
+        var listHtml = await listResponse.text();
+        var listDoc = new DOMParser().parseFromString(listHtml, "text/html");
 
         if (isLoginPage(listDoc, listHtml)) {
           throw new Error(
@@ -135,28 +150,28 @@ export async function fetchPersonalRecordList(webview, opts) {
           );
         }
 
-        const table = listDoc.querySelector(TABLE_SELECTOR);
+        var table = listDoc.querySelector(TABLE_SELECTOR);
         if (!table) {
           throw new Error("対象テーブルが見つかりませんでした");
         }
 
-        const rows = [...table.querySelectorAll("tbody tr")];
-        const editTargets = rows
-          .map((row) => {
-            const cells = row.querySelectorAll("td");
-            const dateText = (cells[0]?.textContent || "").trim();
-            const childName = (cells[1]?.textContent || "")
+        var rows = Array.from(table.querySelectorAll("tbody tr"));
+        var editTargets = rows
+          .map(function(row) {
+            var cells = row.querySelectorAll("td");
+            var dateText = (cells[0] ? cells[0].textContent || "" : "").trim();
+            var childName = (cells[1] ? cells[1].textContent || "" : "")
               .trim()
               .replace(/\\s+/g, " ");
-            const attendanceText = (cells[4]?.textContent || "").trim();
+            var attendanceText = (cells[4] ? cells[4].textContent || "" : "").trim();
 
             if (ONLY_PRESENT && attendanceText !== "出席") {
               return null;
             }
 
-            const editButton = cells[7]?.querySelector("button.edit");
-            const onclick = editButton?.getAttribute("onclick") || "";
-            const editPath = parseEditPath(onclick);
+            var editButton = cells[7] ? cells[7].querySelector("button.edit") : null;
+            var onclick = editButton ? editButton.getAttribute("onclick") || "" : "";
+            var editPath = parseEditPath(onclick);
 
             if (!editPath) {
               return null;
@@ -164,12 +179,12 @@ export async function fetchPersonalRecordList(webview, opts) {
 
             return {
               date: dateText,
-              childName,
+              childName: childName,
               attendance: attendanceText,
-              editPath
+              editPath: editPath
             };
           })
-          .filter(Boolean);
+          .filter(function(item) { return item !== null; });
 
         console.log(
           "[HUG WM] 個人記録 出席レコード数:",
@@ -178,46 +193,74 @@ export async function fetchPersonalRecordList(webview, opts) {
           rows.length
         );
 
-        const records = [];
-        for (const item of editTargets) {
+        var records = [];
+        var permissionErrors = [];
+
+        for (var i = 0; i < editTargets.length; i++) {
+          var item = editTargets[i];
           try {
-            const note = await fetchContactBookNote(item.editPath);
+            var note = await fetchContactBookNote(item.editPath);
             records.push({
               date: item.date,
               childName: item.childName,
               attendance: item.attendance,
               editPath: item.editPath,
-              note
+              note: note
             });
-            console.log("[HUG WM] 活動内容 note:", {
+            console.log("[HUG WM] 活動内容 note取得成功:", {
               date: item.date,
               childName: item.childName,
-              note
+              noteLength: note.length
             });
           } catch (noteErr) {
-            const noteError =
-              noteErr && noteErr.message
-                ? String(noteErr.message)
-                : String(noteErr);
-            records.push({
+            var noteError = noteErr && noteErr.message ? String(noteErr.message) : String(noteErr);
+            
+            var isPermissionError = 
+              noteError.includes('編集権限') ||
+              noteError.includes('権限がありません') ||
+              noteError.includes('編集権限がない');
+
+            var record = {
               date: item.date,
               childName: item.childName,
               attendance: item.attendance,
               editPath: item.editPath,
               note: null,
-              noteError
-            });
+              noteError: noteError
+            };
+
+            if (isPermissionError) {
+              record.permissionError = true;
+              permissionErrors.push({
+                date: item.date,
+                message: noteError
+              });
+            }
+
+            records.push(record);
             console.warn("[HUG WM] note取得エラー:", item.date, noteError);
           }
         }
 
-        return {
+        var result = {
           ok: true,
-          listUrl,
-          records,
+          listUrl: listUrl,
+          records: records,
           rowCount: rows.length,
           presentCount: editTargets.length
         };
+
+        if (permissionErrors.length > 0) {
+          result.permissionErrors = permissionErrors;
+          console.warn("[HUG WM] 権限エラーが発生しました:", permissionErrors);
+        }
+
+        console.log("[HUG WM] 取得完了", {
+          totalRecords: records.length,
+          permissionErrors: permissionErrors.length
+        });
+
+        return result;
       } catch (error) {
         console.error("[HUG WM] 個人記録取得エラー:", error);
         return {
