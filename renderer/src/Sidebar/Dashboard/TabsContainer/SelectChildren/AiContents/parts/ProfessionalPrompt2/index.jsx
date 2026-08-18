@@ -1,4 +1,4 @@
-// renderer/src/components/Sidebar/Tools/MemoTool/Parts/AiContents/common/ProfessionalPrompt2.jsx
+// renderer/src/Sidebar/NomalMode/Dashboard/TabsContainer/SelectChildren/AiContents/parts/ProfessionalPrompt2/index.jsx
 import React, { useState, useEffect } from "react";
 import { useAppState } from "@/AppStateContext";
 import MemoInputBox from '@/components/ui/MemoInputBox';
@@ -6,12 +6,14 @@ import MemoInputBox from '@/components/ui/MemoInputBox';
 const DBG = 'ProfessionalPrompt2';
 
 export default function ProfessionalPrompt2({
-  sendPrompt = sendPromptToGemini,
-  aiName = "Gemini",
+  sendPrompt,
+  aiName = "AI",
   promptKey = "professional2",
-  renderGeminiResultArea,
+  renderResultArea = null,
+  resultAreaLabel = "API 返却値（専門2）",
+  buttonLabel = "実行",
 }) {
-  const { appState, PROMPTS, DEBUG_FLG } = useAppState();
+  const { PROMPTS } = useAppState();
 
   const [text1, setText1] = useState("");
   const [aiText, setAiText] = useState("");
@@ -23,12 +25,16 @@ export default function ProfessionalPrompt2({
     });
   };
 
-  // 🔥 初期値セット
+  // 🔥 初期値セット（PROMPTS 全体を監視）
   useEffect(() => {
     const next = PROMPTS?.professional2?.content ?? "";
-    logDbg('promptText1', 'PROMPTS から text1 反映', { nextLength: next.length });
+    logDbg('promptText1', 'PROMPTS から text1 反映', {
+      nextLength: next.length,
+      hasPrompts: !!PROMPTS,
+      promptsKeys: PROMPTS ? Object.keys(PROMPTS) : []
+    });
     setText1(next);
-  }, [PROMPTS?.professional2?.content]);
+  }, [PROMPTS]);
 
   // ★ 送信する文字列を組み立てるだけ
   const textValue = `${text1}\n\n\n${aiText}`;
@@ -113,20 +119,24 @@ export default function ProfessionalPrompt2({
 
       <div className="flex flex-row justify-between items-center">
         <button
-          className="w-[250px] bg-green-500 hover:bg-green-600 p-2 rounded text-white"
+          className="w-[250px] bg-green-500 hover:bg-green-600 p-2 rounded text-white disabled:opacity-50 disabled:cursor-not-allowed"
           onClick={clickEnterButton}
           disabled={!aiText}
         >
-          Gemini実行
+          {buttonLabel}
         </button>
-
-
       </div>
-      {(aiName === "Gemini" || aiName === "Ollama") &&
-        renderGeminiResultArea?.({
-          promptKey,
-          label: "Gemini API 返却値（専門2）",
-        })}
+
+      {/* 結果表示エリア（任意） */}
+      {renderResultArea && (
+        <div className="mt-2">
+          {renderResultArea({
+            promptKey,
+            label: resultAreaLabel,
+          })}
+        </div>
+      )}
+
       <MemoInputBox
         memoType={2}
         label="一時メモ２（編集可能）"

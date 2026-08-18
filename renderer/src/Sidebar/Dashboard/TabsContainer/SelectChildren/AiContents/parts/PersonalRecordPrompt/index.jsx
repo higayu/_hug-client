@@ -1,16 +1,14 @@
-// renderer/src/components/Sidebar/Tools/MemoTool/Parts/AiContents/common/PersonalRecordPrompt.jsx
+// renderer/src/Sidebar/NomalMode/Dashboard/TabsContainer/SelectChildren/AiContents/parts/PersonalRecordPrompt/index.jsx
 import React, { useState, useEffect } from "react";
-import { getActiveWebview } from '@/utils/webview/webviewState.js'
 import { useAppState } from '@/AppStateContext';
-
-import { useToast } from '@/provider/ToastProvider/ToastContext'
-import { useDispatch, useSelector } from 'react-redux'
+import { useToast } from '@/provider/ToastProvider/ToastContext';
+import { useDispatch, useSelector } from 'react-redux';
 import {
   setAiText,
   sendStart,
   sendSuccess,
   sendError
-} from '@/store/slices/sendTextSlice'
+} from '@/store/slices/sendTextSlice';
 import MemoInputBox from '@/components/ui/MemoInputBox';
 import TwoTabPanel from '@/components/ui/TwoTabPanel';
 import PersonalRecordManagerPanel2 from '@/components/common/hug_function/PersonalRecordManagerPanel2';
@@ -19,27 +17,22 @@ const DBG = 'PersonalRecordPrompt';
 
 export default function PersonalRecordPrompt({
   sendPrompt,
-  aiName = "OpenRouter",
+  aiName = "AI",
   promptKey = "personal",
-  renderOpenRouterResultArea,
+  renderResultArea = null,
+  resultAreaLabel = "API 返却値",
+  showTabButton = null,
 }) {
-  const { appState, PROMPTS, DEBUG_FLG } = useAppState();
-  // "personalRecord" と "professional" のプロンプトを2つの textarea に対応
+  const { PROMPTS } = useAppState();
   const [text1, setText1] = useState("");
-  const dispatch = useDispatch()
-  const PROMPT_KEY = 'personalRecord'
-  const aiText = useSelector(
-    state => state.sendText[PROMPT_KEY].aiText
-  )
-  const sending = useSelector(
-    state => state.sendText[PROMPT_KEY].sending
-  )
-  const {
-    showSuccessToast,
-    showErrorToast,
-    showInfoToast,
-  } = useToast()
-
+  
+  const dispatch = useDispatch();
+  const PROMPT_KEY = 'personalRecord';
+  
+  const aiText = useSelector(state => state.sendText?.[PROMPT_KEY]?.aiText ?? "");
+  const sending = useSelector(state => state.sendText?.[PROMPT_KEY]?.sending ?? false);
+  
+  const { showSuccessToast, showErrorToast, showInfoToast } = useToast();
 
   const logDbg = (field, msg, extra = {}) => {
     console.log(`[${DBG}:${field}]`, msg, {
@@ -49,12 +42,16 @@ export default function PersonalRecordPrompt({
     });
   };
 
-  // 🔥 初期化時ログ & 初期値セット
+  // 🔥 PROMPTS が更新されたら text1 を反映
   useEffect(() => {
     const next = PROMPTS?.personalRecord?.content ?? "";
-    logDbg('promptText1', 'PROMPTS から text1 反映', { nextLength: next.length });
+    logDbg('promptText1', 'PROMPTS から text1 反映', {
+      nextLength: next.length,
+      hasPrompts: !!PROMPTS,
+      promptsKeys: PROMPTS ? Object.keys(PROMPTS) : []
+    });
     setText1(next);
-  }, [PROMPTS?.personalRecord?.content]);
+  }, [PROMPTS]);
 
   const clickEnterButton = async () => {
     if (!aiText || aiText.trim() === "") return;
@@ -69,7 +66,7 @@ export default function PersonalRecordPrompt({
       const success = await sendPrompt({ textValue, promptKey });
 
       if (!success) {
-        throw new Error("sendPromptToOpenRouter returned false");
+        throw new Error(`sendPromptTo${aiName} returned false`);
       }
 
       dispatch(sendSuccess({ key: PROMPT_KEY }));
@@ -88,11 +85,9 @@ export default function PersonalRecordPrompt({
     }
   };
 
-
   return (
     <div className="flex flex-col gap-2 p-3 w-full">
-
-      {/* --- AI入力 --- */}
+      {/* --- プロンプト表示（読み取り専用） --- */}
       <div className="mt-1">
         <label className="font-semibold">個人記録用プロンプト</label>
         <textarea
@@ -115,7 +110,7 @@ export default function PersonalRecordPrompt({
         />
       </div>
 
-      {/* ===== Textarea 1 ===== */}
+      {/* ===== AI入力テキストエリア ===== */}
       <div className="flex flex-col gap-1">
         <label className="font-bold text-gray-700 block mb-1">
           AIに送信するテキスト
@@ -167,23 +162,34 @@ export default function PersonalRecordPrompt({
           }}
         />
 
-        <div className="flex flex-row justify-between items-center">
+        {/* ボタン行 */}
+        <div className="flex flex-row justify-between items-center gap-2">
+          {/* 左側：各AI固有のタブボタン（任意） */}
+          <div className="flex-1">
+            {showTabButton && showTabButton}
+          </div>
+          
+          {/* 右側：送信ボタン */}
           <button
-            className="w-full bg-green-500 hover:bg-green-600 p-2 rounded text-white disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-[60%] min-w-[120px] bg-green-500 hover:bg-green-600 p-2 rounded text-white disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={clickEnterButton}
             disabled={!aiText || sending}
           >
-            {sending ? "送信中…" : "OpenRouter実行"}
+            {sending ? "送信中…" : `${aiName}実行`}
           </button>
-
         </div>
 
-        {(aiName === "OpenRouter" || aiName === "Ollama") &&
-          renderOpenRouterResultArea?.({
-            promptKey,
-            label: "OpenRouter API 返却値（個人）",
-          })}
+        {/* 結果表示エリア（任意） */}
+        {renderResultArea && (
+          <div className="mt-2">
+            {renderResultArea({
+              promptKey,
+              label: resultAreaLabel,
+            })}
+          </div>
+        )}
 
+        {/* タブパネル */}
         <TwoTabPanel tabs={["一時メモ", "記録"]} className="mt-2">
           <MemoInputBox
             memoType={1}
@@ -194,7 +200,6 @@ export default function PersonalRecordPrompt({
             <PersonalRecordManagerPanel2 />
           </div>
         </TwoTabPanel>
-
       </div>
     </div>
   );

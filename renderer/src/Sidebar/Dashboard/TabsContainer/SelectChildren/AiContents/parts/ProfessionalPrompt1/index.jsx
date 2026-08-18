@@ -1,5 +1,4 @@
-// renderer/src/components/Sidebar/TabsContainer/SelectChildren/AiContents/GeminiContent/PromptBox/ProfessionalPrompt1.jsx
-
+// renderer/src/Sidebar/NomalMode/Dashboard/TabsContainer/SelectChildren/AiContents/parts/ProfessionalPrompt1/index.jsx
 import React, { useState, useEffect, useMemo } from "react";
 import { useAppState } from "@/AppStateContext";
 import ProfessionalPlan from "@/components/common/hug_function/ProfessionalPlan";
@@ -9,17 +8,17 @@ const DBG = "ProfessionalPrompt1";
 
 export default function ProfessionalPrompt1({
   sendPrompt,
-  aiName = "Gemini",
+  aiName = "AI",
   promptKey = "professional1",
-  renderOpenRouterResultArea,
+  renderResultArea = null,
+  resultAreaLabel = "API 返却値（専門1）",
+  showSupportCheck = true,
 }) {
   const appState = useAppState();
 
   const {
     PROMPTS,
     SELECT_CHILD,
-
-    // loadDataBase() が AppState に保存したデータを読む
     childrenData,
     waiting_childrenData,
     Experience_childrenData,
@@ -33,10 +32,9 @@ export default function ProfessionalPrompt1({
   // appState.SELECT_CHILD 監視用
   // =============================================================
   useEffect(() => {
-    console.log(`[${DBG}:appState.SELECT_CHILD] 変更検知`, {
+    console.log(`[${DBG}:appState.SELECT_CHILD] 児童ID変更検知`, {
       SELECT_CHILD: appState.SELECT_CHILD,
       type: typeof appState.SELECT_CHILD,
-      appState,
     });
   }, [appState.SELECT_CHILD]);
 
@@ -140,10 +138,6 @@ export default function ProfessionalPrompt1({
       childName: child?.name ?? null,
       notesLength: typeof next === "string" ? next.length : 0,
       notes: next,
-      databaseChildrenCount: databaseChildren.length,
-      weekChildrenCount: weekChildrenData.length,
-      waitingChildrenCount: waitingChildrenData.length,
-      experienceChildrenCount: experienceChildrenData.length,
     });
 
     setDbNote(next);
@@ -156,7 +150,7 @@ export default function ProfessionalPrompt1({
   ]);
 
   // =============================================================
-  // 初期値セット
+  // プロンプト初期値セット（PROMPTS 全体を監視）
   // =============================================================
   useEffect(() => {
     const next =
@@ -167,17 +161,19 @@ export default function ProfessionalPrompt1({
     logDbg("promptText1", "PROMPTS から text1 反映", {
       promptKey,
       nextLength: next.length,
+      hasPrompts: !!PROMPTS,
+      promptsKeys: PROMPTS ? Object.keys(PROMPTS) : []
     });
 
     setText1(next);
   }, [PROMPTS, promptKey]);
 
   // =============================================================
-  // 送信する文字列
+  // 送信文字列
   // =============================================================
   const textValue = `${dbNote}\n\n\n${text1}\n\n\n${aiText}`;
 
-  const clickEnterButton = async () => {
+  const handleSendPrompt = async () => {
     if (!aiText || aiText.trim() === "") {
       return;
     }
@@ -298,28 +294,32 @@ export default function ProfessionalPrompt1({
           <button
             type="button"
             className="w-[70%] bg-green-500 hover:bg-green-600 p-2 rounded text-white disabled:opacity-50 disabled:cursor-not-allowed"
-            onClick={clickEnterButton}
+            onClick={handleSendPrompt}
             disabled={!aiText || aiText.trim() === ""}
           >
             {aiName}実行
           </button>
 
-          <div className="w-[30%]">
-            <ProfessionalSupportCheckPanel2
-              logTag="ProfessionalPrompt1"
-              className="w-full"
-              labelClassName="w-full"
-            />
-          </div>
+          {showSupportCheck && (
+            <div className="w-[30%]">
+              <ProfessionalSupportCheckPanel2
+                logTag="ProfessionalPrompt1"
+                className="w-full"
+                labelClassName="w-full"
+              />
+            </div>
+          )}
         </div>
 
-        {(aiName === "OpenRouter" ||
-          aiName === "Ollama" ||
-          aiName === "Gemini") &&
-          renderOpenRouterResultArea?.({
-            promptKey,
-            label: `${aiName} API 返却値（専門1）`,
-          })}
+        {/* 結果表示エリア（任意） */}
+        {renderResultArea && (
+          <div className="mt-2">
+            {renderResultArea({
+              promptKey,
+              label: resultAreaLabel,
+            })}
+          </div>
+        )}
       </div>
     </div>
   );
