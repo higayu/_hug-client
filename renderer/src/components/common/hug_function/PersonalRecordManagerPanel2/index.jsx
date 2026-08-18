@@ -77,12 +77,10 @@ export default function PersonalRecordManagerPanel2() {
       ? toMonthStr(date)
       : month;
 
-  const dayOfWeekId = Number(
-    CURRENT_DAY_OF_WEEK?.weekdayId ??
-    CURRENT_DAY_OF_WEEK?.id ??
-    CURRENT_DAY_OF_WEEK?.weekday_id ??
-    CURRENT_DAY_OF_WEEK,
-  );
+  // 🔥 修正: 曜日フィルターを削除（全曜日を表示）
+  // 元のコードでは CURRENT_DAY_OF_WEEK から曜日IDを取得していたが、
+  // null を指定することで全曜日のデータが取得できる
+  const dayOfWeekId = null;
 
   const facilityId = Number(FACILITY_ID);
 
@@ -91,10 +89,9 @@ export default function PersonalRecordManagerPanel2() {
   }, []);
 
   useEffect(() => {
+    // 🔥 修正: dayOfWeekId が null の場合はバリデーションをスキップ
     if (
       !/^\d{4}-\d{2}$/.test(listTargetMonth) ||
-      !Number.isInteger(dayOfWeekId) ||
-      dayOfWeekId <= 0 ||
       !Number.isInteger(facilityId) ||
       facilityId <= 0
     ) {
@@ -111,7 +108,7 @@ export default function PersonalRecordManagerPanel2() {
       try {
         const rows = await getServiceRecordMonthly({
           target_month: listTargetMonth,
-          day_of_week_id: dayOfWeekId,
+          day_of_week_id: dayOfWeekId,  // null = 全曜日
           facility_id: facilityId,
         });
 
