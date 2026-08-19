@@ -43,6 +43,7 @@ const IPC_CHANNELS = [
   "laravel:procedure:register-facility-children",
   "laravel:procedure:register-manager-assignment",
   "laravel:procedure:sync-hug-staffs",
+  "laravel:procedure:update-staff",
   "laravel:procedure:upsert-service-record",
   "laravel:procedure:get-service-record-monthly",
   "laravel:procedure:get-active-ai-prompt",

@@ -12,11 +12,13 @@ const registerManagerAssignment =
 const syncHugStaffs =
   require("./syncHugStaffs");
 
+const updateStaff =
+  require("./update_staff");
+
 const upsertServiceRecord =
   require("./upsertServiceRecord");
 
-const getServiceRecordMonthly =
-  require("./get_service_record_monthly");
+const getServiceRecordMonthly = require("./get_service_record_monthly");
 
 const getActiveAiPrompt =
   require("./get_active_ai_prompt");
@@ -50,6 +52,9 @@ module.exports = {
 
   syncHugStaffsHandler:
     syncHugStaffs.handler,
+
+  updateStaffHandler:
+    updateStaff.handler,
 
   // ============================================================
   // サービス記録

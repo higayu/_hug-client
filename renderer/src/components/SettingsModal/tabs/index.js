@@ -9,3 +9,4 @@ export { default as WindowTab } from "./WindowTab";
 export { default as CustomTab } from "./CustomTab";
 export { default as PromptTab } from "./PromptTab";
 export { default as UpdateTab } from "./UpdateTab";//アップデート確認用
+export { default as StaffTab } from './StaffTab';

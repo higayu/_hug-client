@@ -6,9 +6,11 @@ const {
   loadIni,
 } = require("./iniUtils");
 
-const DEFAULT_HOST = "https://dev-hug-banso.we-labo.com";
+const DEFAULT_HOST =
+  "https://dev-hug-banso.we-labo.com";
 
-const DEFAULT_PORT =  "";
+const DEFAULT_PORT =
+  "";
 
 const DEFAULT_API_PATH =
   "/api";
@@ -202,7 +204,6 @@ function parseHttpUrl(
  * ini.jsonで使用できる設定:
  *
  * apiSettings.laravelURL
- * apiSettings.baseURL
  * apiSettings.port
  * apiSettings.apiPort
  * apiSettings.apiPath
@@ -213,21 +214,6 @@ function buildLaravelBaseURL(
   const configuredBaseURL =
     normalizeString(
       apiSettings.laravelURL,
-    ) ||
-    normalizeString(
-      apiSettings.laravelUrl,
-    ) ||
-    normalizeString(
-      apiSettings.LARAVEL_URL,
-    ) ||
-    normalizeString(
-      apiSettings.baseUrl,
-    ) ||
-    normalizeString(
-      apiSettings.baseURL,
-    ) ||
-    normalizeString(
-      apiSettings.host,
     ) ||
     DEFAULT_HOST;
 
@@ -1255,6 +1241,34 @@ const laravelApiClient = {
       }
     },
 
+  /** POST /api/__procedure/update-staff */
+  updateStaff:
+    async (
+      payload,
+    ) => {
+      prepareRequest();
+
+      try {
+        const response =
+          await laravelAxiosInstance.post(
+            "/__procedure/update-staff",
+            payload,
+          );
+
+        return response.data;
+      } catch (error) {
+        console.error(
+          "❌ [laravelApiClient] updateStaff failed:",
+          error?.response
+            ?.data ||
+            error?.message ||
+            error,
+        );
+
+        throw error;
+      }
+    },
+
   /**
    * UpsertServiceRecord プロシージャ実行
    *
@@ -1291,13 +1305,17 @@ const laravelApiClient = {
     },
 
   /**
-   * get_service_record_monthly プロシージャ実行
+   * upsert_managers2 プロシージャ実行
    *
-   * POST /api/__procedure/get-service-record-monthly
+   * POST /api/__procedure/upsert-managers2
+   *
+   * @param {Object} payload - マネージャー設定データ
+   * @returns {Promise<Object>} 実行結果
    */
+  /** POST /api/__procedure/get-service-record-monthly */
   getServiceRecordMonthly:
     async (
-      payload,
+      payload = {},
     ) => {
       prepareRequest();
 
@@ -1312,57 +1330,73 @@ const laravelApiClient = {
       } catch (error) {
         console.error(
           "❌ [laravelApiClient] getServiceRecordMonthly failed:",
-          error?.response?.data || error?.message || error,
+          error?.response
+            ?.data ||
+            error?.message ||
+            error,
         );
 
         throw error;
       }
     },
 
-  getActiveAiPrompt: async (payload) => {
-    prepareRequest();
+  /** POST /api/__procedure/get-active-ai-prompt */
+  getActiveAiPrompt:
+    async (
+      payload = {},
+    ) => {
+      prepareRequest();
 
-    try {
-      const response = await laravelAxiosInstance.post(
-        "/__procedure/get-active-ai-prompt",
-        payload,
-      );
-      return response.data;
-    } catch (error) {
-      console.error(
-        "❌ [laravelApiClient] getActiveAiPrompt failed:",
-        error?.response?.data || error?.message || error,
-      );
-      throw error;
-    }
-  },
+      try {
+        const response =
+          await laravelAxiosInstance.post(
+            "/__procedure/get-active-ai-prompt",
+            payload,
+          );
 
-  upsertAiPrompt: async (payload) => {
-    prepareRequest();
+        return response.data;
+      } catch (error) {
+        console.error(
+          "❌ [laravelApiClient] getActiveAiPrompt failed:",
+          error?.response
+            ?.data ||
+            error?.message ||
+            error,
+        );
 
-    try {
-      const response = await laravelAxiosInstance.post(
-        "/__procedure/upsert-ai-prompt",
-        payload,
-      );
-      return response.data;
-    } catch (error) {
-      console.error(
-        "❌ [laravelApiClient] upsertAiPrompt failed:",
-        error?.response?.data || error?.message || error,
-      );
-      throw error;
-    }
-  },
+        throw error;
+      }
+    },
 
-  /**
-   * upsert_managers2 プロシージャ実行
-   *
-   * POST /api/__procedure/upsert-managers2
-   *
-   * @param {Object} payload - マネージャー設定データ
-   * @returns {Promise<Object>} 実行結果
-   */
+  /** POST /api/__procedure/upsert-ai-prompt */
+  upsertAiPrompt:
+    async (
+      payload,
+    ) => {
+      prepareRequest();
+
+      try {
+        const response =
+          await laravelAxiosInstance.post(
+            "/__procedure/upsert-ai-prompt",
+            payload,
+          );
+
+        return response.data;
+      } catch (error) {
+        console.error(
+          "❌ [laravelApiClient] upsertAiPrompt failed:",
+          error?.response
+            ?.data ||
+            error?.message ||
+            error,
+        );
+
+        throw error;
+      }
+    },
+
+  /** POST /api/__procedure/upsert-managers2 */
   upsertManagers2:
     async (
       payload,

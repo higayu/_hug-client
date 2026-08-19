@@ -16,6 +16,7 @@ import {
   CustomTab,
   UpdateTab,
   PromptTab,
+  StaffTab,
 } from "./tabs";
 
 import { useAppState } from '@/AppStateContext';
@@ -44,6 +45,11 @@ const BASE_TABS = [
     id: 'window',
     label: 'ウィンドウ設定',
     component: WindowTab,
+  },
+  {
+    id: 'staff',
+    label: '職員の設定',
+    component: StaffTab,
   },
   {
     id: 'config',
@@ -156,7 +162,7 @@ export default function SettingsModal({
         onClick={handleBackdropClick}
       >
         <div
-          className="settings-modal-container m-[2%] mx-auto flex max-h-[90vh] w-[90%] max-w-[800px] flex-col overflow-hidden rounded-xl bg-white shadow-2xl animate-modal-slide-in"
+          className="settings-modal-container m-[2%] mx-auto flex max-h-[90vh] w-[90%] max-w-[1200px] flex-col overflow-hidden rounded-xl bg-white shadow-2xl animate-modal-slide-in"
           style={{
             colorScheme: 'light',
           }}
