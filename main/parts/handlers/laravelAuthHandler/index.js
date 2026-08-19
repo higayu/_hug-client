@@ -263,6 +263,15 @@ function registerLaravelAuthHandlers(
   );
 
   /**
+   * スタッフ情報の更新。
+   */
+  ipcMain.handle(
+    "laravel:procedure:update-staff",
+    procedures
+      .updateStaffHandler
+  );
+
+  /**
    * サービス記録の登録・更新。
    */
   ipcMain.handle(
