@@ -1,4 +1,4 @@
-// renderer/src/components/Sidebar/TabsContainer.jsx
+// renderer/src/components/Sidebar/Dashboard/TabsContainer.jsx
 import { useMemo } from 'react'
 import ToolContent from './SelectChildren'
 import InsertChildren from './InsertChildren'
