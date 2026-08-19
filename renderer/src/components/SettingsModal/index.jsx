@@ -33,11 +33,6 @@ const BASE_TABS = [
     component: ApiTab,
   },
   {
-    id: 'url',
-    label: 'URL設定',
-    component: UrlTab,
-  },
-  {
     id: 'features',
     label: '機能設定',
     component: FeaturesTab,
@@ -77,6 +72,11 @@ const BASE_TABS = [
 
 // デバッグモード用のタブ
 const DEBUG_TABS = [
+  {
+    id: 'url',
+    label: 'URL設定',
+    component: UrlTab,
+  },
   {
     id: 'custom',
     label: 'カスタムボタン',
