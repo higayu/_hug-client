@@ -1,12 +1,11 @@
 // renderer/src/sql/useManager/deleteManager/deleteManager.js
 
-import { handleSQLiteDelete } from "./parts/sqlite.js";
-import { handleMariaDBDelete } from "./parts/mariadb.js";
 import { handleLaravelDelete } from "./parts/laravel.js";
 
 export async function deleteManager(
   selectedChildren,
-  databaseType
+  databaseType,
+  facility_id
 ) {
   console.log("===== 削除Manager START =====");
 
@@ -18,22 +17,11 @@ export async function deleteManager(
     return false;
   }
 
-    if (databaseType === 'sqlite') {
-      const result =  await handleSQLiteDelete(selectedChildren);
+    if (databaseType === 'laravel') {
+      console.log("→ 使用DB: Laravel API");
+      const result =  await handleLaravelDelete(selectedChildren);
       if(result){
           return true;
-      }
-    } else if (databaseType === 'mariadb') {
-      console.log("→ 使用DB: MariaDB");
-      const result =  await handleMariaDBDelete(selectedChildren);
-      if(result){
-          return true;
-      }
-    } else if (databaseType === 'laravel') {
-      console.log("→ 使用DB: Laravel");
-      const result = await handleLaravelDelete(selectedChildren);
-      if (result) {
-        return true;
       }
     } else {
       console.warn("⚠️ 不明な databaseType:", databaseType);

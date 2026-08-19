@@ -1,7 +1,5 @@
 // renderer/src/sql/useManager/updateManager/updateManager/index.js
 
-import { handleSQLiteUpdate } from "./parts/sqlite.js";
-import { handleMariaDBUpdate } from "./parts/mariadb.js";
 import { handleLaravelUpdate } from "./parts/laravel.js";
 
 /**
@@ -13,7 +11,7 @@ import { handleLaravelUpdate } from "./parts/laravel.js";
  * 3. 配列形式
  *
  * @param {Object|Object[]} selectedChildren 更新対象
- * @param {string} databaseType "sqlite" | "mariadb" | "laravel"
+ * @param {string} databaseType "laravel"
  * @returns {Promise<boolean>}
  */
 export async function updateManager(selectedChildren, databaseType) {
@@ -27,31 +25,9 @@ export async function updateManager(selectedChildren, databaseType) {
     return false;
   }
 
-  const handlers = {
-    sqlite: {
-      handler: handleSQLiteUpdate,
-      label: "SQLite",
-    },
-    mariadb: {
-      handler: handleMariaDBUpdate,
-      label: "MariaDB",
-    },
-    laravel: {
-      handler: handleLaravelUpdate,
-      label: "Laravel",
-    },
-  };
-
-  const resolvedDatabaseType = String(databaseType).trim().toLowerCase();
-  const selectedHandler = handlers[resolvedDatabaseType];
-
-  if (!selectedHandler) {
-    console.warn("⚠️ 不明な databaseType:", databaseType);
-    return false;
-  }
-
-  const updateHandler = selectedHandler.handler;
-  const dbLabel = selectedHandler.label;
+  const resolvedDatabaseType = databaseType;
+  const updateHandler = handleLaravelUpdate;
+  const dbLabel = resolvedDatabaseType;
 
   try {
     // =============================================================

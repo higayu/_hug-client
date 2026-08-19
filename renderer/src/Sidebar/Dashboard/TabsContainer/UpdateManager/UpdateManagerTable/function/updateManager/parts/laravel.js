@@ -50,6 +50,7 @@ export async function handleLaravelUpdate(payload) {
       staff_id,
       day_of_week_id,
       priority = 0,
+      is_active = 1,
       support_start_time = null,
       support_end_time = null,
     } = payload;
@@ -81,6 +82,7 @@ export async function handleLaravelUpdate(payload) {
     const resolvedPriority = Number.isFinite(Number(priority))
       ? Number(priority)
       : 0;
+    const resolvedIsActive = Number(is_active) === 0 ? 0 : 1;
 
     const resolvedSupportStartTime = formatTimeForDb(support_start_time);
     const resolvedSupportEndTime = formatTimeForDb(support_end_time);
@@ -99,6 +101,7 @@ export async function handleLaravelUpdate(payload) {
       staff_id: resolvedStaffId,
       day_of_week_id: resolvedDayOfWeekId,
       priority: resolvedPriority,
+      is_active: resolvedIsActive,
       support_start_time: resolvedSupportStartTime,
       support_end_time: resolvedSupportEndTime,
     };

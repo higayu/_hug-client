@@ -92,6 +92,7 @@ export function selectManagersFull(database = {}) {
         day_of_week_id: dayOfWeekId,
 
         priority: Number(m.priority ?? 0),
+        is_active: Number(m.is_active ?? 1),
         support_start_time: m.support_start_time ?? null,
         support_end_time: m.support_end_time ?? null,
 

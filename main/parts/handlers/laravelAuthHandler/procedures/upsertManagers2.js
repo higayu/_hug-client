@@ -6,10 +6,15 @@ const { executeAuthenticatedOperation } = require("../auth/authenticated");
 const { formatError, unwrapData } = require("../auth/utils");
 
 async function upsertManagers2(payload = {}) {
-  console.log("📤 [Laravel Procedure] upsertManagers2:", payload);
+  const request = {
+    is_active: 1,
+    ...payload,
+  };
+
+  console.log("📤 [Laravel Procedure] upsertManagers2:", request);
 
   const result = await executeAuthenticatedOperation(
-    () => laravelApiClient.upsertManagers2(payload),
+    () => laravelApiClient.upsertManagers2(request),
     "マネージャー設定の保存に失敗しました。"
   );
 
