@@ -108,6 +108,9 @@ function createElectronApi(ipcRenderer, isDebugMode) {
     laravel_procedure_syncHugStaffs: (data) =>
       ipcRenderer.invoke("laravel:procedure:sync-hug-staffs", data),
 
+    laravel_staff_update: (data) =>
+      ipcRenderer.invoke("laravel:procedure:update-staff", data),
+    
     laravel_procedure_upsertServiceRecord: (data) =>
       ipcRenderer.invoke("laravel:procedure:upsert-service-record", data),
 

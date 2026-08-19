@@ -1,4 +1,4 @@
-// renderer/src/components/Sidebar/TabsContainer.jsx
+// renderer/src/components/Sidebar/Dashboard/TabsContainer.jsx
 import { useMemo } from 'react'
 import ToolContent from './SelectChildren'
 import InsertChildren from './InsertChildren'
@@ -17,7 +17,6 @@ function TabsContainer() {
   const tabs = useMemo(() => {
     const baseTabs = [
       { id: 'tools', label: '🧰 ツール' },
-      { id: 'speechToText', label: '🎙 音声入力' },
       { id: 'insertManageChildren', label: '👶 子ども管理' },
       { id: 'updateManager', label: '👥 担当編集' },
     ]
@@ -25,6 +24,7 @@ function TabsContainer() {
     if (DEBUG_FLG) {
       baseTabs.push(
         { id: 'TestContent', label: 'テストコンテンツ' },
+        { id: 'speechToText', label: '🎙 音声入力' },
       )
     }
 
@@ -59,12 +59,6 @@ function TabsContainer() {
           </div>
         )}
 
-        {activeTab === 'speechToText' && (
-          <div className="h-full flex flex-col">
-            <SpeechToText />
-          </div>
-        )}
-
         {activeTab === 'insertManageChildren' && (
           <div className="h-full flex flex-col">
             <InsertChildren />
@@ -80,6 +74,12 @@ function TabsContainer() {
         {DEBUG_FLG && activeTab === 'TestContent' && (
           <div className="h-full flex flex-col">
             <TestContent />
+          </div>
+        )}
+
+        {DEBUG_FLG && activeTab === 'speechToText' && (
+          <div className="h-full flex flex-col">
+            <SpeechToText />
           </div>
         )}
 

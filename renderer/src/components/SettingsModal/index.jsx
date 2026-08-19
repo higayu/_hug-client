@@ -9,6 +9,7 @@ import { useSettingsModal } from './useSettingsModal';
 
 import {
   ApiTab,
+  UrlTab,
   ConfigTab,
   FeaturesTab,
   UITab,
@@ -16,6 +17,7 @@ import {
   CustomTab,
   UpdateTab,
   PromptTab,
+  StaffTab,
 } from "./tabs";
 
 import { useAppState } from '@/AppStateContext';
@@ -46,6 +48,11 @@ const BASE_TABS = [
     component: WindowTab,
   },
   {
+    id: 'staff',
+    label: '職員の設定',
+    component: StaffTab,
+  },
+  {
     id: 'config',
     label: 'Config.json設定',
     component: ConfigTab,
@@ -65,6 +72,11 @@ const BASE_TABS = [
 
 // デバッグモード用のタブ
 const DEBUG_TABS = [
+  {
+    id: 'url',
+    label: 'URL設定',
+    component: UrlTab,
+  },
   {
     id: 'custom',
     label: 'カスタムボタン',
@@ -156,7 +168,7 @@ export default function SettingsModal({
         onClick={handleBackdropClick}
       >
         <div
-          className="settings-modal-container m-[2%] mx-auto flex max-h-[90vh] w-[90%] max-w-[800px] flex-col overflow-hidden rounded-xl bg-white shadow-2xl animate-modal-slide-in"
+          className="settings-modal-container m-[2%] mx-auto flex max-h-[90vh] w-[90%] max-w-[1200px] flex-col overflow-hidden rounded-xl bg-white shadow-2xl animate-modal-slide-in"
           style={{
             colorScheme: 'light',
           }}

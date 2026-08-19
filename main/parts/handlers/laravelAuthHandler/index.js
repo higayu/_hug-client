@@ -43,6 +43,7 @@ const IPC_CHANNELS = [
   "laravel:procedure:register-facility-children",
   "laravel:procedure:register-manager-assignment",
   "laravel:procedure:sync-hug-staffs",
+  "laravel:procedure:update-staff",
   "laravel:procedure:upsert-service-record",
   "laravel:procedure:get-service-record-monthly",
   "laravel:procedure:get-active-ai-prompt",
@@ -259,6 +260,15 @@ function registerLaravelAuthHandlers(
     "laravel:procedure:sync-hug-staffs",
     procedures
       .syncHugStaffsHandler
+  );
+
+  /**
+   * スタッフ情報の更新。
+   */
+  ipcMain.handle(
+    "laravel:procedure:update-staff",
+    procedures
+      .updateStaffHandler
   );
 
   /**

@@ -173,6 +173,7 @@ var require_electronApi = __commonJS({
           data
         ),
         laravel_procedure_syncHugStaffs: (data) => ipcRenderer2.invoke("laravel:procedure:sync-hug-staffs", data),
+        laravel_staff_update: (data) => ipcRenderer2.invoke("laravel:procedure:update-staff", data),
         laravel_procedure_upsertServiceRecord: (data) => ipcRenderer2.invoke("laravel:procedure:upsert-service-record", data),
         laravel_procedure_getServiceRecordMonthly: (data) => ipcRenderer2.invoke(
           "laravel:procedure:get-service-record-monthly",

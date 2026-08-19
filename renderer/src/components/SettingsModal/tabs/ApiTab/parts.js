@@ -47,17 +47,6 @@ export const createFormState = ({
   appState,
 }) => {
   return {
-    baseURL: String(
-      apiSettings?.baseURL ??
-      appState?.BASE_URL ??
-      ''
-    ),
-
-    laravelURL: String(
-      apiSettings?.laravelURL ??
-      ''
-    ),
-
     staffId: toId(
       apiSettings?.staffId ??
       appState?.STAFF_ID

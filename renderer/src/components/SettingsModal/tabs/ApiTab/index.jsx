@@ -399,8 +399,6 @@ function ApiTab() {
       const nextApiSettings = {
         ...(iniState?.apiSettings ?? {}),
 
-        baseURL: form.baseURL.trim(),
-        laravelURL: form.laravelURL.trim(),
         staffId: toId(form.staffId),
         facilityId: toId(form.facilityId),
 
@@ -666,42 +664,6 @@ function ApiTab() {
         )}
 
       <div className="mb-6">
-        <div className="mb-3 flex items-center py-2">
-          <label
-            htmlFor="api-base-url"
-            className="min-w-[120px] font-medium text-gray-700"
-          >
-            APIベースURL:
-          </label>
-
-          <input
-            type="text"
-            id="api-base-url"
-            name="baseURL"
-            value={form.baseURL}
-            onChange={handleInputChange}
-            className="max-w-[300px] flex-1 rounded-md border border-gray-300 px-3 py-2 text-sm transition-all"
-          />
-        </div>
-
-        <div className="mb-3 flex items-center py-2">
-          <label
-            htmlFor="api-laravel-url"
-            className="min-w-[120px] font-medium text-gray-700"
-          >
-            Laravel URL:
-          </label>
-
-          <input
-            type="text"
-            id="api-laravel-url"
-            name="laravelURL"
-            value={form.laravelURL}
-            onChange={handleInputChange}
-            className="max-w-[300px] flex-1 rounded-md border border-gray-300 px-3 py-2 text-sm transition-all"
-          />
-        </div>
-
         <div className="mb-3 flex items-center py-2">
           <label
             htmlFor="api-facility-id"
