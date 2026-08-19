@@ -1,6 +1,7 @@
 // ./tabs/index.js
 
 export { default as ApiTab } from "./ApiTab";
+export { default as UrlTab } from "./UrlTab";
 export { default as ConfigTab } from "./ConfigTab";
 export { default as FeaturesTab } from "./FeaturesTab";
 export { default as UITab } from "./UITab";

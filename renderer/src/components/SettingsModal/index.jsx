@@ -9,6 +9,7 @@ import { useSettingsModal } from './useSettingsModal';
 
 import {
   ApiTab,
+  UrlTab,
   ConfigTab,
   FeaturesTab,
   UITab,
@@ -30,6 +31,11 @@ const BASE_TABS = [
     id: 'api',
     label: 'API設定',
     component: ApiTab,
+  },
+  {
+    id: 'url',
+    label: 'URL設定',
+    component: UrlTab,
   },
   {
     id: 'features',
