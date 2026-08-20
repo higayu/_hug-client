@@ -21,6 +21,7 @@ const upsertServiceRecord =
 const getServiceRecordMonthly = require("./get_service_record_monthly");
 const getChildKadaiGraph = require("./get_child_kadai_graph");
 const upsertChildKadaiGraph = require("./upsert_child_kadai_graph");
+const deleteChildRecord = require("./delete_child_record");
 
 const getActiveAiPrompt =
   require("./get_active_ai_prompt");
@@ -73,6 +74,9 @@ module.exports = {
 
   upsertChildKadaiGraphHandler:
     upsertChildKadaiGraph.handler,
+
+  deleteChildRecordHandler:
+    deleteChildRecord.handler,
 
   getActiveAiPromptHandler:
     getActiveAiPrompt.handler,

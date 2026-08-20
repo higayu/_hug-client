@@ -1371,6 +1371,12 @@ const laravelApiClient = {
     }
   },
 
+  deleteChildRecord: async (id) => {
+    prepareRequest();
+    const response = await laravelAxiosInstance.delete(`/child-records/${id}`);
+    return response.data;
+  },
+
   /** POST /api/__procedure/get-active-ai-prompt */
   getActiveAiPrompt:
     async (

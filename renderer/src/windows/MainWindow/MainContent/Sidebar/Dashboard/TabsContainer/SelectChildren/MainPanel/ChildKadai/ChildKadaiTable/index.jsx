@@ -1,13 +1,14 @@
 import { useMemo, useState } from 'react'
 import { AllCommunityModule, ModuleRegistry, themeQuartz } from 'ag-grid-community'
 import { AgGridReact } from 'ag-grid-react'
+import { TrashIcon } from '@heroicons/react/24/outline'
 import { useAppState } from '@/AppStateContext'
 import ChildKadaiFilter from './common/ChildKadaiFilter'
 
 ModuleRegistry.registerModules([AllCommunityModule])
 const list = (value) => Array.isArray(value) ? value : []
 
-export default function ChildKadaiTable({ childRecords, loading, error, onCreate, onEdit, onShowGraph }) {
+export default function ChildKadaiTable({ childRecords, loading, error, onCreate, onEdit, onDelete, onShowGraph }) {
   const { FACILITY_ID, databaseState, databaseLoading } = useAppState()
   const [filters, setFilters] = useState({ name: '', childrenId: '', recordTypeId: '' })
   const children = list(databaseState?.children)
@@ -38,6 +39,20 @@ export default function ChildKadaiTable({ childRecords, loading, error, onCreate
       ),
     },
     {
+      headerName: '', width: 64, sortable: false, resizable: false,
+      cellRenderer: ({ data }) => (
+        <button
+          type="button"
+          onClick={() => onDelete(data)}
+          className="rounded p-1.5 text-red-600 hover:bg-red-50 hover:text-red-700"
+          title="削除"
+          aria-label="削除"
+        >
+          <TrashIcon className="h-5 w-5" aria-hidden="true" />
+        </button>
+      ),
+    },
+    {
       headerName: 'グラフ', width: 100, sortable: false,
       cellRenderer: ({ data }) => (
         <button type="button" onClick={() => onShowGraph({ childrenId: data.children_id, recordTypeId: data.record_type_id })} className="rounded bg-blue-600 px-3 py-1 text-xs text-white">表示</button>
@@ -51,7 +66,7 @@ export default function ChildKadaiTable({ childRecords, loading, error, onCreate
     { headerName: '施設名', field: 'facility_name' },
     { headerName: 'メモ1', field: 'memo1', flex: 1 },
     { headerName: 'メモ2', field: 'memo2', flex: 1 },
-  ], [onEdit, onShowGraph])
+  ], [onDelete, onEdit, onShowGraph])
 
   return (
     <section className="p-4">

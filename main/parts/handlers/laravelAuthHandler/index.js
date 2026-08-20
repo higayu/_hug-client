@@ -302,6 +302,11 @@ function registerLaravelAuthHandlers(
   );
 
   ipcMain.handle(
+    "laravel:child-record:delete",
+    procedures.deleteChildRecordHandler
+  );
+
+  ipcMain.handle(
     "laravel:procedure:get-active-ai-prompt",
     procedures.getActiveAiPromptHandler
   );
