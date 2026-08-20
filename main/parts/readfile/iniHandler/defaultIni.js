@@ -2,7 +2,7 @@
 // ini.json のデフォルト設定
 
 const DEFAULT_INI = {
-    version: "1.0.0",
+    version: "1.1.0",
     appSettings: {
       autoLogin: {
         enabled: true,
@@ -41,7 +41,7 @@ const DEFAULT_INI = {
       { id: "importSetting", enabled: false },
       { id: "getUrl", enabled: false },
       { id: "loadIni", enabled: true },
-      { id: "additionCompare", enabled: true },
+      { id: "additionCompare", enabled: false },
       { id: "customAction1", enabled: false }
     ],
     userPreferences: {

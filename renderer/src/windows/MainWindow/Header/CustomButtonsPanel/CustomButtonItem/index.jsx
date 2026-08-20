@@ -2,26 +2,15 @@
 
 function CustomButtonItem({ buttonConfig, onClick }) {
   return (
-    <li className="m-0 p-0">
-      <button
-        onClick={() => onClick(buttonConfig)}
-        style={{
-          backgroundColor: buttonConfig.color,
-          color: 'white',
-          border: 'none',
-          padding: '8px 12px',
-          borderRadius: '4px',
-          cursor: 'pointer',
-          width: '100%',
-          marginBottom: '4px',
-          transition: 'opacity 0.2s'
-        }}
-        onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.8')}
-        onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
-      >
-        {buttonConfig.text}
-      </button>
-    </li>
+    <button
+      type="button"
+      role="menuitem"
+      onClick={() => onClick(buttonConfig)}
+      style={{ backgroundColor: buttonConfig.color }}
+      className="mb-1 w-full cursor-pointer rounded border-none px-3 py-2 text-white transition-opacity hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-blue-300"
+    >
+      {buttonConfig.text}
+    </button>
   )
 }
 

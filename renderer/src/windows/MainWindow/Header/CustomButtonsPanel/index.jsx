@@ -26,11 +26,11 @@ export default function CustomButtonsPanel({ className = '' }) {
    * CustomButtonItemから渡される引数は
    * そのままhandleButtonClickへ渡す。
    */
-  const handleMenuButtonClick = (closeMenu, ...args) => {
+  const handleMenuButtonClick = async (closeMenu, ...args) => {
     closeMenu();
 
     try {
-      return handleButtonClick(...args);
+      return await handleButtonClick(...args);
     } catch (error) {
       console.error('[CustomButtonsPanel] カスタムボタン実行エラー:', error);
       return undefined;

@@ -1,5 +1,5 @@
 {
-  "version": "1.0.0",
+  "version": "1.1.0",
   "appSettings": {
     "autoLogin": {
       "enabled": true,
@@ -16,6 +16,7 @@
       },
       "confirmOnClose": true
     },
+    "features": {},
     "window": {
       "width": 1200,
       "height": 800,
@@ -30,6 +31,15 @@
       "desktop": true
     }
   },
+  "customButtons": [
+    { "id": "individualSupportPlan", "enabled": true },
+    { "id": "specializedSupportPlan", "enabled": true },
+    { "id": "importSetting", "enabled": false },
+    { "id": "getUrl", "enabled": false },
+    { "id": "loadIni", "enabled": true },
+    { "id": "additionCompare", "enabled": false },
+    { "id": "customAction1", "enabled": false }
+  ],
   "userPreferences": {
     "lastLoginDate": "",
     "rememberWindowState": true,
@@ -37,13 +47,13 @@
   },
   "apiSettings": {
     "baseURL": "http://192.168.1.229",
-    "laravelURL":"https://dev-hug-banso.we-labo.com",
+    "laravelURL": "https://dev-hug-banso.we-labo.com",
     "staffId": "",
     "facilityId": "3",
     "databaseType": "mariadb",
-    "useAI": "ollama",
+    "useAI": "chatGPT",
     "autoSynchronization": "true",
     "autoSwitching": "true",
-    "debugFlg": "true"
+    "debugFlg": "false"
   }
 }

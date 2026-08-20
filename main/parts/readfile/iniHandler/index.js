@@ -1,7 +1,6 @@
 // main/parts/readfile/iniHandler/index.js
 const fs = require("fs");
 const path = require("path");
-const { ipcMain } = require("electron");
 const { getDataDir, getIniPath } = require("../../utils/pathResolver");
 const { DEFAULT_INI, getDefaultIni } = require("./defaultIni");
 
@@ -23,38 +22,47 @@ function handleIniAccess(ipcMain) {
       }
 
       const jsonData = JSON.parse(fs.readFileSync(filePath, "utf8"));
+      let legacyPathToRemove = null;
 
       // 旧 customButtons.json が残っている環境は ini.json へ一度だけ移行する
       if (!Array.isArray(jsonData.customButtons)) {
         const legacyPath = path.join(getDataDir(), "customButtons.json");
         if (fs.existsSync(legacyPath)) {
-          const legacyData = JSON.parse(fs.readFileSync(legacyPath, "utf8"));
-          jsonData.customButtons = Array.isArray(legacyData.customButtons)
-            ? legacyData.customButtons.map(({ id, enabled }) => ({
-                id,
-                enabled: enabled === true
-              }))
-            : getDefaultIni().customButtons;
-          fs.unlinkSync(legacyPath);
+          try {
+            const legacyData = JSON.parse(fs.readFileSync(legacyPath, "utf8"));
+            jsonData.customButtons = Array.isArray(legacyData.customButtons)
+              ? legacyData.customButtons.map(({ id, enabled }) => ({
+                  id,
+                  enabled: enabled === true
+                }))
+              : getDefaultIni().customButtons;
+            legacyPathToRemove = legacyPath;
+          } catch (legacyError) {
+            console.warn("⚠️ 旧 customButtons.json の移行に失敗しました:", legacyError);
+            jsonData.customButtons = getDefaultIni().customButtons;
+          }
         } else {
           jsonData.customButtons = getDefaultIni().customButtons;
         }
-        fs.writeFileSync(filePath, JSON.stringify(jsonData, null, 2), "utf8");
       }
       
-      // バージョンチェックとマイグレーション
+      // バージョンにかかわらず不足キーを補完し、未知の既存キーは保持する
+      const normalizedData = mergeDeep(DEFAULT_INI, jsonData);
+      normalizedData.version = DEFAULT_INI.version;
+
       if (!jsonData.version || jsonData.version !== DEFAULT_INI.version) {
         console.warn(`⚠️ ini.json のバージョンが異なります (current: ${DEFAULT_INI.version}, file: ${jsonData.version || 'undefined'})`);
-        // 不足しているキーをデフォルト値で補完
-        const merged = mergeDeep(DEFAULT_INI, jsonData);
-        merged.version = DEFAULT_INI.version;
-        
-        // 補完したデータを保存
-        fs.writeFileSync(filePath, JSON.stringify(merged, null, 2), "utf8");
-        return { success: true, data: merged };
       }
-      
-      return { success: true, data: jsonData };
+
+      if (JSON.stringify(normalizedData) !== JSON.stringify(jsonData)) {
+        fs.writeFileSync(filePath, JSON.stringify(normalizedData, null, 2), "utf8");
+      }
+
+      if (legacyPathToRemove) {
+        fs.unlinkSync(legacyPathToRemove);
+      }
+
+      return { success: true, data: normalizedData };
     } catch (err) {
       console.error("❌ ini.json 読み込み失敗:", err);
       // 破損時はデフォルトを返す
@@ -176,7 +184,7 @@ function mergeDeep(target, source) {
   const result = { ...target };
   
   for (const key in source) {
-    if (source.hasOwnProperty(key)) {
+    if (Object.prototype.hasOwnProperty.call(source, key)) {
       if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
         result[key] = mergeDeep(target[key] || {}, source[key]);
       } else {

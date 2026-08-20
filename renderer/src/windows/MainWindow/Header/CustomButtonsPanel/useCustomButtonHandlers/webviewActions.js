@@ -14,7 +14,6 @@ export async function handleCustomAction1(buttonConfig, appState) {
     return
   }
 
-  const addTabBtn = tabsContainer.querySelector("button:last-child")
   const newId = `hugview-${Date.now()}-${document.querySelectorAll("webview").length}`
 
   const newWebview = document.createElement("webview")
@@ -30,10 +29,12 @@ export async function handleCustomAction1(buttonConfig, appState) {
     newWebview.setAttribute("preload", window.preloadPath)
   }
 
-  newWebview.classList.add("hidden")
+  webviewContainer.querySelectorAll("webview").forEach((webview) => {
+    webview.classList.add("hidden")
+  })
+  newWebview.className = "absolute inset-0 h-full w-full border-none"
   webviewContainer.appendChild(newWebview)
-
-  // 以下、既存ロジックそのまま
+  setActiveWebview(newWebview)
 }
 
 export function handleAdditionCompare(appState,facilytys) {
