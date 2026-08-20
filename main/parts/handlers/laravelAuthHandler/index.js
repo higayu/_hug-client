@@ -48,6 +48,7 @@ const IPC_CHANNELS = [
   "laravel:procedure:get-service-record-monthly",
   "laravel:procedure:get-child-kadai-graph",
   "laravel:procedure:upsert-child-kadai-graph",
+  "laravel:child-record:delete",
   "laravel:procedure:get-active-ai-prompt",
   "laravel:procedure:upsert-ai-prompt",
   "laravel:procedure:upsert-managers2",
