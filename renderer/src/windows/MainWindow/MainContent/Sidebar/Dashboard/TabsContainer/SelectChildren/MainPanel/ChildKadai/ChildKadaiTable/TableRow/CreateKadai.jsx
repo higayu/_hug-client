@@ -11,18 +11,18 @@ const today = () => {
   return current.toISOString().slice(0, 10)
 }
 
-function CreateKadai({ onCancel, onSaved }) {
+function CreateKadai({ initialChildrenId, initialRecordTypeId, onCancel, onSaved }) {
   const { FACILITY_ID, databaseState } = useAppState()
-  const [form, setForm] = useState({
-    children_id: '',
-    record_type_id: '',
+  const [form, setForm] = useState(() => ({
+    children_id: initialChildrenId ?? '',
+    record_type_id: initialRecordTypeId ?? '',
     date: today(),
     score: '',
     mistakes: '',
     facility_id: FACILITY_ID || '',
     memo1: '',
     memo2: '',
-  })
+  }))
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 

@@ -95,7 +95,14 @@ function ChildKadai() {
   }
 
   if (creating) {
-    return <CreateKadai onCancel={showTable} onSaved={handleSaved} />
+    return (
+      <CreateKadai
+        initialChildrenId={SELECT_CHILD}
+        initialRecordTypeId={recordTypeId}
+        onCancel={showTable}
+        onSaved={handleSaved}
+      />
+    )
   }
 
   if (graphTarget) {
