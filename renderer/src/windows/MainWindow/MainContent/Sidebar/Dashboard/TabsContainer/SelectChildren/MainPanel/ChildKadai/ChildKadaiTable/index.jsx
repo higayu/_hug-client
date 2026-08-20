@@ -7,7 +7,7 @@ import ChildKadaiFilter from './common/ChildKadaiFilter'
 ModuleRegistry.registerModules([AllCommunityModule])
 const list = (value) => Array.isArray(value) ? value : []
 
-export default function ChildKadaiTable({ childRecords, loading, error, onEdit, onShowGraph }) {
+export default function ChildKadaiTable({ childRecords, loading, error, onCreate, onEdit, onShowGraph }) {
   const { FACILITY_ID, databaseState, databaseLoading } = useAppState()
   const [filters, setFilters] = useState({ name: '', childrenId: '', recordTypeId: '' })
   const children = list(databaseState?.children)
@@ -55,7 +55,10 @@ export default function ChildKadaiTable({ childRecords, loading, error, onEdit, 
 
   return (
     <section className="p-4">
-      <h2 className="mb-4 text-lg font-semibold">児童課題記録一覧</h2>
+      <div className="mb-4 flex items-center justify-between">
+        <h2 className="text-lg font-semibold">児童課題記録一覧</h2>
+        <button type="button" onClick={onCreate} className="rounded bg-green-600 px-4 py-2 text-sm text-white hover:bg-green-700">新規追加</button>
+      </div>
       <ChildKadaiFilter filters={filters} setFilters={setFilters} children={children} recordTypes={recordTypes} />
       <div style={{ height: 500 }}>
         <AgGridReact rowData={rows} columnDefs={columns} pagination paginationPageSize={20} loading={loading || databaseLoading} theme={themeQuartz} />

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, useCallback } from 'react'  // ← useCallback を追加
-import BrowserOpenButton from '@/components/common/BrowserOpenButton'
+
 import { useAppState } from '@/AppStateContext'
 import { useToast } from '@/provider/ToastProvider/ToastContext'
 import { useDataBase } from '@/hooks/useDataBase'
@@ -725,11 +725,6 @@ function ApiTab() {
             ))}
           </select>
 
-          <BrowserOpenButton
-            switch_id={2}
-            path="/houday/build-file/yoshijima/staffs"
-            title="スタッフが見つからない場合はこちらから修正してください"
-          />
         </div>
 
         <div className="mb-3 flex items-center py-2">

@@ -9,7 +9,6 @@ import { useToast } from '@/provider/ToastProvider/ToastContext'
 import { useAppState } from "@/AppStateContext";
 import { useNote } from "@/hooks/useNote";
 import PersonalRecordButton from "@/components/common/PersonalRecordButton";
-import BrowserOpenButton from "@/components/common/BrowserOpenButton";
 
 export default function MemoInputBox({
   memoType,
@@ -389,14 +388,6 @@ export default function MemoInputBox({
       />
 
       <div className="mt-2 flex gap-2 items-stretch">
-        {memoType === 1 && (
-          <BrowserOpenButton
-            switch_id={3}
-            path=""
-            title="児童の課題記録"
-            disabled_flg={!SELECT_CHILD}
-          />
-        )}
 
         <button
           type="button"
