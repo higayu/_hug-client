@@ -6,6 +6,9 @@ import { ToastProvider } from '@/provider/ToastProvider/ToastContext'
 const ProfessionalSupportWindow = lazy(
   () => import('@/windows/ProfessionalSupportWindow')
 )
+const AdditionCompareWindow = lazy(
+  () => import('@/windows/AdditionCompareWindow')
+)
 
 function resolveWindowType() {
   const params = new URLSearchParams(window.location.search)
@@ -14,6 +17,7 @@ function resolveWindowType() {
 
 const WINDOW_COMPONENTS = {
   main: MainWindow,
+  additionCompare: AdditionCompareWindow,
   professionalSupport: ProfessionalSupportWindow,
 }
 

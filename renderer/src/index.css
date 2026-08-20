@@ -48,7 +48,7 @@ body {
 
 /* === サイドバー（常時表示） === */
 .settings-sidebar {
-  width: 50vw;
+  width: 100%;
   border-right: 1px solid #ccc;
 }
 

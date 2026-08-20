@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import Sidebar from './Sidebar'
+import ResizableSplitPane from '@/components/ui/ResizableSplitPane'
 
 function MainContent({ preloadPath }) {
   useEffect(() => {
@@ -16,29 +17,38 @@ function MainContent({ preloadPath }) {
   }, [preloadPath])
 
   return (
-    <div 
-      id="content" 
-      className="relative flex-1 overflow-visible flex z-[1] min-h-0 h-full"
+    <div
+      id="content"
+      className="relative z-[1] flex h-full min-h-0 min-w-0 flex-1 overflow-hidden"
     >
-      <div 
-        id="settings" 
-        className="settings-sidebar bg-[#f8f8f8] border-r-0 p-0 flex-none h-full shadow-[2px_0_8px_rgba(0,0,0,0.1)] transition-all overflow-hidden z-10 flex flex-col text-black"
-      >
-        <Sidebar />
-      </div>
-      <div 
-        id="webview-container" 
-        className="flex-1 relative min-h-0 h-full overflow-hidden"
-      >
-        <webview
-          id="hugview"
-          src="https://www.hug-ayumu.link/hug/wm/"
-          allowpopups="true"
-          disablewebsecurity="true"
-          preload={preloadPath}
-          className="absolute inset-0 w-full h-full border-none z-[1] overflow-hidden"
-        ></webview>
-      </div>
+      <ResizableSplitPane
+        defaultLeftPercent={50}
+        minLeftWidth={300}
+        minRightWidth={300}
+        left={(
+          <aside
+            id="settings"
+            className="settings-sidebar z-10 flex h-full w-full flex-col overflow-hidden bg-[#f8f8f8] p-0 text-black shadow-[2px_0_8px_rgba(0,0,0,0.1)]"
+          >
+            <Sidebar />
+          </aside>
+        )}
+        right={(
+          <main
+            id="webview-container"
+            className="relative h-full min-h-0 min-w-0 overflow-hidden"
+          >
+            <webview
+              id="hugview"
+              src="https://www.hug-ayumu.link/hug/wm/"
+              allowpopups="true"
+              disablewebsecurity="true"
+              preload={preloadPath}
+              className="absolute inset-0 z-[1] h-full w-full overflow-hidden border-none"
+            />
+          </main>
+        )}
+      />
     </div>
   )
 }

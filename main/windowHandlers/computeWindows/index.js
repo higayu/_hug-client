@@ -1,8 +1,5 @@
 // main/windowHandlers/computeWindows/index.js
 // 加算比較用ウインドウ
-const path = require("path");
-const fs = require("fs");
-const { app } = require("electron");
 const { createDoubleWebviewWindow } = require("./windowManager");
 
 let isRegistered = false;
@@ -39,22 +36,13 @@ function open_addition_compare_btn(ipcMain, facility_id, date_str) {
 }
 
 function openDoubleWebviewWithTabs(url1, url2, label, facilityId, dateStr) {
-  
-  // HTMLテンプレートを読み込み
-  const templatePath = path.join(
-    app.getAppPath(),
-    "renderer",
-    "src",
-    "windows",
-    "AdditionCompareWindow",
-    "index.html"
+  return createDoubleWebviewWindow(
+    url1,
+    url2,
+    label,
+    facilityId,
+    dateStr
   );
-  const htmlTemplate = fs.readFileSync(templatePath, "utf8");
-  
-  // ウィンドウを作成
-  const win = createDoubleWebviewWindow(url1, url2, label, htmlTemplate, facilityId, dateStr);
-  
-  return win;
 }
 
 module.exports = { open_addition_compare_btn };

@@ -17,7 +17,6 @@ function createDoubleWebviewWindow(
   url1,
   url2,
   label,
-  htmlTemplate,
   facilityId,
   dateStr
 ) {
@@ -36,15 +35,31 @@ function createDoubleWebviewWindow(
     },
   });
 
-  // HTMLテンプレートにURLとpreloadパスを挿入
-  const html = htmlTemplate
-    .replace("{{URL1}}", url1)
-    .replace("{{URL2}}", url2)
-    .replace("{{PRELOAD_PATH}}", preloadPath)
-    .replace("{{FACILITY_ID}}", facilityId || "")
-    .replace("{{DATE_STR}}", dateStr || "");
+  const query = {
+    window: "additionCompare",
+    URL1: url1,
+    URL2: url2,
+    FACILITY_ID: String(facilityId ?? ""),
+    DATE_STR: dateStr ?? "",
+  };
+  const isDev =
+    process.argv.includes("--dev") ||
+    process.argv.includes("--debug") ||
+    (!app.isPackaged &&
+      !process.argv.includes("--prod") &&
+      !process.argv.includes("--production"));
 
-  win.loadURL("data:text/html;charset=utf-8," + encodeURIComponent(html));
+  if (isDev) {
+    win.loadURL(`http://localhost:5173/?${new URLSearchParams(query)}`);
+  } else {
+    const rendererPath = path.join(
+      app.getAppPath(),
+      "renderer",
+      "dist",
+      "index.html"
+    );
+    win.loadFile(rendererPath, { query });
+  }
 
   win.webContents.once("did-finish-load", () => {
     console.log(`${label} window loaded`);
