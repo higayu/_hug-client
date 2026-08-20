@@ -1,84 +1,208 @@
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { AllCommunityModule, ModuleRegistry, themeQuartz } from 'ag-grid-community'
 import { AgGridReact } from 'ag-grid-react'
-import { TrashIcon } from '@heroicons/react/24/outline'
+
 import { useAppState } from '@/AppStateContext'
+
 import ChildKadaiFilter from './common/ChildKadaiFilter'
+import TableRow from './TableRow'
 
 ModuleRegistry.registerModules([AllCommunityModule])
-const list = (value) => Array.isArray(value) ? value : []
 
-export default function ChildKadaiTable({ childRecords, loading, error, onCreate, onEdit, onDelete, onShowGraph }) {
-  const { FACILITY_ID, databaseState, databaseLoading } = useAppState()
-  const [filters, setFilters] = useState({ name: '', childrenId: '', recordTypeId: '' })
-  const children = list(databaseState?.children)
-  const recordTypes = list(databaseState?.record_types)
+const asArray = (value) => Array.isArray(value) ? value : []
 
-  const rows = useMemo(() => {
-    const childMap = new Map(children.map((x) => [Number(x.id), x]))
-    const typeMap = new Map(recordTypes.map((x) => [Number(x.id), x]))
-    const facilityMap = new Map(list(databaseState?.facilitys).map((x) => [Number(x.id), x]))
-    return list(childRecords)
-      .filter((x) => !FACILITY_ID || Number(x.facility_id) === Number(FACILITY_ID))
-      .map((x) => ({
-        ...x,
-        child_name: childMap.get(Number(x.children_id))?.name ?? '',
-        record_type_name: typeMap.get(Number(x.record_type_id))?.name ?? '',
-        facility_name: facilityMap.get(Number(x.facility_id))?.name ?? '',
-      }))
-      .filter((x) => !filters.name || x.child_name.includes(filters.name))
-      .filter((x) => !filters.childrenId || Number(x.children_id) === Number(filters.childrenId))
-      .filter((x) => !filters.recordTypeId || Number(x.record_type_id) === Number(filters.recordTypeId))
-  }, [FACILITY_ID, childRecords, children, databaseState, filters, recordTypes])
+const formatDate = (value) => {
+  if (!value) return ''
 
-  const columns = useMemo(() => [
+  const date = new Date(value)
+  return Number.isNaN(date.getTime())
+    ? String(value).slice(0, 10)
+    : date.toLocaleDateString('ja-JP')
+}
+
+function ChildKadaiTable({
+  childRecords,
+  recordsLoading,
+  recordsError,
+  recordTypeId,
+  onRecordTypeChange,
+  onLoad,
+  onCreate,
+  onEdit,
+  onDelete,
+  onShowGraph,
+}) {
+  const { FACILITY_ID, SELECT_CHILD, databaseState } = useAppState()
+
+  const children = asArray(databaseState?.children)
+  const recordTypes = asArray(databaseState?.record_types)
+
+  const facilities = asArray(databaseState?.facilitys)
+  const childTypes = asArray(databaseState?.children_type)
+
+  const selectedChild = useMemo(
+    () => children.find((child) => Number(child.id) === Number(SELECT_CHILD)),
+    [SELECT_CHILD, children],
+  )
+
+  const rowData = useMemo(() => {
+    const childById = new Map(children.map((row) => [Number(row.id), row]))
+    const facilityById = new Map(facilities.map((row) => [Number(row.id), row]))
+    const childTypeById = new Map(childTypes.map((row) => [Number(row.id), row]))
+
+    return childRecords
+      .filter((record) => !FACILITY_ID || Number(record.facility_id) === Number(FACILITY_ID))
+      .map((record) => {
+        const child = childById.get(Number(record.children_id))
+
+        return {
+          ...record,
+          child_type_name: childTypeById.get(Number(child?.children_type_id))?.name ?? '',
+          facility_name: facilityById.get(Number(record.facility_id))?.name ?? '',
+        }
+      })
+      .filter((row) => Number(row.children_id) === Number(SELECT_CHILD))
+      .filter((row) => Number(row.record_type_id) === Number(recordTypeId))
+  }, [
+    FACILITY_ID,
+    childRecords,
+    childTypes,
+    children,
+    facilities,
+    SELECT_CHILD,
+    recordTypeId,
+    recordTypes,
+  ])
+
+  const columnDefs = useMemo(() => [
     {
-      headerName: '編集', width: 90, sortable: false,
+      headerName: '編集',
+      width: 90,
+      sortable: false,
+      resizable: false,
       cellRenderer: ({ data }) => (
-        <button type="button" onClick={() => onEdit(data)} className="rounded bg-green-600 px-3 py-1 text-xs text-white">編集</button>
+        <TableRow action="edit" record={data} onEdit={onEdit} />
       ),
     },
     {
-      headerName: '', width: 64, sortable: false, resizable: false,
+      headerName: '',
+      width: 64,
+      sortable: false,
+      resizable: false,
       cellRenderer: ({ data }) => (
-        <button
-          type="button"
-          onClick={() => onDelete(data)}
-          className="rounded p-1.5 text-red-600 hover:bg-red-50 hover:text-red-700"
-          title="削除"
-          aria-label="削除"
-        >
-          <TrashIcon className="h-5 w-5" aria-hidden="true" />
-        </button>
+        <TableRow action="delete" record={data} onDelete={onDelete} />
       ),
     },
     {
-      headerName: 'グラフ', width: 100, sortable: false,
-      cellRenderer: ({ data }) => (
-        <button type="button" onClick={() => onShowGraph({ childrenId: data.children_id, recordTypeId: data.record_type_id })} className="rounded bg-blue-600 px-3 py-1 text-xs text-white">表示</button>
-      ),
+      headerName: '日付',
+      field: 'date',
+      width: 120,
+      minWidth: 110,
+      maxWidth: 140,
+      sort: 'desc',
+      valueFormatter: ({ value }) => formatDate(value),
     },
-    { headerName: '日付', field: 'date', sort: 'desc' },
-    { headerName: '児童名', field: 'child_name' },
-    { headerName: '記録タイプ', field: 'record_type_name' },
-    { headerName: '点数', field: 'score' },
-    { headerName: 'ミス数', field: 'mistakes' },
-    { headerName: '施設名', field: 'facility_name' },
-    { headerName: 'メモ1', field: 'memo1', flex: 1 },
-    { headerName: 'メモ2', field: 'memo2', flex: 1 },
-  ], [onDelete, onEdit, onShowGraph])
+    {
+      headerName: '点数',
+      field: 'score',
+      type: 'numericColumn',
+      width: 90,
+      minWidth: 80,
+      maxWidth: 110,
+    },
+    {
+      headerName: 'ミス数',
+      field: 'mistakes',
+      type: 'numericColumn',
+      width: 95,
+      minWidth: 85,
+      maxWidth: 115,
+    },
+    {
+      headerName: '施設名',
+      field: 'facility_name',
+      width: 160,
+      minWidth: 130,
+      maxWidth: 220,
+    },
+    {
+      headerName: '児童タイプ',
+      field: 'child_type_name',
+      width: 140,
+      minWidth: 120,
+      maxWidth: 180,
+    },
+    {
+      headerName: 'メモ1',
+      field: 'memo1',
+      flex: 1,
+      minWidth: 180,
+    },
+    {
+      headerName: 'メモ2',
+      field: 'memo2',
+      flex: 1.4,
+      minWidth: 220,
+    },
+  ], [onDelete, onEdit])
+
+  const defaultColDef = useMemo(() => ({
+    sortable: true,
+    resizable: true,
+    minWidth: 70,
+  }), [])
 
   return (
     <section className="p-4">
       <div className="mb-4 flex items-center justify-between">
         <h2 className="text-lg font-semibold">児童課題記録一覧</h2>
-        <button type="button" onClick={onCreate} className="rounded bg-green-600 px-4 py-2 text-sm text-white hover:bg-green-700">新規追加</button>
+        <div className="flex items-center gap-3">
+          <span className="text-sm text-gray-500">{rowData.length}件</span>
+          <button
+            type="button"
+            onClick={() => onShowGraph?.({
+              childrenId: SELECT_CHILD,
+              recordTypeId,
+            })}
+            disabled={!recordTypeId}
+            className="rounded bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-400"
+          >
+            グラフ表示
+          </button>
+          <button type="button" onClick={onCreate} className="rounded bg-green-600 px-4 py-2 text-sm text-white hover:bg-green-700">
+            新規追加
+          </button>
+        </div>
       </div>
-      <ChildKadaiFilter filters={filters} setFilters={setFilters} children={children} recordTypes={recordTypes} />
+
+      <ChildKadaiFilter
+        selectedChildId={SELECT_CHILD}
+        selectedChildName={selectedChild?.name ?? ''}
+        filterRecordTypeId={recordTypeId}
+        setFilterRecordTypeId={onRecordTypeChange}
+        recordTypes={recordTypes}
+        loading={recordsLoading}
+        onLoad={onLoad}
+      />
+
       <div style={{ height: 500 }}>
-        <AgGridReact rowData={rows} columnDefs={columns} pagination paginationPageSize={20} loading={loading || databaseLoading} theme={themeQuartz} />
+        <AgGridReact
+          rowData={rowData}
+          columnDefs={columnDefs}
+          defaultColDef={defaultColDef}
+          pagination
+          paginationPageSize={20}
+          paginationPageSizeSelector={[20, 50, 100]}
+          loading={recordsLoading}
+          overlayNoRowsTemplate="表示できる課題記録がありません。"
+          theme={themeQuartz}
+        />
       </div>
-      {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
+      {recordsError && (
+        <p className="mt-2 text-sm text-red-600">{recordsError}</p>
+      )}
     </section>
   )
 }
+
+export default ChildKadaiTable

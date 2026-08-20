@@ -1,44 +1,126 @@
 import { useCallback, useEffect, useState } from 'react'
+
+import { useAppState } from '@/AppStateContext'
+
 import ChildKadaiTable from './ChildKadaiTable'
-import CreateKadai from './ChildKadaiTable/CreateKadai'
-import EditKadai from './ChildKadaiTable/EditKadai'
-import ScoreChartPage from './ChildKadaiTable/graph/ScoreChartPage'
+import CreateKadai from './ChildKadaiTable/TableRow/CreateKadai'
+import EditKadai from './ChildKadaiTable/TableRow/EditKadai'
+import ScoreChartPage from './ChildKadaiTable/TableRow/graph/ScoreChartPage'
 import getChildKadaiGraph from './function/GetChildKadaiGraph'
-import deleteChildKadai from './function/DeleteChildKadai'
+import deleteChildKadai from './ChildKadaiTable/TableRow/function/DeleteChildKadai'
 
-export default function ChildKadai() {
+function ChildKadai() {
+  const { SELECT_CHILD } = useAppState()
+
   const [records, setRecords] = useState([])
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [graph, setGraph] = useState(null)
-  const [edit, setEdit] = useState(null)
+  const [graphTarget, setGraphTarget] = useState(null)
+  const [editTarget, setEditTarget] = useState(null)
   const [creating, setCreating] = useState(false)
+  const [recordTypeId, setRecordTypeId] = useState('')
 
-  const load = useCallback(async () => {
-    setLoading(true); setError('')
-    try { setRecords(await getChildKadaiGraph()) }
-    catch (reason) { setRecords([]); setError(reason?.message || '課題記録の取得に失敗しました。') }
-    finally { setLoading(false) }
+  const loadRecords = useCallback(async (selectedRecordTypeId = recordTypeId) => {
+    if (!SELECT_CHILD) {
+      setRecords([])
+      setLoading(false)
+      setError('')
+      return
+    }
+
+    if (!selectedRecordTypeId) {
+      setRecords([])
+      setError('課題のタイプを選択してください。')
+      return
+    }
+
+    setLoading(true)
+    setError('')
+
+    try {
+      setRecords(await getChildKadaiGraph({
+        childrenId: SELECT_CHILD,
+        recordTypeId: selectedRecordTypeId,
+      }))
+    } catch (loadError) {
+      console.error('[ChildKadai] records load failed:', loadError)
+      setRecords([])
+      setError(loadError?.message || '課題記録の取得に失敗しました。')
+    } finally {
+      setLoading(false)
+    }
+  }, [SELECT_CHILD, recordTypeId])
+
+  useEffect(() => {
+    setRecords([])
+    setRecordTypeId('')
+    setError('')
+  }, [SELECT_CHILD])
+
+  const showTable = useCallback(() => {
+    setGraphTarget(null)
+    setEditTarget(null)
+    setCreating(false)
   }, [])
-  useEffect(() => { load() }, [load])
-  const back = useCallback(() => { setGraph(null); setEdit(null); setCreating(false) }, [])
-  const saved = useCallback(async () => { back(); await load() }, [back, load])
-  const remove = useCallback(async (record) => {
+
+  const handleSaved = useCallback(async () => {
+    showTable()
+    await loadRecords()
+  }, [loadRecords, showTable])
+
+  const handleDelete = useCallback(async (record) => {
     if (!window.confirm('この課題記録を削除しますか？')) return
 
     setError('')
     try {
       await deleteChildKadai(record.id)
       setRecords((current) => current.filter((item) => Number(item.id) !== Number(record.id)))
-    } catch (reason) {
-      setError(reason?.message || '課題記録の削除に失敗しました。')
+    } catch (deleteError) {
+      setError(deleteError?.message || '課題記録の削除に失敗しました。')
     }
   }, [])
 
-  if (edit) return <EditKadai record={edit} onCancel={back} onSaved={saved} />
-  if (creating) return <CreateKadai onCancel={back} onSaved={saved} />
-  if (graph) return <ScoreChartPage {...graph} onBack={back} />
-  return <ChildKadaiTable childRecords={records} loading={loading} error={error} onCreate={() => setCreating(true)} onEdit={setEdit} onDelete={remove} onShowGraph={setGraph} />
+  if (!SELECT_CHILD) {
+    return (
+      <section className="p-4">
+        <div className="rounded border border-yellow-300 bg-yellow-50 px-4 py-6 text-center font-medium text-yellow-800">
+          児童を選択してください
+        </div>
+      </section>
+    )
+  }
+
+  if (editTarget) {
+    return <EditKadai record={editTarget} onCancel={showTable} onSaved={handleSaved} />
+  }
+
+  if (creating) {
+    return <CreateKadai onCancel={showTable} onSaved={handleSaved} />
+  }
+
+  if (graphTarget) {
+    return <ScoreChartPage {...graphTarget} onBack={showTable} />
+  }
+
+  return (
+    <ChildKadaiTable
+      childRecords={records}
+      recordsLoading={loading}
+      recordsError={error}
+      recordTypeId={recordTypeId}
+      onRecordTypeChange={(value) => {
+        setRecordTypeId(value)
+        setRecords([])
+        setError('')
+      }}
+      onLoad={() => loadRecords()}
+      onCreate={() => setCreating(true)}
+      onEdit={setEditTarget}
+      onDelete={handleDelete}
+      onShowGraph={setGraphTarget}
+    />
+  )
 }
 
 export { ChildKadaiTable }
+export default ChildKadai
