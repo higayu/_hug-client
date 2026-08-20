@@ -19,7 +19,7 @@ const DEFAULT_INI = {
           interval: 30000
         }
       },
-      // featuresセクションはcustomButtons.jsonに統合されたため空に
+      // 後方互換性のため保持
       features: {},
       window: {
         width: 1200,
@@ -35,6 +35,15 @@ const DEFAULT_INI = {
         desktop: true
       }
     },
+    customButtons: [
+      { id: "individualSupportPlan", enabled: true },
+      { id: "specializedSupportPlan", enabled: true },
+      { id: "importSetting", enabled: false },
+      { id: "getUrl", enabled: false },
+      { id: "loadIni", enabled: true },
+      { id: "additionCompare", enabled: true },
+      { id: "customAction1", enabled: false }
+    ],
     userPreferences: {
       lastLoginDate: "",
       rememberWindowState: true,

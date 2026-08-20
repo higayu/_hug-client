@@ -1,47 +1,31 @@
-import { usePreloadPath } from '@/hooks/usePreloadPath'
-import { useAppInitialization } from '@/AppStateContext/useAppInitializer/useAppInitialization.js'
-import { Provider } from 'react-redux'
-import { store } from '@/store/store.js'
+import { lazy, Suspense } from 'react'
 
-import { AppStateProvider } from '@/AppStateContext'
-import { CustomButtonsProvider } from '@/components/CustomButtonsContext'
-import Toolbar from '@/components/Header/Toolbar.jsx'
-import Tabs from '@/components/Header/Tabs.jsx'
-import MainContent from '@/MainContent.jsx'
-import { useActiveWebviewLogger } from '@/hooks/useTabs/useActiveWebviewLogger'
+import MainWindow from '@/windows/MainWindow'
 import { ToastProvider } from '@/provider/ToastProvider/ToastContext'
-import DataBaseAutoLoader from '@/provider/DataBaseAutoLoader'
 
-// Provider内で初期化を実行する内部コンポーネント
-function AppContent({ preloadPath }) {
-  useAppInitialization()
+const ProfessionalSupportWindow = lazy(
+  () => import('@/windows/ProfessionalSupportWindow')
+)
 
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
-      <Toolbar />
-      <Tabs />
-      <MainContent preloadPath={preloadPath} />
-      <pre id="configOutput" style={{ display: 'none' }}></pre>
-    </div>
-  )
+function resolveWindowType() {
+  const params = new URLSearchParams(window.location.search)
+  return params.get('window') ?? 'main'
 }
 
-function App() {
-  const preloadPath = usePreloadPath()
-  useActiveWebviewLogger()
-
-  return (
-    <Provider store={store}>
-      <AppStateProvider>
-        <DataBaseAutoLoader />
-        <CustomButtonsProvider>
-          <ToastProvider>
-            <AppContent preloadPath={preloadPath} />
-          </ToastProvider>
-        </CustomButtonsProvider>
-      </AppStateProvider>
-    </Provider>
-  )
+const WINDOW_COMPONENTS = {
+  main: MainWindow,
+  professionalSupport: ProfessionalSupportWindow,
 }
 
-export default App
+export default function App() {
+  const windowType = resolveWindowType()
+  const WindowComponent = WINDOW_COMPONENTS[windowType] ?? MainWindow
+
+  return (
+    <ToastProvider>
+      <Suspense fallback={<div className="p-4">画面を読み込んでいます...</div>}>
+        <WindowComponent />
+      </Suspense>
+    </ToastProvider>
+  )
+}

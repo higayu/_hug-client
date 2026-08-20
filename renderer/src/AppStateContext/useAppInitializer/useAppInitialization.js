@@ -549,7 +549,7 @@ export function useAppInitialization() {
 
         logCloseSnapshot('設定エディター初期化時 snapshot')
 
-        // customButtonsはcustomButtons.jsonに統一されたため、IniStateからの参照は削除
+        // customButtons は専用 Context が ini.json から管理する
 
         // settingsEditorはReactコンポーネント（SettingsModal）に統合されました
         // window.settingsEditor = initSettingsEditor()

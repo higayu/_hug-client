@@ -23,6 +23,24 @@ function handleIniAccess(ipcMain) {
       }
 
       const jsonData = JSON.parse(fs.readFileSync(filePath, "utf8"));
+
+      // 旧 customButtons.json が残っている環境は ini.json へ一度だけ移行する
+      if (!Array.isArray(jsonData.customButtons)) {
+        const legacyPath = path.join(getDataDir(), "customButtons.json");
+        if (fs.existsSync(legacyPath)) {
+          const legacyData = JSON.parse(fs.readFileSync(legacyPath, "utf8"));
+          jsonData.customButtons = Array.isArray(legacyData.customButtons)
+            ? legacyData.customButtons.map(({ id, enabled }) => ({
+                id,
+                enabled: enabled === true
+              }))
+            : getDefaultIni().customButtons;
+          fs.unlinkSync(legacyPath);
+        } else {
+          jsonData.customButtons = getDefaultIni().customButtons;
+        }
+        fs.writeFileSync(filePath, JSON.stringify(jsonData, null, 2), "utf8");
+      }
       
       // バージョンチェックとマイグレーション
       if (!jsonData.version || jsonData.version !== DEFAULT_INI.version) {
@@ -60,11 +78,16 @@ function handleIniAccess(ipcMain) {
       const dir = path.dirname(filePath);
       if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 
-      // バージョン情報を保持
-      const saveData = {
-        ...data,
-        version: data.version || DEFAULT_INI.version
-      };
+      // 部分的な設定オブジェクトでも既存の設定を失わないようにマージする
+      let currentData = {};
+      if (fs.existsSync(filePath)) {
+        currentData = JSON.parse(fs.readFileSync(filePath, "utf8"));
+      }
+      const saveData = mergeDeep(
+        mergeDeep(DEFAULT_INI, currentData),
+        data || {}
+      );
+      saveData.version = data?.version || DEFAULT_INI.version;
 
       const jsonString = JSON.stringify(saveData, null, 2);
       fs.writeFileSync(filePath, jsonString, "utf8");

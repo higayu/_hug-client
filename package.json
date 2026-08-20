@@ -64,6 +64,7 @@
       "preload.js",
       "preload/**/*",
       "renderer/dist/**/*",
+      "renderer/src/windows/**/*",
       "puppeteer/**/*",
       "src/**/*",
       "package.json"

@@ -8,12 +8,11 @@ const { handleLogin } = require("./parts/loginHandler");
 const { handleApiCalls } = require("./parts/handlers");
 const { handleConfigAccess } = require("./parts/readfile/configHandler");
 const { handleIniAccess } = require("./parts/readfile/iniHandler");
-const { handleCustomButtonsAccess } = require("./parts/readfile/customButtonsHandler");
-const { registerPlanWindows } = require("./parts/window/planWindows");
-const { open_addition_compare_btn } = require("./parts/window/computeWindows/index");
-const { handleProfessionalSupportSearch } = require("./parts/window/handleProfessionalSupportSearch/index");
+const { registerPlanWindows } = require("./windowHandlers/planWindows");
+const { open_addition_compare_btn } = require("./windowHandlers/computeWindows");
+const { handleProfessionalSupportSearch } = require("./windowHandlers/handleProfessionalSupportSearch");
 
-const { resolvePreloadPath } = require("./parts/window/windowManager");
+const { resolvePreloadPath } = require("./windowHandlers/windowManager");
 
 function registerIpcHandlers(mainWindow, tempNoteHandler) {
   console.log("🔥 registerIpcHandlers CALLED");
@@ -23,7 +22,6 @@ function registerIpcHandlers(mainWindow, tempNoteHandler) {
     handleApiCalls(ipcMain);
     handleConfigAccess(ipcMain);
     handleIniAccess(ipcMain);
-    handleCustomButtonsAccess(ipcMain);
     registerPlanWindows(ipcMain);
     open_addition_compare_btn(ipcMain);
     handleProfessionalSupportSearch(ipcMain);

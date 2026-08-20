@@ -20,14 +20,9 @@ function getDbPath() {
   return path.join(getDataDir(), "houday.db");
 }
 
-function getCustomButtonsPath() {
-  return path.join(getDataDir(), "customButtons.json");
-}
-
 module.exports = {
   getDataDir,
   getConfigPath,
   getIniPath,
   getDbPath,
-  getCustomButtonsPath,
 };

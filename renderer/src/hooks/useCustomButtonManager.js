@@ -2,7 +2,7 @@
 // カスタムボタンマネージャーのフック（後方互換性のため）
 
 import { useEffect, useRef } from 'react'
-import { useCustomButtons } from '@/components/CustomButtonsContext'
+import { useCustomButtons } from '@/provider/CustomButtonsContext'
 
 /**
  * カスタムボタンマネージャーのフック

@@ -337,13 +337,6 @@ function createElectronApi(ipcRenderer, isDebugMode) {
     checkForUpdates: () =>
       ipcRenderer.invoke("check-for-updates"),
 
-    // ---- カスタムボタン ----
-    readCustomButtons: () =>
-      ipcRenderer.invoke("read-custom-buttons"),
-
-    saveCustomButtons: (data) =>
-      ipcRenderer.invoke("save-custom-buttons", data),
-
     // ---- Close ----
     onConfirmCloseRequest: (callback) => {
       const listener = () => callback();
