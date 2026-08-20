@@ -1340,6 +1340,26 @@ const laravelApiClient = {
       }
     },
 
+  /** POST /api/__procedure/get-child-kadai-graph */
+  getChildKadaiGraph:
+    async (payload = {}) => {
+      prepareRequest();
+
+      try {
+        const response = await laravelAxiosInstance.post(
+          "/__procedure/get-child-kadai-graph",
+          payload,
+        );
+        return response.data;
+      } catch (error) {
+        console.error(
+          "[laravelApiClient] getChildKadaiGraph failed:",
+          error?.response?.data || error?.message || error,
+        );
+        throw error;
+      }
+    },
+
   /** POST /api/__procedure/get-active-ai-prompt */
   getActiveAiPrompt:
     async (

@@ -46,6 +46,7 @@ const IPC_CHANNELS = [
   "laravel:procedure:update-staff",
   "laravel:procedure:upsert-service-record",
   "laravel:procedure:get-service-record-monthly",
+  "laravel:procedure:get-child-kadai-graph",
   "laravel:procedure:get-active-ai-prompt",
   "laravel:procedure:upsert-ai-prompt",
   "laravel:procedure:upsert-managers2",
@@ -287,6 +288,11 @@ function registerLaravelAuthHandlers(
     "laravel:procedure:get-service-record-monthly",
     procedures
       .getServiceRecordMonthlyHandler
+  );
+
+  ipcMain.handle(
+    "laravel:procedure:get-child-kadai-graph",
+    procedures.getChildKadaiGraphHandler
   );
 
   ipcMain.handle(

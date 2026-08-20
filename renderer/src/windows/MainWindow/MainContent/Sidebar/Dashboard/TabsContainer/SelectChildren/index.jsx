@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import TodayChildrenList from './TodayChildrenList';
 import ChildMemoPanel from './ChildMemoPanel';
-import AiContents from "./AiContents";
+import MainPanel from "./MainPanel";
 
 function ToolContent() {
   const [activeTool, setActiveTool] = useState('default');
@@ -25,7 +25,7 @@ function ToolContent() {
       </div>
       {/* AI + メモツール */}
       <div className="mt-4 border-t rounded bg-gray-200 border-gray-300 pt-3">
-        <AiContents />
+        <MainPanel />
       </div>
     </div>
 

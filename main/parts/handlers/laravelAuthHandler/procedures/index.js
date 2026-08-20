@@ -19,6 +19,7 @@ const upsertServiceRecord =
   require("./upsertServiceRecord");
 
 const getServiceRecordMonthly = require("./get_service_record_monthly");
+const getChildKadaiGraph = require("./get_child_kadai_graph");
 
 const getActiveAiPrompt =
   require("./get_active_ai_prompt");
@@ -65,6 +66,9 @@ module.exports = {
 
   getServiceRecordMonthlyHandler:
     getServiceRecordMonthly.handler,
+
+  getChildKadaiGraphHandler:
+    getChildKadaiGraph.handler,
 
   getActiveAiPromptHandler:
     getActiveAiPrompt.handler,

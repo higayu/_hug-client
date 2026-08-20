@@ -179,6 +179,10 @@ var require_electronApi = __commonJS({
           "laravel:procedure:get-service-record-monthly",
           data
         ),
+        laravel_procedure_getChildKadaiGraph: (data) => ipcRenderer2.invoke(
+          "laravel:procedure:get-child-kadai-graph",
+          data
+        ),
         laravel_procedure_getActiveAiPrompt: (data) => ipcRenderer2.invoke("laravel:procedure:get-active-ai-prompt", data),
         laravel_procedure_upsertAiPrompt: (data) => ipcRenderer2.invoke("laravel:procedure:upsert-ai-prompt", data),
         mariadb_procedure_getActiveAiPrompt: (data) => ipcRenderer2.invoke("mariadb:procedure:get-active-ai-prompt", data),

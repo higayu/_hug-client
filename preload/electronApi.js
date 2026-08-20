@@ -120,6 +120,12 @@ function createElectronApi(ipcRenderer, isDebugMode) {
         data,
       ),
 
+    laravel_procedure_getChildKadaiGraph: (data) =>
+      ipcRenderer.invoke(
+        "laravel:procedure:get-child-kadai-graph",
+        data,
+      ),
+
     laravel_procedure_getActiveAiPrompt: (data) =>
       ipcRenderer.invoke("laravel:procedure:get-active-ai-prompt", data),
 
