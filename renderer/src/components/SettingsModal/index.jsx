@@ -11,7 +11,6 @@ import {
   ApiTab,
   UrlTab,
   ConfigTab,
-  FeaturesTab,
   UITab,
   WindowTab,
   CustomTab,
@@ -31,11 +30,6 @@ const BASE_TABS = [
     id: 'api',
     label: 'API設定',
     component: ApiTab,
-  },
-  {
-    id: 'features',
-    label: '機能設定',
-    component: FeaturesTab,
   },
   {
     id: 'ui',
@@ -233,8 +227,8 @@ export default function SettingsModal({
                     }}
                   >
                     {tab.label}
-                    {DEBUG_FLG && tab.id === 'custom' && (
-                      <span className="ml-1.5 text-[10px] bg-purple-500 text-white px-1.5 py-0.5 rounded">
+                    {DEBUG_FLG && DEBUG_TABS.some((debugTab) => debugTab.id === tab.id) && (
+                      <span className="ml-1.5 rounded bg-purple-500 px-1.5 py-0.5 text-[10px] text-white">
                         DEV
                       </span>
                     )}
