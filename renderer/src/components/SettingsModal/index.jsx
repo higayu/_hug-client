@@ -32,16 +32,6 @@ const BASE_TABS = [
     component: ApiTab,
   },
   {
-    id: 'ui',
-    label: 'UI設定',
-    component: UITab,
-  },
-  {
-    id: 'window',
-    label: 'ウィンドウ設定',
-    component: WindowTab,
-  },
-  {
     id: 'staff',
     label: '職員の設定',
     component: StaffTab,
@@ -75,6 +65,16 @@ const DEBUG_TABS = [
     id: 'custom',
     label: 'カスタムボタン',
     component: CustomTab,
+  },
+  {
+    id: 'ui',
+    label: 'UI設定',
+    component: UITab,
+  },
+  {
+    id: 'window',
+    label: 'ウィンドウ設定',
+    component: WindowTab,
   },
 ]
 

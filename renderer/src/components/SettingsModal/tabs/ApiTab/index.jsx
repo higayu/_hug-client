@@ -798,7 +798,9 @@ function ApiTab() {
           </select>
         </div>
 
-        <div className="mb-3 flex items-center py-2">
+        {form.debugFlg && (
+        <>
+          <div className="mb-3 flex items-center py-2">
           <span className="min-w-[120px] font-medium text-gray-700">
             自動同期:
           </span>
@@ -824,31 +826,34 @@ function ApiTab() {
           </label>
         </div>
 
-        <div className="mb-3 flex items-center py-2">
-          <span className="min-w-[120px] font-medium text-gray-700">
-            自動切替:
-          </span>
 
-          <label
-            htmlFor="api-auto-switching"
-            className="flex items-center gap-2 text-sm text-gray-700"
-          >
-            <input
-              type="checkbox"
-              id="api-auto-switching"
-              name="autoSwitching"
-              checked={form.autoSwitching}
-              onChange={handleInputChange}
-              className="h-4 w-4"
-            />
-
-            <span>有効にする</span>
-
-            <span>
-              ※吉島サーバに接続できる場合に自動で切り替わります
+          <div className="mb-3 flex items-center py-2">
+            <span className="min-w-[120px] font-medium text-gray-700">
+              自動切替:
             </span>
-          </label>
-        </div>
+
+            <label
+              htmlFor="api-auto-switching"
+              className="flex items-center gap-2 text-sm text-gray-700"
+            >
+              <input
+                type="checkbox"
+                id="api-auto-switching"
+                name="autoSwitching"
+                checked={form.autoSwitching}
+                onChange={handleInputChange}
+                className="h-4 w-4"
+              />
+
+              <span>有効にする</span>
+
+              <span>
+                ※吉島サーバに接続できる場合に自動で切り替わります
+              </span>
+            </label>
+          </div>
+        </>
+        )}
 
         {/* ============================================================
             🐞 debugFlg 設定（新規追加）
