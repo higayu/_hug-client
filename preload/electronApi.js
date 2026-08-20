@@ -126,6 +126,9 @@ function createElectronApi(ipcRenderer, isDebugMode) {
         data,
       ),
 
+    laravel_procedure_upsertChildKadaiGraph: (data) =>
+      ipcRenderer.invoke("laravel:procedure:upsert-child-kadai-graph", data),
+
     laravel_procedure_getActiveAiPrompt: (data) =>
       ipcRenderer.invoke("laravel:procedure:get-active-ai-prompt", data),
 
