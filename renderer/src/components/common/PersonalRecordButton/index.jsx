@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 
 import { useAppState } from '@/AppStateContext';
-import { addPersonalRecordTabAction4 } from '@/hooks/useTabs/actions/personalRecord.js';
+import { addPersonalRecordTabAction4 } from '@/hooks/useTabs/actions/personalRecord';
 
 export default function PersonalRecordButton({
   disabled = false,

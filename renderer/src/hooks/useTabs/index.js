@@ -4,7 +4,7 @@ import { useAppState } from '@/AppStateContext'
 import { setActiveWebview } from '@/utils/webview/webviewState.js'
 import { activateTab, closeTab, clearActiveWebviewCache } from './common/index.js'
 import { addNormalTabAction } from './actions/normal.js'
-import { addPersonalRecordTabAction4 } from './actions/personalRecord.js'
+import { addPersonalRecordTabAction4 } from './actions/personalRecord'
 import { addProfessionalSupportListAction } from './actions/professionalList.js'
 import { addProfessionalSupportNewAction3, addProfessionalSupportCheckAction } from './actions/professionalNew.js'
 
