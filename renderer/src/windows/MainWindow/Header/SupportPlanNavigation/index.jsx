@@ -38,7 +38,7 @@ export default function SupportPlanNavigation({
         await handleSpecializedSupport();
       } catch (error) {
         console.error(
-          '[SupportPlanNavigation] 専門的支援計画の表示に失敗しました:',
+          '[SupportPlanNavigation] 専門的の表示に失敗しました:',
           error,
         );
       }
