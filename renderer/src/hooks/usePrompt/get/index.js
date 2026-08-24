@@ -6,6 +6,7 @@ const PROMPT_KEY_BY_ITEM_ID = {
   1: "personalRecord",
   2: "professional1",
   3: "professional2",
+  4: "personalRecord2",
 };
 
 /**

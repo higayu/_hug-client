@@ -2,7 +2,12 @@ export const PROMPT_DEFINITIONS = [
   {
     key: 'personalRecord',
     itemId: 1,
-    label: '個人記録',
+    label: '個人記録1',
+  },
+  {
+    key: 'personalRecord2',
+    itemId: 4,
+    label: '個人記録2',
   },
   {
     key: 'professional1',
@@ -18,6 +23,9 @@ export const PROMPT_DEFINITIONS = [
 
 export const DEFAULT_PROMPTS = {
   personalRecord:
+    '放課後等デイサービスの児童対応の記録として文章を下記の文章を整えて',
+
+  personalRecord2:
     '放課後等デイサービスの児童対応の記録として文章を下記の文章を整えて',
 
   professional1:

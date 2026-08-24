@@ -5,7 +5,7 @@ import React, {
   useCallback,
 } from "react";
 
-import { useToast } from '@/provider/ToastProvider/ToastContext'
+import { useToast } from "@/provider/ToastProvider/ToastContext.jsx";
 import { useAppState } from "@/AppStateContext";
 import { useNote } from "@/hooks/useNote";
 import PersonalRecordButton from "@/components/common/PersonalRecordButton";
@@ -100,6 +100,7 @@ export default function MemoInputBox({
             seq,
             activeSeq: loadSeqRef.current,
           });
+
           return;
         }
 
@@ -111,6 +112,7 @@ export default function MemoInputBox({
           log("入力中のため読み込み結果を無視", {
             seq,
           });
+
           return;
         }
 
@@ -137,18 +139,24 @@ export default function MemoInputBox({
           throw new Error("loadTempが利用できません。");
         }
 
-        await currentLoadTemp(SELECT_CHILD, proxy);
+        await currentLoadTemp(
+          SELECT_CHILD,
+          proxy,
+        );
       } catch (error) {
         if (seq !== loadSeqRef.current) {
           return;
         }
 
-        console.error("[MemoInputBox] メモ読込エラー", {
-          label,
-          memoType,
-          SELECT_CHILD,
-          error,
-        });
+        console.error(
+          "[MemoInputBox] メモ読込エラー",
+          {
+            label,
+            memoType,
+            SELECT_CHILD,
+            error,
+          },
+        );
 
         showErrorToastRef.current?.(
           `${label} の読み込みに失敗しました`,
@@ -249,11 +257,16 @@ export default function MemoInputBox({
       restoreTextareaFocus();
     }
 
-    window.addEventListener("focus", handleWindowFocus);
+    window.addEventListener(
+      "focus",
+      handleWindowFocus,
+    );
+
     window.addEventListener(
       "app:webview-tab-closed",
       handleWebviewTabClosed,
     );
+
     document.addEventListener(
       "visibilitychange",
       handleVisibilityChange,
@@ -264,10 +277,12 @@ export default function MemoInputBox({
         "focus",
         handleWindowFocus,
       );
+
       window.removeEventListener(
         "app:webview-tab-closed",
         handleWebviewTabClosed,
       );
+
       document.removeEventListener(
         "visibilitychange",
         handleVisibilityChange,
@@ -303,6 +318,7 @@ export default function MemoInputBox({
         showErrorToastRef.current?.(
           `${label} の保存に失敗しました`,
         );
+
         return;
       }
 
@@ -378,7 +394,9 @@ export default function MemoInputBox({
           focus:ring-2 focus:ring-blue-200
           disabled:bg-gray-100 disabled:cursor-not-allowed
         "
-        style={{ minHeight }}
+        style={{
+          minHeight,
+        }}
         value={value}
         disabled={!SELECT_CHILD}
         onChange={handleChange}
@@ -388,7 +406,6 @@ export default function MemoInputBox({
       />
 
       <div className="mt-2 flex gap-2 items-stretch">
-
         <button
           type="button"
           onClick={handleSave}
@@ -406,8 +423,14 @@ export default function MemoInputBox({
 
         {(memoType === 1 || memoType === 2) && (
           <PersonalRecordButton
+            id={`kojin-kiroku-${memoType}`}
             disabled={!SELECT_CHILD}
-            className='flex items-center rounded-lg px-3 py-2 font-bold text-xs justify-center shrink-0'
+            label="個人記録"
+            className="
+              flex items-center justify-center shrink-0
+              px-3 py-2
+              rounded-lg font-bold text-xs
+            "
           />
         )}
       </div>
