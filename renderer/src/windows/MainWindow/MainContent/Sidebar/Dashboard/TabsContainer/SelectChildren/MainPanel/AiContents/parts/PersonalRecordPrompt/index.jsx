@@ -10,8 +10,6 @@ import {
   sendError
 } from '@/store/slices/sendTextSlice';
 import MemoInputBox from '@/components/ui/MemoInputBox';
-import TwoTabPanel from '@/components/ui/TwoTabPanel';
-import PersonalRecordManagerPanel2 from '@/components/common/hug_function/PersonalRecordManagerPanel2';
 
 const DBG = 'PersonalRecordPrompt';
 
@@ -189,17 +187,13 @@ export default function PersonalRecordPrompt({
           </div>
         )}
 
-        {/* タブパネル */}
-        <TwoTabPanel tabs={["一時メモ", "記録"]} className="mt-2">
+        <div className="mt-2">
           <MemoInputBox
             memoType={1}
             label="一時メモ１（編集可能）"
             minHeight={200}
           />
-          <div className="flex flex-wrap items-center justify-center gap-2">
-            <PersonalRecordManagerPanel2 />
-          </div>
-        </TwoTabPanel>
+        </div>
       </div>
     </div>
   );

@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useAppState } from "@/AppStateContext";
 import ProfessionalPlan from "@/components/common/hug_function/ProfessionalPlan";
+import PersonSupportPlan from "@/components/common/hug_function/PersonSupportPlan"
 import ProfessionalSupportCheckPanel2 from "@/components/common/hug_function/ProfessionalSupportCheckPanel2";
 
 const DBG = "ProfessionalPrompt1";
@@ -186,22 +187,19 @@ export default function ProfessionalPrompt1({
 
   return (
     <div className="flex flex-col gap-4 p-3 w-full">
-      {/* --- SELECT_CHILD 監視表示 --- */}
-      <div className="text-xs bg-yellow-100 text-yellow-900 border border-yellow-300 rounded p-2">
-        appState.SELECT_CHILD:{" "}
-        <span className="font-bold">
-          {appState.SELECT_CHILD ?? "未選択"}
-        </span>
-      </div>
 
       {/* --- DB保存済みメモ --- */}
-      <div className="mt-4">
+      <div className="">
         <div className="flex flex-row justify-between items-center">
-          <h4 className="text-xs font-bold text-gray-700 mb-2">
-            保存済みメモ（専門支援内容 / DB）
+          <h4 className="text-xs text-gray-700 mb-2">
+            （専門支援内容 / DB）        
+            <span className="font-bold">
+              {appState.SELECT_CHILD ?? "未選択"}
+            </span>
           </h4>
 
           <ProfessionalPlan />
+          <PersonSupportPlan />
         </div>
 
         <div className="text-xs bg-gray-700 text-white p-2 rounded whitespace-pre-wrap">
