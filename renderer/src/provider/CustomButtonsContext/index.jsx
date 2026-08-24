@@ -6,22 +6,6 @@ import { createContext, useContext, useState, useCallback, useEffect } from 'rea
 // 利用可能なアクションをハードコード（features設定を統合）
 const AVAILABLE_ACTIONS = [
   {
-    id: "individualSupportPlan",
-    name: "個別支援計画",
-    description: "個別支援計画を表示します",
-    category: "支援計画",
-    icon: "📋",
-    color: "#007bff",
-  },
-  {
-    id: "specializedSupportPlan",
-    name: "専門的支援計画",
-    description: "専門的支援計画を表示します",
-    category: "支援計画",
-    icon: "📊",
-    color: "#28a745",
-  },
-  {
     id: "importSetting",
     name: "設定ファイル取得",
     description: "設定ファイルをインポートします",

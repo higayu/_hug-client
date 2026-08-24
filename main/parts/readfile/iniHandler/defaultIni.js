@@ -36,8 +36,6 @@ const DEFAULT_INI = {
       }
     },
     customButtons: [
-      { id: "individualSupportPlan", enabled: true },
-      { id: "specializedSupportPlan", enabled: true },
       { id: "importSetting", enabled: false },
       { id: "getUrl", enabled: false },
       { id: "loadIni", enabled: true },
