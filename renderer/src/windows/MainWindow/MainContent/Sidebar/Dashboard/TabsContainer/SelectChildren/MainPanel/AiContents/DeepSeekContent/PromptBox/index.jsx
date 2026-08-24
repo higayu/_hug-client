@@ -12,6 +12,7 @@ export const AI_PROMPT_COMPONENT_MAP = {
         {...props}
         aiName="DeepSeek"
         showTabButton={<DeepseekTabButton />}
+        
       />
     ),
   },

@@ -1,9 +1,9 @@
-// components/common/CopyButton.jsx
+// components/ui/CopyButton/index.jsx
 import React, { useCallback } from "react";
 import { Copy } from "lucide-react";
-import { useToast } from '@/provider/ToastProvider/ToastContext'
+import { useToast } from "@/provider/ToastProvider/ToastContext.jsx";
 
-export default function CopyButton({ text }) {
+export default function CopyButton({ text, title='', className='',fontStyle='text-black' }) {
   const { showSuccessToast, showErrorToast } = useToast();
 
   const fallbackCopy = useCallback((value) => {
@@ -64,10 +64,11 @@ export default function CopyButton({ text }) {
       type="button"
       onClick={handleCopy}
       aria-label="コピー"
-      className="bg-white inline-flex items-center gap-2 rounded-2xl px-3 py-2 text-sm shadow-sm active:scale-[0.98]"
+      className={`${className}`}
+      title={title}
     >
       <Copy size={16} />
-      <span className="text-gray-300">コピー</span>
+      <span className={`${fontStyle}`}>コピー</span>
     </button>
   );
 }

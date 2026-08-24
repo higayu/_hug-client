@@ -4,6 +4,7 @@ import { useAppState } from "@/AppStateContext";
 import { selectServiceRecord } from "@/store/slices/databaseSlice.js";
 import { selectPersonalRecordNote } from "./selectPersonalRecordNote";
 import { servedDateToDateStr } from "./selectPersonalRecordNote";
+import CopyButton from "@/components/ui/CopyButton";
 
 /**
  * 指定された月の個人記録一覧を表示し、選択した日付の内容をテキストエリアに表示する
@@ -166,6 +167,12 @@ export default function ListBox_Text({ monthStr = "" }) {
                 : "記録がありません"
           }
         />
+        <CopyButton 
+          text={selectedNote}
+          className='bg-white hover:bg-slate-500 inline-flex items-center gap-2 rounded-2xl px-3 py-2 text-sm shadow-sm active:scale-[0.98]'
+          fontStyle='text-black'
+          title='個人記録コピー'
+         />
       </div>
 
       {/* 統計情報 */}

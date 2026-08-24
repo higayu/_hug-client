@@ -26,7 +26,12 @@ export default function AccountInfoPanel({ title, items }) {
               className="flex items-center justify-between gap-2"
             >
               <ToggleSecretText label={item.label} value={item.value} />
-              <CopyButton text={item.value} />
+              <CopyButton
+                text={item.value} 
+                className='bg-white hover:bg-slate-500 inline-flex items-center gap-2 rounded-2xl px-3 py-2 text-sm shadow-sm active:scale-[0.98]'
+                fontStyle='text-black'
+                title='コピーする'
+              />
             </div>
           ))}
         </div>
