@@ -56,13 +56,19 @@ export function useHugActions() {
 
   // 個別支援計画（別ウインドウ）
   const handleIndividualSupport = useCallback(() => {
-    window.electronAPI.openIndividualSupportPlan(appState.SELECT_CHILD)
-  }, [appState.SELECT_CHILD])
+    window.electronAPI.openIndividualSupportPlan(
+      appState.SELECT_CHILD,
+      appState.FACILITY_ID
+    )
+  }, [appState.SELECT_CHILD, appState.FACILITY_ID])
 
   // 専門的支援計画（別ウインドウ）
   const handleSpecializedSupport = useCallback(() => {
-    window.electronAPI.openSpecializedSupportPlan(appState.SELECT_CHILD)
-  }, [appState.SELECT_CHILD])
+    window.electronAPI.openSpecializedSupportPlan(
+      appState.SELECT_CHILD,
+      appState.FACILITY_ID
+    )
+  }, [appState.SELECT_CHILD, appState.FACILITY_ID])
 
   // URLの取得
   const handleGetUrl = useCallback(async () => {

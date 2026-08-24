@@ -291,11 +291,11 @@ function createElectronApi(ipcRenderer, isDebugMode) {
     confirmDialog: (message) =>
       ipcRenderer.invoke("confirm-dialog", message),
 
-    openIndividualSupportPlan: (childId) =>
-      ipcRenderer.send("open-individual-support-plan", childId),
+    openIndividualSupportPlan: (childId, facilityId) =>
+      ipcRenderer.send("open-individual-support-plan", { childId, facilityId }),
 
-    openSpecializedSupportPlan: (childId) =>
-      ipcRenderer.send("open-specialized-support-plan", childId),
+    openSpecializedSupportPlan: (childId, facilityId) =>
+      ipcRenderer.send("open-specialized-support-plan", { childId, facilityId }),
 
     Open_NowDayPage: (args) =>
       ipcRenderer.send("Open_NowDayPage", args),

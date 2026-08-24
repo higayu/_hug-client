@@ -23,14 +23,20 @@ export function useCustomButtonHandlers() {
           showErrorToast('児童を選択してください')
           return
         }
-        window.electronAPI?.openIndividualSupportPlan(appState.SELECT_CHILD)
+        window.electronAPI?.openIndividualSupportPlan(
+          appState.SELECT_CHILD,
+          appState.FACILITY_ID
+        )
         break
       case 'specializedSupportPlan':
         if (!appState.SELECT_CHILD) {
           showErrorToast('児童を選択してください')
           return
         }
-        window.electronAPI?.openSpecializedSupportPlan(appState.SELECT_CHILD)
+        window.electronAPI?.openSpecializedSupportPlan(
+          appState.SELECT_CHILD,
+          appState.FACILITY_ID
+        )
         break
       case 'importSetting': {
         const result = await window.electronAPI?.importConfigFile()

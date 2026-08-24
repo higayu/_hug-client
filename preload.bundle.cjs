@@ -285,8 +285,8 @@ var require_electronApi = __commonJS({
         // ✅ 対策: window.confirm() の代わりに使う非ブロッキングな確認ダイアログ
         //          (renderer側JSスレッドを止めず、常にmainWindowの前面に表示される)
         confirmDialog: (message) => ipcRenderer2.invoke("confirm-dialog", message),
-        openIndividualSupportPlan: (childId) => ipcRenderer2.send("open-individual-support-plan", childId),
-        openSpecializedSupportPlan: (childId) => ipcRenderer2.send("open-specialized-support-plan", childId),
+        openIndividualSupportPlan: (childId, facilityId) => ipcRenderer2.send("open-individual-support-plan", { childId, facilityId }),
+        openSpecializedSupportPlan: (childId, facilityId) => ipcRenderer2.send("open-specialized-support-plan", { childId, facilityId }),
         Open_NowDayPage: (args) => ipcRenderer2.send("Open_NowDayPage", args),
         openWebManagerPage: (args) => ipcRenderer2.send("open-web-manager-page", args),
         open_addition_compare_btn: (facility_id, date_str) => ipcRenderer2.send("open-addition-compare-btn", {
