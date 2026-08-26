@@ -1,9 +1,8 @@
 import { useEffect, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 
 import {
   selectFacilityId,
-  setFacilityId,
 } from '@/store/slices/appStateSlice';
 
 
@@ -22,7 +21,6 @@ import ModeNavi from "./ModeNavi";
 import { useAppState } from '@/AppStateContext';
 
 export default function Toolbar() {
-  const dispatch = useDispatch();
   const facilityId = useSelector(selectFacilityId);
 
   const [showCloseButton, setShowCloseButton] = useState(true);
@@ -33,14 +31,16 @@ export default function Toolbar() {
     DEBUG_FLG,
   } = useAppState()
 
-  /**
-   * 施設IDが未設定の場合は初期値を設定
-   */
+  // 施設IDの同期状態を追跡する診断ログ。ここでは値を更新しない。
   useEffect(() => {
-    if (!facilityId) {
-      dispatch(setFacilityId('3'));
-    }
-  }, [dispatch, facilityId]);
+    console.log(
+      '[FacilitySync/Toolbar] 現在値',
+      {
+        facilityId,
+        isEmpty: !facilityId,
+      },
+    );
+  }, [facilityId]);
 
   return (
     <div

@@ -73,8 +73,13 @@ export function AppStateProvider({ children }) {
   })
 
   useEffect(() => {
-    if (redux.STAFF_ID !== authenticatedStaffId) {
-      dispatch(setStaffIdRedux(authenticatedStaffId))
+    const staffId =
+      authenticatedStaffId != null
+        ? String(authenticatedStaffId)
+        : ''
+
+    if (redux.STAFF_ID !== staffId) {
+      dispatch(setStaffIdRedux(staffId))
     }
   }, [authenticatedStaffId, dispatch, redux.STAFF_ID])
 
@@ -456,11 +461,22 @@ export function AppStateProvider({ children }) {
 
     const updates = {}
 
-    if (
-      apiSettings.facilityId != null &&
-      redux.FACILITY_ID !== String(apiSettings.facilityId)
-    ) {
-      updates.FACILITY_ID = String(apiSettings.facilityId)
+    const hasFacilityId = Object.prototype.hasOwnProperty.call(
+      apiSettings,
+      'facilityId'
+    )
+    const iniFacilityId = String(apiSettings.facilityId ?? '').trim()
+    const reduxFacilityId = String(redux.FACILITY_ID ?? '').trim()
+
+    // 未設定値は空文字に統一する。
+    if (hasFacilityId && reduxFacilityId !== iniFacilityId) {
+      console.log('[FacilitySync/AppStateProvider] 施設ID差分を検出', {
+        rawIniFacilityId: apiSettings.facilityId,
+        currentFacilityId: redux.FACILITY_ID,
+        nextFacilityId: iniFacilityId,
+      })
+
+      updates.FACILITY_ID = iniFacilityId
     }
 
     const rawDbType = apiSettings.databaseType
@@ -534,7 +550,6 @@ export function AppStateProvider({ children }) {
     console.groupEnd()
   }, [
     iniState?.apiSettings,
-    redux.STAFF_ID,
     redux.FACILITY_ID,
     redux.DATABASE_TYPE,
     redux.USE_AI,
