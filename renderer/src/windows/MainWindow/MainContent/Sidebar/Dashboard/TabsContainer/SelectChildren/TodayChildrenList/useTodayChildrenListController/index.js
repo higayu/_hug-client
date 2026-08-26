@@ -352,8 +352,8 @@ export function useTodayChildrenListController({
   // title
   // ==============================
   const getChildNotesTitle = useCallback((child) => {
-    const notes2 = child?.notes2?.trim()
-    return notes2 || undefined
+    const notes3 = child?.notes3?.trim()
+    return notes3 || undefined
   }, [])
 
   return {
