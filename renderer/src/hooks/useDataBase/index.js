@@ -9,6 +9,7 @@ import { sqliteApi } from "./sql/sqliteApi"
 import { laravelApi } from "./sql/laravelApi"
 
 import { fetchAllTables } from "@/store/slices/databaseSlice"
+import { fetchLaravelAuthState } from "@/store/slices/authSlice"
 import { selectDatabaseType } from "@/store/slices/appStateSlice"
 import { checkMariaDbConnection } from "./checkMariaDbConnection"
 import { checkLaravelConnection } from "./checkLaravelConnection"
@@ -432,6 +433,7 @@ export function useDataBase({ autoLoad = false } = {}) {
         // ここでは抽出しない
         // =============================================================
         await dispatch(fetchAllTables(tables))
+        await dispatch(fetchLaravelAuthState())
 
         console.log(
           "✅ [useDataBase] databaseSlice 保存完了:",

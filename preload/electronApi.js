@@ -110,6 +110,9 @@ function createElectronApi(ipcRenderer, isDebugMode) {
 
     laravel_staff_update: (data) =>
       ipcRenderer.invoke("laravel:procedure:update-staff", data),
+
+    laravel_admin_update_staff_login: (data) =>
+      ipcRenderer.invoke("laravel:admin:update-staff-login", data),
     
     laravel_procedure_upsertServiceRecord: (data) =>
       ipcRenderer.invoke("laravel:procedure:upsert-service-record", data),
@@ -332,6 +335,9 @@ function createElectronApi(ipcRenderer, isDebugMode) {
 
     saveIni: (data) =>
       ipcRenderer.invoke("save-ini", data),
+
+    resetIni: () =>
+      ipcRenderer.invoke("reset-ini"),
 
     updateIniSetting: (path, value) =>
       ipcRenderer.invoke("update-ini-setting", path, value),

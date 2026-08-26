@@ -157,10 +157,6 @@ export async function initializeAppState({
     merged.AUTO_SYNCHRONIZATION = autoSynchronization;
     merged.AUTO_SWITCHING = autoSwitching;
 
-    if (apiSettings.staffId != null) {
-      merged.STAFF_ID = String(apiSettings.staffId);
-    }
-
     if (apiSettings.facilityId != null) {
       merged.FACILITY_ID = String(apiSettings.facilityId);
     }
@@ -185,9 +181,6 @@ export async function initializeAppState({
 
       rawUseAI: apiSettings.useAI,
       useAI: merged.USE_AI,
-
-      rawStaffId: apiSettings.staffId,
-      STAFF_ID: merged.STAFF_ID,
 
       rawFacilityId: apiSettings.facilityId,
       FACILITY_ID: merged.FACILITY_ID,

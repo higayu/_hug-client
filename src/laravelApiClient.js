@@ -1269,6 +1269,22 @@ const laravelApiClient = {
       }
     },
 
+  /** PATCH /api/admin/staffs/{staff}/login */
+  updateStaffLogin:
+    async (
+      staffId,
+      payload,
+    ) => {
+      prepareRequest();
+
+      const response = await laravelAxiosInstance.patch(
+        `/admin/staffs/${Number(staffId)}/login`,
+        payload,
+      );
+
+      return response.data;
+    },
+
   /**
    * UpsertServiceRecord プロシージャ実行
    *

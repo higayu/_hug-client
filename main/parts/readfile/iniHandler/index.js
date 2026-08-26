@@ -22,6 +22,11 @@ function handleIniAccess(ipcMain) {
       }
 
       const jsonData = JSON.parse(fs.readFileSync(filePath, "utf8"));
+      const hadLegacyStaffId = Object.prototype.hasOwnProperty.call(
+        jsonData.apiSettings ?? {},
+        "staffId"
+      );
+      if (jsonData.apiSettings) delete jsonData.apiSettings.staffId;
       let legacyPathToRemove = null;
 
       // 旧 customButtons.json が残っている環境は ini.json へ一度だけ移行する
@@ -54,7 +59,10 @@ function handleIniAccess(ipcMain) {
         console.warn(`⚠️ ini.json のバージョンが異なります (current: ${DEFAULT_INI.version}, file: ${jsonData.version || 'undefined'})`);
       }
 
-      if (JSON.stringify(normalizedData) !== JSON.stringify(jsonData)) {
+      if (
+        hadLegacyStaffId ||
+        JSON.stringify(normalizedData) !== JSON.stringify(jsonData)
+      ) {
         fs.writeFileSync(filePath, JSON.stringify(normalizedData, null, 2), "utf8");
       }
 
@@ -90,6 +98,7 @@ function handleIniAccess(ipcMain) {
       let currentData = {};
       if (fs.existsSync(filePath)) {
         currentData = JSON.parse(fs.readFileSync(filePath, "utf8"));
+        if (currentData.apiSettings) delete currentData.apiSettings.staffId;
       }
       const saveData = mergeDeep(
         mergeDeep(DEFAULT_INI, currentData),

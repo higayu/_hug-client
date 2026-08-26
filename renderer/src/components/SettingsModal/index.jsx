@@ -2,6 +2,7 @@ import {
   useEffect,
   useState,
 } from 'react'
+import { useSelector } from 'react-redux'
 
 import './index.css'
 
@@ -17,10 +18,13 @@ import {
   UpdateTab,
   PromptTab,
   StaffTab,
+  AdminTab,
+  DebugTab,
 } from "./tabs";
 
 import { useAppState } from '@/AppStateContext';
 import { ModalPortal } from '@/components/modals/ModalPortal';
+import { selectLaravelAuth } from '@/store/slices/authSlice';
 
 const DEFAULT_TAB_ID = 'api'
 
@@ -54,8 +58,19 @@ const BASE_TABS = [
 
 ]
 
+const ADMIN_TAB = {
+  id: 'admin',
+  label: '職員管理',
+  component: AdminTab,
+}
+
 // デバッグモード用のタブ
 const DEBUG_TABS = [
+  {
+    id: 'debug',
+    label: '認証状態',
+    component: DebugTab,
+  },
   {
     id: 'url',
     label: 'URL設定',
@@ -83,6 +98,8 @@ export default function SettingsModal({
   onClose,
 }) {
   const [activeTab, setActiveTab] = useState(DEFAULT_TAB_ID)
+  const auth = useSelector(selectLaravelAuth)
+  const isAdmin = Number(auth.user?.role_id) === 1
 
   /*
    * モーダルを開いた際に、
@@ -97,7 +114,13 @@ export default function SettingsModal({
   } = useAppState();
 
   // DEBUG_FLG に基づいて表示するタブを決定
-  const tabs = DEBUG_FLG ? [...BASE_TABS, ...DEBUG_TABS] : BASE_TABS;
+  const visibleDebugTabs = isAdmin
+    ? DEBUG_TABS
+    : DEBUG_TABS.filter((tab) => tab.id !== 'debug')
+  const baseTabs = isAdmin
+    ? [...BASE_TABS, ADMIN_TAB]
+    : BASE_TABS
+  const tabs = DEBUG_FLG ? [...baseTabs, ...visibleDebugTabs] : baseTabs;
 
   /*
    * モーダルを開くたびにAPI設定タブへ戻す。

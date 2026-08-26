@@ -10,7 +10,6 @@ import {
   updateAppState,
   setDatabaseType,
   setUseAI,
-  setStaffId,
   setFacilityId,
   setDebugFlg,
   setAutoSynchronization,
@@ -107,7 +106,6 @@ export async function loadAllReload() {
 
     const databaseType = apiSettings.databaseType || 'sqlite'
     const useAI = apiSettings.useAI || 'gemini'
-    const staffId = apiSettings.staffId != null ? String(apiSettings.staffId) : ''
     const facilityId =
       apiSettings.facilityId != null ? String(apiSettings.facilityId) : ''
     const baseURL = apiSettings.baseURL || ''
@@ -128,7 +126,6 @@ export async function loadAllReload() {
     console.log('[reloadSettings] apiSettings normalized:', {
       databaseType,
       useAI,
-      staffId,
       facilityId,
       baseURL,
       debugFlg,
@@ -141,7 +138,6 @@ export async function loadAllReload() {
     // =============================================================
     store.dispatch(setDatabaseType(databaseType))
     store.dispatch(setUseAI(useAI))
-    store.dispatch(setStaffId(staffId))
     store.dispatch(setFacilityId(facilityId))
     store.dispatch(setDebugFlg(debugFlg))
     store.dispatch(setAutoSynchronization(autoSynchronization))
@@ -151,7 +147,6 @@ export async function loadAllReload() {
       updateAppState({
         DATABASE_TYPE: databaseType,
         USE_AI: useAI,
-        STAFF_ID: staffId,
         FACILITY_ID: facilityId,
         VITE_API_BASE_URL: baseURL,
         DEBUG_FLG: debugFlg,
@@ -180,7 +175,6 @@ export async function loadAllReload() {
     // =============================================================
     syncFormValue('api-database-type', databaseType)
     syncFormValue('api-ai-type', useAI)
-    syncFormValue('api-staff-id', staffId)
     syncFormValue('api-facility-id', facilityId)
     syncFormValue('api-base-url', baseURL)
 

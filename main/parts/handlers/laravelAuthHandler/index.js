@@ -3,6 +3,7 @@
 const auth = require("./auth");
 const tempNotes = require("./tempNotes");
 const procedures = require("./procedures");
+const updateStaffLogin = require("./admin/updateStaffLogin");
 const managers2 = require("./managers2");
 const children = require("./children");
 const laravelApiClient = require("../../../../src/laravelApiClient");
@@ -44,6 +45,7 @@ const IPC_CHANNELS = [
   "laravel:procedure:register-manager-assignment",
   "laravel:procedure:sync-hug-staffs",
   "laravel:procedure:update-staff",
+  "laravel:admin:update-staff-login",
   "laravel:procedure:upsert-service-record",
   "laravel:procedure:get-service-record-monthly",
   "laravel:procedure:get-child-kadai-graph",
@@ -272,6 +274,11 @@ function registerLaravelAuthHandlers(
     "laravel:procedure:update-staff",
     procedures
       .updateStaffHandler
+  );
+
+  ipcMain.handle(
+    "laravel:admin:update-staff-login",
+    updateStaffLogin.handler
   );
 
   /**

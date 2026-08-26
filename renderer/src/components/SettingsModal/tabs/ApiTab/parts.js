@@ -45,12 +45,14 @@ export const normalizeDatabaseType = (value) => {
 export const createFormState = ({
   apiSettings,
   appState,
+  authUser,
 }) => {
   return {
     staffId: toId(
-      apiSettings?.staffId ??
-      appState?.STAFF_ID
+      authUser?.staff_id
     ),
+
+    staffName: String(authUser?.name ?? ''),
 
     facilityId: toId(
       apiSettings?.facilityId ??
@@ -67,6 +69,11 @@ export const createFormState = ({
       apiSettings?.useAI ??
       appState?.USE_AI ??
       'gemini'
+    ),
+
+    autoAttendanceFetch: toBoolean(
+      apiSettings?.autoAttendanceFetch,
+      false
     ),
 
     autoSynchronization: toBoolean(

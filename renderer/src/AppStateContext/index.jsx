@@ -7,7 +7,7 @@ import {
   useCallback,
   useRef,
 } from 'react'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 
 import { useReduxBindings } from './useReduxBindings'
 import { useWindowBridge } from './useWindowBridge'
@@ -42,6 +42,7 @@ import {
 } from '@/store/slices/modeSlice'
 
 import { loadIni as loadIniFromUtils } from '@/utils/config/iniUtils'
+import { selectAuthenticatedStaffId } from '@/store/slices/authSlice'
 
 const AppStateContext = createContext(null)
 
@@ -60,6 +61,7 @@ export function AppStateProvider({ children }) {
   const didInitRef = useRef(false)
 
   const redux = useReduxBindings()
+  const authenticatedStaffId = useSelector(selectAuthenticatedStaffId)
 
   const [isInitialized, setIsInitialized] = useState(false)
   const [activeSidebarTab, setActiveSidebarTab] = useState('tools')
@@ -69,6 +71,12 @@ export function AppStateProvider({ children }) {
     userPreferences: {},
     apiSettings: {},
   })
+
+  useEffect(() => {
+    if (redux.STAFF_ID !== authenticatedStaffId) {
+      dispatch(setStaffIdRedux(authenticatedStaffId))
+    }
+  }, [authenticatedStaffId, dispatch, redux.STAFF_ID])
 
   // =============================================================
   // 状態監視ログ
@@ -447,13 +455,6 @@ export function AppStateProvider({ children }) {
     }
 
     const updates = {}
-
-    if (
-      apiSettings.staffId != null &&
-      redux.STAFF_ID !== String(apiSettings.staffId)
-    ) {
-      updates.STAFF_ID = String(apiSettings.staffId)
-    }
 
     if (
       apiSettings.facilityId != null &&

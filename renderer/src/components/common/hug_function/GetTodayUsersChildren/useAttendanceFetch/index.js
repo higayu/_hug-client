@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { useDispatch } from "react-redux";
 
 import { useAppState } from "@/AppStateContext";
@@ -22,10 +22,35 @@ export function useAttendanceFetch(logTag = "GetTodayUsersChildren") {
   const dispatch = useDispatch();
   const { showInfoToast } = useToast();
 
-  const { FACILITY_ID, CURRENT_YMD, updateAppState } = useAppState();
+  const {
+    FACILITY_ID,
+    CURRENT_YMD,
+    iniState,
+    updateAppState,
+    updateIniSetting,
+  } = useAppState();
 
-  const [autoFetchEnabled, setAutoFetchEnabled] = useState(false);
+  const autoFetchEnabled =
+    iniState?.apiSettings?.autoAttendanceFetch === true ||
+    iniState?.apiSettings?.autoAttendanceFetch === "true";
   const isFetchingRef = useRef(false);
+
+  const setAutoFetchEnabled = useCallback(
+    async (enabled) => {
+      const result = await updateIniSetting(
+        "apiSettings.autoAttendanceFetch",
+        String(Boolean(enabled))
+      );
+
+      if (!result?.success) {
+        console.error(`[${logTag}] 自動取得設定の保存に失敗:`, result);
+        return false;
+      }
+
+      return true;
+    },
+    [logTag, updateIniSetting]
+  );
 
   const runFetch = useCallback(
     async (options = {}) => {
@@ -47,7 +72,7 @@ export function useAttendanceFetch(logTag = "GetTodayUsersChildren") {
           console.warn(`[${logTag}] HUG未ログインのため取得をスキップ`);
 
           if (silent) {
-            setAutoFetchEnabled(false);
+            await setAutoFetchEnabled(false);
           } else {
             showInfoToast("⚠️ HUGにログインしてから利用者データを取得してください");
           }
@@ -132,6 +157,7 @@ export function useAttendanceFetch(logTag = "GetTodayUsersChildren") {
       updateAppState,
       showInfoToast,
       logTag,
+      setAutoFetchEnabled,
     ]
   );
 
@@ -150,9 +176,9 @@ export function useAttendanceFetch(logTag = "GetTodayUsersChildren") {
     return () => clearInterval(intervalId);
   }, [autoFetchEnabled]);
 
-  const toggleAutoFetch = useCallback(() => {
-    setAutoFetchEnabled((prev) => !prev);
-  }, []);
+  const toggleAutoFetch = useCallback(async () => {
+    await setAutoFetchEnabled(!autoFetchEnabled);
+  }, [autoFetchEnabled, setAutoFetchEnabled]);
 
   return {
     runFetch,

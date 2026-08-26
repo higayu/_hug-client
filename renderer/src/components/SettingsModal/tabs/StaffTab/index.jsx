@@ -3,11 +3,13 @@ import {
   useMemo,
   useState,
 } from 'react'
+import { useSelector } from 'react-redux'
 
 import { useAppState } from '@/AppStateContext'
 import { useDataBase } from '@/hooks/useDataBase'
 import { useStaff } from '@/hooks/useStaff'
 import { useToast } from '@/provider/ToastProvider/ToastContext'
+import { selectLaravelAuth } from '@/store/slices/authSlice'
 
 const initialForm = {
   id: '',
@@ -64,11 +66,19 @@ const toNullableNumber = (value) => {
     : null
 }
 
-export default function StaffTab() {
+export default function StaffTab({
+  staffId,
+  title = '職員情報',
+}) {
+  const auth = useSelector(selectLaravelAuth)
+  const isAdmin = Number(auth.user?.role_id) === 1
+
   const {
     STAFF_ID,
     databaseState,
   } = useAppState()
+
+  const targetStaffId = staffId ?? STAFF_ID
 
   const {
     reloadData,
@@ -139,12 +149,12 @@ export default function StaffTab() {
       staffs.find(
         (staff) =>
           String(staff?.id) ===
-          String(STAFF_ID),
+          String(targetStaffId),
       ) ?? null
     )
   }, [
     staffs,
-    STAFF_ID,
+    targetStaffId,
   ])
 
   /*
@@ -304,7 +314,7 @@ export default function StaffTab() {
       return
     }
 
-    if (!STAFF_ID) {
+    if (!targetStaffId) {
       showErrorToast(
         'スタッフが選択されていません。',
       )
@@ -351,20 +361,6 @@ export default function StaffTab() {
         notes:
           form.notes ?? '',
 
-        is_delete:
-          Number(
-            form.is_delete,
-          ) === 1
-            ? 1
-            : 0,
-
-        role_id:
-          Number(
-            form.role_id,
-          ) === 1
-            ? 1
-            : 0,
-
         display_order:
           toNullableNumber(
             form.display_order,
@@ -379,11 +375,20 @@ export default function StaffTab() {
           toNullable(
             form.leaving_at,
           ),
+
+        ...(isAdmin
+          ? {
+              is_delete:
+                Number(form.is_delete) === 1 ? 1 : 0,
+              role_id:
+                Number(form.role_id) === 1 ? 1 : 0,
+            }
+          : {}),
       }
 
       const payload = {
         staffId:
-          Number(STAFF_ID),
+          Number(targetStaffId),
 
         staff,
 
@@ -455,11 +460,11 @@ export default function StaffTab() {
   /*
    * STAFF_ID未選択
    */
-  if (!STAFF_ID) {
+  if (!targetStaffId) {
     return (
       <div>
         <h3 className="mb-2 border-b border-gray-200 pb-2 text-lg text-gray-700">
-          職員情報
+          {title}
         </h3>
 
         <p className="py-8 text-center text-gray-500">
@@ -477,7 +482,7 @@ export default function StaffTab() {
     return (
       <div>
         <h3 className="mb-2 border-b border-gray-200 pb-2 text-lg text-gray-700">
-          職員情報
+          {title}
         </h3>
 
         <p className="py-8 text-center text-gray-500">
@@ -490,7 +495,7 @@ export default function StaffTab() {
   return (
     <div>
       <h3 className="mb-2 border-b border-gray-200 pb-2 text-lg text-gray-700">
-        職員情報
+        {title}
       </h3>
 
       <p className="mb-5 text-sm text-gray-600">
@@ -609,6 +614,7 @@ export default function StaffTab() {
       </div>
 
       {/* 権限・削除状態 */}
+      {isAdmin && (
       <div className="mt-5 flex flex-wrap gap-6">
         <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
           <input
@@ -646,6 +652,7 @@ export default function StaffTab() {
           削除済み
         </label>
       </div>
+      )}
 
       {/* メモ */}
       <div className="mt-5">

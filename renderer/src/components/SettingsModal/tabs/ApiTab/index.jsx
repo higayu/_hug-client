@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState, useCallback } from 'react'  // ← useCallback を追加
+import { useSelector } from 'react-redux'
 
 import { useAppState } from '@/AppStateContext'
 import { useToast } from '@/provider/ToastProvider/ToastContext'
 import { useDataBase } from '@/hooks/useDataBase'
+import { selectLaravelAuth } from '@/store/slices/authSlice'
 
 import {
   createFormState,
@@ -13,13 +15,13 @@ import {
 
 function ApiTab() {
   const [isSaving, setIsSaving] = useState(false)
-  const [isReloading, setIsReloading] = useState(false)
+  const [isResetting, setIsResetting] = useState(false)
+  const auth = useSelector(selectLaravelAuth)
 
   const {
     appState,
     databaseState,
     iniState,
-    loadIni,
     saveIni,
     setIniState,
     updateAppState,
@@ -31,13 +33,14 @@ function ApiTab() {
   } = useToast()
 
   // DB全テーブルを再取得するために使用
-  // autoLoad は行わず、保存・再読み込み完了後に明示的に呼び出す
+  // autoLoad は行わず、保存・初期化完了後に明示的に呼び出す
   const { loadDataBase } = useDataBase()
 
   const [form, setForm] = useState(() => {
     return createFormState({
       apiSettings: iniState?.apiSettings,
       appState,
+      authUser: auth.user,
     })
   })
 
@@ -172,6 +175,7 @@ function ApiTab() {
       createFormState({
         apiSettings: iniState?.apiSettings,
         appState,
+        authUser: auth.user,
       })
     )
   }, [
@@ -184,6 +188,7 @@ function ApiTab() {
     appState?.AUTO_SYNCHRONIZATION,
     appState?.AUTO_SWITCHING,
     appState?.DEBUG_FLG,  // ← 追加
+    auth.user,
   ])
 
   /*
@@ -218,58 +223,12 @@ function ApiTab() {
       return {
         ...previous,
         facilityId: '',
-        staffId: '',
       }
     })
   }, [
     databaseReady,
     facilityList,
     form.facilityId,
-  ])
-
-  /*
-   * 選択中のスタッフが選択施設に所属していない場合、
-   * スタッフの選択を解除
-   */
-  useEffect(() => {
-    if (
-      !databaseReady ||
-      allStaffList.length === 0 ||
-      !form.staffId
-    ) {
-      return
-    }
-
-    const staffExists = filteredStaffList.some(
-      (staff) => {
-        return staff.id === form.staffId
-      }
-    )
-
-    if (staffExists) {
-      return
-    }
-
-    console.warn(
-      '[ApiTab] 選択施設に所属しないスタッフを解除:',
-      {
-        facilityId: form.facilityId,
-        staffId: form.staffId,
-      }
-    )
-
-    setForm((previous) => {
-      return {
-        ...previous,
-        staffId: '',
-      }
-    })
-  }, [
-    databaseReady,
-    allStaffList,
-    filteredStaffList,
-    form.facilityId,
-    form.staffId,
   ])
 
   /*
@@ -302,27 +261,10 @@ function ApiTab() {
       event.target.value
     )
 
-    setForm((previous) => {
-      const currentStaff = allStaffList.find(
-        (staff) => {
-          return staff.id === previous.staffId
-        }
-      )
-
-      const canKeepStaff =
-        !nextFacilityId ||
-        currentStaff?.facilityIds.includes(
-          nextFacilityId
-        )
-
-      return {
-        ...previous,
-        facilityId: nextFacilityId,
-        staffId: canKeepStaff
-          ? previous.staffId
-          : '',
-      }
-    })
+    setForm((previous) => ({
+      ...previous,
+      facilityId: nextFacilityId,
+    }))
   }
 
   /*
@@ -389,17 +331,21 @@ function ApiTab() {
    * ini.jsonへ保存
    */
   const handleSave = async () => {
-    if (isSaving || isReloading) {
+    if (isSaving || isResetting) {
       return
     }
 
     setIsSaving(true)
 
     try {
-      const nextApiSettings = {
-        ...(iniState?.apiSettings ?? {}),
+      const {
+        staffId: _legacyStaffId,
+        ...apiSettingsWithoutStaffId
+      } = iniState?.apiSettings ?? {}
 
-        staffId: toId(form.staffId),
+      const nextApiSettings = {
+        ...apiSettingsWithoutStaffId,
+
         facilityId: toId(form.facilityId),
 
         databaseType: normalizeDatabaseType(
@@ -407,6 +353,10 @@ function ApiTab() {
         ),
 
         useAI: form.useAI,
+
+        autoAttendanceFetch: String(
+          form.autoAttendanceFetch
+        ),
 
         autoSynchronization: String(
           form.autoSynchronization
@@ -460,9 +410,6 @@ function ApiTab() {
        * appStateSliceへ即時反映
        */
       updateAppState({
-        STAFF_ID:
-          nextApiSettings.staffId,
-
         FACILITY_ID:
           nextApiSettings.facilityId,
 
@@ -539,110 +486,64 @@ function ApiTab() {
     }
   }
 
-  /*
-   * ini.jsonから再読み込み
-   */
-  const handleReload = async () => {
-    if (isSaving || isReloading) {
+  const handleReset = async () => {
+    if (isSaving || isResetting) return
+
+    if (!window.confirm('ini.jsonの設定をすべて初期値に戻しますか？')) {
       return
     }
 
-    setIsReloading(true)
+    setIsResetting(true)
 
     try {
-      const loadedIni = await loadIni()
-
-      if (!loadedIni) {
-        throw new Error(
-          'ini.jsonを読み込めませんでした'
-        )
+      const result = await window.electronAPI.resetIni()
+      if (!result?.success || !result?.data) {
+        throw new Error(result?.error || 'ini.jsonの初期化に失敗しました')
       }
 
+      const resetIniState = {
+        appSettings: result.data.appSettings ?? {},
+        userPreferences: result.data.userPreferences ?? {},
+        apiSettings: result.data.apiSettings ?? {},
+      }
       const nextForm = createFormState({
-        apiSettings:
-          loadedIni.apiSettings,
-
+        apiSettings: resetIniState.apiSettings,
         appState,
+        authUser: auth.user,
       })
 
+      setIniState(resetIniState)
       setForm(nextForm)
-
       updateAppState({
-        STAFF_ID:
-          nextForm.staffId,
-
-        FACILITY_ID:
-          nextForm.facilityId,
-
-        DATABASE_TYPE:
-          nextForm.databaseType,
-
-        USE_AI:
-          nextForm.useAI,
-
-        AUTO_SYNCHRONIZATION:
-          nextForm.autoSynchronization,
-
-        AUTO_SWITCHING:
-          nextForm.autoSwitching,
-
-        DEBUG_FLG: nextForm.debugFlg,  // ← 追加
+        FACILITY_ID: nextForm.facilityId,
+        DATABASE_TYPE: nextForm.databaseType,
+        USE_AI: nextForm.useAI,
+        AUTO_SYNCHRONIZATION: nextForm.autoSynchronization,
+        AUTO_SWITCHING: nextForm.autoSwitching,
+        DEBUG_FLG: nextForm.debugFlg,
       })
-
-      /*
-       * ini.jsonから読み込んだ設定を反映した状態でDBデータを再取得
-       */
-      console.log(
-        '[ApiTab] 設定再読み込み後のDBデータ再取得開始:',
-        nextForm.databaseType
-      )
 
       const reloadSuccess = await loadDataBase({
-        reason: 'api-settings-reloaded',
-        forceDatabaseType:
-          nextForm.databaseType,
+        reason: 'api-settings-reset',
+        forceDatabaseType: nextForm.databaseType,
         useAutoSwitching: false,
       })
 
       if (!reloadSuccess) {
-        console.warn(
-          '[ApiTab] API設定は再読み込みしましたが、DBデータの再取得に失敗しました'
-        )
-
-        showErrorToast(
-          'API設定は再読み込みしましたが、データの再取得に失敗しました'
-        )
+        showErrorToast('ini.jsonは初期化しましたが、データの再取得に失敗しました')
       } else {
-        console.log(
-          '[ApiTab] 設定再読み込み後のDBデータ再取得完了'
-        )
-
-        showSuccessToast(
-          'API設定とデータを再読み込みしました'
-        )
+        showSuccessToast('ini.jsonを初期値に戻しました')
       }
-
-      console.log(
-        '[ApiTab] API設定再読み込み完了:',
-        loadedIni.apiSettings
-      )
     } catch (error) {
-      console.error(
-        '[ApiTab] API設定再読み込みエラー:',
-        error
-      )
-
-      showErrorToast(
-        error?.message ||
-        'API設定の再読み込みに失敗しました'
-      )
+      console.error('[ApiTab] ini.json初期化エラー:', error)
+      showErrorToast(error?.message || 'ini.jsonの初期化に失敗しました')
     } finally {
-      setIsReloading(false)
+      setIsResetting(false)
     }
   }
 
   const isProcessing =
-    isSaving || isReloading
+    isSaving || isResetting
 
   return (
     <div>
@@ -662,6 +563,25 @@ function ApiTab() {
             有効な施設データがありません。
           </div>
         )}
+
+        <div className="mb-3 flex items-center py-2">
+          <label
+            htmlFor="api-staff-id"
+            className="min-w-[120px] font-medium text-gray-700"
+          >
+            スタッフ:
+          </label>
+
+          <div
+            id="api-staff-id"
+            className="max-w-[300px] flex-1 rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm text-gray-800"
+          >
+            {form.staffId
+              ? `${form.staffName || '名称未取得'} (ID: ${form.staffId})`
+              : '認証情報を取得できていません'}
+          </div>
+
+        </div>
 
       <div className="mb-6">
         <div className="mb-3 flex items-center py-2">
@@ -695,37 +615,7 @@ function ApiTab() {
           </select>
         </div>
 
-        <div className="mb-3 flex items-center py-2">
-          <label
-            htmlFor="api-staff-id"
-            className="min-w-[120px] font-medium text-gray-700"
-          >
-            スタッフ:
-          </label>
 
-          <select
-            id="api-staff-id"
-            name="staffId"
-            value={form.staffId}
-            onChange={handleInputChange}
-            disabled={!databaseReady}
-            className="max-w-[300px] flex-1 rounded-md border border-gray-300 px-3 py-2 text-sm transition-all disabled:cursor-not-allowed disabled:bg-gray-100"
-          >
-            <option value="">
-              選択してください
-            </option>
-
-            {filteredStaffList.map((staff) => (
-              <option
-                key={staff.id}
-                value={staff.id}
-              >
-                {staff.name}
-              </option>
-            ))}
-          </select>
-
-        </div>
 
         <div className="mb-3 flex items-center py-2">
           <label
@@ -791,6 +681,27 @@ function ApiTab() {
               OpenRouter
             </option>
           </select>
+        </div>
+
+        <div className="mb-3 flex items-center py-2">
+          <span className="min-w-[120px] font-medium text-gray-700">
+            利用者自動取得:
+          </span>
+
+          <label
+            htmlFor="api-auto-attendance-fetch"
+            className="flex items-center gap-2 text-sm text-gray-700"
+          >
+            <input
+              id="api-auto-attendance-fetch"
+              name="autoAttendanceFetch"
+              type="checkbox"
+              checked={form.autoAttendanceFetch}
+              onChange={handleInputChange}
+              className="h-4 w-4"
+            />
+            <span>有効にする</span>
+          </label>
         </div>
 
         {form.debugFlg && (
@@ -910,15 +821,15 @@ function ApiTab() {
 
       <div className="mb-6 flex gap-2.5">
         <button
-          id="reload-api-settings"
+          id="reset-api-settings"
           type="button"
-          onClick={handleReload}
+          onClick={handleReset}
           disabled={isProcessing}
-          className="rounded-md bg-gray-600 px-5 py-2.5 text-white disabled:cursor-not-allowed disabled:opacity-60"
+          className="rounded-md bg-red-600 px-5 py-2.5 text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {isReloading
-            ? '再読み込み中...'
-            : 'API設定を再読み込み'}
+          {isResetting
+            ? '初期化中...'
+            : 'ini.jsonを初期値に戻す'}
         </button>
 
         <button

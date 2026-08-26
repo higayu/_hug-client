@@ -174,6 +174,7 @@ var require_electronApi = __commonJS({
         ),
         laravel_procedure_syncHugStaffs: (data) => ipcRenderer2.invoke("laravel:procedure:sync-hug-staffs", data),
         laravel_staff_update: (data) => ipcRenderer2.invoke("laravel:procedure:update-staff", data),
+        laravel_admin_update_staff_login: (data) => ipcRenderer2.invoke("laravel:admin:update-staff-login", data),
         laravel_procedure_upsertServiceRecord: (data) => ipcRenderer2.invoke("laravel:procedure:upsert-service-record", data),
         laravel_procedure_getServiceRecordMonthly: (data) => ipcRenderer2.invoke(
           "laravel:procedure:get-service-record-monthly",
@@ -303,6 +304,7 @@ var require_electronApi = __commonJS({
         saveConfig: (data) => ipcRenderer2.invoke("save-config", data),
         readIni: () => ipcRenderer2.invoke("read-ini"),
         saveIni: (data) => ipcRenderer2.invoke("save-ini", data),
+        resetIni: () => ipcRenderer2.invoke("reset-ini"),
         updateIniSetting: (path, value) => ipcRenderer2.invoke("update-ini-setting", path, value),
         importConfigFile: () => ipcRenderer2.invoke("import-config-file"),
         openConfigFolder: () => ipcRenderer2.invoke("open-config-folder"),
