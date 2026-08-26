@@ -3,6 +3,7 @@ import { useDispatch } from "react-redux";
 
 import { useAppState } from "@/AppStateContext";
 import { useToast } from '@/provider/ToastProvider/ToastContext'
+import { isHugLoggedIn } from "@/hooks/useHugCache/isHugLoggedIn.js";
 import { fetchAttendanceViaHugTab } from "@/utils/attendance/fetchAttendanceViaHugTab";
 import { extractColumnData } from "@/utils/attendance/attendanceTable";
 import { setExtractedData, setTableData } from "@/store/slices/attendanceSlice";
@@ -41,6 +42,19 @@ export function useAttendanceFetch(logTag = "GetTodayUsersChildren") {
       isFetchingRef.current = true;
 
       try {
+        const loggedIn = await isHugLoggedIn();
+        if (!loggedIn) {
+          console.warn(`[${logTag}] HUG未ログインのため取得をスキップ`);
+
+          if (silent) {
+            setAutoFetchEnabled(false);
+          } else {
+            showInfoToast("⚠️ HUGにログインしてから利用者データを取得してください");
+          }
+
+          return;
+        }
+
         if (!silent) {
           showInfoToast("📥 利用者データ取得中...");
         }

@@ -1,3 +1,4 @@
+import { useCallback, useEffect } from 'react';
 import { ArrowRightOnRectangleIcon } from '@heroicons/react/24/outline';
 
 import { useHugActions } from '@/hooks/useHugActions';
@@ -8,7 +9,7 @@ export default function AutoLoginButton() {
   /**
    * 自動ログインボタン押下時の処理
    */
-  const handleLogin_func = async () => {
+  const handleLogin_func = useCallback(async () => {
     try {
       const res = await window.electronAPI.jwtAutoLogin();
 
@@ -31,7 +32,14 @@ export default function AutoLoginButton() {
         error
       );
     }
-  };
+  }, [handleLogin]);
+
+  useEffect(() => {
+    document.addEventListener('hug-startup-auto-login', handleLogin_func);
+    return () => {
+      document.removeEventListener('hug-startup-auto-login', handleLogin_func);
+    };
+  }, [handleLogin_func]);
 
   return (
     <nav className="relative z-[1001] ml-0 inline-block min-w-fit flex-shrink-0">
