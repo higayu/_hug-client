@@ -3,7 +3,6 @@ import React, { useState, useEffect } from "react";
 import { useAppState } from "@/AppStateContext";
 
 import ProfessionalPlan from "@/components/common/hug_function/ProfessionalPlan";
-import PersonSupportPlan from "@/components/common/hug_function/PersonSupportPlan";
 import ProfessionalSupportCheckPanel2 from "@/components/common/hug_function/ProfessionalSupportCheckPanel2";
 
 import ChildNotesTabs from "../ChildNotesTabs";
@@ -107,7 +106,6 @@ export default function ProfessionalPrompt1({
       >
         <div className="flex flex-row gap-2">
           <ProfessionalPlan />
-          <PersonSupportPlan />
         </div>
       </ChildNotesTabs>
 

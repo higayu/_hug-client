@@ -3,6 +3,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useAppState } from "@/AppStateContext";
 import ChildNotes from "./ChildNotes";
+import PersonSupportPlan from "@/components/common/hug_function/PersonSupportPlan";
 
 const DBG = "ChildNotesTabs";
 
@@ -192,7 +193,10 @@ export default function ChildNotesTabs({
           </span>
         </h4>
 
-        {children}
+        <div className="flex items-center gap-2">
+          {activeTab === "notes2" && <PersonSupportPlan />}
+          {children}
+        </div>
       </div>
 
       {/* =====================================================

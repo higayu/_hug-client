@@ -5,7 +5,7 @@ import { ArrowPathIcon } from "@heroicons/react/24/solid";
 import { fetchPersonSupportPlan } from "./function";
 
 export default function PersonSupportPlan() {
-  const { SELECT_CHILD, SELECT_FACILITY_ID: facilityId } = useAppState();
+  const { SELECT_CHILD, FACILITY_ID: facilityId } = useAppState();
   const { loadDataBase } = useDataBase();
   const [isLoading, setIsLoading] = useState(false);
 
