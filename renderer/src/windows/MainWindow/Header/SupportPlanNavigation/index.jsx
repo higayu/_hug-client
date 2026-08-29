@@ -1,6 +1,7 @@
 import { useHugActions } from '@/hooks/useHugActions';
 
 import PortalDropdown from '@/components/ui/PortalDropdown';
+import MonitoringButtton from '@/components/common/MonitoringButtton';
 
 export default function SupportPlanNavigation({
   className = '',
@@ -38,7 +39,7 @@ export default function SupportPlanNavigation({
         await handleSpecializedSupport();
       } catch (error) {
         console.error(
-          '[SupportPlanNavigation] 専門的の表示に失敗しました:',
+          '[SupportPlanNavigation] 専門的支援計画の表示に失敗しました:',
           error,
         );
       }
@@ -189,6 +190,9 @@ export default function SupportPlanNavigation({
             >
               専門的支援-計画
             </button>
+          </li>
+          <li className="m-0 p-0">
+              <MonitoringButtton />
           </li>
         </ul>
       )}
