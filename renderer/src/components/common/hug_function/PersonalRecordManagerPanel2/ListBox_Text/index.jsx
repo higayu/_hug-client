@@ -3,16 +3,15 @@ import { useSelector } from "react-redux";
 import { useAppState } from "@/AppStateContext";
 import { selectServiceRecord } from "@/store/slices/databaseSlice.js";
 import { selectPersonalRecordNote } from "./selectPersonalRecordNote";
-import { servedDateToDateStr } from "./selectPersonalRecordNote";
 import CopyButton from "@/components/ui/CopyButton";
 
 /**
  * 指定された月の個人記録一覧を表示し、選択した日付の内容をテキストエリアに表示する
  * 
- * @param {{ monthStr: string }} props - "YYYY-MM" 形式の月
+ * @param {{ monthStr: string, onMonthChange?: (month: string) => void }} props
  */
-export default function ListBox_Text({ monthStr = "" }) {
-  const { SELECT_CHILD } = useAppState();
+export default function ListBox_Text({ monthStr = "", onMonthChange }) {
+  const { SELECT_CHILD, CURRENT_YMD } = useAppState();
   const serviceRecords = useSelector(selectServiceRecord);
   
   // 選択された日付（YYYY-MM-DD）
@@ -23,6 +22,38 @@ export default function ListBox_Text({ monthStr = "" }) {
   
   // その月の日付リスト
   const [dateList, setDateList] = useState([]);
+
+  /**
+   * YYYY-MM を基準に月を移動
+   */
+  const shiftMonth = useCallback((yearMonth, amount) => {
+    if (!/^\d{4}-\d{2}$/.test(yearMonth)) return "";
+
+    const [year, month] = yearMonth.split("-").map(Number);
+    const target = new Date(year, month - 1 + amount, 1);
+
+    return `${target.getFullYear()}-${String(target.getMonth() + 1).padStart(2, "0")}`;
+  }, []);
+
+  /**
+   * 現在月を YYYY-MM で取得
+   */
+  const getCurrentMonth = useCallback(() => {
+    if (/^\d{4}-\d{2}/.test(CURRENT_YMD || "")) {
+      return CURRENT_YMD.slice(0, 7);
+    }
+
+    const today = new Date();
+    return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}`;
+  }, [CURRENT_YMD]);
+
+  /**
+   * 閲覧対象月を変更
+   */
+  const changeMonth = useCallback((nextMonth) => {
+    if (!/^\d{4}-\d{2}$/.test(nextMonth)) return;
+    onMonthChange?.(nextMonth);
+  }, [onMonthChange]);
 
   /**
    * 指定された月の日付リストを生成
@@ -126,6 +157,45 @@ export default function ListBox_Text({ monthStr = "" }) {
 
   return (
     <div className="space-y-3 px-1 py-2 bg-slate-100 rounded-lg">
+      {/* 閲覧対象月 */}
+      <div className="flex flex-wrap items-center justify-center gap-2 px-2">
+        <button
+          type="button"
+          onClick={() => changeMonth(shiftMonth(monthStr, -1))}
+          disabled={!monthStr}
+          className="rounded border border-gray-300 bg-white px-3 py-2 text-sm font-bold text-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
+          aria-label="前月を表示"
+        >
+          ◀ 前月
+        </button>
+
+        <input
+          type="month"
+          value={monthStr}
+          onChange={(e) => changeMonth(e.target.value)}
+          className="rounded border border-gray-300 bg-white px-3 py-2 text-sm font-bold focus:border-transparent focus:ring-2 focus:ring-amber-500"
+          aria-label="閲覧する月"
+        />
+
+        <button
+          type="button"
+          onClick={() => changeMonth(getCurrentMonth())}
+          className="rounded border border-indigo-300 bg-indigo-50 px-3 py-2 text-sm font-bold text-indigo-700 hover:bg-indigo-100"
+        >
+          今月
+        </button>
+
+        <button
+          type="button"
+          onClick={() => changeMonth(shiftMonth(monthStr, 1))}
+          disabled={!monthStr}
+          className="rounded border border-gray-300 bg-white px-3 py-2 text-sm font-bold text-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
+          aria-label="翌月を表示"
+        >
+          翌月 ▶
+        </button>
+      </div>
+
       {/* 日付セレクトボックス */}
       <div className="flex justify-around">
         <select
