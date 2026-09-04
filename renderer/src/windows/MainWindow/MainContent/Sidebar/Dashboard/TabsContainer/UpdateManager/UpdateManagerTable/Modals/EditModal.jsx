@@ -6,7 +6,7 @@ import {
   useState,
 } from "react";
 
-import SelectableWeekDayButton from "@/components/ui/SelectableWeekDayButton.jsx";
+import SelectableWeekDayButton from "@/components/ui/SelectableWeekDayButton";
 
 import {
   ModalPortal,
