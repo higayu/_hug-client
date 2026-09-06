@@ -2,11 +2,13 @@ import { useState } from 'react'
 import PersonalRecordManagerPanel2 from '@/components/common/hug_function/PersonalRecordManagerPanel2'
 import AiContents from './AiContents'
 import ChildKadai from './ChildKadai'
+import FanContent from './FanContent'
 
 const TABS = [
   { id: 'ai', label: 'AI支援' },
   { id: 'child-kadai', label: '児童課題' },
   { id: 'personal-record', label: '個人記録' },
+  { id: 'quick-actions', label: 'クイック操作' },
 ]
 
 export default function MainPanel() {
@@ -37,6 +39,7 @@ export default function MainPanel() {
         {activeTab === 'ai' && <AiContents />}
         {activeTab === 'child-kadai' && <ChildKadai />}
         {activeTab === 'personal-record' && <PersonalRecordManagerPanel2 />}
+        {activeTab === 'quick-actions' && <FanContent />}
       </div>
     </section>
   )
