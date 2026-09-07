@@ -46,6 +46,12 @@ import { selectAuthenticatedStaffId } from '@/store/slices/authSlice'
 
 const AppStateContext = createContext(null)
 
+export const FAN_CONTENT_PANELS = {
+  AI_SUPPORT: 'ai',
+  CHILD_KADAI: 'child-kadai',
+  PERSONAL_RECORD: 'personal-record',
+}
+
 const toBooleanFlag = (value, defaultValue = true) => {
   if (value === true || value === 'true') return true
   if (value === false || value === 'false') return false
@@ -65,6 +71,9 @@ export function AppStateProvider({ children }) {
 
   const [isInitialized, setIsInitialized] = useState(false)
   const [activeSidebarTab, setActiveSidebarTab] = useState('tools')
+  const [activeFanContentPanel, setActiveFanContentPanel] = useState(
+    FAN_CONTENT_PANELS.AI_SUPPORT
+  )
 
   const [iniState, setIniState] = useState({
     appSettings: {},
@@ -923,6 +932,10 @@ export function AppStateProvider({ children }) {
 
         activeSidebarTab,
         setActiveSidebarTab,
+
+        // FanContent の MainPanel 切り替え
+        activeFanContentPanel,
+        setActiveFanContentPanel,
       }}
     >
       {children}

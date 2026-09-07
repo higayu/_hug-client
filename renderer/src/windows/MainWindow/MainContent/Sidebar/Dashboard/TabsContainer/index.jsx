@@ -16,6 +16,7 @@ function TabsContainer() {
 
   const tabs = useMemo(() => {
     const baseTabs = [
+      { id: 'FanContent', label: 'クイック操作' },
       { id: 'tools', label: '🧰 ツール' },
       { id: 'insertManageChildren', label: '👶 子ども管理' },
       { id: 'updateManager', label: '👥 担当編集' },
@@ -23,7 +24,6 @@ function TabsContainer() {
 
     if (DEBUG_FLG) {
       baseTabs.push(
-        { id: 'FanContent', label: 'クイック操作' },
         { id: 'speechToText', label: '🎙 音声入力' },
       )
     }
@@ -53,6 +53,13 @@ function TabsContainer() {
 
       {/* --- コンテンツ切り替え --- */}
       <div className="flex-1 overflow-auto bg-white">
+
+        {activeTab === 'FanContent' && (
+          <div className="h-full flex flex-col">
+            <FanContent />
+          </div>
+        )}
+
         {activeTab === 'tools' && (
           <div className="h-full flex flex-col">
             <ToolContent />
@@ -68,12 +75,6 @@ function TabsContainer() {
         {activeTab === 'updateManager' && (
           <div className="h-full flex flex-col">
             <UpdateManager />
-          </div>
-        )}
-
-        {DEBUG_FLG && activeTab === 'FanContent' && (
-          <div className="h-full flex flex-col">
-            <FanContent />
           </div>
         )}
 

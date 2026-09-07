@@ -1,11 +1,6 @@
 import { useMemo, useState } from 'react'
+import { FAN_CONTENT_PANELS, useAppState } from '@/AppStateContext'
 import { DUMMY_AI_TEXT, DUMMY_KADAI_RECORDS, DUMMY_RECORD_TYPES } from './dummyData'
-
-const TABS = [
-  { id: 'ai', label: 'AI支援' },
-  { id: 'child-kadai', label: '児童課題' },
-  { id: 'personal-record', label: '個人記録' },
-]
 
 function AiDummy({ selectedChild }) {
   const [text, setText] = useState(DUMMY_AI_TEXT)
@@ -94,31 +89,21 @@ function PersonalRecordDummy({ selectedChild }) {
 }
 
 export default function MainPanel({ selectedChild }) {
-  const [activeTab, setActiveTab] = useState('ai')
+  const { activeFanContentPanel } = useAppState()
 
   return (
     <section className="min-w-0" aria-label="メインパネル">
-      <div className="flex gap-1 border-b border-gray-300 px-3" role="tablist">
-        {TABS.map((tab) => {
-          const active = activeTab === tab.id
-          return (
-            <button
-              key={tab.id}
-              type="button"
-              role="tab"
-              aria-selected={active}
-              onClick={() => setActiveTab(tab.id)}
-              className={`rounded-t px-4 py-2 text-sm font-medium ${active ? '-mb-px border border-b-white border-gray-300 bg-white text-blue-700' : 'text-gray-600 hover:bg-gray-100'}`}
-            >
-              {tab.label}
-            </button>
-          )
-        })}
-      </div>
+
       <div className="min-w-0 bg-white" role="tabpanel">
-        {activeTab === 'ai' && <AiDummy selectedChild={selectedChild} />}
-        {activeTab === 'child-kadai' && <KadaiDummy selectedChild={selectedChild} />}
-        {activeTab === 'personal-record' && <PersonalRecordDummy selectedChild={selectedChild} />}
+        {activeFanContentPanel === FAN_CONTENT_PANELS.AI_SUPPORT && (
+          <AiDummy selectedChild={selectedChild} />
+        )}
+        {activeFanContentPanel === FAN_CONTENT_PANELS.CHILD_KADAI && (
+          <KadaiDummy selectedChild={selectedChild} />
+        )}
+        {activeFanContentPanel === FAN_CONTENT_PANELS.PERSONAL_RECORD && (
+          <PersonalRecordDummy selectedChild={selectedChild} />
+        )}
       </div>
     </section>
   )
