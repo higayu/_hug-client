@@ -1,13 +1,16 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { DUMMY_CHILDREN } from './dummyData'
+import { useAppState } from '@/AppStateContext'
+import { splitChildrenData } from '@/AppStateContext/splitChildrenData'
+import { TABS } from '@/components/common/constants'
+import { useTodayChildrenListController } from './useTodayChildrenListController'
 import ChildMemoPanel from './ChildMemoPanel'
 
-const TABS = [
-  { id: 'normal', label: '通常' },
-  { id: 'sometimes', label: '時折' },
-  { id: 'temporary', label: '一時' },
-  { id: 'waiting', label: '待機' },
-  { id: 'experience', label: '体験' },
+const TAB_ITEMS = [
+  { id: TABS.NORMAL, label: '通常' },
+  { id: TABS.SOMETIMES, label: '時折' },
+  { id: TABS.TEMPORARY, label: '一時' },
+  { id: TABS.WAITING, label: '待機' },
+  { id: TABS.EXPERIENCE, label: '体験' },
 ]
 
 function ChevronIcon({ open }) {
@@ -29,39 +32,229 @@ function ChevronIcon({ open }) {
   )
 }
 
-export default function TodayChildrenList({ selectedChildId, onSelectChild }) {
-  const [activeTab, setActiveTab] = useState('normal')
+export default function TodayChildrenList() {
+  const appState = useAppState()
+
+  const {
+    SELECT_CHILD,
+    SELECT_CHILD_NAME,
+    SELECT_CHILD_FILTER_MODE,
+    CURRENT_DAY_OF_WEEK,
+    STAFF_ID,
+    FACILITY_ID,
+    childrenData,
+    waiting_childrenData,
+    Experience_childrenData,
+    attendanceData,
+    databaseState,
+    updateAppState,
+    setSelectedChild,
+    setSelectedPcName,
+  } = appState
+
+  const [activeTab, setActiveTab] = useState(TABS.NORMAL)
   const [doneChildIds, setDoneChildIds] = useState([])
   const [isOpen, setIsOpen] = useState(false)
   const rootRef = useRef(null)
 
+  const hasStaffId =
+    STAFF_ID !== null &&
+    STAFF_ID !== undefined &&
+    String(STAFF_ID).trim() !== ''
+
+  const weekdayId = useMemo(
+    () => CURRENT_DAY_OF_WEEK?.weekdayId ?? null,
+    [CURRENT_DAY_OF_WEEK],
+  )
+
+  const [displayChildrenData, setDisplayChildrenData] = useState(() =>
+    Array.isArray(childrenData) ? childrenData : [],
+  )
+
+  const [displayWaitingChildrenData, setDisplayWaitingChildrenData] = useState(
+    () => (Array.isArray(waiting_childrenData) ? waiting_childrenData : []),
+  )
+
+  const [displayExperienceChildrenData, setDisplayExperienceChildrenData] = useState(
+    () => (Array.isArray(Experience_childrenData) ? Experience_childrenData : []),
+  )
+
+  // 元の SelectChildren と同じ実データ更新処理
+  useEffect(() => {
+    let cancelled = false
+
+    const clearChildrenData = () => {
+      const emptyChildrenData = {
+        childrenData: [],
+        waiting_childrenData: [],
+        Experience_childrenData: [],
+      }
+
+      setDisplayChildrenData([])
+      setDisplayWaitingChildrenData([])
+      setDisplayExperienceChildrenData([])
+
+      updateAppState?.(emptyChildrenData)
+
+      if (window.AppState) {
+        window.AppState.childrenData = []
+        window.AppState.waiting_childrenData = []
+        window.AppState.Experience_childrenData = []
+      }
+    }
+
+    async function refreshChildrenByDayOfWeek() {
+      if (!hasStaffId) {
+        clearChildrenData()
+        return
+      }
+
+      if (!databaseState || weekdayId == null) {
+        return
+      }
+
+      try {
+        clearChildrenData()
+
+        const result = await splitChildrenData({
+          tables: databaseState,
+          staffId: STAFF_ID,
+          weekdayId,
+          facility_id: FACILITY_ID,
+        })
+
+        if (cancelled) return
+
+        const nextChildrenData = Array.isArray(result?.week_children)
+          ? result.week_children
+          : []
+        const nextWaitingChildrenData = Array.isArray(result?.waiting_children)
+          ? result.waiting_children
+          : []
+        const nextExperienceChildrenData = Array.isArray(result?.Experience_children)
+          ? result.Experience_children
+          : []
+
+        setDisplayChildrenData(nextChildrenData)
+        setDisplayWaitingChildrenData(nextWaitingChildrenData)
+        setDisplayExperienceChildrenData(nextExperienceChildrenData)
+
+        updateAppState?.({
+          childrenData: nextChildrenData,
+          waiting_childrenData: nextWaitingChildrenData,
+          Experience_childrenData: nextExperienceChildrenData,
+        })
+
+        if (window.AppState) {
+          window.AppState.childrenData = nextChildrenData
+          window.AppState.waiting_childrenData = nextWaitingChildrenData
+          window.AppState.Experience_childrenData = nextExperienceChildrenData
+        }
+      } catch (error) {
+        console.error('[FanContent/TodayChildrenList] 児童リスト更新に失敗:', error)
+      }
+    }
+
+    refreshChildrenByDayOfWeek()
+
+    return () => {
+      cancelled = true
+    }
+  }, [
+    hasStaffId,
+    STAFF_ID,
+    FACILITY_ID,
+    weekdayId,
+    databaseState,
+    updateAppState,
+  ])
+
+  const {
+    normalChildren,
+    sometimesChildren,
+    temporaryChildren,
+    visibleWaitingChildren,
+    visibleExperienceChildren,
+    handleChildSelect,
+    handleToggleDone,
+    getChildAbsent,
+    getChildExited,
+  } = useTodayChildrenListController({
+    SELECT_CHILD,
+    SELECT_CHILD_FILTER_MODE,
+    childrenData: displayChildrenData,
+    waiting_childrenData: displayWaitingChildrenData,
+    Experience_childrenData: displayExperienceChildrenData,
+    attendanceData,
+    activeTab,
+    setDoneChildIds,
+    setSelectedChild,
+    setSelectedPcName,
+  })
+
+  const childrenByTab = useMemo(
+    () => ({
+      [TABS.NORMAL]: normalChildren,
+      [TABS.SOMETIMES]: sometimesChildren,
+      [TABS.TEMPORARY]: temporaryChildren,
+      [TABS.WAITING]: visibleWaitingChildren,
+      [TABS.EXPERIENCE]: visibleExperienceChildren,
+    }),
+    [
+      normalChildren,
+      sometimesChildren,
+      temporaryChildren,
+      visibleWaitingChildren,
+      visibleExperienceChildren,
+    ],
+  )
+
+  const visibleChildren = childrenByTab[activeTab] ?? []
+
+  const allChildren = useMemo(
+    () => [
+      ...displayChildrenData,
+      ...displayWaitingChildrenData,
+      ...displayExperienceChildrenData,
+    ],
+    [
+      displayChildrenData,
+      displayWaitingChildrenData,
+      displayExperienceChildrenData,
+    ],
+  )
+
   const selectedChild = useMemo(
     () =>
-      DUMMY_CHILDREN.find(
-        (child) => String(child.children_id) === String(selectedChildId),
+      allChildren.find(
+        (child) => String(child?.children_id) === String(SELECT_CHILD),
       ) ?? null,
-    [selectedChildId],
+    [allChildren, SELECT_CHILD],
   )
 
-  const visibleChildren = useMemo(
-    () => DUMMY_CHILDREN.filter((child) => child.category === activeTab),
-    [activeTab],
-  )
+  const selectedChildTab = useMemo(() => {
+    if (!selectedChild) return null
 
-  const selectedStatus = useMemo(() => {
-    if (!selectedChild) return '児童が選択されていません'
-    if (selectedChild.status === 'absent') return '欠席'
-    if (selectedChild.status === 'exited') {
-      return selectedChild.leave ? `退室済 ${selectedChild.leave}` : '退室済'
+    if (visibleWaitingChildren.some((child) => String(child.children_id) === String(SELECT_CHILD))) {
+      return TABS.WAITING
     }
-    if (selectedChild.enter) return `入室 ${selectedChild.enter}`
-    return '未入室'
-  }, [selectedChild])
+    if (visibleExperienceChildren.some((child) => String(child.children_id) === String(SELECT_CHILD))) {
+      return TABS.EXPERIENCE
+    }
+
+    const priority = Number(selectedChild.priority ?? 0)
+    if (priority === 1) return TABS.SOMETIMES
+    if (priority === 2) return TABS.TEMPORARY
+    return TABS.NORMAL
+  }, [
+    selectedChild,
+    SELECT_CHILD,
+    visibleWaitingChildren,
+    visibleExperienceChildren,
+  ])
 
   const openList = () => {
-    if (selectedChild?.category) {
-      setActiveTab(selectedChild.category)
-    }
+    if (selectedChildTab) setActiveTab(selectedChildTab)
     setIsOpen(true)
   }
 
@@ -73,20 +266,11 @@ export default function TodayChildrenList({ selectedChildId, onSelectChild }) {
     openList()
   }
 
-  const toggleDone = (childId) => {
-    setDoneChildIds((current) =>
-      current.includes(childId)
-        ? current.filter((id) => id !== childId)
-        : [...current, childId],
-    )
-  }
-
   const handleSelectChild = (child) => {
-    onSelectChild?.(child.children_id)
+    handleChildSelect(child.children_id, child.children_name, child.pc_name || '')
     setIsOpen(false)
   }
 
-  // 外側クリックで一覧を閉じる
   useEffect(() => {
     if (!isOpen) return undefined
 
@@ -100,7 +284,6 @@ export default function TodayChildrenList({ selectedChildId, onSelectChild }) {
     return () => document.removeEventListener('pointerdown', handlePointerDown)
   }, [isOpen])
 
-  // Ctrl + Space: 開閉 / Esc: 閉じる
   useEffect(() => {
     const handleKeyDown = (event) => {
       const target = event.target
@@ -121,9 +304,7 @@ export default function TodayChildrenList({ selectedChildId, onSelectChild }) {
       if (event.ctrlKey && event.code === 'Space') {
         event.preventDefault()
         setIsOpen((current) => {
-          if (!current && selectedChild?.category) {
-            setActiveTab(selectedChild.category)
-          }
+          if (!current && selectedChildTab) setActiveTab(selectedChildTab)
           return !current
         })
       }
@@ -131,10 +312,23 @@ export default function TodayChildrenList({ selectedChildId, onSelectChild }) {
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [isOpen, selectedChild])
+  }, [isOpen, selectedChildTab])
+
+  if (!hasStaffId) {
+    return (
+      <div className="sidebar-content flex-1 px-2 py-1">
+        <div
+          role="alert"
+          className="flex min-h-20 items-center justify-center rounded-lg border border-amber-700 bg-amber-50 px-3 py-4 text-center text-2xl font-bold text-red-700"
+        >
+          職員を設定してください
+        </div>
+      </div>
+    )
+  }
 
   return (
-    <div ref={rootRef} className="sidebar-content relative flex-1 px-2 py-1">
+    <div ref={rootRef} className="sidebar-content relative flex min-h-0 flex-1 flex-col px-2 py-1">
       {/* 常時表示: 現在選択中の児童 */}
       <button
         type="button"
@@ -151,14 +345,11 @@ export default function TodayChildrenList({ selectedChildId, onSelectChild }) {
             選択中の児童
           </div>
 
-          {selectedChild ? (
-            <>
-              <div className="truncate text-sm font-bold text-gray-800">
-                {selectedChild.children_id}: {selectedChild.children_name}
-                {selectedChild.pc_name ? ` : ${selectedChild.pc_name}` : ''}
-              </div>
-              <div className="mt-0.5 text-[11px] text-gray-500">{selectedStatus}</div>
-            </>
+          {SELECT_CHILD ? (
+            <div className="truncate text-sm font-bold text-gray-800">
+              {SELECT_CHILD}: {SELECT_CHILD_NAME || selectedChild?.children_name || ''}
+              {selectedChild?.pc_name ? ` : ${selectedChild.pc_name}` : ''}
+            </div>
           ) : (
             <div className="text-sm text-gray-500">児童を選択してください</div>
           )}
@@ -169,12 +360,11 @@ export default function TodayChildrenList({ selectedChildId, onSelectChild }) {
         </span>
       </button>
 
-      {/* 操作ヒント */}
       <div className="mt-1 flex justify-end pr-1 text-[10px] text-gray-400">
         Ctrl + Space で開閉 / Esc で閉じる
       </div>
 
-      {/* 展開される児童一覧 */}
+      {/* 実データを使う展開式児童一覧 */}
       <div
         className={`mt-2 origin-top overflow-hidden rounded-lg border border-gray-200 bg-white shadow-lg transition-all duration-200 ${
           isOpen
@@ -184,7 +374,7 @@ export default function TodayChildrenList({ selectedChildId, onSelectChild }) {
       >
         <div className="sticky top-0 z-10 border-b border-gray-200 bg-white p-2">
           <div className="flex flex-wrap gap-1">
-            {TABS.map((tab) => (
+            {TAB_ITEMS.map((tab) => (
               <button
                 key={tab.id}
                 type="button"
@@ -210,10 +400,10 @@ export default function TodayChildrenList({ selectedChildId, onSelectChild }) {
             )}
 
             {visibleChildren.map((child) => {
-              const selected = String(selectedChildId) === String(child.children_id)
+              const selected = String(SELECT_CHILD) === String(child.children_id)
               const done = doneChildIds.includes(child.children_id)
-              const absent = child.status === 'absent'
-              const exited = child.status === 'exited'
+              const absent = getChildAbsent(child)
+              const exited = getChildExited(child)
 
               return (
                 <li
@@ -221,10 +411,10 @@ export default function TodayChildrenList({ selectedChildId, onSelectChild }) {
                   onClick={() => handleSelectChild(child)}
                   className={`my-1 flex cursor-pointer items-center justify-between rounded-md border p-2 transition ${
                     selected
-                      ? exited
+                      ? exited && !absent
                         ? 'border-l-4 border-yellow-600 bg-yellow-200 font-bold ring-1 ring-yellow-300'
                         : 'border-l-4 border-cyan-700 bg-cyan-200 font-bold ring-1 ring-cyan-300'
-                      : exited
+                      : exited && !absent
                         ? 'bg-yellow-50 hover:bg-yellow-200'
                         : 'bg-gray-50 hover:bg-gray-200'
                   } ${absent ? 'grayscale opacity-40' : ''}`}
@@ -235,13 +425,7 @@ export default function TodayChildrenList({ selectedChildId, onSelectChild }) {
                       {child.pc_name ? ` : ${child.pc_name}` : ''}
                     </div>
                     <div className="mt-0.5 text-[11px] text-gray-500">
-                      {absent
-                        ? '欠席'
-                        : exited
-                          ? `退室済 ${child.leave}`
-                          : child.enter
-                            ? `入室 ${child.enter}`
-                            : '未入室'}
+                      {absent ? '欠席' : exited ? '退室済' : '利用中 / 未入室'}
                     </div>
                   </div>
 
@@ -250,7 +434,7 @@ export default function TodayChildrenList({ selectedChildId, onSelectChild }) {
                     aria-pressed={done}
                     onClick={(event) => {
                       event.stopPropagation()
-                      toggleDone(child.children_id)
+                      handleToggleDone(child, !done)
                     }}
                     className={`ml-2 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-xs font-bold transition ${
                       done
@@ -267,10 +451,10 @@ export default function TodayChildrenList({ selectedChildId, onSelectChild }) {
         </div>
       </div>
 
-      <div className="flex-[5] min-w-0">
-        <ChildMemoPanel selectedChild={selectedChild} />
+      {/* 元の SelectChildren と同じ実データ連動のメモ/出欠パネル */}
+      <div className="mt-2 min-h-0 flex-1">
+        <ChildMemoPanel />
       </div>
-
     </div>
   )
 }

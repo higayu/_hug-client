@@ -224,7 +224,7 @@ export default function PersonalRecordManagerPanel2() {
               👤 児童ID: {SELECT_CHILD}
             </span>
           ) : (
-            <p className="m-0 whitespace-nowrap text-sm text-gray-500">
+            <p className="m-0 whitespace-nowrap text-sm text-red-500 font-bold">
               Not Select
             </p>
           )}
