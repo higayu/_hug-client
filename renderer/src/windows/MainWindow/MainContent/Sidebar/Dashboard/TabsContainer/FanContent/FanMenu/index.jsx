@@ -92,7 +92,7 @@ export default function FanMenu() {
   return (
     <div
       ref={menuRef}
-      className="relative h-[320px] w-[360px]"
+      className="pointer-events-none relative h-[320px] w-[360px]"
     >
       {/* 扇形の薄い背景 */}
       <div
@@ -182,6 +182,7 @@ export default function FanMenu() {
         }
         aria-expanded={isOpen}
         className={`
+          pointer-events-auto
           absolute
           left-[10px]
           top-1/2

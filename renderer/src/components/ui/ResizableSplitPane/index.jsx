@@ -12,6 +12,13 @@ export default function ResizableSplitPane({
     DEFAULT_PERCENT,
   minLeftWidth = 300,
   minRightWidth = 300,
+
+  // リサイズバー全体の太さ
+  resizeBarWidth = 8,
+
+  // 中央グリップの太さ
+  gripWidth = 8,
+
   className = '',
 }) {
   const containerRef =
@@ -159,8 +166,6 @@ export default function ResizableSplitPane({
     event,
   ) {
     /*
-     * ここが重要。
-     *
      * pointerdownされていない状態では
      * 絶対にリサイズしない。
      */
@@ -338,7 +343,6 @@ export default function ResizableSplitPane({
           group
           relative
           z-20
-          w-2
           shrink-0
           touch-none
           cursor-col-resize
@@ -355,6 +359,10 @@ export default function ResizableSplitPane({
               `
           }
         `}
+        style={{
+          width:
+            `${resizeBarWidth}px`,
+        }}
       >
         {/* 中央のグリップ */}
         <div
@@ -364,7 +372,6 @@ export default function ResizableSplitPane({
             left-1/2
             top-1/2
             h-12
-            w-1
             -translate-x-1/2
             -translate-y-1/2
             rounded-full
@@ -380,6 +387,10 @@ export default function ResizableSplitPane({
                 `
             }
           `}
+          style={{
+            width:
+              `${gripWidth}px`,
+          }}
         />
       </div>
 

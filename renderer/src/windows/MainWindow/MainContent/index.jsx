@@ -22,9 +22,12 @@ function MainContent({ preloadPath }) {
       className="relative z-[1] flex h-full min-h-0 min-w-0 flex-1 overflow-hidden"
     >
       <ResizableSplitPane
-        defaultLeftPercent={50}
+        defaultLeftPercent={70}
         minLeftWidth={300}
-        minRightWidth={300}
+        minRightWidth={10} // リサイズバー全体の太さ 
+        resizeBarWidth={14} // 中央グリップの太さ 
+        gripWidth={8}
+
         left={(
           <aside
             id="settings"

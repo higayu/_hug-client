@@ -3,9 +3,9 @@ import { useMemo } from 'react'
 import ToolContent from './SelectChildren'
 import InsertChildren from './InsertChildren'
 import UpdateManager from './UpdateManager'
-import TestContent from './TestContent';
 import { useAppState } from '@/AppStateContext';
 import SpeechToText from './SpeechToText';
+import FanContent from './FanContent';
 
 function TabsContainer() {
   const {
@@ -23,7 +23,7 @@ function TabsContainer() {
 
     if (DEBUG_FLG) {
       baseTabs.push(
-        { id: 'TestContent', label: 'テストコンテンツ' },
+        { id: 'FanContent', label: 'クイック操作' },
         { id: 'speechToText', label: '🎙 音声入力' },
       )
     }
@@ -71,9 +71,9 @@ function TabsContainer() {
           </div>
         )}
 
-        {DEBUG_FLG && activeTab === 'TestContent' && (
+        {DEBUG_FLG && activeTab === 'FanContent' && (
           <div className="h-full flex flex-col">
-            <TestContent />
+            <FanContent />
           </div>
         )}
 
