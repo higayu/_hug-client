@@ -8,27 +8,27 @@ export default function FanMenu() {
     {
       id: "home",
       label: "ホーム",
-      position: "translate-x-[35px] -translate-y-[120px]",
+      position: "translate-x-[15px] -translate-y-[145px]",
     },
     {
       id: "search",
       label: "検索",
-      position: "translate-x-[100px] -translate-y-[85px]",
+      position: "translate-x-[65px] -translate-y-[135px]",
     },
     {
       id: "add",
       label: "追加",
-      position: "translate-x-[130px] translate-y-0",
+      position: "translate-x-[105px] -translate-y-[110px]",
     },
     {
       id: "edit",
       label: "編集",
-      position: "translate-x-[100px] translate-y-[85px]",
+      position: "translate-x-[130px] -translate-y-[75px]",
     },
     {
       id: "settings",
       label: "設定",
-      position: "translate-x-[35px] translate-y-[120px]",
+      position: "translate-x-[145px] -translate-y-[35px]",
     },
   ];
 
@@ -39,7 +39,6 @@ export default function FanMenu() {
   const handleItemClick = (item) => {
     console.log("押されたボタン:", item.id);
 
-    // 各処理をここへ
     switch (item.id) {
       case "home":
         console.log("ホーム");
@@ -94,26 +93,30 @@ export default function FanMenu() {
       ref={menuRef}
       className="pointer-events-none relative h-[320px] w-[360px]"
     >
-      {/* 扇形の薄い背景 */}
+      {/* 右上方向の扇形背景 */}
       <div
         className={`
           pointer-events-none
           absolute
           left-[48px]
           top-1/2
-          h-[250px]
-          w-[180px]
-          -translate-y-1/2
-          origin-left
-          rounded-r-[250px]
+          h-[170px]
+          w-[190px]
+          -translate-y-full
+          origin-bottom-left
+
+          rounded-tr-[190px]
+
           bg-black/[0.04]
+
           transition-all
           duration-500
+          ease-out
 
           ${
             isOpen
               ? "scale-100 opacity-100"
-              : "scale-60 opacity-0"
+              : "scale-75 opacity-0"
           }
         `}
       />
@@ -133,12 +136,13 @@ export default function FanMenu() {
             flex
             h-16
             w-16
-            -translate-y-1/2
             items-center
             justify-center
 
             rounded-full
+
             bg-white
+
             text-[13px]
             font-semibold
             text-gray-700
@@ -150,6 +154,9 @@ export default function FanMenu() {
             ease-out
 
             hover:bg-gray-100
+            hover:shadow-xl
+
+            active:scale-95
 
             ${
               isOpen
@@ -162,7 +169,7 @@ export default function FanMenu() {
                 : `
                     pointer-events-none
                     translate-x-0
-                    translate-y-[-50%]
+                    translate-y-0
                     scale-[0.4]
                     opacity-0
                   `
@@ -183,6 +190,7 @@ export default function FanMenu() {
         aria-expanded={isOpen}
         className={`
           pointer-events-auto
+
           absolute
           left-[10px]
           top-1/2
@@ -196,7 +204,9 @@ export default function FanMenu() {
           justify-center
 
           rounded-full
+
           bg-gray-900
+
           text-3xl
           text-white
 
@@ -204,8 +214,12 @@ export default function FanMenu() {
 
           transition-all
           duration-300
+          ease-out
 
           hover:bg-gray-800
+          hover:shadow-2xl
+
+          active:scale-95
 
           ${isOpen ? "rotate-45" : "rotate-0"}
         `}
