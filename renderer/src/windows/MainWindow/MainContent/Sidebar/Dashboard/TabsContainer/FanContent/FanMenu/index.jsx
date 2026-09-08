@@ -35,6 +35,28 @@ export default function FanMenu() {
   }
 
   useEffect(() => {
+    const handleKeyDown = (event) => {
+      // Ctrl + M で FanMenu を開閉
+      if (event.ctrlKey && !event.shiftKey && !event.altKey && event.key.toLowerCase() === 'm') {
+        event.preventDefault()
+        setIsOpen((prev) => !prev)
+        return
+      }
+
+      // Esc で FanMenu を閉じる
+      if (event.key === 'Escape') {
+        setIsOpen(false)
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [])
+
+  useEffect(() => {
     const handleOutsideClick = (event) => {
       if (menuRef.current && !menuRef.current.contains(event.target)) {
         setIsOpen(false)
