@@ -253,6 +253,11 @@ export default function TodayChildrenList() {
     visibleExperienceChildren,
   ])
 
+  const hasSelectedChild =
+    SELECT_CHILD !== null &&
+    SELECT_CHILD !== undefined &&
+    String(SELECT_CHILD).trim() !== ''
+
   const openList = () => {
     if (selectedChildTab) setActiveTab(selectedChildTab)
     setIsOpen(true)
@@ -335,9 +340,13 @@ export default function TodayChildrenList() {
         onClick={toggleList}
         aria-expanded={isOpen}
         className={`group flex w-full items-center justify-between rounded-lg border px-3 py-2 text-left shadow-sm transition ${
-          isOpen
-            ? 'border-cyan-500 bg-cyan-50 ring-2 ring-cyan-100'
-            : 'border-gray-300 bg-white hover:border-cyan-400 hover:bg-cyan-50/50'
+          hasSelectedChild
+            ? isOpen
+              ? 'border-sky-600 bg-sky-200 ring-2 ring-sky-300 shadow-md'
+              : 'border-sky-500 bg-sky-200 ring-2 ring-sky-200 shadow-md hover:border-sky-600 hover:bg-sky-300'
+            : isOpen
+              ? 'border-gray-400 bg-gray-100 grayscale ring-2 ring-gray-200'
+              : 'border-gray-300 bg-gray-100 grayscale hover:border-gray-400 hover:bg-gray-200'
         }`}
       >
         <div className="min-w-0">
@@ -346,7 +355,7 @@ export default function TodayChildrenList() {
           </div>
 
           {SELECT_CHILD ? (
-            <div className="truncate text-sm font-bold text-gray-800">
+            <div className={`truncate text-sm font-bold ${hasSelectedChild ? 'text-sky-950' : 'text-gray-800'}`}>
               {SELECT_CHILD}: {SELECT_CHILD_NAME || selectedChild?.children_name || ''}
               {selectedChild?.pc_name ? ` : ${selectedChild.pc_name}` : ''}
             </div>
@@ -355,7 +364,13 @@ export default function TodayChildrenList() {
           )}
         </div>
 
-        <span className="ml-3 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gray-100 text-gray-600 transition group-hover:bg-cyan-100 group-hover:text-cyan-700">
+        <span
+          className={`ml-3 flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition ${
+            hasSelectedChild
+              ? 'bg-sky-500 text-white shadow-sm group-hover:bg-sky-600'
+              : 'bg-gray-200 text-gray-500 grayscale group-hover:bg-gray-300'
+          }`}
+        >
           <ChevronIcon open={isOpen} />
         </span>
       </button>
