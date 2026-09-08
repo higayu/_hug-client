@@ -355,7 +355,7 @@ export default function TodayChildrenList() {
           </div>
 
           {SELECT_CHILD ? (
-            <div className={`truncate text-sm font-bold ${hasSelectedChild ? 'text-sky-950' : 'text-gray-800'}`}>
+            <div className={`truncate text-xl font-bold ${hasSelectedChild ? 'text-sky-950' : 'text-gray-800'}`}>
               {SELECT_CHILD}: {SELECT_CHILD_NAME || selectedChild?.children_name || ''}
               {selectedChild?.pc_name ? ` : ${selectedChild.pc_name}` : ''}
             </div>
