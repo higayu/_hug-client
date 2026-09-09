@@ -55,7 +55,7 @@ const ActiveApiStatus = ({ className = '' }) => {
   const detail = isMariaDb
     ? '接続モード'
     : isLaravel
-      ? 'API接続モード'
+      ? ''
     : isSqlite
       ? '非常用モード'
       : '未初期化'

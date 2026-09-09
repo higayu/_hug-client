@@ -138,6 +138,7 @@ export async function initializeAppState({
     // 3) ini.json → Redux 反映用 merged
     // =============================================================
     const apiSettings = ini?.apiSettings ?? {};
+    const uiSettings = ini?.appSettings?.ui ?? {};
 
     const databaseType = normalizeDatabaseType(apiSettings.databaseType);
 
@@ -156,6 +157,10 @@ export async function initializeAppState({
 
     merged.AUTO_SYNCHRONIZATION = autoSynchronization;
     merged.AUTO_SWITCHING = autoSwitching;
+    merged.closeButtonsVisible = toBooleanFlag(
+      uiSettings.showCloseButtons,
+      true
+    );
 
     if (apiSettings.facilityId != null) {
       merged.FACILITY_ID = String(apiSettings.facilityId);
@@ -187,6 +192,9 @@ export async function initializeAppState({
 
       rawDebugFlg: apiSettings.debugFlg,
       DEBUG_FLG: merged.DEBUG_FLG,
+
+      rawShowCloseButtons: uiSettings.showCloseButtons,
+      closeButtonsVisible: merged.closeButtonsVisible,
 
       CURRENT_DAY_OF_WEEK: merged.CURRENT_DAY_OF_WEEK,
     });

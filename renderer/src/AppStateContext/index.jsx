@@ -62,6 +62,12 @@ const toIniBooleanString = (value, defaultValue = true) => {
   return String(toBooleanFlag(value, defaultValue))
 }
 
+const applyCloseButtonsVisibility = (visible) => {
+  document.querySelectorAll('.close-btn').forEach((button) => {
+    button.style.display = visible ? 'inline' : 'none'
+  })
+}
+
 export function AppStateProvider({ children }) {
   const dispatch = useDispatch()
   const didInitRef = useRef(false)
@@ -91,6 +97,10 @@ export function AppStateProvider({ children }) {
       dispatch(setStaffIdRedux(staffId))
     }
   }, [authenticatedStaffId, dispatch, redux.STAFF_ID])
+
+  useEffect(() => {
+    applyCloseButtonsVisibility(redux.appState.closeButtonsVisible)
+  }, [redux.appState.closeButtonsVisible])
 
   // =============================================================
   // 状態監視ログ
@@ -444,6 +454,7 @@ export function AppStateProvider({ children }) {
     console.group('[AppStateContext] iniState -> Redux effect')
 
     const apiSettings = iniState?.apiSettings
+    const uiSettings = iniState?.appSettings?.ui
 
     console.log('iniState.apiSettings:', apiSettings)
     console.log('iniState databaseType:', apiSettings?.databaseType)
@@ -543,6 +554,17 @@ export function AppStateProvider({ children }) {
       updates.AUTO_SWITCHING = autoSwitching
     }
 
+    if (uiSettings) {
+      const closeButtonsVisible = toBooleanFlag(
+        uiSettings.showCloseButtons,
+        true
+      )
+
+      if (redux.appState.closeButtonsVisible !== closeButtonsVisible) {
+        updates.closeButtonsVisible = closeButtonsVisible
+      }
+    }
+
     console.log('[AppStateContext] updates:', updates)
 
     if (Object.keys(updates).length > 0) {
@@ -559,12 +581,14 @@ export function AppStateProvider({ children }) {
     console.groupEnd()
   }, [
     iniState?.apiSettings,
+    iniState?.appSettings?.ui,
     redux.FACILITY_ID,
     redux.DATABASE_TYPE,
     redux.USE_AI,
     redux.DEBUG_FLG,
     redux.AUTO_SYNCHRONIZATION,
     redux.AUTO_SWITCHING,
+    redux.appState.closeButtonsVisible,
     dispatch,
   ])
 

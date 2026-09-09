@@ -12,7 +12,6 @@ import { isAttendanceDataLoaded } from '@/utils/attendance/helpers/attendanceSta
 import './index.css'
 import PersonalRecordCheckPanel from '@/components/common/hug_function/PersonalRecordCheckPanel'
 import ProfessionalSupportCheckPanel2 from '@/components/common/hug_function/ProfessionalSupportCheckPanel2'
-import GetTodayUsersChildren from '@/components/common/hug_function/GetTodayUsersChildren'
 
 const pickValue = (...values) => {
   for (const value of values) {
@@ -431,12 +430,6 @@ export default function ChildMemoPanel() {
   const renderPanelShell = (content) => {
     return (
       <div className="child-memo-panel flex-1 border-l border-gray-300 bg-gray-50 flex flex-col">
-        <div className="shrink-0 border-b border-gray-200 bg-white">
-          <div className="flex flex-row items-center justify-center">
-            <GetTodayUsersChildren />
-          </div>
-        </div>
-
         {content}
       </div>
     )

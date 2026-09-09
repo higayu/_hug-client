@@ -10,7 +10,7 @@ import { loadAllReload } from '@/utils/config/reloadSettings.js'
 import { useCustomButtonManager } from './useCustomButtonManager.js'
 
 export function useHugActions() {
-  const { appState, updateAppState } = useAppState()
+  const { appState } = useAppState()
   const { showSuccessToast, showErrorToast } = useToast()
   const { reloadCustomButtons } = useCustomButtonManager()
   const initializedRef = useRef(false)
@@ -145,20 +145,6 @@ export function useHugActions() {
     }
   }, [reloadCustomButtons, showSuccessToast])
 
-  // 閉じるボタンの表示ON/OFF
-  const handleCloseToggle = useCallback(
-    (e) => {
-      const visible = e.target.checked
-
-      updateAppState({ closeButtonsVisible: visible })
-
-      document.querySelectorAll('.close-btn').forEach((btn) => {
-        btn.style.display = visible ? 'inline' : 'none'
-      })
-    },
-    [updateAppState]
-  )
-
   // ボタンのイベントリスナーを設定
   useEffect(() => {
     if (initializedRef.current) return
@@ -190,12 +176,6 @@ export function useHugActions() {
       getUrlBtn.addEventListener('click', handleGetUrl)
     }
 
-    // closeToggle
-    const closeToggle = document.getElementById('closeToggle')
-    if (closeToggle) {
-      closeToggle.addEventListener('change', handleCloseToggle)
-    }
-
     // ===== クリーンアップ =====
     return () => {
       if (loginBtn) {
@@ -214,16 +194,12 @@ export function useHugActions() {
         getUrlBtn.removeEventListener('click', handleGetUrl)
       }
 
-      if (closeToggle) {
-        closeToggle.removeEventListener('change', handleCloseToggle)
-      }
     }
   }, [
     handleLogin,
     handleIndividualSupport,
     handleSpecializedSupport,
     handleGetUrl,
-    handleCloseToggle,
   ])
 
   return {
@@ -232,6 +208,5 @@ export function useHugActions() {
     handleIndividualSupport,
     handleSpecializedSupport,
     handleLoadIni,
-    handleCloseToggle,
   }
 }

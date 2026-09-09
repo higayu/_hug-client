@@ -22,6 +22,12 @@ const toBooleanFlag = (value, defaultValue = true) => {
   return defaultValue
 }
 
+const applyCloseButtonsVisibility = (visible) => {
+  document.querySelectorAll('.close-btn').forEach((button) => {
+    button.style.display = visible ? 'inline' : 'none'
+  })
+}
+
 const syncFormValue = (elementId, value) => {
   const element = document.getElementById(elementId)
 
@@ -103,6 +109,7 @@ export async function loadAllReload() {
     console.log('📄 [reloadSettings] ini.json:', iniData)
 
     const apiSettings = iniData.apiSettings || {}
+    const uiSettings = iniData.appSettings?.ui || {}
 
     const databaseType = apiSettings.databaseType || 'sqlite'
     const useAI = apiSettings.useAI || 'gemini'
@@ -123,6 +130,11 @@ export async function loadAllReload() {
       true
     )
 
+    const closeButtonsVisible = toBooleanFlag(
+      uiSettings.showCloseButtons,
+      true
+    )
+
     console.log('[reloadSettings] apiSettings normalized:', {
       databaseType,
       useAI,
@@ -131,6 +143,7 @@ export async function loadAllReload() {
       debugFlg,
       autoSynchronization,
       autoSwitching,
+      closeButtonsVisible,
     })
 
     // =============================================================
@@ -152,8 +165,11 @@ export async function loadAllReload() {
         DEBUG_FLG: debugFlg,
         AUTO_SYNCHRONIZATION: autoSynchronization,
         AUTO_SWITCHING: autoSwitching,
+        closeButtonsVisible,
       })
     )
+
+    applyCloseButtonsVisibility(closeButtonsVisible)
 
     // =============================================================
     // 6) Context 側の iniState も同期
@@ -181,6 +197,7 @@ export async function loadAllReload() {
     // 画面側に同名IDの input / checkbox がある場合だけ同期されます
     syncFormValue('api-auto-synchronization', autoSynchronization)
     syncFormValue('api-auto-switching', autoSwitching)
+    syncFormValue('show-close-buttons', closeButtonsVisible)
 
     // =============================================================
     // 8) DB種別変更イベントを発火
@@ -211,6 +228,7 @@ export async function loadAllReload() {
           useAI,
           autoSynchronization,
           autoSwitching,
+          closeButtonsVisible,
         },
       })
     )

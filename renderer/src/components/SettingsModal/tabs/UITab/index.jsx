@@ -5,6 +5,7 @@ import {
 
 import { useAppState } from '@/AppStateContext'
 import { useToast } from '@/provider/ToastProvider/ToastContext'
+import CloseToggleSwitch from './CloseToggleSwitch'
 
 const clamp = (
   value,
@@ -77,6 +78,12 @@ const createFormState = (iniState) => {
   }
 }
 
+const applyCloseButtonsVisibility = (visible) => {
+  document.querySelectorAll('.close-btn').forEach((button) => {
+    button.style.display = visible ? 'inline' : 'none'
+  })
+}
+
 function UITab() {
   const [isSaving, setIsSaving] = useState(false)
   const [isReloading, setIsReloading] = useState(false)
@@ -86,6 +93,7 @@ function UITab() {
     loadIni,
     saveIni,
     setIniState,
+    updateAppState,
   } = useAppState()
 
   const {
@@ -118,6 +126,13 @@ function UITab() {
         type === 'checkbox'
           ? checked
           : value,
+    }))
+  }
+
+  const handleShowCloseButtonsChange = (checked) => {
+    setForm((previous) => ({
+      ...previous,
+      showCloseButtons: checked,
     }))
   }
 
@@ -202,6 +217,10 @@ function UITab() {
       }
 
       setIniState(nextIniState)
+      updateAppState({
+        closeButtonsVisible: nextUi.showCloseButtons,
+      })
+      applyCloseButtonsVisibility(nextUi.showCloseButtons)
 
       setForm(
         createFormState(nextIniState)
@@ -337,18 +356,19 @@ function UITab() {
           </select>
         </div>
 
-        <label className="mb-3 flex cursor-pointer items-center gap-2 py-2 font-medium text-gray-700">
-          <input
-            type="checkbox"
-            id="show-close-buttons"
-            name="showCloseButtons"
+        <div className="mb-3 flex items-center gap-3 py-2 font-medium text-gray-700">
+          <CloseToggleSwitch
             checked={form.showCloseButtons}
-            onChange={handleChange}
-            className="h-[18px] w-[18px] accent-blue-600"
+            onChange={handleShowCloseButtonsChange}
           />
 
-          <span>閉じるボタンを表示</span>
-        </label>
+          <label
+            htmlFor="show-close-buttons"
+            className="cursor-pointer"
+          >
+            閉じるボタンを表示
+          </label>
+        </div>
 
         <label className="mb-3 flex cursor-pointer items-center gap-2 py-2 font-medium text-gray-700">
           <input

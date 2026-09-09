@@ -72,13 +72,14 @@ export default function UrlContent() {
   
 
   return (
-    <div className="flex items-center w-full">
+    <div className="flex items-center">
       <input
         type="text"
         readOnly
         value={currentUrl}
-        className="w-full font-medium text-gray-600 bg-slate-50 px-3 py-2 border border-gray-300 rounded-md text-sm"
+        className="font-medium text-gray-600 bg-slate-50 px-3 py-2 border border-gray-300 rounded-md text-sm"
         placeholder="URLを取得中..."
+        title={currentUrl || "URLを取得中..."}
       />
     </div>
   );

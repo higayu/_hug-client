@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useSelector } from 'react-redux';
 
 import {
@@ -7,7 +7,6 @@ import {
 
 
 import UrlContent from '@/components/ui/UrlContent';
-import CloseToggleSwitch from '@/components/ui/CloseToggleSwitch';
 import FacilitySelector from '@/components/FacilitySelector';
 import ActiveApiStatus from '@/components/common/Synchronization/ActiveApiStatus';
 
@@ -22,8 +21,6 @@ import { useAppState } from '@/AppStateContext';
 
 export default function Toolbar() {
   const facilityId = useSelector(selectFacilityId);
-
-  const [showCloseButton, setShowCloseButton] = useState(true);
 
   const {
     activeSidebarTab: activeTab,
@@ -84,15 +81,11 @@ export default function Toolbar() {
 
 
       {/* URL・施設 */}
-      <div className="flex w-full flex-col p-1">
-        <UrlContent />
+      <div className="flex w-full p-1">
         <div className="flex w-full flex-row items-center justify-between">
           {/* 左側グループ */}
           <div className="flex flex-row items-center gap-3">
-            <CloseToggleSwitch
-              checked={showCloseButton}
-              onChange={setShowCloseButton}
-            />
+            <UrlContent />
 
             {/* 施設名の表示 */}
             <FacilitySelector />

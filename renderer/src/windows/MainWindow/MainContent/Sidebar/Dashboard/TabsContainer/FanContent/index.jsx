@@ -5,7 +5,7 @@ import FanMenu from './FanMenu'
 export default function FanContent() {
   return (
     <section
-      className="flex h-full min-h-0 min-w-0 gap-3 overflow-hidden p-2"
+      className="flex h-full min-h-0 min-w-0"
       aria-label="児童選択とメインパネル"
     >
       {/* 左: 実データの児童選択 */}

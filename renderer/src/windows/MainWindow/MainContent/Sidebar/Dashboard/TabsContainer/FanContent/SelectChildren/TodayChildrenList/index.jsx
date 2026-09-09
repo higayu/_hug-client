@@ -4,6 +4,7 @@ import { splitChildrenData } from '@/AppStateContext/splitChildrenData'
 import { TABS } from '@/components/common/constants'
 import { useTodayChildrenListController } from './useTodayChildrenListController'
 import ChildMemoPanel from './ChildMemoPanel'
+import GetTodayUsersChildren from './GetTodayUsersChildren'
 
 const TAB_ITEMS = [
   { id: TABS.NORMAL, label: '通常' },
@@ -334,6 +335,12 @@ export default function TodayChildrenList() {
 
   return (
     <div ref={rootRef} className="sidebar-content relative flex min-h-0 flex-1 flex-col px-2 py-1">
+      {/* 常時表示: Auto/取得ボタン + 取得時間/フィルター */}
+      <div className="mt-2 rounded-lg border border-gray-200 bg-gray-50 px-2 py-2">
+        <div className="flex items-center justify-center">
+          <GetTodayUsersChildren />
+        </div>
+      </div>
       {/* 常時表示: 現在選択中の児童 */}
       <button
         type="button"
