@@ -162,6 +162,26 @@ function registerIpcHandlers(mainWindow, tempNoteHandler) {
       }
     });
 
+    // アプリ内ツールメニューから呼び出すウィンドウ操作
+    ipcMain.handle("window:minimize", (event) => {
+      BrowserWindow.fromWebContents(event.sender)?.minimize();
+    });
+
+    ipcMain.handle("window:toggle-maximize", (event) => {
+      const win = BrowserWindow.fromWebContents(event.sender);
+      if (!win) return;
+
+      win.isMaximized() ? win.unmaximize() : win.maximize();
+    });
+
+    ipcMain.handle("window:reload", (event) => {
+      BrowserWindow.fromWebContents(event.sender)?.reload();
+    });
+
+    ipcMain.handle("app:quit", () => {
+      app.quit();
+    });
+
     
   } catch (error) {
     console.error("error:", error);

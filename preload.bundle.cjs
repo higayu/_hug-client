@@ -370,7 +370,11 @@ var require_devApi = __commonJS({
   "preload/devApi.js"(exports2, module2) {
     function createDevApi2(ipcRenderer2) {
       return {
-        openDevTools: () => ipcRenderer2.invoke("open-devtools")
+        openDevTools: () => ipcRenderer2.invoke("open-devtools"),
+        minimizeWindow: () => ipcRenderer2.invoke("window:minimize"),
+        toggleMaximizeWindow: () => ipcRenderer2.invoke("window:toggle-maximize"),
+        reloadWindow: () => ipcRenderer2.invoke("window:reload"),
+        quitApp: () => ipcRenderer2.invoke("app:quit")
       };
     }
     module2.exports = {

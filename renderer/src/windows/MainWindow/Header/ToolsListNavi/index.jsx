@@ -1,5 +1,9 @@
 import {
     AdjustmentsHorizontalIcon,
+    ArrowPathIcon,
+    ArrowsPointingOutIcon,
+    MinusIcon,
+    PowerIcon,
     TrashIcon,
   } from '@heroicons/react/24/outline';
   
@@ -89,6 +93,42 @@ import {
         );
       }
     };
+
+    const handleWindowAction = async (
+      closeMenu,
+      action,
+      actionName,
+    ) => {
+      closeMenu();
+
+      try {
+        await action?.();
+      } catch (error) {
+        console.error(
+          `[ToolsListNavi] ${actionName}エラー:`,
+          error,
+        );
+      }
+    };
+
+    const windowMenuButtonClass = `
+      flex
+      w-full
+      cursor-pointer
+      items-center
+      gap-2
+      border-none
+      bg-transparent
+      px-4
+      py-2
+      text-left
+      text-sm
+      text-black
+      transition-colors
+      hover:bg-[#e3f2fd]
+      focus:bg-[#e3f2fd]
+      focus:outline-none
+    `;
   
     return (
       <PortalDropdown
@@ -335,6 +375,75 @@ import {
                 </li>
               </>
             )}
+
+            <li
+              className="my-1 border-t border-gray-200"
+              role="separator"
+            />
+
+            <li className="m-0 p-0">
+              <button
+                type="button"
+                role="menuitem"
+                onClick={() => handleWindowAction(
+                  closeMenu,
+                  window.api?.minimizeWindow,
+                  '最小化',
+                )}
+                className={windowMenuButtonClass}
+              >
+                <MinusIcon className="h-4 w-4" aria-hidden="true" />
+                <span>最小化</span>
+              </button>
+            </li>
+
+            <li className="m-0 p-0">
+              <button
+                type="button"
+                role="menuitem"
+                onClick={() => handleWindowAction(
+                  closeMenu,
+                  window.api?.toggleMaximizeWindow,
+                  '最大化 / 復元',
+                )}
+                className={windowMenuButtonClass}
+              >
+                <ArrowsPointingOutIcon className="h-4 w-4" aria-hidden="true" />
+                <span>最大化 / 復元</span>
+              </button>
+            </li>
+
+            <li className="m-0 p-0">
+              <button
+                type="button"
+                role="menuitem"
+                onClick={() => handleWindowAction(
+                  closeMenu,
+                  window.api?.reloadWindow,
+                  'リロード',
+                )}
+                className={windowMenuButtonClass}
+              >
+                <ArrowPathIcon className="h-4 w-4" aria-hidden="true" />
+                <span>リロード</span>
+              </button>
+            </li>
+
+            <li className="m-0 p-0">
+              <button
+                type="button"
+                role="menuitem"
+                onClick={() => handleWindowAction(
+                  closeMenu,
+                  window.api?.quitApp,
+                  'アプリ終了',
+                )}
+                className={`${windowMenuButtonClass} text-red-700 hover:bg-red-50 focus:bg-red-50`}
+              >
+                <PowerIcon className="h-4 w-4" aria-hidden="true" />
+                <span>アプリを終了</span>
+              </button>
+            </li>
           </ul>
         )}
       </PortalDropdown>
