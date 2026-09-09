@@ -18,7 +18,7 @@ export default function GetTodayUsersChildren({ HideFlg = false }) {
   )
 
   return (
-    <div className="flex flex-row gap-1 py-1 px-2 items-center justify-center">
+    <div className="flex flex-row gap-1 px-2 items-center justify-center">
       <AttendanceFetchButtons
         autoFetchEnabled={autoFetchEnabled}
         onToggleAutoFetch={toggleAutoFetch}

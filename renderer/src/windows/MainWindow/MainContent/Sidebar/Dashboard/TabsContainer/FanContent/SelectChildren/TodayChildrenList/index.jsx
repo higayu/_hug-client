@@ -322,10 +322,10 @@ export default function TodayChildrenList() {
 
   if (!hasStaffId) {
     return (
-      <div className="sidebar-content flex-1 px-2 py-1">
+      <div className="sidebar-content flex-1">
         <div
           role="alert"
-          className="flex min-h-20 items-center justify-center rounded-lg border border-amber-700 bg-amber-50 px-3 py-4 text-center text-2xl font-bold text-red-700"
+          className="flex min-h-20 items-center justify-center rounded-lg border border-amber-700 bg-amber-50 px-3 text-center text-2xl font-bold text-red-700"
         >
           職員を設定してください
         </div>
@@ -334,9 +334,9 @@ export default function TodayChildrenList() {
   }
 
   return (
-    <div ref={rootRef} className="sidebar-content relative flex min-h-0 flex-1 flex-col px-2 py-1">
+    <div ref={rootRef} className="sidebar-content relative flex min-h-0 flex-1 flex-col">
       {/* 常時表示: Auto/取得ボタン + 取得時間/フィルター */}
-      <div className="mt-2 rounded-lg border border-gray-200 bg-gray-50 px-2 py-2">
+      <div className="rounded-lg border border-gray-200 bg-gray-50 px-2">
         <div className="flex items-center justify-center">
           <GetTodayUsersChildren />
         </div>
@@ -346,7 +346,7 @@ export default function TodayChildrenList() {
         type="button"
         onClick={toggleList}
         aria-expanded={isOpen}
-        className={`group flex w-full items-center justify-between rounded-lg border px-3 py-2 text-left shadow-sm transition ${
+        className={`group flex w-full items-center justify-between rounded-lg border px-3 text-left shadow-sm transition ${
           hasSelectedChild
             ? isOpen
               ? 'border-sky-600 bg-sky-200 ring-2 ring-sky-300 shadow-md'
