@@ -37,7 +37,12 @@ export default function FanMenu() {
   useEffect(() => {
     const handleKeyDown = (event) => {
       // Ctrl + M で FanMenu を開閉
-      if (event.ctrlKey && !event.shiftKey && !event.altKey && event.key.toLowerCase() === 'm') {
+      if (
+        event.ctrlKey &&
+        !event.shiftKey &&
+        !event.altKey &&
+        event.key.toLowerCase() === 'm'
+      ) {
         event.preventDefault()
         setIsOpen((prev) => !prev)
         return
@@ -73,15 +78,15 @@ export default function FanMenu() {
   return (
     <div
       ref={menuRef}
-      className="pointer-events-none fixed bottom-4 left-4 z-50 h-[250px] w-[260px]"
+      className="pointer-events-none fixed bottom-2 left-2 z-50 h-[250px] w-[260px]"
     >
       {/* 扇形背景 */}
       <div
         className={`
           pointer-events-none
           absolute
-          bottom-[50px]
-          left-[50px]
+          bottom-[15px]
+          left-[15px]
           h-[180px]
           w-[190px]
           origin-bottom-left
@@ -106,27 +111,50 @@ export default function FanMenu() {
             aria-pressed={isActive}
             className={`
               absolute
-              bottom-[18px]
-              left-[18px]
+              bottom-[0px]
+              left-[0px]
               z-10
               flex
               h-16
               w-16
+              cursor-pointer
               items-center
               justify-center
               rounded-full
               text-[13px]
               font-semibold
               shadow-lg
-              transition-all
-              duration-500
+              ring-0
+              transition-[background-color,color,box-shadow,opacity,transform]
+              duration-300
               ease-out
+
               hover:shadow-xl
+              hover:ring-2
+              hover:ring-gray-400
+              hover:ring-offset-2
+
+              focus-visible:outline-none
+              focus-visible:ring-2
+              focus-visible:ring-gray-500
+              focus-visible:ring-offset-2
+
               ${
                 isActive
-                  ? 'bg-gray-900 text-white'
-                  : 'bg-white text-gray-700 hover:bg-gray-100'
+                  ? `
+                      bg-gray-900
+                      text-white
+                      hover:bg-gray-700
+                      hover:ring-gray-600
+                    `
+                  : `
+                      bg-white
+                      text-gray-700
+                      hover:bg-gray-200
+                      hover:text-gray-900
+                    `
               }
+
               ${
                 isOpen
                   ? `${item.position} pointer-events-auto scale-100 opacity-100`
@@ -148,12 +176,13 @@ export default function FanMenu() {
         className={`
           pointer-events-auto
           absolute
-          bottom-[10px]
-          left-[10px]
+          bottom-[0px]
+          left-[0px]
           z-20
           flex
-          h-20
-          w-20
+          h-12
+          w-12
+          cursor-pointer
           items-center
           justify-center
           rounded-full
